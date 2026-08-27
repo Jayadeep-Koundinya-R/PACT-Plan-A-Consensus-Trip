@@ -9,7 +9,7 @@
     "web": "expo start --web",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "test": "node --test src/lib/consensus/__tests__/engine.test.mjs",
+    "test": "node --test src/lib/consensus/__tests__/*.test.mjs src/lib/security/__tests__/*.test.mjs",
     "verify-demo": "node scripts/run-demo-scoring.mjs"
   },
   "dependencies": {

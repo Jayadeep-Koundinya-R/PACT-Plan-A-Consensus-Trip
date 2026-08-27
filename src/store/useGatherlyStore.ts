@@ -7,6 +7,7 @@ import {
 } from '../lib/consensus/types';
 import { calculateConsensus } from '../lib/consensus/engine';
 import { DEMO_MEMBERS, DEMO_TRIP_OPTIONS, DEMO_GROUP_ID } from '../lib/consensus/seedData';
+import { assertOrganizerCanFinalize } from '../lib/security/accessControl';
 
 export interface Group {
   id: string;
@@ -37,6 +38,7 @@ interface GatherlyState {
   activeGroupId: string;
   members: MemberPreference[];
   tripOptions: TripOption[];
+  preferenceDrafts: Record<string, Partial<MemberPreference>>; // key: `${groupId}_${userId}`
 
   // Voting & Consensus
   votes: Record<string, boolean>; // key: `${optionId}_${userId}` -> true (approved)
@@ -46,11 +48,15 @@ interface GatherlyState {
   toggleDarkMode: () => void;
   setCurrentUser: (userId: string) => void;
   setSubscriptionPlan: (plan: 'free' | 'premium_monthly' | 'premium_annual') => void;
+  createGroup: (name: string) => Group;
+  joinGroupByCode: (code: string) => { success: boolean; message: string; group?: Group };
+  setActiveGroup: (groupId: string) => void;
+  savePreferenceDraft: (groupId: string, draft: Partial<MemberPreference>) => void;
   submitPreferences: (preference: MemberPreference) => void;
   castVote: (optionId: string, approved: boolean) => void;
   getConsensusResults: () => ConsensusResult;
   getOptionApprovalCount: (optionId: string) => number;
-  finalizeTrip: () => TripBrief | null;
+  finalizeTrip: (callerUserId?: string) => TripBrief;
   resetDemoState: () => void;
 }
 
@@ -72,9 +78,9 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   activeGroupId: DEMO_GROUP_ID,
   members: DEMO_MEMBERS,
   tripOptions: DEMO_TRIP_OPTIONS,
+  preferenceDrafts: {},
 
   votes: {
-    // Initial demo votes (all approve Goa, partial approve others)
     'opt-goa-01_user-maya-001': true,
     'opt-goa-01_user-jake-002': true,
     'opt-goa-01_user-priya-003': true,
@@ -94,6 +100,55 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   setCurrentUser: (userId: string) => set({ currentUserId: userId }),
 
   setSubscriptionPlan: (plan) => set({ subscriptionPlan: plan }),
+
+  setActiveGroup: (groupId: string) => set({ activeGroupId: groupId }),
+
+  createGroup: (name: string) => {
+    const { currentUserId, groups } = get();
+    const cleanName = name.trim() || 'New Trip Circle';
+    const code = cleanName
+      .replace(/[^A-Za-z0-9]/g, '')
+      .slice(0, 4)
+      .toUpperCase() + '-' + Math.floor(1000 + Math.random() * 9000);
+
+    const newGroup: Group = {
+      id: `group-${Date.now()}`,
+      name: cleanName,
+      inviteCode: code,
+      organizerId: currentUserId,
+      status: 'collecting',
+      totalMembersCount: 1
+    };
+
+    set({
+      groups: [...groups, newGroup],
+      activeGroupId: newGroup.id
+    });
+
+    return newGroup;
+  },
+
+  joinGroupByCode: (code: string) => {
+    const clean = code.trim().toUpperCase();
+    const { groups } = get();
+    const found = groups.find((g) => g.inviteCode.toUpperCase() === clean);
+    if (found) {
+      set({ activeGroupId: found.id });
+      return { success: true, message: `Joined ${found.name}!`, group: found };
+    }
+    return { success: false, message: 'Invalid invite code. Please check and try again.' };
+  },
+
+  savePreferenceDraft: (groupId: string, draft: Partial<MemberPreference>) => {
+    const { currentUserId } = get();
+    const key = `${groupId}_${currentUserId}`;
+    set((state) => ({
+      preferenceDrafts: {
+        ...state.preferenceDrafts,
+        [key]: { ...state.preferenceDrafts[key], ...draft }
+      }
+    }));
+  },
 
   submitPreferences: (preference: MemberPreference) => {
     set((state) => {
@@ -139,16 +194,29 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     ).length;
   },
 
-  finalizeTrip: () => {
+  finalizeTrip: (callerUserId?: string) => {
+    const { currentUserId, activeGroupId, groups, members } = get();
+    const effectiveCaller = callerUserId || currentUserId;
+    const currentGroup = groups.find((g) => g.id === activeGroupId) || initialGroup;
     const consensus = get().getConsensusResults();
-    if (!consensus.winningOption) return null;
+
+    if (!consensus.winningOption) {
+      throw new Error('No winning option meets the consensus criteria.');
+    }
+
+    // Security assertion: Organizer authorization check
+    assertOrganizerCanFinalize(
+      effectiveCaller,
+      currentGroup.organizerId,
+      consensus.winningOption.consensusPercent
+    );
 
     const brief: TripBrief = {
-      groupId: get().activeGroupId,
+      groupId: activeGroupId,
       winningOption: consensus.winningOption,
       finalizedAt: new Date().toISOString(),
-      confirmedParticipants: get().members.map((m) => m.userName),
-      totalBudgetRange: `$${Math.min(...get().members.map((m) => m.budgetMin))} - $${Math.max(...get().members.map((m) => m.budgetMax))}`,
+      confirmedParticipants: members.map((m) => m.userName),
+      totalBudgetRange: `$${Math.min(...members.map((m) => m.budgetMin))} - $${Math.max(...members.map((m) => m.budgetMax))}`,
       travelWindow: `${consensus.winningOption.option.dateStart} to ${consensus.winningOption.option.dateEnd}`
     };
 
@@ -166,8 +234,23 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     set({
       currentUserId: 'user-maya-001',
       groups: [initialGroup],
+      activeGroupId: DEMO_GROUP_ID,
       members: DEMO_MEMBERS,
       tripOptions: DEMO_TRIP_OPTIONS,
+      preferenceDrafts: {},
+      votes: {
+        'opt-goa-01_user-maya-001': true,
+        'opt-goa-01_user-jake-002': true,
+        'opt-goa-01_user-priya-003': true,
+        'opt-goa-01_user-alex-004': true,
+        'opt-goa-01_user-sam-005': true,
+        'opt-manali-02_user-jake-002': true,
+        'opt-manali-02_user-alex-004': true,
+        'opt-kerala-04_user-jake-002': true,
+        'opt-kerala-04_user-sam-005': true,
+        'opt-bangalore-03_user-alex-004': true,
+        'opt-bangalore-03_user-maya-001': true
+      },
       finalizedBrief: null
     });
   }

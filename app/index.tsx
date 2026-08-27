@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   Platform
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useGatherlyStore } from '../src/store/useGatherlyStore';
 import { RankedOptionCard } from '../src/components/RankedOptionCard';
 import { TripBriefModal } from '../src/components/TripBriefModal';
@@ -22,10 +23,15 @@ import {
   CheckCircle,
   AlertCircle,
   RotateCcw,
-  Check
+  Check,
+  ArrowRight,
+  Vote,
+  Sliders,
+  Award
 } from 'lucide-react-native';
 
 export default function HomeScreen() {
+  const router = useRouter();
   const {
     isDarkMode,
     toggleDarkMode,
@@ -50,6 +56,7 @@ export default function HomeScreen() {
   const currentGroup = groups.find((g) => g.id === activeGroupId) || groups[0];
   const consensus = getConsensusResults();
   const currentUser = members.find((m) => m.userId === currentUserId) || members[0];
+  const isOrganizer = currentGroup.organizerId === currentUserId;
 
   const handleCopyCode = () => {
     setCopiedCode(true);
@@ -62,9 +69,13 @@ export default function HomeScreen() {
   };
 
   const handleFinalize = () => {
-    const brief = finalizeTrip();
-    if (brief) {
-      setBriefModalVisible(true);
+    try {
+      const brief = finalizeTrip(currentUserId);
+      if (brief) {
+        setBriefModalVisible(true);
+      }
+    } catch (err: any) {
+      alert(err.message);
     }
   };
 
@@ -85,7 +96,7 @@ export default function HomeScreen() {
                 Gatherly
               </Text>
               <Text style={[styles.brandSubtitle, { color: theme.textSecondary }]}>
-                Trip Consensus Engine
+                Trip Consensus App
               </Text>
             </View>
           </View>
@@ -108,6 +119,70 @@ export default function HomeScreen() {
               ) : (
                 <Moon size={18} color={theme.textSecondary} />
               )}
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Quick Flow Navigation Bar */}
+        <View
+          style={[
+            styles.flowNavCard,
+            { backgroundColor: theme.surface, borderColor: theme.border },
+            shadows.sm
+          ]}
+        >
+          <Text style={[styles.flowNavTitle, { color: theme.textSecondary }]}>
+            WEEK 2 APP SCREENS & FLOW
+          </Text>
+          <View style={styles.flowNavButtons}>
+            <TouchableOpacity
+              onPress={() => router.push('/groups')}
+              style={[styles.flowNavBtn, { backgroundColor: theme.surfaceSubtle }]}
+            >
+              <Users size={14} color={theme.primary} />
+              <Text style={[styles.flowNavBtnText, { color: theme.textPrimary }]}>
+                Circles List
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => router.push(`/groups/${currentGroup.id}/preferences`)}
+              style={[styles.flowNavBtn, { backgroundColor: theme.surfaceSubtle }]}
+            >
+              <Sliders size={14} color={theme.secondary} />
+              <Text style={[styles.flowNavBtnText, { color: theme.textPrimary }]}>
+                Preferences
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => router.push(`/groups/${currentGroup.id}/options`)}
+              style={[styles.flowNavBtn, { backgroundColor: theme.surfaceSubtle }]}
+            >
+              <Sparkles size={14} color={theme.primary} />
+              <Text style={[styles.flowNavBtnText, { color: theme.textPrimary }]}>
+                Rankings
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => router.push(`/groups/${currentGroup.id}/vote`)}
+              style={[styles.flowNavBtn, { backgroundColor: theme.surfaceSubtle }]}
+            >
+              <Vote size={14} color={theme.success} />
+              <Text style={[styles.flowNavBtnText, { color: theme.textPrimary }]}>
+                Silent Vote
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => router.push(`/groups/${currentGroup.id}/brief`)}
+              style={[styles.flowNavBtn, { backgroundColor: theme.surfaceSubtle }]}
+            >
+              <Award size={14} color={theme.primary} />
+              <Text style={[styles.flowNavBtnText, { color: theme.textPrimary }]}>
+                Trip Brief
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -213,7 +288,7 @@ export default function HomeScreen() {
                       }
                     ]}
                   >
-                    {m.userName}
+                    {m.userName} {m.userId === 'user-maya-001' ? '(Org)' : ''}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -256,7 +331,7 @@ export default function HomeScreen() {
             </Text>
           </View>
 
-          {consensus.winningOption && (
+          {isOrganizer && consensus.winningOption && (
             <TouchableOpacity
               onPress={handleFinalize}
               activeOpacity={0.8}
@@ -319,7 +394,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 14,
     paddingTop: Platform.OS === 'android' ? 10 : 0
   },
   brandRow: {
@@ -356,11 +431,40 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center'
   },
+  flowNavCard: {
+    borderRadius: radius.card,
+    padding: 12,
+    borderWidth: 1,
+    marginBottom: 14
+  },
+  flowNavTitle: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    marginBottom: 8
+  },
+  flowNavButtons: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6
+  },
+  flowNavBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: radius.pill
+  },
+  flowNavBtnText: {
+    fontSize: 11,
+    fontWeight: '700'
+  },
   groupHeaderCard: {
     borderRadius: radius.card,
     padding: 16,
     borderWidth: 1,
-    marginBottom: 16
+    marginBottom: 14
   },
   groupMetaRow: {
     flexDirection: 'row',
@@ -452,7 +556,7 @@ const styles = StyleSheet.create({
     gap: 12,
     padding: 12,
     borderRadius: radius.md,
-    marginBottom: 16
+    marginBottom: 14
   },
   statusBannerTextCol: {
     flex: 1
