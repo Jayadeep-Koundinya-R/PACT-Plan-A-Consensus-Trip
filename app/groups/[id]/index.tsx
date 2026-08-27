@@ -9,12 +9,13 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
+import { StepProgressBar } from '../../../src/components/StepProgressBar';
+import { BottomTabBar } from '../../../src/components/BottomTabBar';
 import { NudgeModal } from '../../../src/components/NudgeModal';
 import { InviteQRModal } from '../../../src/components/InviteQRModal';
 import { colors, radius, shadows } from '../../../src/theme/colors';
 import {
   ArrowLeft,
-  Share2,
   Copy,
   Check,
   Users,
@@ -24,7 +25,8 @@ import {
   Sliders,
   ChevronRight,
   QrCode,
-  BellRing
+  BellRing,
+  Award
 } from 'lucide-react-native';
 
 export default function GroupDetailScreen() {
@@ -53,6 +55,15 @@ export default function GroupDetailScreen() {
   const pendingMembers = members.filter((m) => !m.submittedAt);
   const pendingNames = pendingMembers.map((m) => m.userName);
 
+  const currentStepNumber =
+    currentGroup.status === 'finalized'
+      ? 4
+      : currentGroup.status === 'voting'
+      ? 3
+      : consensus.rankedOptions.length > 0
+      ? 2
+      : 1;
+
   const handleCopyCode = () => {
     setCopiedCode(true);
     setTimeout(() => setCopiedCode(false), 2000);
@@ -60,15 +71,22 @@ export default function GroupDetailScreen() {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      {/* 4-Step Consensus Journey Progress Bar */}
+      <StepProgressBar
+        currentStep={currentStepNumber as 1 | 2 | 3 | 4}
+        groupId={currentGroup.id}
+        isDarkMode={isDarkMode}
+      />
+
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Navigation Bar */}
+        {/* Navigation Header */}
         <View style={styles.navBar}>
           <TouchableOpacity
             onPress={() => router.push('/groups')}
-            style={[styles.backBtn, { backgroundColor: theme.surfaceSubtle }]}
+            style={[styles.backBtn, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
           >
             <ArrowLeft size={18} color={theme.textPrimary} />
           </TouchableOpacity>
@@ -79,26 +97,50 @@ export default function GroupDetailScreen() {
 
           <TouchableOpacity
             onPress={() => setShowQRModal(true)}
-            style={[styles.qrHeaderBtn, { backgroundColor: theme.primaryLight }]}
+            style={[styles.qrHeaderBtn, { backgroundColor: theme.primaryLight, borderColor: theme.primary }]}
           >
             <QrCode size={18} color={theme.primary} />
           </TouchableOpacity>
         </View>
 
-        {/* Invite Code Hero Card */}
+        {/* Hero Status Card */}
         <View
           style={[
             styles.inviteCard,
-            { backgroundColor: theme.surface, borderColor: theme.border },
-            shadows.sm
+            { backgroundColor: theme.surface, borderColor: theme.glassBorder },
+            shadows.md
           ]}
         >
           <View style={styles.inviteHeader}>
             <Text style={[styles.inviteLabel, { color: theme.textSecondary }]}>
               CIRCLE INVITE CODE
             </Text>
-            <View style={[styles.statusTag, { backgroundColor: theme.primaryLight }]}>
-              <Text style={[styles.statusTagText, { color: theme.primaryDark }]}>
+            <View
+              style={[
+                styles.statusTag,
+                {
+                  backgroundColor:
+                    currentGroup.status === 'finalized'
+                      ? theme.successLight
+                      : currentGroup.status === 'voting'
+                      ? theme.primaryLight
+                      : theme.warningLight
+                }
+              ]}
+            >
+              <Text
+                style={[
+                  styles.statusTagText,
+                  {
+                    color:
+                      currentGroup.status === 'finalized'
+                        ? theme.success
+                        : currentGroup.status === 'voting'
+                        ? theme.primary
+                        : theme.warning
+                  }
+                ]}
+              >
                 {currentGroup.status.toUpperCase()}
               </Text>
             </View>
@@ -112,7 +154,7 @@ export default function GroupDetailScreen() {
               <TouchableOpacity
                 onPress={() => setShowQRModal(true)}
                 activeOpacity={0.7}
-                style={[styles.iconActionBtn, { backgroundColor: theme.surfaceSubtle }]}
+                style={[styles.iconActionBtn, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
               >
                 <QrCode size={16} color={theme.textPrimary} />
               </TouchableOpacity>
@@ -120,7 +162,7 @@ export default function GroupDetailScreen() {
               <TouchableOpacity
                 onPress={handleCopyCode}
                 activeOpacity={0.7}
-                style={[styles.copyCodeBtn, { backgroundColor: theme.surfaceSubtle }]}
+                style={[styles.copyCodeBtn, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
               >
                 {copiedCode ? (
                   <Check size={16} color={theme.success} />
@@ -139,15 +181,15 @@ export default function GroupDetailScreen() {
           </Text>
         </View>
 
-        {/* Quick Action Navigation Grid */}
+        {/* Action Navigation Tiles */}
         <View style={styles.actionsGrid}>
-          {/* Action 1: Submit / Review Preferences */}
+          {/* Step 1: Preferences */}
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => router.push(`/groups/${currentGroup.id}/preferences`)}
             style={[
               styles.actionTile,
-              { backgroundColor: theme.surface, borderColor: theme.border },
+              { backgroundColor: theme.surface, borderColor: theme.glassBorder },
               shadows.sm
             ]}
           >
@@ -156,7 +198,7 @@ export default function GroupDetailScreen() {
             </View>
             <View style={styles.tileTextCol}>
               <Text style={[styles.tileTitle, { color: theme.textPrimary }]}>
-                My Private Constraints
+                1. Private Constraints
               </Text>
               <Text style={[styles.tileSub, { color: theme.textSecondary }]}>
                 {userHasSubmitted ? 'Dates, budget & tags submitted' : 'Not submitted yet'}
@@ -165,13 +207,13 @@ export default function GroupDetailScreen() {
             <ChevronRight size={18} color={theme.textMuted} />
           </TouchableOpacity>
 
-          {/* Action 2: Ranked Options */}
+          {/* Step 2: Ranked Options */}
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => router.push(`/groups/${currentGroup.id}/options`)}
             style={[
               styles.actionTile,
-              { backgroundColor: theme.surface, borderColor: theme.border },
+              { backgroundColor: theme.surface, borderColor: theme.glassBorder },
               shadows.sm
             ]}
           >
@@ -180,7 +222,7 @@ export default function GroupDetailScreen() {
             </View>
             <View style={styles.tileTextCol}>
               <Text style={[styles.tileTitle, { color: theme.textPrimary }]}>
-                Ranked Options
+                2. Ranked Options
               </Text>
               <Text style={[styles.tileSub, { color: theme.textSecondary }]}>
                 Deterministic scoring & plain-English reasons
@@ -189,13 +231,13 @@ export default function GroupDetailScreen() {
             <ChevronRight size={18} color={theme.textMuted} />
           </TouchableOpacity>
 
-          {/* Action 3: Silent Voting Hub */}
+          {/* Step 3: Silent Voting */}
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => router.push(`/groups/${currentGroup.id}/vote`)}
             style={[
               styles.actionTile,
-              { backgroundColor: theme.surface, borderColor: theme.border },
+              { backgroundColor: theme.surface, borderColor: theme.glassBorder },
               shadows.sm
             ]}
           >
@@ -204,7 +246,7 @@ export default function GroupDetailScreen() {
             </View>
             <View style={styles.tileTextCol}>
               <Text style={[styles.tileTitle, { color: theme.textPrimary }]}>
-                Silent Vote & Consensus
+                3. Silent Vote & Consensus
               </Text>
               <Text style={[styles.tileSub, { color: theme.textSecondary }]}>
                 {consensus.winningOption
@@ -214,9 +256,33 @@ export default function GroupDetailScreen() {
             </View>
             <ChevronRight size={18} color={theme.textMuted} />
           </TouchableOpacity>
+
+          {/* Step 4: Trip Brief */}
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => router.push(`/groups/${currentGroup.id}/brief`)}
+            style={[
+              styles.actionTile,
+              { backgroundColor: theme.surface, borderColor: theme.glassBorder },
+              shadows.sm
+            ]}
+          >
+            <View style={[styles.tileIconCircle, { backgroundColor: theme.secondaryLight }]}>
+              <Award size={20} color={theme.secondary} />
+            </View>
+            <View style={styles.tileTextCol}>
+              <Text style={[styles.tileTitle, { color: theme.textPrimary }]}>
+                4. Confirmed Trip Brief
+              </Text>
+              <Text style={[styles.tileSub, { color: theme.textSecondary }]}>
+                Boarding pass summary & social share
+              </Text>
+            </View>
+            <ChevronRight size={18} color={theme.textMuted} />
+          </TouchableOpacity>
         </View>
 
-        {/* Members Status Roster */}
+        {/* Member Roster with Status Rings */}
         <View style={styles.rosterSection}>
           <View style={styles.rosterHeader}>
             <View style={styles.rosterHeaderLeft}>
@@ -226,7 +292,6 @@ export default function GroupDetailScreen() {
               </Text>
             </View>
 
-            {/* Soft Reminder Nudge Button */}
             <TouchableOpacity
               onPress={() => setShowNudgeModal(true)}
               style={[styles.nudgeBtn, { backgroundColor: theme.secondaryLight }]}
@@ -248,14 +313,22 @@ export default function GroupDetailScreen() {
                   key={m.userId}
                   style={[
                     styles.memberCard,
-                    { backgroundColor: theme.surface, borderColor: theme.border },
+                    { backgroundColor: theme.surface, borderColor: theme.glassBorder },
                     shadows.sm
                   ]}
                 >
-                  <View style={[styles.memberAvatar, { backgroundColor: theme.primaryLight }]}>
-                    <Text style={[styles.memberAvatarText, { color: theme.primaryDark }]}>
-                      {m.userName.charAt(0)}
-                    </Text>
+                  {/* Avatar with Status Ring */}
+                  <View
+                    style={[
+                      styles.avatarRing,
+                      { borderColor: m.submittedAt ? theme.success : theme.warning }
+                    ]}
+                  >
+                    <View style={[styles.memberAvatar, { backgroundColor: theme.primaryLight }]}>
+                      <Text style={[styles.memberAvatarText, { color: theme.primaryDark }]}>
+                        {m.userName.charAt(0)}
+                      </Text>
+                    </View>
                   </View>
 
                   <View style={styles.memberInfo}>
@@ -272,12 +345,12 @@ export default function GroupDetailScreen() {
                       )}
                     </View>
                     <Text style={[styles.memberMetaText, { color: theme.textSecondary }]}>
-                      Preferences submitted • {m.tags.length} tags selected
+                      {m.submittedAt ? 'Preferences submitted' : 'Pending submission'} • {m.tags.length} tags selected
                     </Text>
                   </View>
 
                   <View style={styles.submittedBadge}>
-                    <CheckCircle2 size={16} color={theme.success} />
+                    <CheckCircle2 size={16} color={m.submittedAt ? theme.success : theme.warning} />
                   </View>
                 </View>
               );
@@ -285,6 +358,9 @@ export default function GroupDetailScreen() {
           </View>
         </View>
       </ScrollView>
+
+      {/* Floating Bottom Navigation Bar */}
+      <BottomTabBar />
 
       {/* QR Code Modal */}
       <InviteQRModal
@@ -316,7 +392,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 40,
+    paddingBottom: 110,
     maxWidth: 680,
     width: '100%',
     alignSelf: 'center'
@@ -325,18 +401,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16
+    marginVertical: 14
   },
   backBtn: {
     width: 38,
     height: 38,
     borderRadius: radius.pill,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    borderWidth: 1
   },
   navTitle: {
     fontSize: 17,
-    fontWeight: '700',
+    fontWeight: '800',
     flex: 1,
     textAlign: 'center',
     marginHorizontal: 12
@@ -346,7 +423,8 @@ const styles = StyleSheet.create({
     height: 38,
     borderRadius: radius.pill,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    borderWidth: 1
   },
   inviteCard: {
     borderRadius: radius.card,
@@ -395,7 +473,8 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: radius.pill,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    borderWidth: 1
   },
   copyCodeBtn: {
     flexDirection: 'row',
@@ -403,7 +482,8 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: radius.pill
+    borderRadius: radius.pill,
+    borderWidth: 1
   },
   copyCodeText: {
     fontSize: 12,
@@ -485,15 +565,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     gap: 12
   },
+  avatarRing: {
+    borderWidth: 2,
+    borderRadius: 20,
+    padding: 2
+  },
   memberAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center'
   },
   memberAvatarText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '800'
   },
   memberInfo: {

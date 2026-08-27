@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -12,21 +12,22 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
 import { ConsensusMeter } from '../../../src/components/ConsensusMeter';
+import { StepProgressBar } from '../../../src/components/StepProgressBar';
+import { BottomTabBar } from '../../../src/components/BottomTabBar';
 import { colors, radius, shadows } from '../../../src/theme/colors';
 import {
   ArrowLeft,
   Heart,
   Sparkles,
   ShieldCheck,
+  CheckCircle2,
   AlertTriangle,
-  Award,
-  Calendar,
-  DollarSign,
-  ChevronRight,
-  Info
+  Send,
+  Lock,
+  Award
 } from 'lucide-react-native';
 
-export default function SilentVoteScreen() {
+export default function VoteScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const {
@@ -46,15 +47,14 @@ export default function SilentVoteScreen() {
   const consensus = getConsensusResults();
   const isOrganizer = currentGroup.organizerId === currentUserId;
 
-  const [finalizeError, setFinalizeError] = useState('');
+  const topOption = consensus.winningOption || consensus.rankedOptions[0];
+  const isThresholdMet = (topOption?.consensusPercent || 0) >= 70;
 
   const triggerHaptic = () => {
     if (Platform.OS !== 'web') {
       try {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      } catch (e) {
-        // Haptics fallback on web
-      }
+      } catch (e) {}
     }
   };
 
@@ -66,184 +66,177 @@ export default function SilentVoteScreen() {
 
   const handleFinalize = () => {
     try {
-      setFinalizeError('');
       finalizeTrip(currentUserId);
       triggerHaptic();
-      router.push(`/groups/${id}/brief`);
+      router.push(`/groups/${currentGroup.id}/brief`);
     } catch (err: any) {
-      setFinalizeError(err.message || 'Unable to finalize trip.');
+      alert(err.message);
     }
   };
 
-  const topOption = consensus.rankedOptions[0];
-  const isThresholdMet = topOption && topOption.consensusPercent >= 70;
-
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      {/* 4-Step Consensus Journey Progress Bar */}
+      <StepProgressBar currentStep={3} groupId={currentGroup.id} isDarkMode={isDarkMode} />
+
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Navbar */}
+        {/* Navigation Header */}
         <View style={styles.navBar}>
           <TouchableOpacity
-            onPress={() => router.push(`/groups/${id}/options`)}
-            style={[styles.backBtn, { backgroundColor: theme.surfaceSubtle }]}
+            onPress={() => router.push(`/groups/${currentGroup.id}`)}
+            style={[styles.backBtn, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
           >
             <ArrowLeft size={18} color={theme.textPrimary} />
           </TouchableOpacity>
 
-          <Text style={[styles.navTitle, { color: theme.textPrimary }]}>
+          <Text style={[styles.navTitle, { color: theme.textPrimary }]} numberOfLines={1}>
             Silent Voting Room
           </Text>
 
-          <View style={[styles.privacyBadge, { backgroundColor: theme.successLight }]}>
-            <ShieldCheck size={14} color={theme.success} />
-            <Text style={[styles.privacyBadgeText, { color: theme.success }]}>
-              Silent
-            </Text>
-          </View>
+          <View style={{ width: 38 }} />
         </View>
 
-        {/* Voting Explanation Banner */}
-        <View style={[styles.infoBanner, { backgroundColor: theme.surfaceSubtle }]}>
-          <Info size={16} color={theme.primary} />
-          <Text style={[styles.infoBannerText, { color: theme.textSecondary }]}>
-            Tap the heart on any trip options you support. Only aggregated group percentages are shown — individual ballots are 100% anonymous.
+        {/* Privacy Promise Banner */}
+        <View
+          style={[
+            styles.privacyBanner,
+            { backgroundColor: theme.primaryLight, borderColor: theme.primary }
+          ]}
+        >
+          <Lock size={16} color={theme.primary} />
+          <Text style={[styles.privacyText, { color: theme.textPrimary }]}>
+            <Text style={{ fontWeight: '800' }}>Truly Silent Voting:</Text> Individual ballots are strictly confidential. Only live aggregate approval totals are broadcast.
           </Text>
         </View>
 
-        {/* Top Consensus Hero Meter */}
-        {topOption && (
-          <View
-            style={[
-              styles.heroMeterCard,
-              { backgroundColor: theme.surface, borderColor: theme.border },
-              shadows.md
-            ]}
-          >
-            <View style={styles.heroMeterHeader}>
-              <View style={styles.heroMeterTitleRow}>
-                <Award size={20} color={theme.primary} />
-                <Text style={[styles.heroMeterTitle, { color: theme.textPrimary }]}>
-                  Leading Candidate
-                </Text>
-              </View>
-              <Text style={[styles.heroMeterScore, { color: theme.primary }]}>
-                {topOption.totalScore}% Fit
+        {/* Hero Consensus Meter Card */}
+        <View
+          style={[
+            styles.heroMeterCard,
+            {
+              backgroundColor: theme.surface,
+              borderColor: isThresholdMet ? theme.success : theme.glassBorder
+            },
+            isThresholdMet ? shadows.glowSuccess : shadows.md
+          ]}
+        >
+          <View style={styles.heroMeterTopRow}>
+            <View>
+              <Text style={[styles.leadingLabel, { color: theme.textSecondary }]}>
+                LEADING CANDIDATE
+              </Text>
+              <Text style={[styles.leadingDestination, { color: theme.textPrimary }]}>
+                {topOption?.option.name}
               </Text>
             </View>
 
-            <Text style={[styles.leadingOptionName, { color: theme.textPrimary }]}>
-              {topOption.option.name}
-            </Text>
-            <Text style={[styles.leadingOptionSub, { color: theme.textSecondary }]}>
-              {topOption.option.destinationType} • ${topOption.option.budgetPerPerson}/person
-            </Text>
-
-            <View style={styles.meterWrap}>
-              <ConsensusMeter percentage={topOption.consensusPercent} isDarkMode={isDarkMode} />
+            <View
+              style={[
+                styles.consensusBadge,
+                { backgroundColor: isThresholdMet ? theme.successLight : theme.warningLight }
+              ]}
+            >
+              <Text
+                style={[
+                  styles.consensusBadgeText,
+                  { color: isThresholdMet ? theme.success : theme.warning }
+                ]}
+              >
+                {topOption?.consensusPercent || 0}% Group Consensus
+              </Text>
             </View>
+          </View>
 
-            {/* Finalize Button */}
-            {isOrganizer ? (
-              <View style={styles.organizerActionsCol}>
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  disabled={!isThresholdMet}
-                  onPress={handleFinalize}
+          <ConsensusMeter
+            percentage={topOption?.consensusPercent || 0}
+            threshold={70}
+            isDarkMode={isDarkMode}
+          />
+
+          {/* Organizer Actions */}
+          {isOrganizer ? (
+            <View style={styles.organizerActionsCol}>
+              <TouchableOpacity
+                activeOpacity={0.8}
+                disabled={!isThresholdMet}
+                onPress={handleFinalize}
+                style={[
+                  styles.finalizeButton,
+                  {
+                    backgroundColor: isThresholdMet ? theme.success : theme.surfaceElevated,
+                    opacity: isThresholdMet ? 1 : 0.6
+                  },
+                  isThresholdMet ? shadows.glowSuccess : {}
+                ]}
+              >
+                <Sparkles size={18} color={isThresholdMet ? '#FFFFFF' : theme.textMuted} />
+                <Text
                   style={[
-                    styles.finalizeButton,
-                    {
-                      backgroundColor: isThresholdMet ? theme.success : theme.surfaceSubtle,
-                      opacity: isThresholdMet ? 1 : 0.6
-                    },
-                    isThresholdMet ? shadows.md : {}
+                    styles.finalizeButtonText,
+                    { color: isThresholdMet ? '#FFFFFF' : theme.textMuted }
                   ]}
                 >
-                  <Sparkles size={18} color={isThresholdMet ? '#FFFFFF' : theme.textMuted} />
-                  <Text
-                    style={[
-                      styles.finalizeButtonText,
-                      { color: isThresholdMet ? '#FFFFFF' : theme.textMuted }
-                    ]}
-                  >
-                    {isThresholdMet ? 'Finalize & Create Trip Brief' : 'Reach 70% Consensus to Finalize'}
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={() => {
-                    reopenVoting(currentGroup.id, currentUserId);
-                    triggerHaptic();
-                    alert('Voting round has been reopened for all members.');
-                  }}
-                  style={styles.reopenVotingBtn}
-                >
-                  <Text style={[styles.reopenVotingText, { color: theme.textSecondary }]}>
-                    ↺ Restart / Re-open Voting Round
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <View style={[styles.memberNotice, { backgroundColor: theme.surfaceSubtle }]}>
-                <Text style={[styles.memberNoticeText, { color: theme.textSecondary }]}>
-                  {isThresholdMet
-                    ? 'Consensus reached! Waiting for organizer (Maya) to finalize.'
-                    : 'Vote on options below to help reach the 70% consensus goal.'}
+                  {isThresholdMet ? 'Finalize & Issue Trip Brief' : 'Reach 70% Consensus to Finalize'}
                 </Text>
-              </View>
-            )}
-          </View>
-        )}
+              </TouchableOpacity>
 
-        {finalizeError ? (
-          <View style={[styles.errorBox, { backgroundColor: theme.dangerLight }]}>
-            <AlertTriangle size={16} color={theme.danger} />
-            <Text style={[styles.errorBoxText, { color: theme.danger }]}>
-              {finalizeError}
-            </Text>
-          </View>
-        ) : null}
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => {
+                  reopenVoting(currentGroup.id, currentUserId);
+                  triggerHaptic();
+                  alert('Voting round has been reopened for all members.');
+                }}
+                style={styles.reopenVotingBtn}
+              >
+                <Text style={[styles.reopenVotingText, { color: theme.textSecondary }]}>
+                  ↺ Re-open Voting Round
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={[styles.memberNotice, { backgroundColor: theme.surfaceElevated }]}>
+              <Text style={[styles.memberNoticeText, { color: theme.textSecondary }]}>
+                {isThresholdMet
+                  ? '70% Threshold reached! Waiting for organizer Maya to finalize.'
+                  : 'Voting active. Tap the heart icons below to approve candidate destinations.'}
+              </Text>
+            </View>
+          )}
+        </View>
 
-        {/* Deadlock Diagnostic Alert (if stalled) */}
-        {consensus.deadlockDiagnosis.isDeadlocked && (
+        {/* Deadlock Detection Card */}
+        {!isThresholdMet && (
           <View
             style={[
               styles.deadlockCard,
-              { backgroundColor: theme.secondaryLight, borderColor: theme.secondary }
+              { backgroundColor: theme.warningLight, borderColor: theme.warning }
             ]}
           >
             <View style={styles.deadlockHeader}>
-              <AlertTriangle size={18} color={theme.secondary} />
-              <Text style={[styles.deadlockTitle, { color: theme.textPrimary }]}>
-                Consensus Deadlock Detected
+              <AlertTriangle size={16} color={theme.warning} />
+              <Text style={[styles.deadlockTitle, { color: theme.warning }]}>
+                Consensus Deadlock Diagnosis
               </Text>
             </View>
-            <Text style={[styles.deadlockDiagnosis, { color: theme.textPrimary }]}>
+            <Text style={[styles.deadlockBody, { color: theme.textPrimary }]}>
               {consensus.deadlockDiagnosis.diagnosisText}
             </Text>
-
-            <Text style={[styles.suggestionsLabel, { color: theme.textSecondary }]}>
-              Organizer Suggestions:
+            <Text style={[styles.deadlockSuggestion, { color: theme.textSecondary }]}>
+              💡 Suggestion: {consensus.deadlockDiagnosis.suggestedAction}
             </Text>
-            {consensus.deadlockDiagnosis.organizerSuggestions.map((sug, i) => (
-              <Text key={i} style={[styles.suggestionItem, { color: theme.textPrimary }]}>
-                • {sug}
-              </Text>
-            ))}
           </View>
         )}
 
-        {/* Options Ballots List */}
-        <View style={styles.ballotHeader}>
-          <Text style={[styles.ballotHeaderTitle, { color: theme.textPrimary }]}>
-            Cast Your Silent Ballot
+        {/* Voting Ballots List */}
+        <View style={styles.ballotSection}>
+          <Text style={[styles.ballotSectionTitle, { color: theme.textPrimary }]}>
+            Candidate Destinations
           </Text>
-        </View>
 
-        <View style={styles.optionsList}>
           {consensus.rankedOptions.map((scoredOption) => {
             const isApproved = votes[`${scoredOption.option.id}_${currentUserId}`] === true;
             const count = getOptionApprovalCount(scoredOption.option.id);
@@ -254,118 +247,59 @@ export default function SilentVoteScreen() {
                 style={[
                   styles.ballotCard,
                   {
-                    backgroundColor: theme.card,
-                    borderColor: isApproved ? theme.primary : theme.border,
+                    backgroundColor: theme.surface,
+                    borderColor: isApproved ? theme.primary : theme.glassBorder,
                     borderWidth: isApproved ? 2 : 1
                   },
                   shadows.sm
                 ]}
               >
-                <View style={styles.ballotTopRow}>
-                  <View style={styles.ballotInfoCol}>
-                    <View style={styles.rankPillRow}>
-                      <View
-                        style={[
-                          styles.rankPill,
-                          {
-                            backgroundColor:
-                              scoredOption.rank === 1
-                                ? theme.successLight
-                                : theme.surfaceSubtle
-                          }
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.rankPillText,
-                            {
-                              color:
-                                scoredOption.rank === 1
-                                  ? theme.success
-                                  : theme.textSecondary
-                            }
-                          ]}
-                        >
-                          Rank #{scoredOption.rank}
-                        </Text>
-                      </View>
-                      <Text style={[styles.ballotType, { color: theme.textSecondary }]}>
-                        {scoredOption.option.destinationType}
-                      </Text>
-                    </View>
+                <View style={styles.ballotInfoCol}>
+                  <Text style={[styles.ballotName, { color: theme.textPrimary }]}>
+                    #{scoredOption.rank} {scoredOption.option.name}
+                  </Text>
+                  <Text style={[styles.ballotMeta, { color: theme.textSecondary }]}>
+                    {scoredOption.option.dateStart} → {scoredOption.option.dateEnd} • ${scoredOption.option.budgetPerPerson}/person
+                  </Text>
+                  <Text style={[styles.ballotApprovalStatus, { color: theme.textSecondary }]}>
+                    Approved by <Text style={{ fontWeight: '800', color: theme.textPrimary }}>{count} of 5</Text> members
+                  </Text>
+                </View>
 
-                    <Text style={[styles.ballotName, { color: theme.textPrimary }]}>
-                      {scoredOption.option.name}
-                    </Text>
-
-                    <View style={styles.ballotMetaRow}>
-                      <View style={styles.ballotMetaItem}>
-                        <Calendar size={13} color={theme.textSecondary} />
-                        <Text style={[styles.ballotMetaText, { color: theme.textSecondary }]}>
-                          {scoredOption.option.dateStart} → {scoredOption.option.dateEnd}
-                        </Text>
-                      </View>
-
-                      <View style={styles.ballotMetaItem}>
-                        <DollarSign size={13} color={theme.textSecondary} />
-                        <Text style={[styles.ballotMetaText, { color: theme.textSecondary }]}>
-                          ${scoredOption.option.budgetPerPerson} / person
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-
-                  {/* Heart Vote Button */}
-                  <TouchableOpacity
-                    activeOpacity={0.7}
-                    onPress={() => handleToggleVote(scoredOption.option.id)}
+                {/* Tactile Heart Button */}
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={() => handleToggleVote(scoredOption.option.id)}
+                  style={[
+                    styles.heartBtn,
+                    {
+                      backgroundColor: isApproved ? theme.primaryLight : theme.surfaceElevated,
+                      borderColor: isApproved ? theme.primary : theme.border
+                    }
+                  ]}
+                >
+                  <Heart
+                    size={22}
+                    color={isApproved ? theme.primary : theme.textMuted}
+                    fill={isApproved ? theme.primary : 'none'}
+                  />
+                  <Text
                     style={[
-                      styles.heartButton,
-                      {
-                        backgroundColor: isApproved
-                          ? theme.primaryLight
-                          : theme.surfaceSubtle,
-                        borderColor: isApproved ? theme.primary : theme.border
-                      }
+                      styles.heartBtnLabel,
+                      { color: isApproved ? theme.primary : theme.textSecondary }
                     ]}
                   >
-                    <Heart
-                      size={24}
-                      color={isApproved ? theme.primary : theme.textMuted}
-                      fill={isApproved ? theme.primary : 'none'}
-                    />
-                    <Text
-                      style={[
-                        styles.heartCountText,
-                        { color: isApproved ? theme.primary : theme.textSecondary }
-                      ]}
-                    >
-                      {count} Votes
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-
-                {/* Meter Bar */}
-                <View style={styles.ballotMeterContainer}>
-                  <ConsensusMeter
-                    percentage={scoredOption.consensusPercent}
-                    isDarkMode={isDarkMode}
-                    showLabel={false}
-                  />
-                  <View style={styles.ballotMeterSubRow}>
-                    <Text style={[styles.ballotMeterSubText, { color: theme.textSecondary }]}>
-                      Group Support: {scoredOption.consensusPercent}%
-                    </Text>
-                    <Text style={[styles.ballotMeterSubText, { color: theme.primary, fontWeight: '700' }]}>
-                      Score: {scoredOption.totalScore}%
-                    </Text>
-                  </View>
-                </View>
+                    {isApproved ? 'Approved' : 'Vote'}
+                  </Text>
+                </TouchableOpacity>
               </View>
             );
           })}
         </View>
       </ScrollView>
+
+      {/* Floating Bottom Navigation Bar */}
+      <BottomTabBar />
     </SafeAreaView>
   );
 }
@@ -376,7 +310,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 40,
+    paddingBottom: 120,
     maxWidth: 680,
     width: '100%',
     alignSelf: 'center'
@@ -385,82 +319,71 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16
+    marginVertical: 14
   },
   backBtn: {
     width: 38,
     height: 38,
     borderRadius: radius.pill,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    borderWidth: 1
   },
   navTitle: {
     fontSize: 17,
-    fontWeight: '700'
+    fontWeight: '800',
+    flex: 1,
+    textAlign: 'center',
+    marginHorizontal: 12
   },
-  privacyBadge: {
+  privacyBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: radius.pill
-  },
-  privacyBadgeText: {
-    fontSize: 11,
-    fontWeight: '700'
-  },
-  infoBanner: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
     gap: 8,
     padding: 12,
     borderRadius: radius.md,
-    marginBottom: 14
+    borderWidth: 1,
+    marginBottom: 16
   },
-  infoBannerText: {
+  privacyText: {
     fontSize: 12,
     lineHeight: 16,
     flex: 1
   },
   heroMeterCard: {
     borderRadius: radius.card,
-    padding: 18,
+    padding: 20,
     borderWidth: 1,
     marginBottom: 16
   },
-  heroMeterHeader: {
+  heroMeterTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6
-  },
-  heroMeterTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6
-  },
-  heroMeterTitle: {
-    fontSize: 13,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5
-  },
-  heroMeterScore: {
-    fontSize: 16,
-    fontWeight: '800'
-  },
-  leadingOptionName: {
-    fontSize: 22,
-    fontWeight: '800',
-    marginTop: 2
-  },
-  leadingOptionSub: {
-    fontSize: 13,
+    alignItems: 'flex-start',
     marginBottom: 12
   },
-  meterWrap: {
-    marginBottom: 16
+  leadingLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.8
+  },
+  leadingDestination: {
+    fontSize: 20,
+    fontWeight: '900',
+    marginTop: 2
+  },
+  consensusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: radius.pill
+  },
+  consensusBadgeText: {
+    fontSize: 11,
+    fontWeight: '800'
+  },
+  organizerActionsCol: {
+    marginTop: 16,
+    gap: 8
   },
   finalizeButton: {
     flexDirection: 'row',
@@ -471,11 +394,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.btn
   },
   finalizeButtonText: {
-    fontSize: 15,
-    fontWeight: '700'
-  },
-  organizerActionsCol: {
-    gap: 8
+    fontSize: 14,
+    fontWeight: '800'
   },
   reopenVotingBtn: {
     paddingVertical: 6,
@@ -488,145 +408,79 @@ const styles = StyleSheet.create({
   memberNotice: {
     padding: 12,
     borderRadius: radius.md,
-    alignItems: 'center'
+    marginTop: 14
   },
   memberNoticeText: {
     fontSize: 12,
-    fontWeight: '600'
-  },
-  errorBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    padding: 12,
-    borderRadius: radius.md,
-    marginBottom: 14
-  },
-  errorBoxText: {
-    fontSize: 12,
-    fontWeight: '700',
-    flex: 1
+    textAlign: 'center'
   },
   deadlockCard: {
     borderRadius: radius.card,
-    padding: 16,
+    padding: 14,
     borderWidth: 1,
     marginBottom: 16
   },
   deadlockHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 6
-  },
-  deadlockTitle: {
-    fontSize: 14,
-    fontWeight: '800'
-  },
-  deadlockDiagnosis: {
-    fontSize: 13,
-    fontWeight: '600',
-    marginBottom: 10
-  },
-  suggestionsLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    textTransform: 'uppercase',
+    gap: 6,
     marginBottom: 4
   },
-  suggestionItem: {
+  deadlockTitle: {
     fontSize: 12,
-    lineHeight: 18,
-    marginLeft: 4
+    fontWeight: '800',
+    textTransform: 'uppercase'
   },
-  ballotHeader: {
-    marginBottom: 10
+  deadlockBody: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 4
   },
-  ballotHeaderTitle: {
+  deadlockSuggestion: {
+    fontSize: 12
+  },
+  ballotSection: {
+    marginTop: 8
+  },
+  ballotSectionTitle: {
     fontSize: 15,
-    fontWeight: '700'
-  },
-  optionsList: {
-    gap: 12
+    fontWeight: '800',
+    marginBottom: 12
   },
   ballotCard: {
-    borderRadius: radius.card,
-    padding: 16,
-    borderWidth: 1
-  },
-  ballotTopRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 12
+    padding: 16,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    marginBottom: 10
   },
   ballotInfoCol: {
     flex: 1
   },
-  rankPillRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 4
-  },
-  rankPill: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: radius.pill
-  },
-  rankPillText: {
-    fontSize: 10,
-    fontWeight: '800'
-  },
-  ballotType: {
-    fontSize: 11,
-    fontWeight: '500'
-  },
   ballotName: {
     fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 6
-  },
-  ballotMetaRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12
-  },
-  ballotMetaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4
-  },
-  ballotMetaText: {
-    fontSize: 11
-  },
-  heartButton: {
-    width: 68,
-    height: 68,
-    borderRadius: radius.card,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    gap: 4
-  },
-  heartCountText: {
-    fontSize: 11,
     fontWeight: '700'
   },
-  ballotMeterContainer: {
-    marginTop: 12,
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#E2E8F0'
+  ballotMeta: {
+    fontSize: 12,
+    marginTop: 2
   },
-  ballotMeterSubRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  ballotApprovalStatus: {
+    fontSize: 12,
+    marginTop: 6
+  },
+  heartBtn: {
     alignItems: 'center',
-    marginTop: 4
+    justifyContent: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    gap: 2
   },
-  ballotMeterSubText: {
+  heartBtnLabel: {
     fontSize: 11,
-    fontWeight: '600'
+    fontWeight: '700'
   }
 });

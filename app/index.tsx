@@ -6,39 +6,42 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
-  Platform
+  Modal,
+  TextInput
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useGatherlyStore } from '../src/store/useGatherlyStore';
 import { RankedOptionCard } from '../src/components/RankedOptionCard';
 import { TripBriefModal } from '../src/components/TripBriefModal';
+import { BottomTabBar } from '../src/components/BottomTabBar';
+import { ThemeToggle } from '../src/components/ThemeToggle';
 import { colors, radius, shadows } from '../src/theme/colors';
 import {
   Compass,
-  Moon,
-  Sun,
   Users,
   Copy,
   Sparkles,
-  CheckCircle,
+  CheckCircle2,
   AlertCircle,
   RotateCcw,
   Check,
-  ArrowRight,
-  Vote,
-  Sliders,
-  Award
+  Plus,
+  Crown,
+  ChevronRight,
+  ShieldCheck,
+  X
 } from 'lucide-react-native';
 
 export default function HomeScreen() {
   const router = useRouter();
   const {
     isDarkMode,
-    toggleDarkMode,
     currentUserId,
     setCurrentUser,
     groups,
+    createGroup,
     activeGroupId,
+    setActiveGroup,
     members,
     getConsensusResults,
     votes,
@@ -46,17 +49,21 @@ export default function HomeScreen() {
     getOptionApprovalCount,
     finalizeTrip,
     finalizedBrief,
+    subscriptionPlan,
     resetDemoState
   } = useGatherlyStore();
 
   const [copiedCode, setCopiedCode] = useState(false);
   const [briefModalVisible, setBriefModalVisible] = useState(false);
+  const [createModalVisible, setCreateModalVisible] = useState(false);
+  const [newGroupName, setNewGroupName] = useState('');
 
   const theme = isDarkMode ? colors.dark : colors.light;
   const currentGroup = groups.find((g) => g.id === activeGroupId) || groups[0];
   const consensus = getConsensusResults();
   const currentUser = members.find((m) => m.userId === currentUserId) || members[0];
   const isOrganizer = currentGroup.organizerId === currentUserId;
+  const isPro = subscriptionPlan !== 'free';
 
   const handleCopyCode = () => {
     setCopiedCode(true);
@@ -79,17 +86,31 @@ export default function HomeScreen() {
     }
   };
 
+  const handleCreateGroup = () => {
+    if (!newGroupName.trim()) return;
+    const group = createGroup(newGroupName.trim());
+    setNewGroupName('');
+    setCreateModalVisible(false);
+    router.push(`/groups/${group.id}`);
+  };
+
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Top Navbar */}
+        {/* Header: Brand Logo + ThemeToggle + Pro Badge */}
         <View style={styles.navBar}>
           <View style={styles.brandRow}>
-            <View style={[styles.logoIcon, { backgroundColor: theme.primary }]}>
-              <Compass size={22} color="#FFFFFF" />
+            <View
+              style={[
+                styles.logoIcon,
+                { backgroundColor: theme.primary },
+                shadows.glowPrimary
+              ]}
+            >
+              <Compass size={22} color="#FFFFFF" strokeWidth={2.5} />
             </View>
             <View>
               <Text style={[styles.brandTitle, { color: theme.textPrimary }]}>
@@ -103,241 +124,221 @@ export default function HomeScreen() {
 
           <View style={styles.navActions}>
             <TouchableOpacity
+              onPress={() => router.push('/paywall')}
+              style={[
+                styles.proPill,
+                {
+                  backgroundColor: isPro ? theme.secondaryLight : theme.surfaceElevated,
+                  borderColor: isPro ? theme.secondary : theme.border
+                }
+              ]}
+            >
+              <Crown size={14} color={isPro ? theme.secondary : theme.textSecondary} />
+              <Text
+                style={[
+                  styles.proPillText,
+                  { color: isPro ? theme.secondary : theme.textSecondary }
+                ]}
+              >
+                {isPro ? 'PRO' : 'UPGRADE'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
               onPress={resetDemoState}
-              style={[styles.iconButton, { backgroundColor: theme.surfaceSubtle }]}
+              style={[styles.iconButton, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
               title="Reset Demo"
             >
-              <RotateCcw size={18} color={theme.textSecondary} />
+              <RotateCcw size={16} color={theme.textSecondary} />
             </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={toggleDarkMode}
-              style={[styles.iconButton, { backgroundColor: theme.surfaceSubtle }]}
-            >
-              {isDarkMode ? (
-                <Sun size={18} color={theme.warning} />
-              ) : (
-                <Moon size={18} color={theme.textSecondary} />
-              )}
-            </TouchableOpacity>
+            <ThemeToggle />
           </View>
         </View>
 
-        {/* Quick Flow Navigation Bar */}
-        <View
-          style={[
-            styles.flowNavCard,
-            { backgroundColor: theme.surface, borderColor: theme.border },
-            shadows.sm
-          ]}
-        >
-          <Text style={[styles.flowNavTitle, { color: theme.textSecondary }]}>
-            WEEK 2 APP SCREENS & FLOW
-          </Text>
-          <View style={styles.flowNavButtons}>
-            <TouchableOpacity
-              onPress={() => router.push('/groups')}
-              style={[styles.flowNavBtn, { backgroundColor: theme.surfaceSubtle }]}
-            >
-              <Users size={14} color={theme.primary} />
-              <Text style={[styles.flowNavBtnText, { color: theme.textPrimary }]}>
-                Circles List
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => router.push(`/groups/${currentGroup.id}/preferences`)}
-              style={[styles.flowNavBtn, { backgroundColor: theme.surfaceSubtle }]}
-            >
-              <Sliders size={14} color={theme.secondary} />
-              <Text style={[styles.flowNavBtnText, { color: theme.textPrimary }]}>
-                Preferences
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => router.push(`/groups/${currentGroup.id}/options`)}
-              style={[styles.flowNavBtn, { backgroundColor: theme.surfaceSubtle }]}
-            >
-              <Sparkles size={14} color={theme.primary} />
-              <Text style={[styles.flowNavBtnText, { color: theme.textPrimary }]}>
-                Rankings
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => router.push(`/groups/${currentGroup.id}/vote`)}
-              style={[styles.flowNavBtn, { backgroundColor: theme.surfaceSubtle }]}
-            >
-              <Vote size={14} color={theme.success} />
-              <Text style={[styles.flowNavBtnText, { color: theme.textPrimary }]}>
-                Silent Vote
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => router.push(`/groups/${currentGroup.id}/brief`)}
-              style={[styles.flowNavBtn, { backgroundColor: theme.surfaceSubtle }]}
-            >
-              <Award size={14} color={theme.primary} />
-              <Text style={[styles.flowNavBtnText, { color: theme.textPrimary }]}>
-                Trip Brief
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => router.push('/paywall')}
-              style={[styles.flowNavBtn, { backgroundColor: theme.secondaryLight }]}
-            >
-              <Sparkles size={14} color={theme.secondary} />
-              <Text style={[styles.flowNavBtnText, { color: theme.secondary }]}>
-                Pro Paywall
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Group Info Header */}
-        <View
-          style={[
-            styles.groupHeaderCard,
-            { backgroundColor: theme.surface, borderColor: theme.border },
-            shadows.sm
-          ]}
-        >
-          <View style={styles.groupMetaRow}>
-            <View>
-              <Text style={[styles.groupName, { color: theme.textPrimary }]}>
-                {currentGroup.name}
-              </Text>
-              <Text style={[styles.groupOrganizer, { color: theme.textSecondary }]}>
-                Organizer: Maya (Creator)
-              </Text>
-            </View>
-
-            <TouchableOpacity
-              onPress={handleCopyCode}
-              activeOpacity={0.7}
-              style={[styles.inviteBadge, { backgroundColor: theme.primaryLight }]}
-            >
-              {copiedCode ? (
-                <Check size={14} color={theme.primary} />
-              ) : (
-                <Copy size={14} color={theme.primary} />
-              )}
-              <Text style={[styles.inviteCodeText, { color: theme.primaryDark }]}>
-                {currentGroup.inviteCode}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Member Responded Status */}
-          <View style={styles.memberStatusRow}>
-            <View style={styles.memberCountBadge}>
-              <Users size={14} color={theme.success} />
-              <Text style={[styles.memberCountText, { color: theme.textPrimary }]}>
-                {members.length} of {currentGroup.totalMembersCount} Responded
-              </Text>
-            </View>
-
-            <View style={styles.avatarsRow}>
-              {members.map((m) => (
-                <View
-                  key={m.userId}
-                  style={[
-                    styles.avatarBubble,
-                    {
-                      backgroundColor:
-                        m.userId === currentUserId ? theme.primary : theme.surfaceSubtle,
-                      borderColor: theme.border
-                    }
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.avatarText,
-                      {
-                        color:
-                          m.userId === currentUserId ? '#FFFFFF' : theme.textPrimary
-                      }
-                    ]}
-                  >
-                    {m.userName.charAt(0)}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          </View>
-
-          {/* User Persona Switcher (Demo Feature) */}
-          <View style={[styles.userSwitcherBox, { backgroundColor: theme.surfaceSubtle }]}>
-            <Text style={[styles.userSwitcherLabel, { color: theme.textSecondary }]}>
-              Simulate View as:
+        {/* Section: Active Circles Cards */}
+        <View style={styles.circlesSection}>
+          <View style={styles.sectionTitleRow}>
+            <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>
+              Active Trip Circles ({groups.length})
             </Text>
-            <View style={styles.userPillWrap}>
-              {members.map((m) => (
-                <TouchableOpacity
-                  key={m.userId}
-                  onPress={() => setCurrentUser(m.userId)}
+            <TouchableOpacity
+              onPress={() => setCreateModalVisible(true)}
+              style={styles.newCircleLink}
+            >
+              <Plus size={14} color={theme.primary} />
+              <Text style={[styles.newCircleLinkText, { color: theme.primary }]}>
+                New Circle
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {groups.map((grp) => {
+            const isSelected = grp.id === activeGroupId;
+            const statusDotColor =
+              grp.status === 'finalized'
+                ? theme.success
+                : grp.status === 'voting'
+                ? theme.primary
+                : theme.warning;
+
+            return (
+              <TouchableOpacity
+                key={grp.id}
+                activeOpacity={0.7}
+                onPress={() => {
+                  setActiveGroup(grp.id);
+                  router.push(`/groups/${grp.id}`);
+                }}
+                style={[
+                  styles.circleCard,
+                  {
+                    backgroundColor: theme.surface,
+                    borderColor: isSelected ? theme.primary : theme.glassBorder,
+                    borderWidth: isSelected ? 2 : 1
+                  },
+                  shadows.md
+                ]}
+              >
+                <View style={styles.circleTopRow}>
+                  <View style={styles.circleTitleCol}>
+                    <View style={styles.circleHeaderRow}>
+                      <View style={[styles.statusDot, { backgroundColor: statusDotColor }]} />
+                      <Text style={[styles.circleName, { color: theme.textPrimary }]}>
+                        {grp.name}
+                      </Text>
+                    </View>
+                    <Text style={[styles.circleSub, { color: theme.textSecondary }]}>
+                      Code: <Text style={{ fontWeight: '800', color: theme.primary }}>{grp.inviteCode}</Text> • 5 of {grp.totalMembersCount} responded
+                    </Text>
+                  </View>
+
+                  <ChevronRight size={18} color={theme.textMuted} />
+                </View>
+
+                {/* Member Avatars Row */}
+                <View style={styles.avatarRosterRow}>
+                  <View style={styles.avatarsGroup}>
+                    {members.map((m) => (
+                      <View
+                        key={m.userId}
+                        style={[
+                          styles.avatarDot,
+                          {
+                            backgroundColor: theme.primaryLight,
+                            borderColor: theme.surface
+                          }
+                        ]}
+                      >
+                        <Text style={[styles.avatarDotText, { color: theme.primaryDark }]}>
+                          {m.userName.charAt(0)}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+
+                  <View
+                    style={[
+                      styles.circleStatusBadge,
+                      { backgroundColor: `${statusDotColor}20` }
+                    ]}
+                  >
+                    <Text style={[styles.circleStatusBadgeText, { color: statusDotColor }]}>
+                      {grp.status.toUpperCase()}
+                    </Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        {/* Persona Simulation Switcher (Judging/Testing Tool) */}
+        <View
+          style={[
+            styles.personaBox,
+            { backgroundColor: theme.surface, borderColor: theme.glassBorder },
+            shadows.sm
+          ]}
+        >
+          <View style={styles.personaHeader}>
+            <ShieldCheck size={14} color={theme.primary} />
+            <Text style={[styles.personaLabel, { color: theme.textSecondary }]}>
+              SIMULATE PRIVATE VIEW AS:
+            </Text>
+          </View>
+
+          <View style={styles.personaGrid}>
+            {members.map((m) => (
+              <TouchableOpacity
+                key={m.userId}
+                onPress={() => setCurrentUser(m.userId)}
+                activeOpacity={0.7}
+                style={[
+                  styles.personaPill,
+                  {
+                    backgroundColor:
+                      m.userId === currentUserId ? theme.primary : theme.surfaceElevated,
+                    borderColor:
+                      m.userId === currentUserId ? theme.primary : theme.border
+                  }
+                ]}
+              >
+                <Text
                   style={[
-                    styles.userPill,
+                    styles.personaText,
                     {
-                      backgroundColor:
-                        m.userId === currentUserId ? theme.primary : theme.surface,
-                      borderColor:
-                        m.userId === currentUserId ? theme.primary : theme.border
+                      color:
+                        m.userId === currentUserId ? '#FFFFFF' : theme.textPrimary,
+                      fontWeight: m.userId === currentUserId ? '800' : '600'
                     }
                   ]}
                 >
-                  <Text
-                    style={[
-                      styles.userPillText,
-                      {
-                        color:
-                          m.userId === currentUserId ? '#FFFFFF' : theme.textPrimary
-                      }
-                    ]}
-                  >
-                    {m.userName} {m.userId === 'user-maya-001' ? '(Org)' : ''}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+                  {m.userName} {m.userId === 'user-maya-001' ? '(Org)' : ''}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
 
         {/* Engine Status Banner */}
         {consensus.consensusReached ? (
-          <View style={[styles.statusBanner, { backgroundColor: theme.successLight }]}>
-            <CheckCircle size={20} color={theme.success} />
+          <View
+            style={[
+              styles.statusBanner,
+              { backgroundColor: theme.successLight, borderColor: 'rgba(16, 185, 129, 0.3)' },
+              shadows.glowSuccess
+            ]}
+          >
+            <CheckCircle2 size={20} color={theme.success} />
             <View style={styles.statusBannerTextCol}>
               <Text style={[styles.statusBannerTitle, { color: theme.success }]}>
                 Consensus Unlocked! (100% Agreement)
               </Text>
               <Text style={[styles.statusBannerSub, { color: theme.textPrimary }]}>
-                "{consensus.winningOption?.option.name}" meets all constraints. Ready to finalize.
+                "{consensus.winningOption?.option.name}" matches all constraints. Ready to finalize.
               </Text>
             </View>
           </View>
         ) : (
-          <View style={[styles.statusBanner, { backgroundColor: theme.secondaryLight }]}>
-            <AlertCircle size={20} color={theme.secondary} />
+          <View style={[styles.statusBanner, { backgroundColor: theme.warningLight, borderColor: theme.warning }]}>
+            <AlertCircle size={20} color={theme.warning} />
             <View style={styles.statusBannerTextCol}>
-              <Text style={[styles.statusBannerTitle, { color: theme.secondary }]}>
+              <Text style={[styles.statusBannerTitle, { color: theme.warning }]}>
                 Deadlock Alert: {consensus.deadlockDiagnosis.diagnosisText}
               </Text>
             </View>
           </View>
         )}
 
-        {/* Ranked Options Header */}
+        {/* Section: Ranked Trip Options */}
         <View style={styles.sectionHeader}>
           <View>
-            <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>
+            <Text style={[styles.sectionHeading, { color: theme.textPrimary }]}>
               Ranked Trip Options
             </Text>
-            <Text style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>
-              Deterministic Score (Date 35% + Budget 35% + Tags 25%)
+            <Text style={[styles.sectionSubHeading, { color: theme.textSecondary }]}>
+              Deterministic Score: Date (35%) + Budget (35%) + Tags (25%)
             </Text>
           </View>
 
@@ -345,7 +346,11 @@ export default function HomeScreen() {
             <TouchableOpacity
               onPress={handleFinalize}
               activeOpacity={0.8}
-              style={[styles.finalizeBtn, { backgroundColor: theme.success }]}
+              style={[
+                styles.finalizeBtn,
+                { backgroundColor: theme.success },
+                shadows.glowSuccess
+              ]}
             >
               <Sparkles size={16} color="#FFFFFF" />
               <Text style={styles.finalizeBtnText}>Finalize Trip</Text>
@@ -353,7 +358,7 @@ export default function HomeScreen() {
           )}
         </View>
 
-        {/* Option Cards */}
+        {/* Option Cards List */}
         {consensus.rankedOptions.map((scoredOption) => {
           const isApproved = votes[`${scoredOption.option.id}_${currentUserId}`] === true;
           const count = getOptionApprovalCount(scoredOption.option.id);
@@ -370,6 +375,65 @@ export default function HomeScreen() {
           );
         })}
       </ScrollView>
+
+      {/* Floating Bottom Navigation Bar */}
+      <BottomTabBar />
+
+      {/* Create New Group Modal */}
+      <Modal
+        visible={createModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setCreateModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View
+            style={[
+              styles.modalCard,
+              { backgroundColor: theme.surface, borderColor: theme.glassBorder },
+              shadows.lg
+            ]}
+          >
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: theme.textPrimary }]}>
+                Create a Trip Circle
+              </Text>
+              <TouchableOpacity onPress={() => setCreateModalVisible(false)}>
+                <X size={20} color={theme.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={[styles.modalSub, { color: theme.textSecondary }]}>
+              Give your trip group a name. We will generate a private shareable invite code.
+            </Text>
+
+            <TextInput
+              style={[
+                styles.modalInput,
+                {
+                  backgroundColor: theme.surfaceElevated,
+                  color: theme.textPrimary,
+                  borderColor: theme.border
+                }
+              ]}
+              placeholder="e.g. Goa New Year's Getaway"
+              placeholderTextColor={theme.textMuted}
+              value={newGroupName}
+              onChangeText={setNewGroupName}
+              autoFocus
+            />
+
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={handleCreateGroup}
+              style={[styles.modalSubmitBtn, { backgroundColor: theme.primary }, shadows.glowPrimary]}
+            >
+              <Sparkles size={16} color="#FFFFFF" />
+              <Text style={styles.modalSubmitBtnText}>Create Circle & Invite Friends</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* Trip Brief Finalization Modal */}
       <TripBriefModal
@@ -395,8 +459,8 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 40,
-    maxWidth: 720,
+    paddingBottom: 110, // Account for floating bottom bar
+    maxWidth: 680,
     width: '100%',
     alignSelf: 'center'
   },
@@ -404,24 +468,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 14,
-    paddingTop: Platform.OS === 'android' ? 10 : 0
+    marginBottom: 20
   },
   brandRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10
+    gap: 12
   },
   logoIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: radius.md,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center'
   },
   brandTitle: {
-    fontSize: 20,
-    fontWeight: '800',
+    fontSize: 22,
+    fontWeight: '900',
     letterSpacing: -0.5
   },
   brandSubtitle: {
@@ -434,139 +497,153 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8
   },
-  iconButton: {
-    width: 36,
-    height: 36,
-    borderRadius: radius.pill,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  flowNavCard: {
-    borderRadius: radius.card,
-    padding: 12,
-    borderWidth: 1,
-    marginBottom: 14
-  },
-  flowNavTitle: {
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.8,
-    marginBottom: 8
-  },
-  flowNavButtons: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6
-  },
-  flowNavBtn: {
+  proPill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: radius.pill
+    borderRadius: radius.pill,
+    borderWidth: 1
   },
-  flowNavBtnText: {
+  proPillText: {
     fontSize: 11,
-    fontWeight: '700'
+    fontWeight: '800'
   },
-  groupHeaderCard: {
-    borderRadius: radius.card,
-    padding: 16,
-    borderWidth: 1,
-    marginBottom: 14
+  iconButton: {
+    width: 38,
+    height: 38,
+    borderRadius: radius.pill,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1
   },
-  groupMetaRow: {
+  circlesSection: {
+    marginBottom: 16
+  },
+  sectionTitleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12
-  },
-  groupName: {
-    fontSize: 17,
-    fontWeight: '700'
-  },
-  groupOrganizer: {
-    fontSize: 12,
-    marginTop: 2
-  },
-  inviteBadge: {
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: radius.pill
+    marginBottom: 10
   },
-  inviteCodeText: {
-    fontSize: 12,
+  sectionTitle: {
+    fontSize: 15,
     fontWeight: '800',
-    letterSpacing: 0.5
+    letterSpacing: -0.2
   },
-  memberStatusRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12
-  },
-  memberCountBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6
-  },
-  memberCountText: {
-    fontSize: 12,
-    fontWeight: '600'
-  },
-  avatarsRow: {
+  newCircleLink: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4
   },
-  avatarBubble: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 1,
-    justifyContent: 'center',
+  newCircleLinkText: {
+    fontSize: 13,
+    fontWeight: '700'
+  },
+  circleCard: {
+    borderRadius: radius.card,
+    padding: 16,
+    marginBottom: 10
+  },
+  circleTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12
+  },
+  circleTitleCol: {
+    flex: 1
+  },
+  circleHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4
+  },
+  circleName: {
+    fontSize: 16,
+    fontWeight: '700'
+  },
+  circleSub: {
+    fontSize: 12,
+    marginTop: 3
+  },
+  avatarRosterRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center'
   },
-  avatarText: {
+  avatarsGroup: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  avatarDot: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    borderWidth: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: -6
+  },
+  avatarDotText: {
     fontSize: 10,
     fontWeight: '800'
   },
-  userSwitcherBox: {
-    padding: 10,
-    borderRadius: radius.md
+  circleStatusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.pill
   },
-  userSwitcherLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    marginBottom: 6
+  circleStatusBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5
   },
-  userPillWrap: {
+  personaBox: {
+    borderRadius: radius.card,
+    padding: 14,
+    borderWidth: 1,
+    marginBottom: 16
+  },
+  personaHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8
+  },
+  personaLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.8
+  },
+  personaGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 6
   },
-  userPill: {
+  personaPill: {
     paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingVertical: 5,
     borderRadius: radius.pill,
     borderWidth: 1
   },
-  userPillText: {
-    fontSize: 11,
-    fontWeight: '700'
+  personaText: {
+    fontSize: 11
   },
   statusBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    padding: 12,
+    padding: 14,
     borderRadius: radius.md,
-    marginBottom: 14
+    borderWidth: 1,
+    marginBottom: 16
   },
   statusBannerTextCol: {
     flex: 1
@@ -586,11 +663,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12
   },
-  sectionTitle: {
+  sectionHeading: {
     fontSize: 16,
-    fontWeight: '700'
+    fontWeight: '800'
   },
-  sectionSubtitle: {
+  sectionSubHeading: {
     fontSize: 11
   },
   finalizeBtn: {
@@ -604,6 +681,56 @@ const styles = StyleSheet.create({
   finalizeBtnText: {
     color: '#FFFFFF',
     fontSize: 12,
+    fontWeight: '700'
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 440,
+    borderRadius: radius.card,
+    padding: 20,
+    borderWidth: 1
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '800'
+  },
+  modalSub: {
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: 16
+  },
+  modalInput: {
+    borderWidth: 1,
+    borderRadius: radius.md,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+    marginBottom: 16
+  },
+  modalSubmitBtn: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: radius.btn
+  },
+  modalSubmitBtnText: {
+    color: '#FFFFFF',
+    fontSize: 14,
     fontWeight: '700'
   }
 });

@@ -12,7 +12,7 @@ interface ConsensusMeterProps {
 export const ConsensusMeter: React.FC<ConsensusMeterProps> = ({
   percentage,
   threshold = 70,
-  isDarkMode = false,
+  isDarkMode = true,
   showLabel = true
 }) => {
   const theme = isDarkMode ? colors.dark : colors.light;
@@ -26,25 +26,70 @@ export const ConsensusMeter: React.FC<ConsensusMeterProps> = ({
           <Text style={[styles.title, { color: theme.textSecondary }]}>
             Consensus Meter
           </Text>
-          <View style={[styles.badge, { backgroundColor: isPassing ? theme.successLight : theme.secondaryLight }]}>
-            <Text style={[styles.badgeText, { color: isPassing ? theme.success : theme.secondary }]}>
+          <View
+            style={[
+              styles.badge,
+              {
+                backgroundColor: isPassing
+                  ? theme.successLight
+                  : percentage >= 50
+                  ? theme.warningLight
+                  : theme.dangerLight
+              }
+            ]}
+          >
+            <Text
+              style={[
+                styles.badgeText,
+                {
+                  color: isPassing
+                    ? theme.success
+                    : percentage >= 50
+                    ? theme.warning
+                    : theme.danger
+                }
+              ]}
+            >
               {percentage}% {isPassing ? 'Consensus Reached' : `Goal: ${threshold}%`}
             </Text>
           </View>
         </View>
       )}
-      <View style={[styles.track, { backgroundColor: theme.meterTrack }]}>
+
+      {/* Progress Track */}
+      <View
+        style={[
+          styles.track,
+          {
+            backgroundColor: theme.meterTrack,
+            borderColor: theme.glassBorder
+          }
+        ]}
+      >
         <View
           style={[
             styles.fill,
             {
               width: `${Math.min(100, Math.max(0, percentage))}%`,
-              backgroundColor: fillColor
+              backgroundColor: fillColor,
+              shadowColor: fillColor,
+              shadowOffset: { width: 0, height: 0 },
+              shadowOpacity: isPassing ? 0.6 : 0.3,
+              shadowRadius: 8,
+              elevation: 3
             }
           ]}
         />
-        {/* Threshold indicator line */}
-        <View style={[styles.thresholdMarker, { left: `${threshold}%` }]} />
+        {/* 70% Threshold Marker Line */}
+        <View
+          style={[
+            styles.thresholdMarker,
+            {
+              left: `${threshold}%`,
+              backgroundColor: isPassing ? '#FFFFFF' : '#94A3B8'
+            }
+          ]}
+        />
       </View>
     </View>
   );
@@ -52,7 +97,7 @@ export const ConsensusMeter: React.FC<ConsensusMeterProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginVertical: 6,
+    marginVertical: 4,
     width: '100%'
   },
   labelRow: {
@@ -62,25 +107,26 @@ const styles = StyleSheet.create({
     marginBottom: 6
   },
   title: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
     textTransform: 'uppercase',
-    letterSpacing: 0.5
+    letterSpacing: 0.6
   },
   badge: {
     paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingVertical: 3,
     borderRadius: radius.pill
   },
   badgeText: {
     fontSize: 11,
-    fontWeight: '700'
+    fontWeight: '800'
   },
   track: {
     height: 10,
     borderRadius: radius.pill,
     overflow: 'hidden',
-    position: 'relative'
+    position: 'relative',
+    borderWidth: 1
   },
   fill: {
     height: '100%',
@@ -91,7 +137,7 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: 2,
-    backgroundColor: '#64748B',
-    opacity: 0.6
+    zIndex: 2,
+    opacity: 0.8
   }
 });

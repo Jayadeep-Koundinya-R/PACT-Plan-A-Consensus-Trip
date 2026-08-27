@@ -2,374 +2,356 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   ScrollView,
+  TextInput,
   StyleSheet,
-  SafeAreaView,
-  Alert
+  SafeAreaView
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
+import { StepProgressBar } from '../../../src/components/StepProgressBar';
+import { BottomTabBar } from '../../../src/components/BottomTabBar';
 import { colors, radius, shadows } from '../../../src/theme/colors';
 import {
   ArrowLeft,
   Calendar,
   DollarSign,
   Tag,
-  ShieldAlert,
-  Check,
-  Sparkles,
-  Save
+  Ban,
+  ShieldCheck,
+  CheckCircle2,
+  BookmarkCheck,
+  Sparkles
 } from 'lucide-react-native';
 
-const ALLOWED_TAGS = [
-  'beach',
-  'mountains',
-  'city',
-  'relaxed',
-  'active',
-  'budget-conscious'
-] as const;
+const AVAILABLE_TAGS = [
+  { id: 'beach', label: 'Beach / Coastal', emoji: '🏖️' },
+  { id: 'mountains', label: 'Mountains / Nature', emoji: '⛰️' },
+  { id: 'city', label: 'City / Culture', emoji: '🏙️' },
+  { id: 'relaxed', label: 'Relaxed / Low-key', emoji: '😌' },
+  { id: 'active', label: 'Active / Adventure', emoji: '🏃' },
+  { id: 'budget-conscious', label: 'Budget-conscious', emoji: '💰' }
+];
+
+const BUDGET_PRESETS = [500, 750, 1000, 1500, 2500];
 
 export default function PreferencesScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const {
     isDarkMode,
+    groups,
     currentUserId,
     members,
-    submitPreferences,
-    savePreferenceDraft
+    savePreferenceDraft,
+    submitPreferences
   } = useGatherlyStore();
 
   const theme = isDarkMode ? colors.dark : colors.light;
-  const currentMember = members.find((m) => m.userId === currentUserId);
+  const currentGroup = groups.find((g) => g.id === id) || groups[0];
+  const existingMember = members.find((m) => m.userId === currentUserId);
 
   // Form State
-  const [startDate, setStartDate] = useState(currentMember?.dateRanges[0]?.start || '2026-07-10');
-  const [endDate, setEndDate] = useState(currentMember?.dateRanges[0]?.end || '2026-07-15');
-  const [budgetMin, setBudgetMin] = useState(String(currentMember?.budgetMin || '400'));
-  const [budgetMax, setBudgetMax] = useState(String(currentMember?.budgetMax || '900'));
-  const [selectedTags, setSelectedTags] = useState<string[]>(currentMember?.tags || ['beach', 'relaxed']);
-  const [dealbreakers, setDealbreakers] = useState(
-    currentMember?.dealbreakers ? currentMember.dealbreakers.join(', ') : 'hiking, cold'
+  const [dateStart, setDateStart] = useState(
+    existingMember?.dateRanges[0]?.start || '2026-07-15'
   );
-  const [savedBanner, setSavedBanner] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
+  const [dateEnd, setDateEnd] = useState(
+    existingMember?.dateRanges[0]?.end || '2026-07-28'
+  );
+  const [budgetMin, setBudgetMin] = useState(existingMember?.budgetMin || 600);
+  const [budgetMax, setBudgetMax] = useState(existingMember?.budgetMax || 1500);
+  const [selectedTags, setSelectedTags] = useState<string[]>(
+    existingMember?.tags || ['beach', 'active', 'relaxed']
+  );
+  const [dealbreakers, setDealbreakers] = useState(
+    existingMember?.dealbreakers.join(', ') || ''
+  );
 
-  const handleToggleTag = (tag: string) => {
-    if (selectedTags.includes(tag)) {
-      setSelectedTags(selectedTags.filter((t) => t !== tag));
+  const [dateQuickChip, setDateQuickChip] = useState<'this' | 'next' | 'custom'>('custom');
+  const [toastMessage, setToastMessage] = useState('');
+
+  const toggleTag = (tagId: string) => {
+    if (selectedTags.includes(tagId)) {
+      setSelectedTags(selectedTags.filter((t) => t !== tagId));
     } else {
       if (selectedTags.length >= 3) {
-        setErrorMsg('You can select a maximum of 3 preference tags.');
-        setTimeout(() => setErrorMsg(''), 3000);
+        alert('You can select a maximum of 3 tags.');
         return;
       }
-      setSelectedTags([...selectedTags, tag]);
+      setSelectedTags([...selectedTags, tagId]);
+    }
+  };
+
+  const handleSelectBudgetPreset = (presetMax: number) => {
+    setBudgetMax(presetMax);
+    if (budgetMin >= presetMax) {
+      setBudgetMin(Math.max(300, presetMax - 400));
+    }
+  };
+
+  const handleQuickDateChip = (type: 'this' | 'next' | 'custom') => {
+    setDateQuickChip(type);
+    if (type === 'this') {
+      setDateStart('2026-07-10');
+      setDateEnd('2026-07-15');
+    } else if (type === 'next') {
+      setDateStart('2026-07-18');
+      setDateEnd('2026-07-25');
     }
   };
 
   const handleSaveDraft = () => {
-    savePreferenceDraft(id || 'default', {
-      dateRanges: [{ start: startDate, end: endDate }],
-      budgetMin: Number(budgetMin) || 400,
-      budgetMax: Number(budgetMax) || 900,
+    savePreferenceDraft(currentGroup.id, {
+      userId: currentUserId,
+      budgetMin,
+      budgetMax,
       tags: selectedTags,
       dealbreakers: dealbreakers.split(',').map((s) => s.trim()).filter(Boolean)
     });
-    setSavedBanner(true);
-    setTimeout(() => setSavedBanner(false), 2000);
+    setToastMessage('✓ Draft saved locally.');
+    setTimeout(() => setToastMessage(''), 2000);
   };
 
   const handleSubmit = () => {
-    const minVal = Number(budgetMin);
-    const maxVal = Number(budgetMax);
-
-    if (isNaN(minVal) || isNaN(maxVal) || minVal < 0 || maxVal < minVal) {
-      setErrorMsg('Please enter a valid budget range (Min ≤ Max).');
-      return;
-    }
-
-    if (selectedTags.length === 0) {
-      setErrorMsg('Please choose at least 1 preference tag.');
-      return;
-    }
-
-    submitPreferences({
+    submitPreferences(currentGroup.id, {
       userId: currentUserId,
-      userName: currentMember?.userName || 'User',
-      avatarUrl: currentMember?.avatarUrl,
-      dateRanges: [{ start: startDate, end: endDate }],
-      budgetMin: minVal,
-      budgetMax: maxVal,
+      userName: existingMember?.userName || 'Member',
+      dateRanges: [{ start: dateStart, end: dateEnd }],
+      budgetMin,
+      budgetMax,
       tags: selectedTags,
-      dealbreakers: dealbreakers.split(',').map((s) => s.trim()).filter(Boolean),
-      submittedAt: new Date().toISOString()
+      dealbreakers: dealbreakers.split(',').map((s) => s.trim()).filter(Boolean)
     });
 
-    setSavedBanner(true);
+    setToastMessage('🎉 Preferences submitted privately!');
     setTimeout(() => {
-      router.push(`/groups/${id}/options`);
-    }, 800);
+      setToastMessage('');
+      router.push(`/groups/${currentGroup.id}/options`);
+    }, 1200);
   };
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      {/* 4-Step Consensus Journey Progress Bar */}
+      <StepProgressBar currentStep={1} groupId={currentGroup.id} isDarkMode={isDarkMode} />
+
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Navbar */}
+        {/* Navigation Header */}
         <View style={styles.navBar}>
           <TouchableOpacity
-            onPress={() => router.back()}
-            style={[styles.backBtn, { backgroundColor: theme.surfaceSubtle }]}
+            onPress={() => router.push(`/groups/${currentGroup.id}`)}
+            style={[styles.backBtn, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
           >
             <ArrowLeft size={18} color={theme.textPrimary} />
           </TouchableOpacity>
 
-          <Text style={[styles.navTitle, { color: theme.textPrimary }]}>
-            Submit Private Constraints
+          <Text style={[styles.navTitle, { color: theme.textPrimary }]} numberOfLines={1}>
+            My Private Constraints
           </Text>
 
-          <TouchableOpacity
-            onPress={handleSaveDraft}
-            style={[styles.saveDraftBtn, { backgroundColor: theme.surfaceSubtle }]}
-          >
-            <Save size={16} color={theme.primary} />
-          </TouchableOpacity>
+          <View style={{ width: 38 }} />
         </View>
 
-        {/* Privacy Assurance Banner */}
-        <View style={[styles.privacyBanner, { backgroundColor: theme.primaryLight }]}>
-          <Sparkles size={18} color={theme.primary} />
-          <View style={styles.privacyBannerText}>
-            <Text style={[styles.privacyBannerTitle, { color: theme.primaryDark }]}>
-              Zero Peer Pressure & Private
-            </Text>
-            <Text style={[styles.privacyBannerSub, { color: theme.textSecondary }]}>
-              Your individual constraints are NEVER visible to other members. The engine uses them only to rank shared compromises.
-            </Text>
-          </View>
+        {/* Privacy Promise Banner */}
+        <View
+          style={[
+            styles.privacyBanner,
+            { backgroundColor: theme.primaryLight, borderColor: theme.primary }
+          ]}
+        >
+          <ShieldCheck size={18} color={theme.primary} />
+          <Text style={[styles.privacyBannerText, { color: theme.textPrimary }]}>
+            <Text style={{ fontWeight: '800' }}>100% Private:</Text> Friends only see aggregated trip rankings. Your individual budget and dealbreakers are never revealed.
+          </Text>
         </View>
 
-        {errorMsg ? (
-          <View style={[styles.errorBanner, { backgroundColor: theme.dangerLight }]}>
-            <Text style={[styles.errorText, { color: theme.danger }]}>{errorMsg}</Text>
-          </View>
-        ) : null}
-
-        {savedBanner ? (
-          <View style={[styles.successBanner, { backgroundColor: theme.successLight }]}>
-            <Check size={16} color={theme.success} />
-            <Text style={[styles.successText, { color: theme.success }]}>
-              Preferences submitted successfully!
-            </Text>
+        {toastMessage ? (
+          <View style={[styles.toastBanner, { backgroundColor: theme.successLight }]}>
+            <CheckCircle2 size={16} color={theme.success} />
+            <Text style={[styles.toastText, { color: theme.success }]}>{toastMessage}</Text>
           </View>
         ) : null}
 
         {/* Section 1: Travel Dates */}
         <View
           style={[
-            styles.card,
-            { backgroundColor: theme.surface, borderColor: theme.border },
-            shadows.sm
+            styles.formCard,
+            { backgroundColor: theme.surface, borderColor: theme.glassBorder },
+            shadows.md
           ]}
         >
           <View style={styles.cardHeader}>
             <Calendar size={18} color={theme.primary} />
             <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>
-              Available Date Range
+              1. When are you free?
             </Text>
           </View>
-          <Text style={[styles.cardSubtitle, { color: theme.textSecondary }]}>
-            Select the window of dates you could realistically travel:
-          </Text>
 
-          <View style={styles.dateInputsRow}>
-            <View style={styles.dateField}>
-              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
-                Earliest Departure
-              </Text>
-              <TextInput
+          {/* Quick Date Chips */}
+          <View style={styles.quickChipsRow}>
+            <TouchableOpacity
+              onPress={() => handleQuickDateChip('this')}
+              style={[
+                styles.quickChip,
+                {
+                  backgroundColor:
+                    dateQuickChip === 'this' ? theme.primary : theme.surfaceElevated,
+                  borderColor: dateQuickChip === 'this' ? theme.primary : theme.border
+                }
+              ]}
+            >
+              <Text
                 style={[
-                  styles.input,
-                  {
-                    backgroundColor: theme.surfaceSubtle,
-                    color: theme.textPrimary,
-                    borderColor: theme.border
-                  }
+                  styles.quickChipText,
+                  { color: dateQuickChip === 'this' ? '#FFFFFF' : theme.textSecondary }
                 ]}
-                value={startDate}
-                onChangeText={setStartDate}
-                placeholder="YYYY-MM-DD"
-              />
-            </View>
+              >
+                July Mid (10-15)
+              </Text>
+            </TouchableOpacity>
 
-            <View style={styles.dateField}>
-              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
-                Latest Return
-              </Text>
-              <TextInput
+            <TouchableOpacity
+              onPress={() => handleQuickDateChip('next')}
+              style={[
+                styles.quickChip,
+                {
+                  backgroundColor:
+                    dateQuickChip === 'next' ? theme.primary : theme.surfaceElevated,
+                  borderColor: dateQuickChip === 'next' ? theme.primary : theme.border
+                }
+              ]}
+            >
+              <Text
                 style={[
-                  styles.input,
-                  {
-                    backgroundColor: theme.surfaceSubtle,
-                    color: theme.textPrimary,
-                    borderColor: theme.border
-                  }
+                  styles.quickChipText,
+                  { color: dateQuickChip === 'next' ? '#FFFFFF' : theme.textSecondary }
                 ]}
-                value={endDate}
-                onChangeText={setEndDate}
-                placeholder="YYYY-MM-DD"
-              />
-            </View>
+              >
+                July Late (18-25)
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => setDateQuickChip('custom')}
+              style={[
+                styles.quickChip,
+                {
+                  backgroundColor:
+                    dateQuickChip === 'custom' ? theme.primary : theme.surfaceElevated,
+                  borderColor: dateQuickChip === 'custom' ? theme.primary : theme.border
+                }
+              ]}
+            >
+              <Text
+                style={[
+                  styles.quickChipText,
+                  { color: dateQuickChip === 'custom' ? '#FFFFFF' : theme.textSecondary }
+                ]}
+              >
+                Custom Range
+              </Text>
+            </TouchableOpacity>
           </View>
 
-          {/* Quick Preset Buttons */}
-          <View style={styles.presetRow}>
-            <TouchableOpacity
-              onPress={() => {
-                setStartDate('2026-07-10');
-                setEndDate('2026-07-15');
-              }}
-              style={[styles.presetPill, { backgroundColor: theme.surfaceSubtle }]}
-            >
-              <Text style={[styles.presetText, { color: theme.textSecondary }]}>
-                Jul 10 - Jul 15
+          {/* Date Input Fields */}
+          <View style={styles.dateInputsRow}>
+            <View style={styles.dateCol}>
+              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
+                EARLIEST DEPARTURE
               </Text>
-            </TouchableOpacity>
+              <TextInput
+                style={[
+                  styles.textInput,
+                  {
+                    backgroundColor: theme.surfaceElevated,
+                    color: theme.textPrimary,
+                    borderColor: theme.border
+                  }
+                ]}
+                value={dateStart}
+                onChangeText={setDateStart}
+                placeholder="YYYY-MM-DD"
+                placeholderTextColor={theme.textMuted}
+              />
+            </View>
 
-            <TouchableOpacity
-              onPress={() => {
-                setStartDate('2026-07-12');
-                setEndDate('2026-07-20');
-              }}
-              style={[styles.presetPill, { backgroundColor: theme.surfaceSubtle }]}
-            >
-              <Text style={[styles.presetText, { color: theme.textSecondary }]}>
-                Jul 12 - Jul 20
+            <View style={styles.dateCol}>
+              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
+                LATEST RETURN
               </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => {
-                setStartDate('2026-07-15');
-                setEndDate('2026-07-28');
-              }}
-              style={[styles.presetPill, { backgroundColor: theme.surfaceSubtle }]}
-            >
-              <Text style={[styles.presetText, { color: theme.textSecondary }]}>
-                Jul 15 - Jul 28
-              </Text>
-            </TouchableOpacity>
+              <TextInput
+                style={[
+                  styles.textInput,
+                  {
+                    backgroundColor: theme.surfaceElevated,
+                    color: theme.textPrimary,
+                    borderColor: theme.border
+                  }
+                ]}
+                value={dateEnd}
+                onChangeText={setDateEnd}
+                placeholder="YYYY-MM-DD"
+                placeholderTextColor={theme.textMuted}
+              />
+            </View>
           </View>
         </View>
 
-        {/* Section 2: Budget Range */}
+        {/* Section 2: Budget */}
         <View
           style={[
-            styles.card,
-            { backgroundColor: theme.surface, borderColor: theme.border },
-            shadows.sm
+            styles.formCard,
+            { backgroundColor: theme.surface, borderColor: theme.glassBorder },
+            shadows.md
           ]}
         >
           <View style={styles.cardHeader}>
             <DollarSign size={18} color={theme.success} />
             <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>
-              Budget Range Per Person ($USD)
+              2. What's your budget range?
             </Text>
           </View>
-          <Text style={[styles.cardSubtitle, { color: theme.textSecondary }]}>
-            Options priced above your maximum will automatically be flagged.
-          </Text>
 
-          <View style={styles.budgetRow}>
-            <View style={styles.budgetField}>
-              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
-                Minimum ($)
-              </Text>
-              <TextInput
-                style={[
-                  styles.input,
-                  {
-                    backgroundColor: theme.surfaceSubtle,
-                    color: theme.textPrimary,
-                    borderColor: theme.border
-                  }
-                ]}
-                value={budgetMin}
-                onChangeText={setBudgetMin}
-                keyboardType="numeric"
-                placeholder="400"
-              />
-            </View>
-
-            <View style={styles.budgetField}>
-              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
-                Maximum Cap ($)
-              </Text>
-              <TextInput
-                style={[
-                  styles.input,
-                  {
-                    backgroundColor: theme.surfaceSubtle,
-                    color: theme.textPrimary,
-                    borderColor: theme.border
-                  }
-                ]}
-                value={budgetMax}
-                onChangeText={setBudgetMax}
-                keyboardType="numeric"
-                placeholder="900"
-              />
-            </View>
-          </View>
-        </View>
-
-        {/* Section 3: Preference Tags */}
-        <View
-          style={[
-            styles.card,
-            { backgroundColor: theme.surface, borderColor: theme.border },
-            shadows.sm
-          ]}
-        >
-          <View style={styles.cardHeader}>
-            <Tag size={18} color={theme.secondary} />
-            <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>
-              Activity & Style Tags (Pick 2–3)
+          {/* Large Budget Display */}
+          <View style={styles.budgetDisplayRow}>
+            <Text style={[styles.budgetRangeText, { color: theme.primary }]}>
+              ${budgetMin} — ${budgetMax}
+            </Text>
+            <Text style={[styles.perPersonLabel, { color: theme.textSecondary }]}>
+              per person
             </Text>
           </View>
-          <Text style={[styles.cardSubtitle, { color: theme.textSecondary }]}>
-            What kind of experience do you want? (Selected: {selectedTags.length}/3)
-          </Text>
 
-          <View style={styles.tagsGrid}>
-            {ALLOWED_TAGS.map((tag) => {
-              const isSelected = selectedTags.includes(tag);
+          {/* Quick Preset Chips */}
+          <Text style={[styles.inputLabel, { color: theme.textSecondary, marginBottom: 8 }]}>
+            QUICK MAX BUDGET PRESETS:
+          </Text>
+          <View style={styles.quickChipsRow}>
+            {BUDGET_PRESETS.map((preset) => {
+              const isSelected = budgetMax === preset;
               return (
                 <TouchableOpacity
-                  key={tag}
-                  activeOpacity={0.7}
-                  onPress={() => handleToggleTag(tag)}
+                  key={preset}
+                  onPress={() => handleSelectBudgetPreset(preset)}
                   style={[
-                    styles.tagChip,
+                    styles.quickChip,
                     {
-                      backgroundColor: isSelected ? theme.primary : theme.surfaceSubtle,
+                      backgroundColor: isSelected ? theme.primary : theme.surfaceElevated,
                       borderColor: isSelected ? theme.primary : theme.border
                     }
                   ]}
                 >
                   <Text
                     style={[
-                      styles.tagChipText,
-                      { color: isSelected ? '#FFFFFF' : theme.textPrimary }
+                      styles.quickChipText,
+                      { color: isSelected ? '#FFFFFF' : theme.textSecondary }
                     ]}
                   >
-                    {isSelected ? '✓ ' : ''}#{tag}
+                    ${preset}
                   </Text>
                 </TouchableOpacity>
               );
@@ -377,50 +359,125 @@ export default function PreferencesScreen() {
           </View>
         </View>
 
-        {/* Section 4: Non-Negotiable Dealbreakers */}
+        {/* Section 3: Tags */}
         <View
           style={[
-            styles.card,
-            { backgroundColor: theme.surface, borderColor: theme.border },
-            shadows.sm
+            styles.formCard,
+            { backgroundColor: theme.surface, borderColor: theme.glassBorder },
+            shadows.md
           ]}
         >
           <View style={styles.cardHeader}>
-            <ShieldAlert size={18} color={theme.danger} />
+            <Tag size={18} color={theme.secondary} />
             <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>
-              Dealbreakers (Optional)
+              3. What vibe do you want? (Pick up to 3)
             </Text>
           </View>
-          <Text style={[styles.cardSubtitle, { color: theme.textSecondary }]}>
-            Non-negotiable dealbreakers that would prevent you from attending (comma separated).
+
+          <View style={styles.tagsGrid}>
+            {AVAILABLE_TAGS.map((t) => {
+              const isSelected = selectedTags.includes(t.id);
+              return (
+                <TouchableOpacity
+                  key={t.id}
+                  activeOpacity={0.7}
+                  onPress={() => toggleTag(t.id)}
+                  style={[
+                    styles.tagCard,
+                    {
+                      backgroundColor: isSelected ? theme.primary : theme.surfaceElevated,
+                      borderColor: isSelected ? theme.primary : theme.border
+                    },
+                    isSelected ? shadows.glowPrimary : {}
+                  ]}
+                >
+                  <Text style={styles.tagEmoji}>{t.emoji}</Text>
+                  <Text
+                    style={[
+                      styles.tagCardLabel,
+                      {
+                        color: isSelected ? '#FFFFFF' : theme.textPrimary,
+                        fontWeight: isSelected ? '800' : '600'
+                      }
+                    ]}
+                  >
+                    {t.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* Section 4: Dealbreakers */}
+        <View
+          style={[
+            styles.formCard,
+            { backgroundColor: theme.surface, borderColor: theme.glassBorder },
+            shadows.md
+          ]}
+        >
+          <View style={styles.cardHeader}>
+            <Ban size={18} color={theme.danger} />
+            <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>
+              4. Any hard no's or dealbreakers?
+            </Text>
+          </View>
+
+          <Text style={[styles.dealbreakerHint, { color: theme.textSecondary }]}>
+            Trips matching these will be flagged with an instant 0% match score.
           </Text>
 
           <TextInput
             style={[
-              styles.input,
+              styles.textInput,
               {
-                backgroundColor: theme.surfaceSubtle,
+                backgroundColor: theme.surfaceElevated,
                 color: theme.textPrimary,
                 borderColor: theme.border
               }
             ]}
             value={dealbreakers}
             onChangeText={setDealbreakers}
-            placeholder="e.g. hiking, cold, camping, isolated"
+            placeholder="e.g. no cold, no camping, no long flights"
             placeholderTextColor={theme.textMuted}
+            maxLength={100}
           />
         </View>
 
-        {/* Submit CTA */}
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={handleSubmit}
-          style={[styles.submitButton, { backgroundColor: theme.primary }, shadows.md]}
-        >
-          <Check size={18} color="#FFFFFF" />
-          <Text style={styles.submitButtonText}>Submit My Constraints</Text>
-        </TouchableOpacity>
+        {/* Footer Actions: Save Draft & Submit */}
+        <View style={styles.footerActions}>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={handleSaveDraft}
+            style={[
+              styles.secondaryBtn,
+              { backgroundColor: theme.surfaceElevated, borderColor: theme.border }
+            ]}
+          >
+            <BookmarkCheck size={16} color={theme.textSecondary} />
+            <Text style={[styles.secondaryBtnText, { color: theme.textSecondary }]}>
+              Save Draft
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={handleSubmit}
+            style={[
+              styles.submitBtn,
+              { backgroundColor: theme.primary },
+              shadows.glowPrimary
+            ]}
+          >
+            <Sparkles size={16} color="#FFFFFF" />
+            <Text style={styles.submitBtnText}>Submit Constraints Privately</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
+
+      {/* Floating Bottom Navigation Bar */}
+      <BottomTabBar />
     </SafeAreaView>
   );
 }
@@ -431,7 +488,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 40,
+    paddingBottom: 120,
     maxWidth: 680,
     width: '100%',
     alignSelf: 'center'
@@ -440,70 +497,52 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16
+    marginVertical: 14
   },
   backBtn: {
     width: 38,
     height: 38,
     borderRadius: radius.pill,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    borderWidth: 1
   },
   navTitle: {
     fontSize: 17,
-    fontWeight: '700'
-  },
-  saveDraftBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: radius.pill,
-    justifyContent: 'center',
-    alignItems: 'center'
+    fontWeight: '800',
+    flex: 1,
+    textAlign: 'center',
+    marginHorizontal: 12
   },
   privacyBanner: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
+    alignItems: 'center',
+    gap: 10,
     padding: 14,
-    borderRadius: radius.card,
+    borderRadius: radius.md,
+    borderWidth: 1,
     marginBottom: 16
   },
   privacyBannerText: {
+    fontSize: 12,
+    lineHeight: 17,
     flex: 1
   },
-  privacyBannerTitle: {
-    fontSize: 13,
-    fontWeight: '800'
-  },
-  privacyBannerSub: {
-    fontSize: 11,
-    marginTop: 2,
-    lineHeight: 16
-  },
-  errorBanner: {
-    padding: 12,
-    borderRadius: radius.md,
-    marginBottom: 14
-  },
-  errorText: {
-    fontSize: 12,
-    fontWeight: '700'
-  },
-  successBanner: {
+  toastBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     padding: 12,
     borderRadius: radius.md,
-    marginBottom: 14
+    marginBottom: 16
   },
-  successText: {
+  toastText: {
     fontSize: 13,
     fontWeight: '700'
   },
-  card: {
+  formCard: {
     borderRadius: radius.card,
-    padding: 16,
+    padding: 18,
     borderWidth: 1,
     marginBottom: 16
   },
@@ -511,86 +550,118 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 4
+    marginBottom: 14
   },
   cardTitle: {
-    fontSize: 15,
-    fontWeight: '700'
+    fontSize: 16,
+    fontWeight: '800'
   },
-  cardSubtitle: {
+  quickChipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 12
+  },
+  quickChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    borderWidth: 1
+  },
+  quickChipText: {
     fontSize: 12,
-    marginBottom: 14
+    fontWeight: '700'
   },
   dateInputsRow: {
     flexDirection: 'row',
-    gap: 12,
-    marginBottom: 10
+    gap: 12
   },
-  dateField: {
+  dateCol: {
     flex: 1
   },
   inputLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    marginBottom: 4
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    marginBottom: 6
   },
-  input: {
+  textInput: {
+    borderWidth: 1,
     borderRadius: radius.md,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    borderWidth: 1,
-    fontSize: 14
-  },
-  presetRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginTop: 4
-  },
-  presetPill: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: radius.pill
-  },
-  presetText: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600'
   },
-  budgetRow: {
-    flexDirection: 'row',
-    gap: 12
+  budgetDisplayRow: {
+    alignItems: 'center',
+    paddingVertical: 10,
+    marginBottom: 10
   },
-  budgetField: {
-    flex: 1
+  budgetRangeText: {
+    fontSize: 28,
+    fontWeight: '900',
+    letterSpacing: -0.5
+  },
+  perPersonLabel: {
+    fontSize: 12,
+    marginTop: 2
   },
   tagsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8
   },
-  tagChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: radius.pill,
+  tagCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: radius.md,
     borderWidth: 1
   },
-  tagChipText: {
+  tagEmoji: {
+    fontSize: 16
+  },
+  tagCardLabel: {
+    fontSize: 13
+  },
+  dealbreakerHint: {
+    fontSize: 12,
+    lineHeight: 16,
+    marginBottom: 10
+  },
+  footerActions: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 8
+  },
+  secondaryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: radius.btn,
+    borderWidth: 1
+  },
+  secondaryBtnText: {
     fontSize: 13,
     fontWeight: '700'
   },
-  submitButton: {
+  submitBtn: {
+    flex: 1,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,
-    paddingVertical: 16,
-    borderRadius: radius.btn,
-    marginTop: 8
+    paddingVertical: 14,
+    borderRadius: radius.btn
   },
-  submitButtonText: {
+  submitBtnText: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700'
+    fontSize: 14,
+    fontWeight: '800'
   }
 });

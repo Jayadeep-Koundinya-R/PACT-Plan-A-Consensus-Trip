@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -12,18 +12,22 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
 import { ConfettiEffect } from '../../../src/components/ConfettiEffect';
+import { StepProgressBar } from '../../../src/components/StepProgressBar';
+import { BottomTabBar } from '../../../src/components/BottomTabBar';
 import { colors, radius, shadows } from '../../../src/theme/colors';
 import {
   Sparkles,
-  Share2,
-  CheckCircle,
   Calendar,
   DollarSign,
   Users,
+  Tag,
+  Share2,
+  Check,
   Award,
   ArrowLeft,
-  Check,
-  Compass
+  Compass,
+  CheckCircle2,
+  Plus
 } from 'lucide-react-native';
 
 export default function TripBriefScreen() {
@@ -33,271 +37,244 @@ export default function TripBriefScreen() {
     isDarkMode,
     groups,
     members,
-    finalizedBrief,
-    getConsensusResults
+    getConsensusResults,
+    finalizedBrief
   } = useGatherlyStore();
 
   const theme = isDarkMode ? colors.dark : colors.light;
   const currentGroup = groups.find((g) => g.id === id) || groups[0];
   const consensus = getConsensusResults();
 
-  const brief =
-    finalizedBrief ||
-    (consensus.winningOption
-      ? {
-          groupId: currentGroup.id,
-          winningOption: consensus.winningOption,
-          finalizedAt: new Date().toISOString(),
-          confirmedParticipants: members.map((m) => m.userName),
-          totalBudgetRange: `$${Math.min(...members.map((m) => m.budgetMin))} - $${Math.max(...members.map((m) => m.budgetMax))}`,
-          travelWindow: `${consensus.winningOption.option.dateStart} to ${consensus.winningOption.option.dateEnd}`
-        }
-      : null);
+  const [copied, setCopied] = useState(false);
 
-  const [copiedShare, setCopiedShare] = useState(false);
-  const [showCelebration, setShowCelebration] = useState(true);
+  const winningScored = finalizedBrief?.winningOption || consensus.winningOption || consensus.rankedOptions[0];
+  const option = winningScored.option;
 
-  useEffect(() => {
-    const timer = setTimeout(() => setShowCelebration(false), 4000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (!brief) {
-    return (
-      <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
-        <View style={styles.emptyContainer}>
-          <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
-            No finalized trip brief found for this circle yet.
-          </Text>
-          <TouchableOpacity
-            onPress={() => router.push(`/groups/${id}/options`)}
-            style={[styles.emptyBtn, { backgroundColor: theme.primary }]}
-          >
-            <Text style={styles.emptyBtnText}>Go to Ranked Options</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  const { winningOption, confirmedParticipants, totalBudgetRange, travelWindow } = brief;
+  const briefText = `🌴 OFFICIAL PACT TRIP BRIEF: ${currentGroup.name}\n\n🏆 Finalized Destination: ${option.name}\n📅 Confirmed Dates: ${option.dateStart} to ${option.dateEnd}\n💰 Target Budget: $${option.budgetPerPerson} / person (100% group fit)\n👥 Confirmed Travelers: ${members.map((m) => m.userName).join(', ')}\n🏷️ Matched Vibes: ${option.tags.map((t) => `#${t}`).join(' ')}\n\n(Generated with 100% consensus in PACT!)`;
 
   const handleShare = async () => {
-    const shareMessage = `🎉 PACT Consensus Reached!\n\nDestination: ${winningOption.option.name} (${winningOption.option.destinationType})\nDates: ${travelWindow}\nBudget: $${winningOption.option.budgetPerPerson}/person\nGoing: ${confirmedParticipants.join(', ')}\n\nPlan A Consensus Trip with PACT!`;
-
     if (Platform.OS === 'web') {
       try {
-        await navigator.clipboard.writeText(shareMessage);
-        setCopiedShare(true);
-        setTimeout(() => setCopiedShare(false), 3000);
+        await navigator.clipboard.writeText(briefText);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2500);
       } catch (e) {
-        alert(shareMessage);
+        alert(briefText);
       }
     } else {
       try {
         await Share.share({
-          message: shareMessage,
-          title: `Trip Brief: ${winningOption.option.name}`
+          message: briefText,
+          title: `Trip Brief: ${option.name}`
         });
-      } catch (error) {
-        // Share dismissed
-      }
+      } catch (e) {}
     }
   };
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      {/* Dynamic Confetti Explosion */}
       <ConfettiEffect durationMs={4500} />
+
+      {/* 4-Step Consensus Journey Progress Bar */}
+      <StepProgressBar currentStep={4} groupId={currentGroup.id} isDarkMode={isDarkMode} />
+
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Navbar */}
+        {/* Navigation Header */}
         <View style={styles.navBar}>
           <TouchableOpacity
-            onPress={() => router.push(`/groups/${id}`)}
-            style={[styles.backBtn, { backgroundColor: theme.surfaceSubtle }]}
+            onPress={() => router.push(`/groups/${currentGroup.id}`)}
+            style={[styles.backBtn, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
           >
             <ArrowLeft size={18} color={theme.textPrimary} />
           </TouchableOpacity>
 
-          <Text style={[styles.navTitle, { color: theme.textPrimary }]}>
-            Trip Brief
+          <Text style={[styles.navTitle, { color: theme.textPrimary }]} numberOfLines={1}>
+            Official Trip Brief
           </Text>
 
           <TouchableOpacity
             onPress={handleShare}
-            style={[styles.shareIconBtn, { backgroundColor: theme.primaryLight }]}
+            style={[styles.shareHeaderBtn, { backgroundColor: theme.primaryLight, borderColor: theme.primary }]}
           >
-            <Share2 size={16} color={theme.primary} />
+            <Share2 size={18} color={theme.primary} />
           </TouchableOpacity>
         </View>
 
-        {/* Celebration Header */}
-        <View style={styles.celebrationHero}>
-          <View style={[styles.heroIconCircle, { backgroundColor: theme.successLight }]}>
-            <CheckCircle size={36} color={theme.success} />
-          </View>
-          <Text style={[styles.heroTitle, { color: theme.textPrimary }]}>
-            Consensus Locked & Confirmed! 🌴
-          </Text>
-          <Text style={[styles.heroSubtitle, { color: theme.textSecondary }]}>
-            The group reached 100% agreement. Here is your official Trip Brief ready for bookings.
-          </Text>
-        </View>
-
-        {/* Confetti Banner on first load */}
-        {showCelebration && (
-          <View style={[styles.confettiBanner, { backgroundColor: theme.secondaryLight }]}>
-            <Sparkles size={16} color={theme.secondary} />
-            <Text style={[styles.confettiText, { color: theme.secondary }]}>
-              🎉 3-second celebration burst! Everyone's dates & budget honored.
-            </Text>
-          </View>
-        )}
-
-        {/* Official Trip Brief Card */}
+        {/* Boarding Pass / Ticket Card */}
         <View
           style={[
-            styles.briefCard,
-            { backgroundColor: theme.surface, borderColor: theme.border },
+            styles.ticketCard,
+            { backgroundColor: theme.surface, borderColor: theme.glassBorder },
             shadows.lg
           ]}
         >
-          {/* Header */}
-          <View style={styles.briefCardHeader}>
-            <View style={styles.briefBadgeRow}>
-              <Award size={18} color={theme.primary} />
-              <Text style={[styles.briefBadgeText, { color: theme.primary }]}>
-                OFFICIAL TRIP BRIEF
+          {/* Ticket Header */}
+          <View style={styles.ticketHeader}>
+            <View style={styles.ticketBrandRow}>
+              <Compass size={18} color={theme.primary} />
+              <Text style={[styles.ticketBrandText, { color: theme.primary }]}>
+                PACT BOARDING PASS
               </Text>
             </View>
-            <View style={[styles.consensusBadge, { backgroundColor: theme.successLight }]}>
-              <Text style={[styles.consensusBadgeText, { color: theme.success }]}>
-                100% Agreement
+            <View style={[styles.consensusPill, { backgroundColor: theme.successLight }]}>
+              <Award size={13} color={theme.success} />
+              <Text style={[styles.consensusPillText, { color: theme.success }]}>
+                CONSENSUS REACHED
               </Text>
             </View>
           </View>
 
-          {/* Destination Info */}
-          <Text style={[styles.destinationName, { color: theme.textPrimary }]}>
-            {winningOption.option.name}
-          </Text>
-          <Text style={[styles.destinationType, { color: theme.textSecondary }]}>
-            {winningOption.option.destinationType}
-          </Text>
-          {winningOption.option.description && (
-            <Text style={[styles.destinationDesc, { color: theme.textSecondary }]}>
-              "{winningOption.option.description}"
+          {/* Perforated Divider */}
+          <View style={styles.perforationRow}>
+            <View style={[styles.cutoutLeft, { backgroundColor: theme.background }]} />
+            <View style={[styles.dashedLine, { borderColor: theme.border }]} />
+            <View style={[styles.cutoutRight, { backgroundColor: theme.background }]} />
+          </View>
+
+          {/* Ticket Body */}
+          <View style={styles.ticketBody}>
+            <Text style={[styles.circleNameLabel, { color: theme.textSecondary }]}>
+              {currentGroup.name.toUpperCase()}
             </Text>
-          )}
-
-          <View style={styles.divider} />
-
-          {/* Detail 1: Dates */}
-          <View style={styles.briefDetailRow}>
-            <View style={[styles.detailIconCircle, { backgroundColor: theme.primaryLight }]}>
-              <Calendar size={18} color={theme.primaryDark} />
-            </View>
-            <View style={styles.detailTextCol}>
-              <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
-                Confirmed Travel Window
-              </Text>
-              <Text style={[styles.detailValue, { color: theme.textPrimary }]}>
-                {travelWindow}
-              </Text>
-            </View>
-          </View>
-
-          {/* Detail 2: Budget */}
-          <View style={styles.briefDetailRow}>
-            <View style={[styles.detailIconCircle, { backgroundColor: theme.successLight }]}>
-              <DollarSign size={18} color={theme.success} />
-            </View>
-            <View style={styles.detailTextCol}>
-              <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
-                Cost Estimate Per Person
-              </Text>
-              <Text style={[styles.detailValue, { color: theme.textPrimary }]}>
-                ${winningOption.option.budgetPerPerson} / person
-              </Text>
-              <Text style={[styles.detailSubtext, { color: theme.textSecondary }]}>
-                Within all 5 members' private limits ({totalBudgetRange})
-              </Text>
-            </View>
-          </View>
-
-          {/* Detail 3: Participants */}
-          <View style={styles.briefDetailRow}>
-            <View style={[styles.detailIconCircle, { backgroundColor: theme.secondaryLight }]}>
-              <Users size={18} color={theme.secondary} />
-            </View>
-            <View style={styles.detailTextCol}>
-              <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>
-                Confirmed Travelers ({confirmedParticipants.length})
-              </Text>
-              <Text style={[styles.detailValue, { color: theme.textPrimary }]}>
-                {confirmedParticipants.join(' • ')}
-              </Text>
-            </View>
-          </View>
-
-          {/* Honored Tags */}
-          <View style={styles.tagsSection}>
-            <Text style={[styles.tagsSectionLabel, { color: theme.textSecondary }]}>
-              Group Preferences Satisfied:
+            <Text style={[styles.destinationTitle, { color: theme.textPrimary }]}>
+              {option.name}
             </Text>
-            <View style={styles.tagsRow}>
-              {winningOption.option.tags.map((tag) => (
-                <View
-                  key={tag}
-                  style={[styles.tagBadge, { backgroundColor: theme.surfaceSubtle }]}
-                >
-                  <Text style={[styles.tagBadgeText, { color: theme.textPrimary }]}>
-                    ✓ #{tag}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          </View>
-
-          <View style={styles.divider} />
-
-          {/* Reason Summary */}
-          <View style={[styles.reasonHighlight, { backgroundColor: theme.successLight }]}>
-            <Text style={[styles.reasonHighlightText, { color: theme.success }]}>
-              💡 Plain-English Summary: "{winningOption.plainEnglishReason}"
+            <Text style={[styles.destinationSub, { color: theme.textSecondary }]}>
+              {option.description}
             </Text>
+
+            {/* Dates & Budget Metadata Grid */}
+            <View style={styles.metaGrid}>
+              <View
+                style={[
+                  styles.metaCard,
+                  { backgroundColor: theme.surfaceElevated, borderColor: theme.border }
+                ]}
+              >
+                <Calendar size={18} color={theme.primary} />
+                <Text style={[styles.metaCardLabel, { color: theme.textSecondary }]}>
+                  DATES
+                </Text>
+                <Text style={[styles.metaCardValue, { color: theme.textPrimary }]}>
+                  {option.dateStart}
+                </Text>
+                <Text style={[styles.metaCardSub, { color: theme.textMuted }]}>
+                  to {option.dateEnd}
+                </Text>
+              </View>
+
+              <View
+                style={[
+                  styles.metaCard,
+                  { backgroundColor: theme.surfaceElevated, borderColor: theme.border }
+                ]}
+              >
+                <DollarSign size={18} color={theme.success} />
+                <Text style={[styles.metaCardLabel, { color: theme.textSecondary }]}>
+                  TARGET BUDGET
+                </Text>
+                <Text style={[styles.metaCardValue, { color: theme.success }]}>
+                  ${option.budgetPerPerson}
+                </Text>
+                <Text style={[styles.metaCardSub, { color: theme.textMuted }]}>
+                  per traveler
+                </Text>
+              </View>
+            </View>
+
+            {/* Confirmed Participants Roster */}
+            <View style={styles.participantsSection}>
+              <View style={styles.participantsHeader}>
+                <Users size={16} color={theme.primary} />
+                <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>
+                  Confirmed Travelers ({members.length})
+                </Text>
+              </View>
+
+              <View style={styles.participantsChips}>
+                {members.map((m) => (
+                  <View
+                    key={m.userId}
+                    style={[
+                      styles.participantChip,
+                      { backgroundColor: theme.surfaceElevated, borderColor: theme.border }
+                    ]}
+                  >
+                    <CheckCircle2 size={14} color={theme.success} />
+                    <Text style={[styles.participantChipText, { color: theme.textPrimary }]}>
+                      {m.userName}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+
+            {/* Matched Tags */}
+            <View style={styles.tagsSection}>
+              <View style={styles.tagsHeader}>
+                <Tag size={16} color={theme.secondary} />
+                <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>
+                  Honored Group Vibes
+                </Text>
+              </View>
+              <View style={styles.tagsRow}>
+                {option.tags.map((t) => (
+                  <View
+                    key={t}
+                    style={[
+                      styles.tagBadge,
+                      { backgroundColor: theme.primaryLight, borderColor: theme.primary }
+                    ]}
+                  >
+                    <Text style={[styles.tagBadgeText, { color: theme.primary }]}>
+                      #{t}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
           </View>
         </View>
 
-        {/* Share CTA */}
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={handleShare}
-          style={[styles.primaryShareBtn, { backgroundColor: theme.primary }, shadows.md]}
-        >
-          {copiedShare ? (
-            <Check size={18} color="#FFFFFF" />
-          ) : (
-            <Share2 size={18} color="#FFFFFF" />
-          )}
-          <Text style={styles.primaryShareBtnText}>
-            {copiedShare ? 'Brief Copied to Clipboard!' : 'Share Brief to WhatsApp / SMS'}
-          </Text>
-        </TouchableOpacity>
+        {/* Action Buttons */}
+        <View style={styles.actionsContainer}>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={handleShare}
+            style={[styles.primaryShareBtn, { backgroundColor: theme.primary }, shadows.glowPrimary]}
+          >
+            {copied ? (
+              <Check size={18} color="#FFFFFF" />
+            ) : (
+              <Share2 size={18} color="#FFFFFF" />
+            )}
+            <Text style={styles.primaryShareBtnText}>
+              {copied ? 'Copied to Clipboard!' : 'Share Brief to WhatsApp / Group'}
+            </Text>
+          </TouchableOpacity>
 
-        {/* Return to Circles Link */}
-        <TouchableOpacity
-          onPress={() => router.push('/groups')}
-          style={styles.returnBtn}
-        >
-          <Compass size={16} color={theme.textSecondary} />
-          <Text style={[styles.returnBtnText, { color: theme.textSecondary }]}>
-            Return to Trip Circles
-          </Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => router.push('/groups')}
+            style={[
+              styles.secondaryBtn,
+              { backgroundColor: theme.surfaceElevated, borderColor: theme.border }
+            ]}
+          >
+            <Plus size={16} color={theme.textPrimary} />
+            <Text style={[styles.secondaryBtnText, { color: theme.textPrimary }]}>
+              Plan Another Trip Circle
+            </Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
+
+      {/* Floating Bottom Navigation Bar */}
+      <BottomTabBar />
     </SafeAreaView>
   );
 }
@@ -308,7 +285,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 40,
+    paddingBottom: 120,
     maxWidth: 680,
     width: '100%',
     alignSelf: 'center'
@@ -317,194 +294,191 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16
+    marginVertical: 14
   },
   backBtn: {
     width: 38,
     height: 38,
     borderRadius: radius.pill,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    borderWidth: 1
   },
   navTitle: {
     fontSize: 17,
-    fontWeight: '700'
+    fontWeight: '800',
+    flex: 1,
+    textAlign: 'center',
+    marginHorizontal: 12
   },
-  shareIconBtn: {
+  shareHeaderBtn: {
     width: 38,
     height: 38,
     borderRadius: radius.pill,
     justifyContent: 'center',
-    alignItems: 'center'
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
-    padding: 24
+    borderWidth: 1
   },
-  emptyText: {
-    fontSize: 15,
-    marginBottom: 16
-  },
-  emptyBtn: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: radius.pill
-  },
-  emptyBtnText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700'
-  },
-  celebrationHero: {
-    alignItems: 'center',
-    marginVertical: 12,
-    paddingHorizontal: 16
-  },
-  heroIconCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12
-  },
-  heroTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    textAlign: 'center'
-  },
-  heroSubtitle: {
-    fontSize: 13,
-    textAlign: 'center',
-    marginTop: 4,
-    lineHeight: 18
-  },
-  confettiBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    padding: 10,
-    borderRadius: radius.md,
-    marginVertical: 10
-  },
-  confettiText: {
-    fontSize: 12,
-    fontWeight: '700'
-  },
-  briefCard: {
+  ticketCard: {
     borderRadius: radius.card,
-    padding: 20,
     borderWidth: 1,
-    marginBottom: 16
+    overflow: 'hidden',
+    marginBottom: 20
   },
-  briefCardHeader: {
+  ticketHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12
+    padding: 18
   },
-  briefBadgeRow: {
+  ticketBrandRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6
   },
-  briefBadgeText: {
+  ticketBrandText: {
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 1
+  },
+  consensusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: radius.pill
+  },
+  consensusPillText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5
+  },
+  perforationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 2
+  },
+  cutoutLeft: {
+    width: 16,
+    height: 32,
+    borderTopRightRadius: 16,
+    borderBottomRightRadius: 16
+  },
+  dashedLine: {
+    flex: 1,
+    borderWidth: 1,
+    borderStyle: 'dashed'
+  },
+  cutoutRight: {
+    width: 16,
+    height: 32,
+    borderTopLeftRadius: 16,
+    borderBottomLeftRadius: 16
+  },
+  ticketBody: {
+    padding: 20
+  },
+  circleNameLabel: {
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.8
   },
-  consensusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: radius.pill
+  destinationTitle: {
+    fontSize: 26,
+    fontWeight: '900',
+    marginTop: 4,
+    letterSpacing: -0.5
   },
-  consensusBadgeText: {
-    fontSize: 11,
-    fontWeight: '800'
-  },
-  destinationName: {
-    fontSize: 24,
-    fontWeight: '800'
-  },
-  destinationType: {
+  destinationSub: {
     fontSize: 13,
-    marginTop: 2
+    lineHeight: 18,
+    marginTop: 4,
+    marginBottom: 16
   },
-  destinationDesc: {
-    fontSize: 12,
-    fontStyle: 'italic',
-    marginTop: 6,
-    lineHeight: 16
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#CBD5E1',
-    marginVertical: 14,
-    opacity: 0.4
-  },
-  briefDetailRow: {
+  metaGrid: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
     gap: 12,
-    marginBottom: 14
+    marginBottom: 18
   },
-  detailIconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center'
+  metaCard: {
+    flex: 1,
+    borderRadius: radius.md,
+    padding: 14,
+    borderWidth: 1
   },
-  detailTextCol: {
-    flex: 1
+  metaCardLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    marginTop: 6
   },
-  detailLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    textTransform: 'uppercase'
-  },
-  detailValue: {
-    fontSize: 15,
+  metaCardValue: {
+    fontSize: 16,
     fontWeight: '800',
     marginTop: 2
   },
-  detailSubtext: {
+  metaCardSub: {
     fontSize: 11,
-    marginTop: 2
+    marginTop: 1
+  },
+  participantsSection: {
+    marginBottom: 16
+  },
+  participantsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 10
+  },
+  sectionTitle: {
+    fontSize: 13,
+    fontWeight: '800'
+  },
+  participantsChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8
+  },
+  participantChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    borderWidth: 1
+  },
+  participantChipText: {
+    fontSize: 12,
+    fontWeight: '700'
   },
   tagsSection: {
-    marginTop: 6
+    marginTop: 4
   },
-  tagsSectionLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    marginBottom: 6
+  tagsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 10
   },
   tagsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 6
+    gap: 8
   },
   tagBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: radius.sm
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: radius.pill,
+    borderWidth: 1
   },
   tagBadgeText: {
     fontSize: 11,
-    fontWeight: '700'
+    fontWeight: '800'
   },
-  reasonHighlight: {
-    padding: 10,
-    borderRadius: radius.md
-  },
-  reasonHighlightText: {
-    fontSize: 12,
-    lineHeight: 16,
-    fontWeight: '600'
+  actionsContainer: {
+    gap: 10
   },
   primaryShareBtn: {
     flexDirection: 'row',
@@ -512,23 +486,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     paddingVertical: 16,
-    borderRadius: radius.btn,
-    marginBottom: 12
+    borderRadius: radius.btn
   },
   primaryShareBtnText: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700'
+    fontSize: 15,
+    fontWeight: '800'
   },
-  returnBtn: {
+  secondaryBtn: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 6,
-    paddingVertical: 10
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: radius.btn,
+    borderWidth: 1
   },
-  returnBtnText: {
-    fontSize: 13,
-    fontWeight: '600'
+  secondaryBtnText: {
+    fontSize: 14,
+    fontWeight: '700'
   }
 });
