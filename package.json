@@ -13,10 +13,8 @@
     "verify-demo": "node scripts/run-demo-scoring.mjs"
   },
   "dependencies": {
-    "@expo/metro-runtime": "~4.0.1",
     "@supabase/supabase-js": "^2.49.1",
     "expo": "~52.0.38",
-    "expo-asset": "~11.0.5",
     "expo-constants": "~17.0.7",
     "expo-font": "~13.0.4",
     "expo-haptics": "~14.0.1",

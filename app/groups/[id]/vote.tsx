@@ -37,7 +37,8 @@ export default function SilentVoteScreen() {
     votes,
     castVote,
     getOptionApprovalCount,
-    finalizeTrip
+    finalizeTrip,
+    reopenVoting
   } = useGatherlyStore();
 
   const theme = isDarkMode ? colors.dark : colors.light;
@@ -146,29 +147,45 @@ export default function SilentVoteScreen() {
 
             {/* Finalize Button */}
             {isOrganizer ? (
-              <TouchableOpacity
-                activeOpacity={0.8}
-                disabled={!isThresholdMet}
-                onPress={handleFinalize}
-                style={[
-                  styles.finalizeButton,
-                  {
-                    backgroundColor: isThresholdMet ? theme.success : theme.surfaceSubtle,
-                    opacity: isThresholdMet ? 1 : 0.6
-                  },
-                  isThresholdMet ? shadows.md : {}
-                ]}
-              >
-                <Sparkles size={18} color={isThresholdMet ? '#FFFFFF' : theme.textMuted} />
-                <Text
+              <View style={styles.organizerActionsCol}>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  disabled={!isThresholdMet}
+                  onPress={handleFinalize}
                   style={[
-                    styles.finalizeButtonText,
-                    { color: isThresholdMet ? '#FFFFFF' : theme.textMuted }
+                    styles.finalizeButton,
+                    {
+                      backgroundColor: isThresholdMet ? theme.success : theme.surfaceSubtle,
+                      opacity: isThresholdMet ? 1 : 0.6
+                    },
+                    isThresholdMet ? shadows.md : {}
                   ]}
                 >
-                  {isThresholdMet ? 'Finalize & Create Trip Brief' : 'Reach 70% Consensus to Finalize'}
-                </Text>
-              </TouchableOpacity>
+                  <Sparkles size={18} color={isThresholdMet ? '#FFFFFF' : theme.textMuted} />
+                  <Text
+                    style={[
+                      styles.finalizeButtonText,
+                      { color: isThresholdMet ? '#FFFFFF' : theme.textMuted }
+                    ]}
+                  >
+                    {isThresholdMet ? 'Finalize & Create Trip Brief' : 'Reach 70% Consensus to Finalize'}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    reopenVoting(currentGroup.id, currentUserId);
+                    triggerHaptic();
+                    alert('Voting round has been reopened for all members.');
+                  }}
+                  style={styles.reopenVotingBtn}
+                >
+                  <Text style={[styles.reopenVotingText, { color: theme.textSecondary }]}>
+                    ↺ Restart / Re-open Voting Round
+                  </Text>
+                </TouchableOpacity>
+              </View>
             ) : (
               <View style={[styles.memberNotice, { backgroundColor: theme.surfaceSubtle }]}>
                 <Text style={[styles.memberNoticeText, { color: theme.textSecondary }]}>
@@ -456,6 +473,17 @@ const styles = StyleSheet.create({
   finalizeButtonText: {
     fontSize: 15,
     fontWeight: '700'
+  },
+  organizerActionsCol: {
+    gap: 8
+  },
+  reopenVotingBtn: {
+    paddingVertical: 6,
+    alignItems: 'center'
+  },
+  reopenVotingText: {
+    fontSize: 12,
+    fontWeight: '600'
   },
   memberNotice: {
     padding: 12,

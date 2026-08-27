@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
+import { ConfettiEffect } from '../../../src/components/ConfettiEffect';
 import { colors, radius, shadows } from '../../../src/theme/colors';
 import {
   Sparkles,
@@ -106,6 +107,7 @@ export default function TripBriefScreen() {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      <ConfettiEffect durationMs={4500} />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}

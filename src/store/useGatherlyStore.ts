@@ -57,6 +57,7 @@ interface GatherlyState {
   getConsensusResults: () => ConsensusResult;
   getOptionApprovalCount: (optionId: string) => number;
   finalizeTrip: (callerUserId?: string) => TripBrief;
+  reopenVoting: (groupId: string, callerUserId?: string) => void;
   resetDemoState: () => void;
 }
 
@@ -228,6 +229,23 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     }));
 
     return brief;
+  },
+
+  reopenVoting: (groupId: string, callerUserId?: string) => {
+    const { currentUserId, groups } = get();
+    const effectiveCaller = callerUserId || currentUserId;
+    const targetGroup = groups.find((g) => g.id === groupId);
+
+    if (targetGroup && targetGroup.organizerId !== effectiveCaller) {
+      throw new Error('Only the organizer can reopen voting rounds.');
+    }
+
+    set((state) => ({
+      finalizedBrief: null,
+      groups: state.groups.map((g) =>
+        g.id === groupId ? { ...g, status: 'voting' } : g
+      )
+    }));
   },
 
   resetDemoState: () => {

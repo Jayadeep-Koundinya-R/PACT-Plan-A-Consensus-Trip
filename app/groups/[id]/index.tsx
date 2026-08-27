@@ -9,6 +9,8 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
+import { NudgeModal } from '../../../src/components/NudgeModal';
+import { InviteQRModal } from '../../../src/components/InviteQRModal';
 import { colors, radius, shadows } from '../../../src/theme/colors';
 import {
   ArrowLeft,
@@ -17,11 +19,12 @@ import {
   Check,
   Users,
   CheckCircle2,
-  Clock,
   Sparkles,
   Vote,
   Sliders,
-  ChevronRight
+  ChevronRight,
+  QrCode,
+  BellRing
 } from 'lucide-react-native';
 
 export default function GroupDetailScreen() {
@@ -40,10 +43,15 @@ export default function GroupDetailScreen() {
   const consensus = getConsensusResults();
 
   const [copiedCode, setCopiedCode] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [showNudgeModal, setShowNudgeModal] = useState(false);
 
   const currentUser = members.find((m) => m.userId === currentUserId) || members[0];
   const isOrganizer = currentGroup.organizerId === currentUserId;
   const userHasSubmitted = members.some((m) => m.userId === currentUserId);
+
+  const pendingMembers = members.filter((m) => !m.submittedAt);
+  const pendingNames = pendingMembers.map((m) => m.userName);
 
   const handleCopyCode = () => {
     setCopiedCode(true);
@@ -70,14 +78,10 @@ export default function GroupDetailScreen() {
           </Text>
 
           <TouchableOpacity
-            onPress={handleCopyCode}
-            style={[styles.shareBtn, { backgroundColor: theme.primaryLight }]}
+            onPress={() => setShowQRModal(true)}
+            style={[styles.qrHeaderBtn, { backgroundColor: theme.primaryLight }]}
           >
-            {copiedCode ? (
-              <Check size={16} color={theme.primary} />
-            ) : (
-              <Share2 size={16} color={theme.primary} />
-            )}
+            <QrCode size={18} color={theme.primary} />
           </TouchableOpacity>
         </View>
 
@@ -104,20 +108,30 @@ export default function GroupDetailScreen() {
             <Text style={[styles.codeText, { color: theme.primary }]}>
               {currentGroup.inviteCode}
             </Text>
-            <TouchableOpacity
-              onPress={handleCopyCode}
-              activeOpacity={0.7}
-              style={[styles.copyCodeBtn, { backgroundColor: theme.surfaceSubtle }]}
-            >
-              {copiedCode ? (
-                <Check size={16} color={theme.success} />
-              ) : (
-                <Copy size={16} color={theme.textSecondary} />
-              )}
-              <Text style={[styles.copyCodeText, { color: theme.textSecondary }]}>
-                {copiedCode ? 'Copied!' : 'Copy Code'}
-              </Text>
-            </TouchableOpacity>
+            <View style={styles.codeActions}>
+              <TouchableOpacity
+                onPress={() => setShowQRModal(true)}
+                activeOpacity={0.7}
+                style={[styles.iconActionBtn, { backgroundColor: theme.surfaceSubtle }]}
+              >
+                <QrCode size={16} color={theme.textPrimary} />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleCopyCode}
+                activeOpacity={0.7}
+                style={[styles.copyCodeBtn, { backgroundColor: theme.surfaceSubtle }]}
+              >
+                {copiedCode ? (
+                  <Check size={16} color={theme.success} />
+                ) : (
+                  <Copy size={16} color={theme.textSecondary} />
+                )}
+                <Text style={[styles.copyCodeText, { color: theme.textSecondary }]}>
+                  {copiedCode ? 'Copied!' : 'Copy'}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           <Text style={[styles.inviteHint, { color: theme.textSecondary }]}>
@@ -169,7 +183,7 @@ export default function GroupDetailScreen() {
                 Ranked Options
               </Text>
               <Text style={[styles.tileSub, { color: theme.textSecondary }]}>
-                Deterministic scoring & reasons
+                Deterministic scoring & plain-English reasons
               </Text>
             </View>
             <ChevronRight size={18} color={theme.textMuted} />
@@ -211,11 +225,17 @@ export default function GroupDetailScreen() {
                 Circle Members ({members.length}/{currentGroup.totalMembersCount})
               </Text>
             </View>
-            <Text style={[styles.rosterSubtitle, { color: theme.success }]}>
-              {members.length === currentGroup.totalMembersCount
-                ? 'All Responded'
-                : `Waiting for ${currentGroup.totalMembersCount - members.length} more`}
-            </Text>
+
+            {/* Soft Reminder Nudge Button */}
+            <TouchableOpacity
+              onPress={() => setShowNudgeModal(true)}
+              style={[styles.nudgeBtn, { backgroundColor: theme.secondaryLight }]}
+            >
+              <BellRing size={13} color={theme.secondary} />
+              <Text style={[styles.nudgeBtnText, { color: theme.secondary }]}>
+                Nudge Friends
+              </Text>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.membersList}>
@@ -265,6 +285,27 @@ export default function GroupDetailScreen() {
           </View>
         </View>
       </ScrollView>
+
+      {/* QR Code Modal */}
+      <InviteQRModal
+        visible={showQRModal}
+        groupName={currentGroup.name}
+        inviteCode={currentGroup.inviteCode}
+        isDarkMode={isDarkMode}
+        onClose={() => setShowQRModal(false)}
+      />
+
+      {/* Soft Reminder Nudge Modal */}
+      <NudgeModal
+        visible={showNudgeModal}
+        groupName={currentGroup.name}
+        inviteCode={currentGroup.inviteCode}
+        respondedCount={members.length}
+        totalCount={currentGroup.totalMembersCount}
+        pendingMemberNames={pendingNames}
+        isDarkMode={isDarkMode}
+        onClose={() => setShowNudgeModal(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -300,7 +341,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginHorizontal: 12
   },
-  shareBtn: {
+  qrHeaderBtn: {
     width: 38,
     height: 38,
     borderRadius: radius.pill,
@@ -343,6 +384,18 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontWeight: '900',
     letterSpacing: 2
+  },
+  codeActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6
+  },
+  iconActionBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.pill,
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   copyCodeBtn: {
     flexDirection: 'row',
@@ -409,9 +462,17 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700'
   },
-  rosterSubtitle: {
-    fontSize: 12,
-    fontWeight: '600'
+  nudgeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: radius.pill
+  },
+  nudgeBtnText: {
+    fontSize: 11,
+    fontWeight: '700'
   },
   membersList: {
     gap: 8
