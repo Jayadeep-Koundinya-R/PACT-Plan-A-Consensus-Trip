@@ -14,6 +14,8 @@ import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
 import { ConfettiEffect } from '../../../src/components/ConfettiEffect';
 import { StepProgressBar } from '../../../src/components/StepProgressBar';
 import { BottomTabBar } from '../../../src/components/BottomTabBar';
+import { SocialStoryModal } from '../../../src/components/SocialStoryModal';
+import { downloadICSFile } from '../../../src/lib/export/icsGenerator';
 import { colors, radius, shadows } from '../../../src/theme/colors';
 import {
   Sparkles,
@@ -27,7 +29,9 @@ import {
   ArrowLeft,
   Compass,
   CheckCircle2,
-  Plus
+  Plus,
+  Download,
+  Image as ImageIcon
 } from 'lucide-react-native';
 
 export default function TripBriefScreen() {
@@ -46,6 +50,8 @@ export default function TripBriefScreen() {
   const consensus = getConsensusResults();
 
   const [copied, setCopied] = useState(false);
+  const [icsDownloaded, setIcsDownloaded] = useState(false);
+  const [storyModalVisible, setStoryModalVisible] = useState(false);
 
   const winningScored = finalizedBrief?.winningOption || consensus.winningOption || consensus.rankedOptions[0];
   const option = winningScored.option;
@@ -68,6 +74,22 @@ export default function TripBriefScreen() {
           title: `Trip Brief: ${option.name}`
         });
       } catch (e) {}
+    }
+  };
+
+  const handleExportICS = () => {
+    const success = downloadICSFile({
+      title: `${currentGroup.name}: ${option.name}`,
+      description: `Official PACT Trip Plan for ${option.name}.\nBudget: $${option.budgetPerPerson}/person.\nCrew: ${members.map((m) => m.userName).join(', ')}`,
+      location: option.name,
+      startDate: option.dateStart,
+      endDate: option.dateEnd,
+      attendees: members.map((m) => m.userName)
+    });
+
+    if (success) {
+      setIcsDownloaded(true);
+      setTimeout(() => setIcsDownloaded(false), 2500);
     }
   };
 
@@ -97,10 +119,10 @@ export default function TripBriefScreen() {
           </Text>
 
           <TouchableOpacity
-            onPress={handleShare}
+            onPress={() => setStoryModalVisible(true)}
             style={[styles.shareHeaderBtn, { backgroundColor: theme.primaryLight, borderColor: theme.primary }]}
           >
-            <Share2 size={18} color={theme.primary} />
+            <ImageIcon size={18} color={theme.primary} />
           </TouchableOpacity>
         </View>
 
@@ -240,8 +262,9 @@ export default function TripBriefScreen() {
           </View>
         </View>
 
-        {/* Action Buttons */}
+        {/* Action Buttons Grid */}
         <View style={styles.actionsContainer}>
+          {/* Primary Share */}
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={handleShare}
@@ -257,16 +280,51 @@ export default function TripBriefScreen() {
             </Text>
           </TouchableOpacity>
 
+          {/* Social Story Card 9:16 Modal Trigger */}
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => setStoryModalVisible(true)}
+            style={[
+              styles.secondaryActionBtn,
+              { backgroundColor: theme.surfaceElevated, borderColor: theme.border }
+            ]}
+          >
+            <ImageIcon size={18} color={theme.primary} />
+            <Text style={[styles.secondaryActionText, { color: theme.textPrimary }]}>
+              Generate 9:16 Social Story Card
+            </Text>
+          </TouchableOpacity>
+
+          {/* Calendar ICS Export */}
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={handleExportICS}
+            style={[
+              styles.secondaryActionBtn,
+              { backgroundColor: theme.surfaceElevated, borderColor: theme.border }
+            ]}
+          >
+            {icsDownloaded ? (
+              <Check size={18} color={theme.success} />
+            ) : (
+              <Calendar size={18} color={theme.success} />
+            )}
+            <Text style={[styles.secondaryActionText, { color: theme.textPrimary }]}>
+              {icsDownloaded ? 'Calendar Event (.ICS) Downloaded!' : 'Add to Calendar (.ICS Export)'}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Plan Another Circle */}
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => router.push('/groups')}
             style={[
-              styles.secondaryBtn,
+              styles.secondaryActionBtn,
               { backgroundColor: theme.surfaceElevated, borderColor: theme.border }
             ]}
           >
-            <Plus size={16} color={theme.textPrimary} />
-            <Text style={[styles.secondaryBtnText, { color: theme.textPrimary }]}>
+            <Plus size={16} color={theme.textSecondary} />
+            <Text style={[styles.secondaryActionText, { color: theme.textSecondary }]}>
               Plan Another Trip Circle
             </Text>
           </TouchableOpacity>
@@ -275,6 +333,19 @@ export default function TripBriefScreen() {
 
       {/* Floating Bottom Navigation Bar */}
       <BottomTabBar />
+
+      {/* Social Story 9:16 Preview Modal */}
+      <SocialStoryModal
+        visible={storyModalVisible}
+        groupName={currentGroup.name}
+        destinationName={option.name}
+        dates={`${option.dateStart} - ${option.dateEnd}`}
+        budget={`$${option.budgetPerPerson}`}
+        participants={members.map((m) => m.userName)}
+        tags={option.tags}
+        isDarkMode={isDarkMode}
+        onClose={() => setStoryModalVisible(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -323,7 +394,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.card,
     borderWidth: 1,
     overflow: 'hidden',
-    marginBottom: 20
+    marginBottom: 18
   },
   ticketHeader: {
     flexDirection: 'row',
@@ -493,7 +564,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '800'
   },
-  secondaryBtn: {
+  secondaryActionBtn: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -502,7 +573,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.btn,
     borderWidth: 1
   },
-  secondaryBtnText: {
+  secondaryActionText: {
     fontSize: 14,
     fontWeight: '700'
   }

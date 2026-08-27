@@ -11,6 +11,8 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useGatherlyStore } from '../../src/store/useGatherlyStore';
+import { BottomTabBar } from '../../src/components/BottomTabBar';
+import { ThemeToggle } from '../../src/components/ThemeToggle';
 import { colors, radius, shadows } from '../../src/theme/colors';
 import {
   Plus,
@@ -21,8 +23,6 @@ import {
   KeyRound,
   X,
   LogOut,
-  Moon,
-  Sun,
   ArrowLeft,
   Crown
 } from 'lucide-react-native';
@@ -31,7 +31,6 @@ export default function GroupsScreen() {
   const router = useRouter();
   const {
     isDarkMode,
-    toggleDarkMode,
     groups,
     createGroup,
     joinGroupByCode,
@@ -81,16 +80,16 @@ export default function GroupsScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Top Navbar with Explicit Return to Home Button */}
+        {/* Top Navbar */}
         <View style={styles.navBar}>
           <TouchableOpacity
             onPress={() => router.push('/')}
             activeOpacity={0.7}
-            style={[styles.homeReturnBtn, { backgroundColor: theme.surfaceSubtle }]}
+            style={[styles.homeReturnBtn, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
           >
             <ArrowLeft size={16} color={theme.textPrimary} />
             <Text style={[styles.homeReturnText, { color: theme.textPrimary }]}>
-              Home Dashboard
+              Dashboard
             </Text>
           </TouchableOpacity>
 
@@ -101,7 +100,7 @@ export default function GroupsScreen() {
               style={[
                 styles.proBadgeBtn,
                 {
-                  backgroundColor: isPro ? theme.secondaryLight : theme.surfaceSubtle,
+                  backgroundColor: isPro ? theme.secondaryLight : theme.surfaceElevated,
                   borderColor: isPro ? theme.secondary : theme.border
                 }
               ]}
@@ -113,26 +112,17 @@ export default function GroupsScreen() {
                   { color: isPro ? theme.secondary : theme.textSecondary }
                 ]}
               >
-                {isPro ? 'PRO ACTIVE' : 'UPGRADE'}
+                {isPro ? 'PRO' : 'UPGRADE'}
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={toggleDarkMode}
-              style={[styles.headerIconButton, { backgroundColor: theme.surfaceSubtle }]}
-            >
-              {isDarkMode ? (
-                <Sun size={18} color={theme.warning} />
-              ) : (
-                <Moon size={18} color={theme.textSecondary} />
-              )}
-            </TouchableOpacity>
+            <ThemeToggle />
 
             <TouchableOpacity
               onPress={() => router.replace('/auth')}
-              style={[styles.headerIconButton, { backgroundColor: theme.surfaceSubtle }]}
+              style={[styles.headerIconButton, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
             >
-              <LogOut size={18} color={theme.textSecondary} />
+              <LogOut size={16} color={theme.textSecondary} />
             </TouchableOpacity>
           </View>
         </View>
@@ -158,13 +148,13 @@ export default function GroupsScreen() {
         <View
           style={[
             styles.heroCard,
-            { backgroundColor: theme.surface, borderColor: theme.border },
-            shadows.sm
+            { backgroundColor: theme.surface, borderColor: theme.glassBorder },
+            shadows.md
           ]}
         >
           <View style={styles.heroTextCol}>
             <Text style={[styles.heroTitle, { color: theme.textPrimary }]}>
-              Your Trip Circles
+              Trip Circles
             </Text>
             <Text style={[styles.heroSub, { color: theme.textSecondary }]}>
               Private groups where dates, budgets, and dealbreakers align without friction.
@@ -174,7 +164,7 @@ export default function GroupsScreen() {
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => setCreateModalVisible(true)}
-            style={[styles.createCircleBtn, { backgroundColor: theme.primary }]}
+            style={[styles.createCircleBtn, { backgroundColor: theme.primary }, shadows.glowPrimary]}
           >
             <Plus size={18} color="#FFFFFF" />
             <Text style={styles.createCircleBtnText}>New Circle</Text>
@@ -185,7 +175,7 @@ export default function GroupsScreen() {
         <View
           style={[
             styles.joinBox,
-            { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }
+            { backgroundColor: theme.surfaceElevated, borderColor: theme.border }
           ]}
         >
           <KeyRound size={18} color={theme.primary} />
@@ -230,7 +220,7 @@ export default function GroupsScreen() {
                 ? theme.success
                 : group.status === 'voting'
                 ? theme.primary
-                : theme.secondary;
+                : theme.warning;
 
             return (
               <TouchableOpacity
@@ -239,8 +229,8 @@ export default function GroupsScreen() {
                 onPress={() => handleSelectGroup(group.id)}
                 style={[
                   styles.groupCard,
-                  { backgroundColor: theme.card, borderColor: theme.border },
-                  shadows.sm
+                  { backgroundColor: theme.surface, borderColor: theme.glassBorder },
+                  shadows.md
                 ]}
               >
                 <View style={styles.groupMainRow}>
@@ -255,7 +245,7 @@ export default function GroupsScreen() {
                       </Text>
                       {isOrganizer && (
                         <View style={[styles.organizerBadge, { backgroundColor: theme.secondaryLight }]}>
-                          <Text style={[styles.organizerBadgeText, { color: theme.secondary }]}>
+                          <Text style={[styles.roleBadgeText, { color: theme.secondary }]}>
                             Organizer
                           </Text>
                         </View>
@@ -263,7 +253,7 @@ export default function GroupsScreen() {
                     </View>
 
                     <Text style={[styles.groupMeta, { color: theme.textSecondary }]}>
-                      Code: <Text style={{ fontWeight: '700' }}>{group.inviteCode}</Text> • 5 Responded
+                      Code: <Text style={{ fontWeight: '800', color: theme.primary }}>{group.inviteCode}</Text> • 5 Responded
                     </Text>
                   </View>
 
@@ -282,6 +272,9 @@ export default function GroupsScreen() {
         </View>
       </ScrollView>
 
+      {/* Floating Bottom Navigation Bar */}
+      <BottomTabBar />
+
       {/* Create New Group Modal */}
       <Modal
         visible={createModalVisible}
@@ -293,7 +286,7 @@ export default function GroupsScreen() {
           <View
             style={[
               styles.modalCard,
-              { backgroundColor: theme.surface, borderColor: theme.border },
+              { backgroundColor: theme.surface, borderColor: theme.glassBorder },
               shadows.lg
             ]}
           >
@@ -314,7 +307,7 @@ export default function GroupsScreen() {
               style={[
                 styles.modalInput,
                 {
-                  backgroundColor: theme.surfaceSubtle,
+                  backgroundColor: theme.surfaceElevated,
                   color: theme.textPrimary,
                   borderColor: theme.border
                 }
@@ -329,7 +322,7 @@ export default function GroupsScreen() {
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={handleCreateGroup}
-              style={[styles.modalSubmitBtn, { backgroundColor: theme.primary }]}
+              style={[styles.modalSubmitBtn, { backgroundColor: theme.primary }, shadows.glowPrimary]}
             >
               <Sparkles size={16} color="#FFFFFF" />
               <Text style={styles.modalSubmitBtnText}>Create Circle & Invite Friends</Text>
@@ -347,7 +340,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 40,
+    paddingBottom: 120,
     maxWidth: 680,
     width: '100%',
     alignSelf: 'center'
@@ -364,7 +357,8 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: radius.pill
+    borderRadius: radius.pill,
+    borderWidth: 1
   },
   homeReturnText: {
     fontSize: 13,
@@ -389,11 +383,12 @@ const styles = StyleSheet.create({
     fontWeight: '800'
   },
   headerIconButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    borderWidth: 1
   },
   userProfileRow: {
     flexDirection: 'row',
@@ -536,7 +531,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: radius.pill
   },
-  organizerBadgeText: {
+  roleBadgeText: {
     fontSize: 10,
     fontWeight: '800'
   },
@@ -561,7 +556,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20

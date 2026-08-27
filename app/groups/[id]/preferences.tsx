@@ -36,6 +36,14 @@ const AVAILABLE_TAGS = [
 
 const BUDGET_PRESETS = [500, 750, 1000, 1500, 2500];
 
+const DEALBREAKER_PRESETS = [
+  'no camping',
+  'no flights',
+  'no cold',
+  'no hostels',
+  'strict budget'
+];
+
 export default function PreferencesScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -87,6 +95,15 @@ export default function PreferencesScreen() {
     setBudgetMax(presetMax);
     if (budgetMin >= presetMax) {
       setBudgetMin(Math.max(300, presetMax - 400));
+    }
+  };
+
+  const handleToggleDealbreakerChip = (chip: string) => {
+    const list = dealbreakers.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+    if (list.includes(chip)) {
+      setDealbreakers(list.filter((s) => s !== chip).join(', '));
+    } else {
+      setDealbreakers([...list, chip].join(', '));
     }
   };
 
@@ -409,7 +426,7 @@ export default function PreferencesScreen() {
           </View>
         </View>
 
-        {/* Section 4: Dealbreakers */}
+        {/* Section 4: Dealbreakers with Quick Preset Chips */}
         <View
           style={[
             styles.formCard,
@@ -425,8 +442,37 @@ export default function PreferencesScreen() {
           </View>
 
           <Text style={[styles.dealbreakerHint, { color: theme.textSecondary }]}>
-            Trips matching these will be flagged with an instant 0% match score.
+            Trips matching these will trigger an instant 0% score override.
           </Text>
+
+          {/* Quick Dealbreaker Chips */}
+          <View style={styles.quickChipsRow}>
+            {DEALBREAKER_PRESETS.map((preset) => {
+              const isChipActive = dealbreakers.toLowerCase().includes(preset);
+              return (
+                <TouchableOpacity
+                  key={preset}
+                  onPress={() => handleToggleDealbreakerChip(preset)}
+                  style={[
+                    styles.quickChip,
+                    {
+                      backgroundColor: isChipActive ? theme.dangerLight : theme.surfaceElevated,
+                      borderColor: isChipActive ? theme.danger : theme.border
+                    }
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.quickChipText,
+                      { color: isChipActive ? theme.danger : theme.textSecondary }
+                    ]}
+                  >
+                    🚫 #{preset}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
 
           <TextInput
             style={[

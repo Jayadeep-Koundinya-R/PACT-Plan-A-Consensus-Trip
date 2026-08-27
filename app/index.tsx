@@ -15,6 +15,7 @@ import { RankedOptionCard } from '../src/components/RankedOptionCard';
 import { TripBriefModal } from '../src/components/TripBriefModal';
 import { BottomTabBar } from '../src/components/BottomTabBar';
 import { ThemeToggle } from '../src/components/ThemeToggle';
+import { DemoTourModal } from '../src/components/DemoTourModal';
 import { colors, radius, shadows } from '../src/theme/colors';
 import {
   Compass,
@@ -56,6 +57,7 @@ export default function HomeScreen() {
   const [copiedCode, setCopiedCode] = useState(false);
   const [briefModalVisible, setBriefModalVisible] = useState(false);
   const [createModalVisible, setCreateModalVisible] = useState(false);
+  const [demoTourVisible, setDemoTourVisible] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
 
   const theme = isDarkMode ? colors.dark : colors.light;
@@ -100,7 +102,7 @@ export default function HomeScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header: Brand Logo + ThemeToggle + Pro Badge */}
+        {/* Header: Brand Logo + ThemeToggle + Pro Badge + Tour */}
         <View style={styles.navBar}>
           <View style={styles.brandRow}>
             <View
@@ -124,6 +126,22 @@ export default function HomeScreen() {
 
           <View style={styles.navActions}>
             <TouchableOpacity
+              onPress={() => setDemoTourVisible(true)}
+              style={[
+                styles.tourPill,
+                {
+                  backgroundColor: theme.primaryLight,
+                  borderColor: theme.primary
+                }
+              ]}
+            >
+              <Sparkles size={13} color={theme.primary} />
+              <Text style={[styles.tourPillText, { color: theme.primary }]}>
+                TOUR
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
               onPress={() => router.push('/paywall')}
               style={[
                 styles.proPill,
@@ -142,14 +160,6 @@ export default function HomeScreen() {
               >
                 {isPro ? 'PRO' : 'UPGRADE'}
               </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={resetDemoState}
-              style={[styles.iconButton, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
-              title="Reset Demo"
-            >
-              <RotateCcw size={16} color={theme.textSecondary} />
             </TouchableOpacity>
 
             <ThemeToggle />
@@ -449,6 +459,12 @@ export default function HomeScreen() {
         isDarkMode={isDarkMode}
         onClose={() => setBriefModalVisible(false)}
       />
+      {/* Demo Tour Modal */}
+      <DemoTourModal
+        visible={demoTourVisible}
+        isDarkMode={isDarkMode}
+        onClose={() => setDemoTourVisible(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -496,6 +512,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8
+  },
+  tourPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    borderWidth: 1
+  },
+  tourPillText: {
+    fontSize: 11,
+    fontWeight: '800'
   },
   proPill: {
     flexDirection: 'row',
