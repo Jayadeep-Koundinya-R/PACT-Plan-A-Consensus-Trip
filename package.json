@@ -1,8 +1,8 @@
 {
-  "name": "gatherly",
+  "name": "pact",
   "version": "1.0.0",
   "type": "module",
-  "description": "Gatherly — Trip Consensus App for Shipathon 2026",
+  "description": "PACT — Plan A Consensus Trip App for Shipathon 2026",
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",

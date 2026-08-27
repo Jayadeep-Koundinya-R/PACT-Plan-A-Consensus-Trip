@@ -1,4 +1,4 @@
-# 🌴 GATHERLY — Trip Consensus App
+# 🌴 PACT — Plan A Consensus Trip
 > **Shipathon 2026 (RevenueCat)** — Next Gen Award (Student Track)  
 > *Turn "we should go somewhere" into a real confirmed trip plan.*
 
@@ -14,7 +14,7 @@
 
 **The Problem:** Groups of 8–12 friends and family want to travel together, but everyone has conflicting date availabilities, different budget caps, varying activity preferences, and unspoken dealbreakers. Today, negotiations drag on for weeks in messy WhatsApp group chats. Plans stall, someone unilaterally books something that breeds resentment, or the trip simply never happens.
 
-**The Solution:** Gatherly is a private, zero-guilt decision-phase tool:
+**The Solution:** PACT (Plan A Consensus Trip) is a private, zero-guilt decision-phase tool:
 1. **Privately collects constraints** (dates, min/max budget, tags, dealbreakers).
 2. **Deterministically scores and ranks trip options** with plain-English breakdowns.
 3. **Enables Silent Voting** where members privately approve options and only aggregate consensus percentages are visible.
@@ -28,7 +28,7 @@
 2. **Truly Silent Voting:** Individual voting ballots are never exposed to other members. Only group consensus percentages are visible.
 3. **Ghost Members Never Poison Averages:** Scoring calculations only evaluate members who have submitted their private preferences (e.g., "5 of 5 responded").
 4. **Explicit Budget Gap Flagging:** If >30% of members cannot afford an option, the system flags a visible `Budget Division` warning rather than masking it behind a composite score.
-5. **Deadlock State Diagnostics:** If no option reaches the ~70% threshold, Gatherly diagnoses the root cause (`budget_gap`, `date_conflict`, `dealbreakers`, or `split_support`) and provides organizer recommendations.
+5. **Deadlock State Diagnostics:** If no option reaches the ~70% threshold, PACT diagnoses the root cause (`budget_gap`, `date_conflict`, `dealbreakers`, or `split_support`) and provides organizer recommendations.
 
 ---
 

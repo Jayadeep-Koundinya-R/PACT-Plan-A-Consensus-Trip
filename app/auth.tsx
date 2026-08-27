@@ -50,9 +50,9 @@ export default function AuthScreen() {
             <View style={[styles.logoIcon, { backgroundColor: theme.primary }, shadows.md]}>
               <Compass size={36} color="#FFFFFF" />
             </View>
-            <Text style={[styles.title, { color: theme.textPrimary }]}>Gatherly</Text>
+            <Text style={[styles.title, { color: theme.textPrimary }]}>PACT</Text>
             <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-              Turn "we should go somewhere" into a real confirmed trip plan.
+              Plan A Consensus Trip — turn "we should" into a confirmed plan.
             </Text>
           </View>
 

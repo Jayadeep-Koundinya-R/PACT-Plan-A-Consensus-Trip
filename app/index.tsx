@@ -93,10 +93,10 @@ export default function HomeScreen() {
             </View>
             <View>
               <Text style={[styles.brandTitle, { color: theme.textPrimary }]}>
-                Gatherly
+                PACT
               </Text>
               <Text style={[styles.brandSubtitle, { color: theme.textSecondary }]}>
-                Trip Consensus App
+                Plan A Consensus Trip
               </Text>
             </View>
           </View>

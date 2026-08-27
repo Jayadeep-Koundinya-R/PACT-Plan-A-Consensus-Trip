@@ -2,7 +2,7 @@ import { calculateConsensus } from '../src/lib/consensus/engine.js';
 import { DEMO_MEMBERS, DEMO_TRIP_OPTIONS, DEMO_GROUP_ID } from '../src/lib/consensus/seedData.js';
 
 console.log('\n' + '='.repeat(70));
-console.log('🚀 GATHERLY — CONSENSUS ENGINE VALIDATION RUNNER');
+console.log('🚀 PACT — PLAN A CONSENSUS TRIP (VALIDATION RUNNER)');
 console.log('Shipathon 2026 (RevenueCat) — Next Gen Award');
 console.log('='.repeat(70) + '\n');
 

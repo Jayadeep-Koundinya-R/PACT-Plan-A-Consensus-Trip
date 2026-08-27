@@ -1,5 +1,5 @@
 -- ============================================================================
--- GATHERLY — Trip Consensus App
+-- PACT — Plan A Consensus Trip
 -- Supabase PostgreSQL Schema & Row Level Security (RLS) Policies
 -- Shipathon 2026 (RevenueCat) — Next Gen Award
 -- ============================================================================

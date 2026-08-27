@@ -45,7 +45,7 @@ export default function InviteScreen() {
         </View>
 
         <Text style={[styles.title, { color: theme.textPrimary }]}>
-          You're Invited to a Trip Circle!
+          You're Invited to a PACT Trip Circle!
         </Text>
         <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
           Join privately to share your available dates and budget without peer pressure.

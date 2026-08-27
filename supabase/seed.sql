@@ -1,5 +1,5 @@
 -- ============================================================================
--- GATHERLY — Demo Seed Data
+-- PACT — Plan A Consensus Trip Demo Seed Data
 -- Shipathon 2026 (RevenueCat) — College Friends Beach Trip Demo
 -- ============================================================================
 

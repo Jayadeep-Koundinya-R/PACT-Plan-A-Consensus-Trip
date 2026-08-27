@@ -82,7 +82,7 @@ export default function TripBriefScreen() {
   const { winningOption, confirmedParticipants, totalBudgetRange, travelWindow } = brief;
 
   const handleShare = async () => {
-    const shareMessage = `🎉 Gatherly Trip Consensus Reached!\n\nDestination: ${winningOption.option.name} (${winningOption.option.destinationType})\nDates: ${travelWindow}\nBudget: $${winningOption.option.budgetPerPerson}/person\nGoing: ${confirmedParticipants.join(', ')}\n\nTurned "we should" into "we will" with Gatherly!`;
+    const shareMessage = `🎉 PACT Consensus Reached!\n\nDestination: ${winningOption.option.name} (${winningOption.option.destinationType})\nDates: ${travelWindow}\nBudget: $${winningOption.option.budgetPerPerson}/person\nGoing: ${confirmedParticipants.join(', ')}\n\nPlan A Consensus Trip with PACT!`;
 
     if (Platform.OS === 'web') {
       try {
