@@ -1,6 +1,7 @@
 {
   "name": "gatherly",
   "version": "1.0.0",
+  "type": "module",
   "description": "Gatherly — Trip Consensus App for Shipathon 2026",
   "main": "expo-router/entry",
   "scripts": {
@@ -8,7 +9,7 @@
     "web": "expo start --web",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "test": "node --loader ts-node/esm --test src/lib/consensus/__tests__/engine.test.ts",
+    "test": "node --test src/lib/consensus/__tests__/engine.test.mjs",
     "verify-demo": "node scripts/run-demo-scoring.mjs"
   },
   "dependencies": {
