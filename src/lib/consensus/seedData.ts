@@ -14,7 +14,8 @@ export const DEMO_MEMBERS: MemberPreference[] = [
     budgetMin: 400,
     budgetMax: 900,
     tags: ['beach', 'relaxed'],
-    dealbreakers: ['hiking', 'cold']
+    dealbreakers: ['hiking', 'cold'],
+    submittedAt: '2026-06-30T10:00:00.000Z'
   },
   {
     userId: 'user-jake-002',
@@ -27,7 +28,8 @@ export const DEMO_MEMBERS: MemberPreference[] = [
     budgetMin: 1000,
     budgetMax: 2500,
     tags: ['active', 'beach', 'hiking'],
-    dealbreakers: ['city']
+    dealbreakers: ['city'],
+    submittedAt: '2026-06-30T10:15:00.000Z'
   },
   {
     userId: 'user-priya-003',
@@ -39,7 +41,8 @@ export const DEMO_MEMBERS: MemberPreference[] = [
     budgetMin: 300,
     budgetMax: 700,
     tags: ['budget-conscious', 'relaxed', 'beach'],
-    dealbreakers: ['expensive']
+    dealbreakers: ['expensive'],
+    submittedAt: '2026-06-30T10:30:00.000Z'
   },
   {
     userId: 'user-alex-004',
@@ -51,7 +54,8 @@ export const DEMO_MEMBERS: MemberPreference[] = [
     budgetMin: 800,
     budgetMax: 2000,
     tags: ['city', 'culture', 'active'],
-    dealbreakers: ['isolated']
+    dealbreakers: ['isolated'],
+    submittedAt: '2026-06-30T10:45:00.000Z'
   },
   {
     userId: 'user-sam-005',
@@ -64,7 +68,8 @@ export const DEMO_MEMBERS: MemberPreference[] = [
     budgetMin: 600,
     budgetMax: 1500,
     tags: ['beach', 'active', 'budget-conscious'],
-    dealbreakers: []
+    dealbreakers: [],
+    submittedAt: '2026-06-30T11:00:00.000Z'
   }
 ];
 

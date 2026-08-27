@@ -253,20 +253,55 @@ export default function PreferencesScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={() => setDateQuickChip('custom')}
+              onPress={() => {
+                setDateQuickChip('custom');
+                setDateStart('2026-08-01');
+                setDateEnd('2026-08-10');
+              }}
               style={[
                 styles.quickChip,
                 {
                   backgroundColor:
-                    dateQuickChip === 'custom' ? theme.primary : theme.surfaceElevated,
-                  borderColor: dateQuickChip === 'custom' ? theme.primary : theme.border
+                    dateStart === '2026-08-01' ? theme.primary : theme.surfaceElevated,
+                  borderColor: dateStart === '2026-08-01' ? theme.primary : theme.border
                 }
               ]}
             >
               <Text
                 style={[
                   styles.quickChipText,
-                  { color: dateQuickChip === 'custom' ? '#FFFFFF' : theme.textSecondary }
+                  { color: dateStart === '2026-08-01' ? '#FFFFFF' : theme.textSecondary }
+                ]}
+              >
+                August (1-10)
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => setDateQuickChip('custom')}
+              style={[
+                styles.quickChip,
+                {
+                  backgroundColor:
+                    dateQuickChip === 'custom' && dateStart !== '2026-08-01'
+                      ? theme.primary
+                      : theme.surfaceElevated,
+                  borderColor:
+                    dateQuickChip === 'custom' && dateStart !== '2026-08-01'
+                      ? theme.primary
+                      : theme.border
+                }
+              ]}
+            >
+              <Text
+                style={[
+                  styles.quickChipText,
+                  {
+                    color:
+                      dateQuickChip === 'custom' && dateStart !== '2026-08-01'
+                        ? '#FFFFFF'
+                        : theme.textSecondary
+                  }
                 ]}
               >
                 Custom Range
@@ -290,7 +325,10 @@ export default function PreferencesScreen() {
                   }
                 ]}
                 value={dateStart}
-                onChangeText={setDateStart}
+                onChangeText={(val) => {
+                  setDateStart(val);
+                  setDateQuickChip('custom');
+                }}
                 placeholder="YYYY-MM-DD"
                 placeholderTextColor={theme.textMuted}
               />
@@ -310,7 +348,10 @@ export default function PreferencesScreen() {
                   }
                 ]}
                 value={dateEnd}
-                onChangeText={setDateEnd}
+                onChangeText={(val) => {
+                  setDateEnd(val);
+                  setDateQuickChip('custom');
+                }}
                 placeholder="YYYY-MM-DD"
                 placeholderTextColor={theme.textMuted}
               />
@@ -343,8 +384,81 @@ export default function PreferencesScreen() {
             </Text>
           </View>
 
+          {/* Interactive Min & Max Steppers */}
+          <View style={styles.stepperContainer}>
+            {/* Min Budget Control */}
+            <View style={styles.stepperCol}>
+              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
+                MINIMUM BUDGET
+              </Text>
+              <View
+                style={[
+                  styles.stepperBox,
+                  { backgroundColor: theme.surfaceElevated, borderColor: theme.border }
+                ]}
+              >
+                <TouchableOpacity
+                  onPress={() => setBudgetMin(Math.max(200, budgetMin - 50))}
+                  style={styles.stepBtn}
+                >
+                  <Text style={[styles.stepBtnText, { color: theme.textPrimary }]}>−</Text>
+                </TouchableOpacity>
+                <TextInput
+                  style={[styles.stepperInput, { color: theme.textPrimary }]}
+                  keyboardType="numeric"
+                  value={String(budgetMin)}
+                  onChangeText={(val) => {
+                    const num = parseInt(val, 10);
+                    if (!isNaN(num)) setBudgetMin(num);
+                  }}
+                />
+                <TouchableOpacity
+                  onPress={() => setBudgetMin(Math.min(budgetMax - 50, budgetMin + 50))}
+                  style={styles.stepBtn}
+                >
+                  <Text style={[styles.stepBtnText, { color: theme.textPrimary }]}>+</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Max Budget Control */}
+            <View style={styles.stepperCol}>
+              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
+                MAXIMUM BUDGET
+              </Text>
+              <View
+                style={[
+                  styles.stepperBox,
+                  { backgroundColor: theme.surfaceElevated, borderColor: theme.border }
+                ]}
+              >
+                <TouchableOpacity
+                  onPress={() => setBudgetMax(Math.max(budgetMin + 50, budgetMax - 50))}
+                  style={styles.stepBtn}
+                >
+                  <Text style={[styles.stepBtnText, { color: theme.textPrimary }]}>−</Text>
+                </TouchableOpacity>
+                <TextInput
+                  style={[styles.stepperInput, { color: theme.textPrimary }]}
+                  keyboardType="numeric"
+                  value={String(budgetMax)}
+                  onChangeText={(val) => {
+                    const num = parseInt(val, 10);
+                    if (!isNaN(num)) setBudgetMax(num);
+                  }}
+                />
+                <TouchableOpacity
+                  onPress={() => setBudgetMax(budgetMax + 50)}
+                  style={styles.stepBtn}
+                >
+                  <Text style={[styles.stepBtnText, { color: theme.textPrimary }]}>+</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+
           {/* Quick Preset Chips */}
-          <Text style={[styles.inputLabel, { color: theme.textSecondary, marginBottom: 8 }]}>
+          <Text style={[styles.inputLabel, { color: theme.textSecondary, marginBottom: 8, marginTop: 12 }]}>
             QUICK MAX BUDGET PRESETS:
           </Text>
           <View style={styles.quickChipsRow}>
@@ -355,16 +469,17 @@ export default function PreferencesScreen() {
                   key={preset}
                   onPress={() => handleSelectBudgetPreset(preset)}
                   style={[
-                    styles.quickChip,
+                    styles.budgetPresetChip,
                     {
-                      backgroundColor: isSelected ? theme.primary : theme.surfaceElevated,
-                      borderColor: isSelected ? theme.primary : theme.border
+                      backgroundColor:
+                        isSelected ? theme.success : theme.surfaceElevated,
+                      borderColor: isSelected ? theme.success : theme.border
                     }
                   ]}
                 >
                   <Text
                     style={[
-                      styles.quickChipText,
+                      styles.budgetPresetText,
                       { color: isSelected ? '#FFFFFF' : theme.textSecondary }
                     ]}
                   >
@@ -534,7 +649,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 120,
+    paddingBottom: 140,
     maxWidth: 680,
     width: '100%',
     alignSelf: 'center'
@@ -642,7 +757,7 @@ const styles = StyleSheet.create({
   budgetDisplayRow: {
     alignItems: 'center',
     paddingVertical: 10,
-    marginBottom: 10
+    marginBottom: 6
   },
   budgetRangeText: {
     fontSize: 28,
@@ -652,6 +767,48 @@ const styles = StyleSheet.create({
   perPersonLabel: {
     fontSize: 12,
     marginTop: 2
+  },
+  stepperContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 8
+  },
+  stepperCol: {
+    flex: 1
+  },
+  stepperBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: radius.md,
+    borderWidth: 1,
+    overflow: 'hidden'
+  },
+  stepBtn: {
+    width: 38,
+    height: 38,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  stepBtnText: {
+    fontSize: 18,
+    fontWeight: '800'
+  },
+  stepperInput: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 14,
+    fontWeight: '700',
+    paddingVertical: 8
+  },
+  budgetPresetChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    borderWidth: 1
+  },
+  budgetPresetText: {
+    fontSize: 12,
+    fontWeight: '700'
   },
   tagsGrid: {
     flexDirection: 'row',

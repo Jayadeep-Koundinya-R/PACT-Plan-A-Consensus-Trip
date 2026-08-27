@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     fontWeight: '800'
   },
   track: {
-    height: 10,
+    height: 12,
     borderRadius: radius.pill,
     overflow: 'hidden',
     position: 'relative',
@@ -136,8 +136,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     bottom: 0,
-    width: 2,
-    zIndex: 2,
-    opacity: 0.8
+    width: 3,
+    zIndex: 4,
+    opacity: 0.95
   }
 });

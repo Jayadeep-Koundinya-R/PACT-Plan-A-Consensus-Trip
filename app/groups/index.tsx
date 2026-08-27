@@ -13,6 +13,7 @@ import { useRouter } from 'expo-router';
 import { useGatherlyStore } from '../../src/store/useGatherlyStore';
 import { BottomTabBar } from '../../src/components/BottomTabBar';
 import { ThemeToggle } from '../../src/components/ThemeToggle';
+import { FeedbackModal } from '../../src/components/FeedbackModal';
 import { colors, radius, shadows } from '../../src/theme/colors';
 import {
   Plus,
@@ -41,31 +42,45 @@ export default function GroupsScreen() {
   } = useGatherlyStore();
 
   const theme = isDarkMode ? colors.dark : colors.light;
+  const isPro = subscriptionPlan !== 'free';
   const [createModalVisible, setCreateModalVisible] = useState(false);
+  const [feedbackVisible, setFeedbackVisible] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [joinCode, setJoinCode] = useState('');
   const [joinError, setJoinError] = useState('');
 
-  const currentUser = members.find((m) => m.userId === currentUserId) || members[0];
-  const isPro = subscriptionPlan !== 'free';
+  const currentUser = members.find((m) => m.userId === currentUserId);
 
   const handleCreateGroup = () => {
-    if (!newGroupName.trim()) return;
-    const group = createGroup(newGroupName.trim());
+    if (!newGroupName.trim()) {
+      alert('Please enter a group name.');
+      return;
+    }
+
+    if (!isPro && groups.length >= 1) {
+      setCreateModalVisible(false);
+      router.push('/paywall');
+      return;
+    }
+
+    const created = createGroup(newGroupName.trim(), currentUserId);
     setNewGroupName('');
     setCreateModalVisible(false);
-    router.push(`/groups/${group.id}`);
+    router.push(`/groups/${created.id}`);
   };
 
   const handleJoinGroup = () => {
-    if (!joinCode.trim()) return;
-    const res = joinGroupByCode(joinCode.trim());
-    if (res.success && res.group) {
+    if (!joinCode.trim()) {
+      setJoinError('Please enter an invite code.');
+      return;
+    }
+    const joined = joinGroupByCode(joinCode.trim(), currentUserId);
+    if (joined) {
       setJoinCode('');
       setJoinError('');
-      router.push(`/groups/${res.group.id}`);
+      router.push(`/groups/${joined.id}`);
     } else {
-      setJoinError(res.message);
+      setJoinError('Invalid invite code. Try GOA-2026 for the demo group.');
     }
   };
 
@@ -80,7 +95,7 @@ export default function GroupsScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Top Navbar */}
+        {/* Navigation Bar */}
         <View style={styles.navBar}>
           <TouchableOpacity
             onPress={() => router.push('/')}
@@ -94,6 +109,24 @@ export default function GroupsScreen() {
           </TouchableOpacity>
 
           <View style={styles.actionButtonsRow}>
+            {/* Organizer Feedback Button */}
+            <TouchableOpacity
+              onPress={() => setFeedbackVisible(true)}
+              style={[
+                styles.proBadgeBtn,
+                {
+                  backgroundColor: theme.surfaceElevated,
+                  borderColor: theme.border
+                }
+              ]}
+              title="Give Organizer Feedback"
+            >
+              <Users size={14} color={theme.textSecondary} />
+              <Text style={[styles.proBadgeText, { color: theme.textSecondary }]}>
+                FEEDBACK
+              </Text>
+            </TouchableOpacity>
+
             {/* Paywall Pro Badge */}
             <TouchableOpacity
               onPress={() => router.push('/paywall')}
@@ -140,6 +173,54 @@ export default function GroupsScreen() {
             </Text>
             <Text style={[styles.userNameText, { color: theme.textPrimary }]}>
               {currentUser?.userName} {currentUserId === 'user-maya-001' ? '(Organizer)' : ''}
+            </Text>
+          </View>
+        </View>
+
+        {/* Summary Statistics Metrics Row (M5) */}
+        <View style={styles.metricsRow}>
+          <View
+            style={[
+              styles.metricCard,
+              { backgroundColor: theme.surface, borderColor: theme.glassBorder },
+              shadows.sm
+            ]}
+          >
+            <Text style={[styles.metricValue, { color: theme.primary }]}>
+              {groups.length}
+            </Text>
+            <Text style={[styles.metricLabel, { color: theme.textSecondary }]}>
+              Active Circle{groups.length > 1 ? 's' : ''}
+            </Text>
+          </View>
+
+          <View
+            style={[
+              styles.metricCard,
+              { backgroundColor: theme.surface, borderColor: theme.glassBorder },
+              shadows.sm
+            ]}
+          >
+            <Text style={[styles.metricValue, { color: theme.success }]}>
+              100%
+            </Text>
+            <Text style={[styles.metricLabel, { color: theme.textSecondary }]}>
+              Consensus Rate
+            </Text>
+          </View>
+
+          <View
+            style={[
+              styles.metricCard,
+              { backgroundColor: theme.surface, borderColor: theme.glassBorder },
+              shadows.sm
+            ]}
+          >
+            <Text style={[styles.metricValue, { color: theme.secondary }]}>
+              5
+            </Text>
+            <Text style={[styles.metricLabel, { color: theme.textSecondary }]}>
+              Crew Travelers
             </Text>
           </View>
         </View>
@@ -270,6 +351,61 @@ export default function GroupsScreen() {
             );
           })}
         </View>
+
+        {/* How Circles Work Guide Card (M5) */}
+        <View
+          style={[
+            styles.guideCard,
+            { backgroundColor: theme.surface, borderColor: theme.glassBorder },
+            shadows.sm
+          ]}
+        >
+          <Text style={[styles.guideTitle, { color: theme.textPrimary }]}>
+            How PACT Consensus Circles Work
+          </Text>
+
+          <View style={styles.guideStepRow}>
+            <View style={[styles.stepNumberBadge, { backgroundColor: theme.primaryLight }]}>
+              <Text style={[styles.stepNumberText, { color: theme.primary }]}>1</Text>
+            </View>
+            <View style={styles.guideStepTextCol}>
+              <Text style={[styles.guideStepHeading, { color: theme.textPrimary }]}>
+                Share Invite Code Privately
+              </Text>
+              <Text style={[styles.guideStepDesc, { color: theme.textSecondary }]}>
+                Friends join using the 6-character code and input their constraints in total privacy.
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.guideStepRow}>
+            <View style={[styles.stepNumberBadge, { backgroundColor: theme.secondaryLight }]}>
+              <Text style={[styles.stepNumberText, { color: theme.secondary }]}>2</Text>
+            </View>
+            <View style={styles.guideStepTextCol}>
+              <Text style={[styles.guideStepHeading, { color: theme.textPrimary }]}>
+                Deterministic Scoring Overlap
+              </Text>
+              <Text style={[styles.guideStepDesc, { color: theme.textSecondary }]}>
+                PACT mathematically checks date intersections, budget ceilings, and hard dealbreakers.
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.guideStepRow}>
+            <View style={[styles.stepNumberBadge, { backgroundColor: theme.successLight }]}>
+              <Text style={[styles.stepNumberText, { color: theme.success }]}>3</Text>
+            </View>
+            <View style={styles.guideStepTextCol}>
+              <Text style={[styles.guideStepHeading, { color: theme.textPrimary }]}>
+                Silent Ballot & Trip Brief
+              </Text>
+              <Text style={[styles.guideStepDesc, { color: theme.textSecondary }]}>
+                A 70%+ silent vote unlocks the official Boarding Pass brief with calendar export.
+              </Text>
+            </View>
+          </View>
+        </View>
       </ScrollView>
 
       {/* Floating Bottom Navigation Bar */}
@@ -330,6 +466,12 @@ export default function GroupsScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Organizer Feedback Modal */}
+      <FeedbackModal
+        visible={feedbackVisible}
+        onClose={() => setFeedbackVisible(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -340,7 +482,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 120,
+    paddingBottom: 140,
     maxWidth: 680,
     width: '100%',
     alignSelf: 'center'
@@ -603,5 +745,68 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '700'
+  },
+  metricsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 16
+  },
+  metricCard: {
+    flex: 1,
+    padding: 14,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    alignItems: 'center'
+  },
+  metricValue: {
+    fontSize: 20,
+    fontWeight: '900',
+    letterSpacing: -0.5
+  },
+  metricLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    marginTop: 2,
+    textAlign: 'center'
+  },
+  guideCard: {
+    borderRadius: radius.card,
+    padding: 18,
+    borderWidth: 1,
+    marginTop: 18,
+    gap: 12
+  },
+  guideTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    marginBottom: 2
+  },
+  guideStepRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12
+  },
+  stepNumberBadge: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  stepNumberText: {
+    fontSize: 12,
+    fontWeight: '900'
+  },
+  guideStepTextCol: {
+    flex: 1
+  },
+  guideStepHeading: {
+    fontSize: 13,
+    fontWeight: '700'
+  },
+  guideStepDesc: {
+    fontSize: 11,
+    marginTop: 2,
+    lineHeight: 15
   }
 });

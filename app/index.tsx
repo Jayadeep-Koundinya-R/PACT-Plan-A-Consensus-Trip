@@ -16,6 +16,9 @@ import { TripBriefModal } from '../src/components/TripBriefModal';
 import { BottomTabBar } from '../src/components/BottomTabBar';
 import { ThemeToggle } from '../src/components/ThemeToggle';
 import { DemoTourModal } from '../src/components/DemoTourModal';
+import { ScenarioSwitcher } from '../src/components/ScenarioSwitcher';
+import { DemoScriptModal } from '../src/components/DemoScriptModal';
+import { FeedbackModal } from '../src/components/FeedbackModal';
 import { colors, radius, shadows } from '../src/theme/colors';
 import {
   Compass,
@@ -58,6 +61,8 @@ export default function HomeScreen() {
   const [briefModalVisible, setBriefModalVisible] = useState(false);
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [demoTourVisible, setDemoTourVisible] = useState(false);
+  const [demoScriptVisible, setDemoScriptVisible] = useState(false);
+  const [feedbackVisible, setFeedbackVisible] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
 
   const theme = isDarkMode ? colors.dark : colors.light;
@@ -90,6 +95,11 @@ export default function HomeScreen() {
 
   const handleCreateGroup = () => {
     if (!newGroupName.trim()) return;
+    if (!isPro && groups.length >= 1) {
+      setCreateModalVisible(false);
+      router.push('/paywall');
+      return;
+    }
     const group = createGroup(newGroupName.trim());
     setNewGroupName('');
     setCreateModalVisible(false);
@@ -125,6 +135,21 @@ export default function HomeScreen() {
           </View>
 
           <View style={styles.navActions}>
+            <TouchableOpacity
+              onPress={() => setDemoScriptVisible(true)}
+              style={[
+                styles.tourPill,
+                {
+                  backgroundColor: theme.secondaryLight,
+                  borderColor: theme.secondary
+                }
+              ]}
+            >
+              <Text style={[styles.tourPillText, { color: theme.secondary }]}>
+                🎬 PITCH
+              </Text>
+            </TouchableOpacity>
+
             <TouchableOpacity
               onPress={() => setDemoTourVisible(true)}
               style={[
@@ -162,9 +187,40 @@ export default function HomeScreen() {
               </Text>
             </TouchableOpacity>
 
+            <TouchableOpacity
+              onPress={() => setFeedbackVisible(true)}
+              style={[
+                styles.iconButton,
+                {
+                  backgroundColor: theme.surfaceElevated,
+                  borderColor: theme.border
+                }
+              ]}
+              title="Organizer Feedback"
+            >
+              <Users size={15} color={theme.textSecondary} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={resetDemoState}
+              style={[
+                styles.iconButton,
+                {
+                  backgroundColor: theme.surfaceElevated,
+                  borderColor: theme.border
+                }
+              ]}
+              title="Reset Demo State"
+            >
+              <RotateCcw size={15} color={theme.textSecondary} />
+            </TouchableOpacity>
+
             <ThemeToggle />
           </View>
         </View>
+
+        {/* Multi-Scenario Edge-Case Engine Switcher */}
+        <ScenarioSwitcher />
 
         {/* Section: Active Circles Cards */}
         <View style={styles.circlesSection}>
@@ -465,6 +521,20 @@ export default function HomeScreen() {
         isDarkMode={isDarkMode}
         onClose={() => setDemoTourVisible(false)}
       />
+
+      {/* Demo Script Teleprompter Modal */}
+      <DemoScriptModal
+        visible={demoScriptVisible}
+        isDarkMode={isDarkMode}
+        onClose={() => setDemoScriptVisible(false)}
+      />
+
+      {/* Organizer Feedback Modal */}
+      <FeedbackModal
+        visible={feedbackVisible}
+        isDarkMode={isDarkMode}
+        onClose={() => setFeedbackVisible(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -475,7 +545,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 110, // Account for floating bottom bar
+    paddingBottom: 140, // Account for floating bottom bar with breathing space
     maxWidth: 680,
     width: '100%',
     alignSelf: 'center'

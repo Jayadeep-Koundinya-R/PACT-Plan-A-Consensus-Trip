@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { ScoredTripOption } from '../lib/consensus/types';
+import { formatFriendlyDateRange } from '../lib/format/dateFormatter';
 import { ConsensusMeter } from './ConsensusMeter';
 import { colors, radius, shadows } from '../theme/colors';
 import {
@@ -125,7 +126,7 @@ export const RankedOptionCard: React.FC<RankedOptionCardProps> = ({
         <View style={styles.metaItem}>
           <Calendar size={13} color={theme.textSecondary} />
           <Text style={[styles.metaText, { color: theme.textSecondary }]}>
-            {option.dateStart} → {option.dateEnd}
+            {formatFriendlyDateRange(option.dateStart, option.dateEnd)}
           </Text>
         </View>
         <View style={styles.metaItem}>

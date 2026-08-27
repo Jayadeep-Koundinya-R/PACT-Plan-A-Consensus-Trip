@@ -155,7 +155,8 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingVertical: 8,
     paddingHorizontal: 10,
-    borderRadius: radius.pill
+    borderRadius: radius.pill,
+    ...(Platform.OS === 'web' ? { cursor: 'pointer' as any } : {})
   },
   activeTabBtn: {
     paddingHorizontal: 12

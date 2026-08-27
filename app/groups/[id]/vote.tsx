@@ -14,6 +14,7 @@ import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
 import { ConsensusMeter } from '../../../src/components/ConsensusMeter';
 import { StepProgressBar } from '../../../src/components/StepProgressBar';
 import { BottomTabBar } from '../../../src/components/BottomTabBar';
+import { formatFriendlyDateRange } from '../../../src/lib/format/dateFormatter';
 import { colors, radius, shadows } from '../../../src/theme/colors';
 import {
   ArrowLeft,
@@ -209,7 +210,7 @@ export default function VoteScreen() {
         </View>
 
         {/* Deadlock Detection Card */}
-        {!isThresholdMet && (
+        {!isThresholdMet && consensus.deadlockDiagnosis && (
           <View
             style={[
               styles.deadlockCard,
@@ -225,9 +226,19 @@ export default function VoteScreen() {
             <Text style={[styles.deadlockBody, { color: theme.textPrimary }]}>
               {consensus.deadlockDiagnosis.diagnosisText}
             </Text>
-            <Text style={[styles.deadlockSuggestion, { color: theme.textSecondary }]}>
-              💡 Suggestion: {consensus.deadlockDiagnosis.suggestedAction}
-            </Text>
+            {consensus.deadlockDiagnosis.organizerSuggestions &&
+              consensus.deadlockDiagnosis.organizerSuggestions.length > 0 && (
+                <View style={styles.suggestionsContainer}>
+                  <Text style={[styles.deadlockSuggestionTitle, { color: theme.warning }]}>
+                    💡 Organizer Suggestions:
+                  </Text>
+                  {consensus.deadlockDiagnosis.organizerSuggestions.map((sug, i) => (
+                    <Text key={i} style={[styles.deadlockSuggestionItem, { color: theme.textSecondary }]}>
+                      • {sug}
+                    </Text>
+                  ))}
+                </View>
+              )}
           </View>
         )}
 
@@ -255,14 +266,39 @@ export default function VoteScreen() {
                 ]}
               >
                 <View style={styles.ballotInfoCol}>
-                  <Text style={[styles.ballotName, { color: theme.textPrimary }]}>
-                    #{scoredOption.rank} {scoredOption.option.name}
-                  </Text>
+                  <View style={styles.ballotTitleRow}>
+                    <Text style={[styles.ballotName, { color: theme.textPrimary }]}>
+                      #{scoredOption.rank} {scoredOption.option.name}
+                    </Text>
+                    <View
+                      style={[
+                        styles.matchScorePill,
+                        {
+                          backgroundColor:
+                            scoredOption.rank === 1 ? theme.successLight : theme.primaryLight,
+                          borderColor:
+                            scoredOption.rank === 1 ? theme.success : theme.primary
+                        }
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.matchScorePillText,
+                          {
+                            color:
+                              scoredOption.rank === 1 ? theme.success : theme.primary
+                          }
+                        ]}
+                      >
+                        {scoredOption.totalScore}% Match
+                      </Text>
+                    </View>
+                  </View>
                   <Text style={[styles.ballotMeta, { color: theme.textSecondary }]}>
-                    {scoredOption.option.dateStart} → {scoredOption.option.dateEnd} • ${scoredOption.option.budgetPerPerson}/person
+                    {formatFriendlyDateRange(scoredOption.option.dateStart, scoredOption.option.dateEnd)} • ${scoredOption.option.budgetPerPerson}/person
                   </Text>
                   <Text style={[styles.ballotApprovalStatus, { color: theme.textSecondary }]}>
-                    Approved by <Text style={{ fontWeight: '800', color: theme.textPrimary }}>{count} of 5</Text> members
+                    Live Ballots: <Text style={{ fontWeight: '800', color: theme.textPrimary }}>{count} of 5</Text> approved ({((count / 5) * 100).toFixed(0)}%)
                   </Text>
                 </View>
 
@@ -310,7 +346,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 120,
+    paddingBottom: 140,
     maxWidth: 680,
     width: '100%',
     alignSelf: 'center'
@@ -434,10 +470,23 @@ const styles = StyleSheet.create({
   deadlockBody: {
     fontSize: 13,
     fontWeight: '600',
+    marginBottom: 6
+  },
+  suggestionsContainer: {
+    marginTop: 6,
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(245, 158, 11, 0.2)'
+  },
+  deadlockSuggestionTitle: {
+    fontSize: 11,
+    fontWeight: '800',
     marginBottom: 4
   },
-  deadlockSuggestion: {
-    fontSize: 12
+  deadlockSuggestionItem: {
+    fontSize: 12,
+    lineHeight: 16,
+    marginBottom: 2
   },
   ballotSection: {
     marginTop: 8
@@ -458,9 +507,25 @@ const styles = StyleSheet.create({
   ballotInfoCol: {
     flex: 1
   },
+  ballotTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4
+  },
   ballotName: {
     fontSize: 16,
-    fontWeight: '700'
+    fontWeight: '800'
+  },
+  matchScorePill: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: radius.pill,
+    borderWidth: 1
+  },
+  matchScorePillText: {
+    fontSize: 10,
+    fontWeight: '800'
   },
   ballotMeta: {
     fontSize: 12,

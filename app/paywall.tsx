@@ -85,8 +85,14 @@ export default function PaywallScreen() {
 
         {/* Hero Header */}
         <View style={styles.heroSection}>
-          <View style={[styles.crownBox, { backgroundColor: theme.secondaryLight }]}>
-            <Crown size={36} color={theme.secondary} />
+          <View
+            style={[
+              styles.crownBox,
+              { backgroundColor: theme.secondaryLight, borderColor: theme.secondary },
+              shadows.glowSecondary
+            ]}
+          >
+            <Crown size={38} color={theme.secondary} />
           </View>
           <Text style={[styles.heroTitle, { color: theme.textPrimary }]}>
             Unlock Unlimited Trips & AI Insights
@@ -118,12 +124,12 @@ export default function PaywallScreen() {
                 borderColor: billingCycle === 'annual' ? theme.primary : theme.border,
                 borderWidth: billingCycle === 'annual' ? 2 : 1
               },
-              shadows.sm
+              billingCycle === 'annual' ? shadows.glowPrimary : shadows.sm
             ]}
           >
-            <View style={[styles.discountBadge, { backgroundColor: theme.primaryLight }]}>
-              <Text style={[styles.discountText, { color: theme.primaryDark }]}>
-                SAVE 33%
+            <View style={[styles.discountBadge, { backgroundColor: theme.primaryLight, borderColor: theme.primary }]}>
+              <Text style={[styles.discountText, { color: theme.primary }]}>
+                ⭐ BEST VALUE • SAVE 33%
               </Text>
             </View>
             <Text style={[styles.planCardName, { color: theme.textPrimary }]}>

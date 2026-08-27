@@ -16,6 +16,7 @@ import { StepProgressBar } from '../../../src/components/StepProgressBar';
 import { BottomTabBar } from '../../../src/components/BottomTabBar';
 import { SocialStoryModal } from '../../../src/components/SocialStoryModal';
 import { downloadICSFile } from '../../../src/lib/export/icsGenerator';
+import { formatFriendlyDateRange } from '../../../src/lib/format/dateFormatter';
 import { colors, radius, shadows } from '../../../src/theme/colors';
 import {
   Sparkles,
@@ -179,13 +180,13 @@ export default function TripBriefScreen() {
               >
                 <Calendar size={18} color={theme.primary} />
                 <Text style={[styles.metaCardLabel, { color: theme.textSecondary }]}>
-                  DATES
+                  CONFIRMED DATES
                 </Text>
-                <Text style={[styles.metaCardValue, { color: theme.textPrimary }]}>
-                  {option.dateStart}
+                <Text style={[styles.metaCardValue, { color: theme.textPrimary, fontSize: 13 }]}>
+                  {formatFriendlyDateRange(option.dateStart, option.dateEnd)}
                 </Text>
                 <Text style={[styles.metaCardSub, { color: theme.textMuted }]}>
-                  to {option.dateEnd}
+                  100% Calendar Alignment
                 </Text>
               </View>
 
@@ -356,7 +357,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 120,
+    paddingBottom: 140,
     maxWidth: 680,
     width: '100%',
     alignSelf: 'center'

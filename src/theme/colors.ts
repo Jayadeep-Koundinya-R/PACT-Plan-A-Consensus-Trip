@@ -8,6 +8,9 @@ export const colors = {
     primary: '#0EA5E9',            // Electric Sky
     primaryDark: '#0284C7',
     primaryLight: 'rgba(14, 165, 233, 0.15)',
+    secondary: '#F59E0B',          // Radiant Amber / Gold
+    secondaryDark: '#D97706',
+    secondaryLight: 'rgba(245, 158, 11, 0.15)',
     success: '#10B981',            // Emerald Glow
     successLight: 'rgba(16, 185, 129, 0.15)',
     warning: '#F59E0B',            // Radiant Amber
@@ -24,28 +27,31 @@ export const colors = {
     navBg: 'rgba(19, 27, 46, 0.92)'
   },
   light: {
-    // Secondary aesthetic (Clean Slate)
-    background: '#F8FAFC',
-    surface: '#FFFFFF',
-    surfaceElevated: '#F1F5F9',
-    surfaceSubtle: '#F8FAFC',
-    primary: '#0EA5E9',
-    primaryDark: '#0284C7',
-    primaryLight: '#E0F2FE',
-    success: '#10B981',
-    successLight: '#D1FAE5',
-    warning: '#F59E0B',
-    warningLight: '#FEF3C7',
-    danger: '#EF4444',
-    dangerLight: '#FEE2E2',
-    textPrimary: '#0F172A',
-    textSecondary: '#475569',
-    textMuted: '#94A3B8',
-    border: 'rgba(0, 0, 0, 0.08)',
-    glassBorder: 'rgba(0, 0, 0, 0.06)',
+    // Secondary aesthetic (Clean Slate with Rich Accents)
+    background: '#F1F5F9',         // Crisp Slate 100
+    surface: '#FFFFFF',            // Pure White Card
+    surfaceElevated: '#F8FAFC',    // Subtle elevation
+    surfaceSubtle: '#F1F5F9',
+    primary: '#0284C7',            // Deep Sky Blue (high contrast WCAG AAA)
+    primaryDark: '#0369A1',
+    primaryLight: 'rgba(2, 132, 199, 0.12)',
+    secondary: '#D97706',          // Warm Amber
+    secondaryDark: '#B45309',
+    secondaryLight: 'rgba(217, 119, 6, 0.12)',
+    success: '#059669',            // Rich Emerald
+    successLight: 'rgba(5, 150, 105, 0.12)',
+    warning: '#D97706',            // Amber
+    warningLight: 'rgba(217, 119, 6, 0.12)',
+    danger: '#DC2626',             // Ruby Red
+    dangerLight: 'rgba(220, 38, 38, 0.12)',
+    textPrimary: '#0F172A',        // Slate 900
+    textSecondary: '#475569',      // Slate 600
+    textMuted: '#94A3B8',          // Slate 400
+    border: 'rgba(15, 23, 42, 0.08)',
+    glassBorder: 'rgba(15, 23, 42, 0.09)',
     card: '#FFFFFF',
     meterTrack: '#E2E8F0',
-    navBg: 'rgba(255, 255, 255, 0.92)'
+    navBg: 'rgba(255, 255, 255, 0.94)'
   }
 } as const;
 
@@ -68,25 +74,25 @@ export const radius = {
 
 export const shadows = {
   sm: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 2
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 3,
+    elevation: 1
   },
   md: {
-    shadowColor: '#000',
+    shadowColor: '#0F172A',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 4
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 3
   },
   lg: {
-    shadowColor: '#000',
+    shadowColor: '#0F172A',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.45,
-    shadowRadius: 28,
-    elevation: 8
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 6
   },
   glowPrimary: {
     shadowColor: '#0EA5E9',
@@ -97,6 +103,13 @@ export const shadows = {
   },
   glowSuccess: {
     shadowColor: '#10B981',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+    elevation: 6
+  },
+  glowSecondary: {
+    shadowColor: '#F59E0B',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.35,
     shadowRadius: 16,
