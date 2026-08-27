@@ -184,6 +184,16 @@ export default function HomeScreen() {
                 Trip Brief
               </Text>
             </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => router.push('/paywall')}
+              style={[styles.flowNavBtn, { backgroundColor: theme.secondaryLight }]}
+            >
+              <Sparkles size={14} color={theme.secondary} />
+              <Text style={[styles.flowNavBtnText, { color: theme.secondary }]}>
+                Pro Paywall
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
 

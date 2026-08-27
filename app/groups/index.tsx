@@ -22,7 +22,9 @@ import {
   X,
   LogOut,
   Moon,
-  Sun
+  Sun,
+  ArrowLeft,
+  Crown
 } from 'lucide-react-native';
 
 export default function GroupsScreen() {
@@ -35,6 +37,7 @@ export default function GroupsScreen() {
     joinGroupByCode,
     setActiveGroup,
     currentUserId,
+    subscriptionPlan,
     members
   } = useGatherlyStore();
 
@@ -45,6 +48,7 @@ export default function GroupsScreen() {
   const [joinError, setJoinError] = useState('');
 
   const currentUser = members.find((m) => m.userId === currentUserId) || members[0];
+  const isPro = subscriptionPlan !== 'free';
 
   const handleCreateGroup = () => {
     if (!newGroupName.trim()) return;
@@ -77,25 +81,42 @@ export default function GroupsScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header with User Info & Actions */}
-        <View style={styles.headerRow}>
-          <View style={styles.userProfileRow}>
-            <View style={[styles.avatarBox, { backgroundColor: theme.primaryLight }]}>
-              <Text style={[styles.avatarLetter, { color: theme.primaryDark }]}>
-                {currentUser?.userName.charAt(0) || 'U'}
-              </Text>
-            </View>
-            <View>
-              <Text style={[styles.welcomeText, { color: theme.textSecondary }]}>
-                Logged in as
-              </Text>
-              <Text style={[styles.userNameText, { color: theme.textPrimary }]}>
-                {currentUser?.userName} {currentUserId === 'user-maya-001' ? '(Organizer)' : ''}
-              </Text>
-            </View>
-          </View>
+        {/* Top Navbar with Explicit Return to Home Button */}
+        <View style={styles.navBar}>
+          <TouchableOpacity
+            onPress={() => router.push('/')}
+            activeOpacity={0.7}
+            style={[styles.homeReturnBtn, { backgroundColor: theme.surfaceSubtle }]}
+          >
+            <ArrowLeft size={16} color={theme.textPrimary} />
+            <Text style={[styles.homeReturnText, { color: theme.textPrimary }]}>
+              Home Dashboard
+            </Text>
+          </TouchableOpacity>
 
           <View style={styles.actionButtonsRow}>
+            {/* Paywall Pro Badge */}
+            <TouchableOpacity
+              onPress={() => router.push('/paywall')}
+              style={[
+                styles.proBadgeBtn,
+                {
+                  backgroundColor: isPro ? theme.secondaryLight : theme.surfaceSubtle,
+                  borderColor: isPro ? theme.secondary : theme.border
+                }
+              ]}
+            >
+              <Crown size={14} color={isPro ? theme.secondary : theme.textSecondary} />
+              <Text
+                style={[
+                  styles.proBadgeText,
+                  { color: isPro ? theme.secondary : theme.textSecondary }
+                ]}
+              >
+                {isPro ? 'PRO ACTIVE' : 'UPGRADE'}
+              </Text>
+            </TouchableOpacity>
+
             <TouchableOpacity
               onPress={toggleDarkMode}
               style={[styles.headerIconButton, { backgroundColor: theme.surfaceSubtle }]}
@@ -113,6 +134,23 @@ export default function GroupsScreen() {
             >
               <LogOut size={18} color={theme.textSecondary} />
             </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* User Profile Header */}
+        <View style={styles.userProfileRow}>
+          <View style={[styles.avatarBox, { backgroundColor: theme.primaryLight }]}>
+            <Text style={[styles.avatarLetter, { color: theme.primaryDark }]}>
+              {currentUser?.userName.charAt(0) || 'U'}
+            </Text>
+          </View>
+          <View>
+            <Text style={[styles.welcomeText, { color: theme.textSecondary }]}>
+              Active Session
+            </Text>
+            <Text style={[styles.userNameText, { color: theme.textPrimary }]}>
+              {currentUser?.userName} {currentUserId === 'user-maya-001' ? '(Organizer)' : ''}
+            </Text>
           </View>
         </View>
 
@@ -314,34 +352,22 @@ const styles = StyleSheet.create({
     width: '100%',
     alignSelf: 'center'
   },
-  headerRow: {
+  navBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20
+    marginBottom: 16
   },
-  userProfileRow: {
+  homeReturnBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: radius.pill
   },
-  avatarBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  avatarLetter: {
-    fontSize: 16,
-    fontWeight: '800'
-  },
-  welcomeText: {
-    fontSize: 11,
-    fontWeight: '500'
-  },
-  userNameText: {
-    fontSize: 15,
+  homeReturnText: {
+    fontSize: 13,
     fontWeight: '700'
   },
   actionButtonsRow: {
@@ -349,12 +375,50 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8
   },
+  proBadgeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    borderWidth: 1
+  },
+  proBadgeText: {
+    fontSize: 11,
+    fontWeight: '800'
+  },
   headerIconButton: {
     width: 36,
     height: 36,
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center'
+  },
+  userProfileRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 16
+  },
+  avatarBox: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  avatarLetter: {
+    fontSize: 15,
+    fontWeight: '800'
+  },
+  welcomeText: {
+    fontSize: 11,
+    fontWeight: '500'
+  },
+  userNameText: {
+    fontSize: 14,
+    fontWeight: '700'
   },
   heroCard: {
     borderRadius: radius.card,
