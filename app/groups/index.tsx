@@ -7,13 +7,15 @@ import {
   ScrollView,
   StyleSheet,
   SafeAreaView,
-  Modal
+  Modal,
+  Platform,
+  Alert
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../../src/store/useGatherlyStore';
 import { BottomTabBar } from '../../src/components/BottomTabBar';
 import { ThemeToggle } from '../../src/components/ThemeToggle';
-import { FeedbackModal } from '../../src/components/FeedbackModal';
 import { colors, radius, shadows } from '../../src/theme/colors';
 import {
   Plus,
@@ -23,38 +25,43 @@ import {
   Sparkles,
   KeyRound,
   X,
-  LogOut,
-  ArrowLeft,
-  Crown
+  ArrowRight,
+  Lock,
+  ArrowLeft
 } from 'lucide-react-native';
 
 export default function GroupsScreen() {
   const router = useRouter();
   const {
     isDarkMode,
-    groups,
+    groups = [],
     createGroup,
     joinGroupByCode,
     setActiveGroup,
+    activeGroupId,
     currentUserId,
-    subscriptionPlan,
-    members
+    subscriptionPlan
   } = useGatherlyStore();
 
   const theme = isDarkMode ? colors.dark : colors.light;
   const isPro = subscriptionPlan !== 'free';
   const [createModalVisible, setCreateModalVisible] = useState(false);
-  const [feedbackVisible, setFeedbackVisible] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [joinCode, setJoinCode] = useState('');
   const [joinError, setJoinError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const currentUser = members.find((m) => m.userId === currentUserId);
+  const triggerHaptic = () => {
+    if (Platform.OS !== 'web') {
+      try {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      } catch (e) {}
+    }
+  };
 
   const handleCreateGroup = async () => {
     if (!newGroupName.trim()) {
-      alert('Please enter a group name.');
+      Alert.alert('Notice', 'Please enter a circle name.');
       return;
     }
 
@@ -64,6 +71,7 @@ export default function GroupsScreen() {
       return;
     }
 
+    triggerHaptic();
     setIsSubmitting(true);
     try {
       const created = await createGroup(newGroupName.trim());
@@ -71,37 +79,34 @@ export default function GroupsScreen() {
       setCreateModalVisible(false);
       router.push(`/groups/${created.id}`);
     } catch (err: any) {
-      alert(err?.message || 'Error creating group');
+      Alert.alert('Error', err?.message || 'Error creating group');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleJoinGroup = async () => {
+    setJoinError('');
     if (!joinCode.trim()) {
-      setJoinError('Please enter an invite code.');
+      setJoinError('Please enter a 6-digit invite code.');
       return;
     }
+
+    triggerHaptic();
     setIsSubmitting(true);
     try {
-      const result = await joinGroupByCode(joinCode.trim());
-      if (result.success && result.group) {
+      const res = await joinGroupByCode(joinCode.trim().toUpperCase());
+      if (res.success && res.group) {
         setJoinCode('');
-        setJoinError('');
-        router.push(`/groups/${result.group.id}`);
+        router.push(`/groups/${res.group.id}`);
       } else {
-        setJoinError(result.message || 'Invalid invite code.');
+        setJoinError(res.message);
       }
     } catch (err: any) {
-      setJoinError(err?.message || 'Failed to join group.');
+      setJoinError('Failed to join circle. Please check the code.');
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleSelectGroup = (groupId: string) => {
-    setActiveGroup(groupId);
-    router.push(`/groups/${groupId}`);
   };
 
   return (
@@ -110,323 +115,133 @@ export default function GroupsScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Navigation Bar */}
+        {/* Navigation Header */}
         <View style={styles.navBar}>
           <TouchableOpacity
             onPress={() => router.push('/')}
-            activeOpacity={0.7}
-            style={[styles.homeReturnBtn, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
+            style={[styles.backBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
           >
-            <ArrowLeft size={16} color={theme.textPrimary} />
-            <Text style={[styles.homeReturnText, { color: theme.textPrimary }]}>
-              Dashboard
-            </Text>
+            <ArrowLeft size={18} color={theme.textPrimary} />
           </TouchableOpacity>
 
-          <View style={styles.actionButtonsRow}>
-            {/* Organizer Feedback Button */}
-            <TouchableOpacity
-              onPress={() => setFeedbackVisible(true)}
-              style={[
-                styles.proBadgeBtn,
-                {
-                  backgroundColor: theme.surfaceElevated,
-                  borderColor: theme.border
-                }
-              ]}
-              title="Give Organizer Feedback"
-            >
-              <Users size={14} color={theme.textSecondary} />
-              <Text style={[styles.proBadgeText, { color: theme.textSecondary }]}>
-                FEEDBACK
-              </Text>
-            </TouchableOpacity>
+          <Text style={[styles.navTitle, { color: theme.textPrimary }]} numberOfLines={1}>
+            Your Trip Circles
+          </Text>
 
-            {/* Paywall Pro Badge */}
-            <TouchableOpacity
-              onPress={() => router.push('/paywall')}
-              style={[
-                styles.proBadgeBtn,
-                {
-                  backgroundColor: isPro ? theme.secondaryLight : theme.surfaceElevated,
-                  borderColor: isPro ? theme.secondary : theme.border
-                }
-              ]}
-            >
-              <Crown size={14} color={isPro ? theme.secondary : theme.textSecondary} />
-              <Text
-                style={[
-                  styles.proBadgeText,
-                  { color: isPro ? theme.secondary : theme.textSecondary }
-                ]}
-              >
-                {isPro ? 'PRO' : 'UPGRADE'}
-              </Text>
-            </TouchableOpacity>
-
-            <ThemeToggle />
-
-            <TouchableOpacity
-              onPress={() => router.replace('/auth')}
-              style={[styles.headerIconButton, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
-            >
-              <LogOut size={16} color={theme.textSecondary} />
-            </TouchableOpacity>
-          </View>
+          <ThemeToggle />
         </View>
 
-        {/* User Profile Header */}
-        <View style={styles.userProfileRow}>
-          <View style={[styles.avatarBox, { backgroundColor: theme.primaryLight }]}>
-            <Text style={[styles.avatarLetter, { color: theme.primaryDark }]}>
-              {currentUser?.userName.charAt(0) || 'U'}
-            </Text>
-          </View>
-          <View>
-            <Text style={[styles.welcomeText, { color: theme.textSecondary }]}>
-              Active Session
-            </Text>
-            <Text style={[styles.userNameText, { color: theme.textPrimary }]}>
-              {currentUser?.userName} {currentUserId === 'user-maya-001' ? '(Organizer)' : ''}
-            </Text>
-          </View>
-        </View>
-
-        {/* Summary Statistics Metrics Row (M5) */}
-        <View style={styles.metricsRow}>
-          <View
-            style={[
-              styles.metricCard,
-              { backgroundColor: theme.surface, borderColor: theme.glassBorder },
-              shadows.sm
-            ]}
-          >
-            <Text style={[styles.metricValue, { color: theme.primary }]}>
-              {groups.length}
-            </Text>
-            <Text style={[styles.metricLabel, { color: theme.textSecondary }]}>
-              Active Circle{groups.length > 1 ? 's' : ''}
-            </Text>
-          </View>
-
-          <View
-            style={[
-              styles.metricCard,
-              { backgroundColor: theme.surface, borderColor: theme.glassBorder },
-              shadows.sm
-            ]}
-          >
-            <Text style={[styles.metricValue, { color: theme.success }]}>
-              100%
-            </Text>
-            <Text style={[styles.metricLabel, { color: theme.textSecondary }]}>
-              Consensus Rate
-            </Text>
-          </View>
-
-          <View
-            style={[
-              styles.metricCard,
-              { backgroundColor: theme.surface, borderColor: theme.glassBorder },
-              shadows.sm
-            ]}
-          >
-            <Text style={[styles.metricValue, { color: theme.secondary }]}>
-              5
-            </Text>
-            <Text style={[styles.metricLabel, { color: theme.textSecondary }]}>
-              Crew Travelers
-            </Text>
-          </View>
-        </View>
-
-        {/* Hero Section */}
+        {/* Join Circle with Code Card */}
         <View
           style={[
-            styles.heroCard,
-            { backgroundColor: theme.surface, borderColor: theme.glassBorder },
-            shadows.md
+            styles.joinCard,
+            { backgroundColor: theme.surface, borderColor: theme.border },
+            shadows.sm
           ]}
         >
-          <View style={styles.heroTextCol}>
-            <Text style={[styles.heroTitle, { color: theme.textPrimary }]}>
-              Trip Circles
-            </Text>
-            <Text style={[styles.heroSub, { color: theme.textSecondary }]}>
-              Private groups where dates, budgets, and dealbreakers align without friction.
-            </Text>
+          <View style={styles.joinHeaderRow}>
+            <View style={[styles.joinIconBox, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
+              <KeyRound size={18} color={theme.primary} />
+            </View>
+            <View style={styles.joinTextCol}>
+              <Text style={[styles.joinTitle, { color: theme.textPrimary }]}>
+                Join with an Invite Code
+              </Text>
+              <Text style={[styles.joinSub, { color: theme.textSecondary }]}>
+                Got a 6-character code from a friend?
+              </Text>
+            </View>
           </View>
 
+          <View style={styles.joinInputRow}>
+            <TextInput
+              style={[
+                styles.joinInput,
+                { backgroundColor: theme.surfaceSubtle, color: theme.textPrimary, borderColor: theme.border }
+              ]}
+              value={joinCode}
+              onChangeText={(t) => setJoinCode(t.toUpperCase())}
+              placeholder="e.g. GOA-2026"
+              placeholderTextColor={theme.textMuted}
+              autoCapitalize="characters"
+              maxLength={12}
+            />
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={handleJoinGroup}
+              disabled={isSubmitting}
+              style={[styles.joinSubmitBtn, { backgroundColor: theme.primary }]}
+            >
+              <Text style={styles.joinSubmitBtnText}>Join</Text>
+              <ArrowRight size={16} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+
+          {Boolean(joinError) && (
+            <Text style={styles.errorText}>{joinError}</Text>
+          )}
+        </View>
+
+        {/* Section: Your Circles */}
+        <View style={styles.sectionTitleRow}>
+          <Text style={[styles.sectionHeading, { color: theme.textPrimary }]}>
+            Active Spaces ({groups.length})
+          </Text>
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => setCreateModalVisible(true)}
-            style={[styles.createCircleBtn, { backgroundColor: theme.primary }, shadows.glowPrimary]}
+            style={[styles.createPillBtn, { backgroundColor: theme.primary }]}
           >
-            <Plus size={18} color="#FFFFFF" />
-            <Text style={styles.createCircleBtnText}>New Circle</Text>
+            <Plus size={14} color="#FFFFFF" />
+            <Text style={styles.createPillBtnText}>New Circle</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Join Group with Code Box */}
-        <View
-          style={[
-            styles.joinBox,
-            { backgroundColor: theme.surfaceElevated, borderColor: theme.border }
-          ]}
-        >
-          <KeyRound size={18} color={theme.primary} />
-          <TextInput
-            style={[
-              styles.joinInput,
-              { color: theme.textPrimary, backgroundColor: theme.surface, borderColor: theme.border }
-            ]}
-            placeholder="Enter Invite Code (e.g. GOA-2026)"
-            placeholderTextColor={theme.textMuted}
-            value={joinCode}
-            onChangeText={(text) => {
-              setJoinCode(text);
-              setJoinError('');
-            }}
-            autoCapitalize="characters"
-          />
-          <TouchableOpacity
-            onPress={handleJoinGroup}
-            activeOpacity={0.7}
-            style={[styles.joinBtn, { backgroundColor: theme.primary }]}
-          >
-            <Text style={styles.joinBtnText}>Join</Text>
-          </TouchableOpacity>
-        </View>
-        {joinError ? (
-          <Text style={[styles.errorText, { color: theme.danger }]}>{joinError}</Text>
-        ) : null}
-
-        {/* Groups List */}
-        <View style={styles.listHeader}>
-          <Text style={[styles.listTitle, { color: theme.textPrimary }]}>
-            Active Circles ({groups.length})
-          </Text>
-        </View>
-
-        <View style={styles.groupsContainer}>
-          {groups.map((group) => {
-            const isOrganizer = group.organizerId === currentUserId;
-            const statusColor =
-              group.status === 'finalized'
-                ? theme.success
-                : group.status === 'voting'
-                ? theme.primary
-                : theme.warning;
+        {/* Circles List */}
+        <View style={styles.circlesList}>
+          {groups.map((grp) => {
+            const isSelected = grp.id === activeGroupId;
 
             return (
               <TouchableOpacity
-                key={group.id}
-                activeOpacity={0.7}
-                onPress={() => handleSelectGroup(group.id)}
+                key={grp.id}
+                activeOpacity={0.85}
+                onPress={() => {
+                  triggerHaptic();
+                  setActiveGroup(grp.id);
+                  router.push(`/groups/${grp.id}`);
+                }}
                 style={[
-                  styles.groupCard,
-                  { backgroundColor: theme.surface, borderColor: theme.glassBorder },
-                  shadows.md
+                  styles.circleCard,
+                  { backgroundColor: theme.surface, borderColor: isSelected ? theme.primary : theme.border },
+                  shadows.sm
                 ]}
               >
-                <View style={styles.groupMainRow}>
-                  <View style={[styles.groupIconBox, { backgroundColor: theme.primaryLight }]}>
-                    <Compass size={22} color={theme.primaryDark} />
+                <View style={styles.circleLeft}>
+                  <View style={[styles.circleIconCircle, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
+                    <Users size={20} color={theme.primary} />
                   </View>
-
-                  <View style={styles.groupInfoCol}>
-                    <View style={styles.groupTitleRow}>
-                      <Text style={[styles.groupName, { color: theme.textPrimary }]}>
-                        {group.name}
-                      </Text>
-                      {isOrganizer && (
-                        <View style={[styles.organizerBadge, { backgroundColor: theme.secondaryLight }]}>
-                          <Text style={[styles.roleBadgeText, { color: theme.secondary }]}>
-                            Organizer
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-
-                    <Text style={[styles.groupMeta, { color: theme.textSecondary }]}>
-                      Code: <Text style={{ fontWeight: '800', color: theme.primary }}>{group.inviteCode}</Text> • 5 Responded
+                  <View style={styles.circleTextCol}>
+                    <Text style={[styles.circleName, { color: theme.textPrimary }]}>
+                      {grp.name}
+                    </Text>
+                    <Text style={[styles.circleMeta, { color: theme.textSecondary }]}>
+                      Code: {grp.inviteCode} • {grp.totalMembersCount || 5} members
                     </Text>
                   </View>
-
-                  <View style={styles.rightActionCol}>
-                    <View style={[styles.statusPill, { backgroundColor: `${statusColor}20` }]}>
-                      <Text style={[styles.statusPillText, { color: statusColor }]}>
-                        {group.status.toUpperCase()}
-                      </Text>
-                    </View>
-                    <ChevronRight size={18} color={theme.textMuted} />
-                  </View>
                 </View>
+
+                <ChevronRight size={18} color={theme.textMuted} />
               </TouchableOpacity>
             );
           })}
         </View>
-
-        {/* How Circles Work Guide Card (M5) */}
-        <View
-          style={[
-            styles.guideCard,
-            { backgroundColor: theme.surface, borderColor: theme.glassBorder },
-            shadows.sm
-          ]}
-        >
-          <Text style={[styles.guideTitle, { color: theme.textPrimary }]}>
-            How PACT Consensus Circles Work
-          </Text>
-
-          <View style={styles.guideStepRow}>
-            <View style={[styles.stepNumberBadge, { backgroundColor: theme.primaryLight }]}>
-              <Text style={[styles.stepNumberText, { color: theme.primary }]}>1</Text>
-            </View>
-            <View style={styles.guideStepTextCol}>
-              <Text style={[styles.guideStepHeading, { color: theme.textPrimary }]}>
-                Share Invite Code Privately
-              </Text>
-              <Text style={[styles.guideStepDesc, { color: theme.textSecondary }]}>
-                Friends join using the 6-character code and input their constraints in total privacy.
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.guideStepRow}>
-            <View style={[styles.stepNumberBadge, { backgroundColor: theme.secondaryLight }]}>
-              <Text style={[styles.stepNumberText, { color: theme.secondary }]}>2</Text>
-            </View>
-            <View style={styles.guideStepTextCol}>
-              <Text style={[styles.guideStepHeading, { color: theme.textPrimary }]}>
-                Deterministic Scoring Overlap
-              </Text>
-              <Text style={[styles.guideStepDesc, { color: theme.textSecondary }]}>
-                PACT mathematically checks date intersections, budget ceilings, and hard dealbreakers.
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.guideStepRow}>
-            <View style={[styles.stepNumberBadge, { backgroundColor: theme.successLight }]}>
-              <Text style={[styles.stepNumberText, { color: theme.success }]}>3</Text>
-            </View>
-            <View style={styles.guideStepTextCol}>
-              <Text style={[styles.guideStepHeading, { color: theme.textPrimary }]}>
-                Silent Ballot & Trip Brief
-              </Text>
-              <Text style={[styles.guideStepDesc, { color: theme.textSecondary }]}>
-                A 70%+ silent vote unlocks the official Boarding Pass brief with calendar export.
-              </Text>
-            </View>
-          </View>
-        </View>
       </ScrollView>
 
-      {/* Floating Bottom Navigation Bar */}
+      {/* Floating Bottom Tab Bar */}
       <BottomTabBar />
 
-      {/* Create New Group Modal */}
+      {/* Create Modal */}
       <Modal
         visible={createModalVisible}
         transparent={true}
@@ -436,57 +251,51 @@ export default function GroupsScreen() {
         <View style={styles.modalOverlay}>
           <View
             style={[
-              styles.modalCard,
-              { backgroundColor: theme.surface, borderColor: theme.glassBorder },
+              styles.createModalCard,
+              { backgroundColor: theme.surface, borderColor: theme.border },
               shadows.lg
             ]}
           >
             <View style={styles.modalHeader}>
               <Text style={[styles.modalTitle, { color: theme.textPrimary }]}>
-                Create a Trip Circle
+                Create Trip Circle
               </Text>
               <TouchableOpacity onPress={() => setCreateModalVisible(false)}>
                 <X size={20} color={theme.textSecondary} />
               </TouchableOpacity>
             </View>
 
-            <Text style={[styles.modalSub, { color: theme.textSecondary }]}>
-              Give your trip group a name. We will generate a private shareable invite code.
+            <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
+              CIRCLE NAME
             </Text>
-
             <TextInput
               style={[
                 styles.modalInput,
-                {
-                  backgroundColor: theme.surfaceElevated,
-                  color: theme.textPrimary,
-                  borderColor: theme.border
-                }
+                { backgroundColor: theme.surfaceSubtle, color: theme.textPrimary, borderColor: theme.border }
               ]}
-              placeholder="e.g. Goa New Year's Getaway"
-              placeholderTextColor={theme.textMuted}
               value={newGroupName}
               onChangeText={setNewGroupName}
+              placeholder="e.g. Goa Reunion 2026"
+              placeholderTextColor={theme.textMuted}
               autoFocus
             />
 
             <TouchableOpacity
-              activeOpacity={0.8}
+              activeOpacity={0.85}
               onPress={handleCreateGroup}
-              style={[styles.modalSubmitBtn, { backgroundColor: theme.primary }, shadows.glowPrimary]}
+              disabled={isSubmitting || !newGroupName.trim()}
+              style={[
+                styles.createSubmitBtn,
+                { backgroundColor: theme.primary, opacity: isSubmitting || !newGroupName.trim() ? 0.6 : 1 }
+              ]}
             >
-              <Sparkles size={16} color="#FFFFFF" />
-              <Text style={styles.modalSubmitBtnText}>Create Circle & Invite Friends</Text>
+              <Text style={styles.createSubmitBtnText}>
+                {isSubmitting ? 'Creating...' : 'Create & Invite Friends'}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
-
-      {/* Organizer Feedback Modal */}
-      <FeedbackModal
-        visible={feedbackVisible}
-        onClose={() => setFeedbackVisible(false)}
-      />
     </SafeAreaView>
   );
 }
@@ -496,220 +305,156 @@ const styles = StyleSheet.create({
     flex: 1
   },
   scrollContent: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 12,
     paddingBottom: 140,
-    maxWidth: 680,
+    maxWidth: 640,
     width: '100%',
     alignSelf: 'center'
   },
   navBar: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 16
   },
-  homeReturnBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: radius.pill,
-    borderWidth: 1
-  },
-  homeReturnText: {
-    fontSize: 13,
-    fontWeight: '700'
-  },
-  actionButtonsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8
-  },
-  proBadgeBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: radius.pill,
-    borderWidth: 1
-  },
-  proBadgeText: {
-    fontSize: 11,
-    fontWeight: '800'
-  },
-  headerIconButton: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1
   },
-  userProfileRow: {
+  navTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    flex: 1,
+    textAlign: 'center',
+    marginHorizontal: 12,
+    letterSpacing: -0.2
+  },
+  joinCard: {
+    padding: 16,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    marginBottom: 18
+  },
+  joinHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    marginBottom: 16
+    gap: 12,
+    marginBottom: 12
   },
-  avatarBox: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+  joinIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center'
   },
-  avatarLetter: {
-    fontSize: 15,
-    fontWeight: '800'
+  joinTextCol: {
+    flex: 1
   },
-  welcomeText: {
-    fontSize: 11,
-    fontWeight: '500'
-  },
-  userNameText: {
+  joinTitle: {
     fontSize: 14,
-    fontWeight: '700'
-  },
-  heroCard: {
-    borderRadius: radius.card,
-    padding: 18,
-    borderWidth: 1,
-    marginBottom: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: 12
-  },
-  heroTextCol: {
-    flex: 1,
-    minWidth: 200
-  },
-  heroTitle: {
-    fontSize: 18,
     fontWeight: '800'
   },
-  heroSub: {
+  joinSub: {
     fontSize: 12,
-    marginTop: 4,
-    lineHeight: 16
+    marginTop: 1
   },
-  createCircleBtn: {
+  joinInputRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: radius.pill
-  },
-  createCircleBtnText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '700'
-  },
-  joinBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 8,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    gap: 8,
-    marginBottom: 6
+    gap: 8
   },
   joinInput: {
     flex: 1,
+    borderRadius: radius.md,
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: radius.sm,
+    paddingVertical: 10,
     borderWidth: 1,
-    fontSize: 13,
-    fontWeight: '600'
+    fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: 1
   },
-  joinBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: radius.sm
+  joinSubmitBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    borderRadius: radius.md,
+    justifyContent: 'center'
   },
-  joinBtnText: {
+  joinSubmitBtnText: {
     color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '700'
   },
   errorText: {
+    color: '#EF4444',
     fontSize: 12,
-    marginBottom: 10,
-    marginLeft: 4
+    fontWeight: '600',
+    marginTop: 8
   },
-  listHeader: {
-    marginTop: 16,
+  sectionTitleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 10
   },
-  listTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    letterSpacing: -0.3
+  sectionHeading: {
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: -0.2
   },
-  groupsContainer: {
-    gap: 10
-  },
-  groupCard: {
-    borderRadius: radius.card,
-    padding: 16,
-    borderWidth: 1
-  },
-  groupMainRow: {
+  createPillBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: radius.pill
   },
-  groupIconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
+  createPillBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700'
+  },
+  circlesList: {
+    gap: 8
+  },
+  circleCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 14,
+    borderRadius: radius.card,
+    borderWidth: 1
+  },
+  circleLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1
+  },
+  circleIconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center'
   },
-  groupInfoCol: {
+  circleTextCol: {
     flex: 1
   },
-  groupTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6
-  },
-  groupName: {
-    fontSize: 16,
-    fontWeight: '700'
-  },
-  organizerBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: radius.pill
-  },
-  roleBadgeText: {
-    fontSize: 10,
-    fontWeight: '800'
-  },
-  groupMeta: {
-    fontSize: 12,
-    marginTop: 4
-  },
-  rightActionCol: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8
-  },
-  statusPill: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: radius.pill
-  },
-  statusPillText: {
-    fontSize: 10,
+  circleName: {
+    fontSize: 15,
     fontWeight: '800',
-    letterSpacing: 0.5
+    marginBottom: 2
+  },
+  circleMeta: {
+    fontSize: 12
   },
   modalOverlay: {
     flex: 1,
@@ -718,7 +463,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20
   },
-  modalCard: {
+  createModalCard: {
     width: '100%',
     maxWidth: 440,
     borderRadius: radius.card,
@@ -729,99 +474,34 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8
+    marginBottom: 16
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: '800'
   },
-  modalSub: {
-    fontSize: 13,
-    lineHeight: 18,
-    marginBottom: 16
+  inputLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    marginBottom: 6
   },
   modalInput: {
-    borderWidth: 1,
     borderRadius: radius.md,
     paddingHorizontal: 14,
     paddingVertical: 12,
+    borderWidth: 1,
     fontSize: 15,
-    marginBottom: 16
+    marginBottom: 18
   },
-  modalSubmitBtn: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
+  createSubmitBtn: {
     paddingVertical: 14,
-    borderRadius: radius.btn
+    borderRadius: radius.btn,
+    alignItems: 'center'
   },
-  modalSubmitBtnText: {
+  createSubmitBtnText: {
     color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700'
-  },
-  metricsRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 16
-  },
-  metricCard: {
-    flex: 1,
-    padding: 14,
-    borderRadius: radius.card,
-    borderWidth: 1,
-    alignItems: 'center'
-  },
-  metricValue: {
-    fontSize: 20,
-    fontWeight: '900',
-    letterSpacing: -0.5
-  },
-  metricLabel: {
-    fontSize: 10,
-    fontWeight: '700',
-    marginTop: 2,
-    textAlign: 'center'
-  },
-  guideCard: {
-    borderRadius: radius.card,
-    padding: 18,
-    borderWidth: 1,
-    marginTop: 18,
-    gap: 12
-  },
-  guideTitle: {
     fontSize: 15,
-    fontWeight: '800',
-    marginBottom: 2
-  },
-  guideStepRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12
-  },
-  stepNumberBadge: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  stepNumberText: {
-    fontSize: 12,
-    fontWeight: '900'
-  },
-  guideStepTextCol: {
-    flex: 1
-  },
-  guideStepHeading: {
-    fontSize: 13,
     fontWeight: '700'
-  },
-  guideStepDesc: {
-    fontSize: 11,
-    marginTop: 2,
-    lineHeight: 15
   }
 });

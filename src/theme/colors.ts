@@ -1,6 +1,6 @@
 export const colors = {
   dark: {
-    // Primary aesthetic: Obsidian Slate & Sunset Terracotta Flame
+    // Primary aesthetic: Obsidian Slate & Sunset Coral Flame
     background: '#0B0F17',         // Deep Obsidian Slate Canvas
     surface: '#151D2A',            // Clean Slate Card
     surfaceElevated: '#1E293B',    // Elevated Slate Box
@@ -29,11 +29,11 @@ export const colors = {
     navBg: 'rgba(15, 23, 42, 0.96)'
   },
   light: {
-    // Primary aesthetic: Crisp Slate Porcelain & Vibrant Sunset Coral
-    background: '#F8FAFC',         // Crisp Slate Porcelain Canvas
+    // Primary aesthetic: Luxury Warm Cream Canvas & Vibrant Sunset Coral
+    background: '#FAF8F5',         // Plain Soft Luxury Cream Canvas
     surface: '#FFFFFF',            // Pure White Card
-    surfaceElevated: '#F1F5F9',    // Light Slate Elevated Tint
-    surfaceSubtle: '#F8FAFC',      // Neutral Clean Background
+    surfaceElevated: '#F5F2EC',    // Warm Elevated Cream Tint
+    surfaceSubtle: '#F6F3EE',      // Neutral Soft Cream Background
     primary: '#EA580C',            // Energetic Sunset Coral / Terracotta
     primaryDark: '#C2410C',
     primaryLight: 'rgba(234, 88, 12, 0.10)',
@@ -48,14 +48,14 @@ export const colors = {
     warningLight: 'rgba(245, 158, 11, 0.10)',
     danger: '#EF4444',             // Coral Red
     dangerLight: 'rgba(239, 68, 68, 0.10)',
-    textPrimary: '#0F172A',        // Deep Slate Black
-    textSecondary: '#475569',      // Slate Grey
-    textMuted: '#94A3B8',          // Soft Muted Slate
-    border: '#E2E8F0',             // Ultra-Fine Crisp Slate Border
-    glassBorder: 'rgba(15, 23, 42, 0.06)',
+    textPrimary: '#1C1917',        // Deep Charcoal Black
+    textSecondary: '#57534E',      // Warm Slate Grey
+    textMuted: '#A8A29E',          // Soft Muted Warm Grey
+    border: '#E7E2D9',             // Ultra-Fine Crisp Warm Border
+    glassBorder: 'rgba(28, 25, 23, 0.06)',
     card: '#FFFFFF',
-    meterTrack: '#E2E8F0',
-    navBg: 'rgba(255, 255, 255, 0.96)'
+    meterTrack: '#E7E2D9',
+    navBg: 'rgba(250, 248, 245, 0.96)'
   }
 } as const;
 
@@ -78,23 +78,23 @@ export const radius = {
 
 export const shadows = {
   sm: {
-    shadowColor: '#0F172A',
+    shadowColor: '#1C1917',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
     shadowRadius: 3,
     elevation: 1
   },
   md: {
-    shadowColor: '#0F172A',
+    shadowColor: '#1C1917',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.06,
     shadowRadius: 10,
     elevation: 2
   },
   lg: {
-    shadowColor: '#0F172A',
+    shadowColor: '#1C1917',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.09,
+    shadowOpacity: 0.08,
     shadowRadius: 20,
     elevation: 4
   },

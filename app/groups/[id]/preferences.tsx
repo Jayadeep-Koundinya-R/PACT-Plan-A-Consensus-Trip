@@ -6,9 +6,12 @@ import {
   ScrollView,
   TextInput,
   StyleSheet,
-  SafeAreaView
+  SafeAreaView,
+  Platform,
+  Alert
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
 import { StepProgressBar } from '../../../src/components/StepProgressBar';
 import { BottomTabBar } from '../../../src/components/BottomTabBar';
@@ -22,16 +25,18 @@ import {
   ShieldCheck,
   CheckCircle2,
   BookmarkCheck,
-  Sparkles
+  Sparkles,
+  ChevronRight,
+  AlertCircle
 } from 'lucide-react-native';
 
 const AVAILABLE_TAGS = [
-  { id: 'beach', label: 'Beach / Coastal', emoji: 'ðŸ–ï¸' },
-  { id: 'mountains', label: 'Mountains / Nature', emoji: 'â›°ï¸' },
-  { id: 'city', label: 'City / Culture', emoji: 'ðŸ™ï¸' },
-  { id: 'relaxed', label: 'Relaxed / Low-key', emoji: 'ðŸ˜Œ' },
-  { id: 'active', label: 'Active / Adventure', emoji: 'ðŸƒ' },
-  { id: 'budget-conscious', label: 'Budget-conscious', emoji: 'ðŸ’°' }
+  { id: 'beach', label: 'Beach / Coastal', emoji: '🏖️' },
+  { id: 'mountains', label: 'Mountains / Nature', emoji: '🏔️' },
+  { id: 'city', label: 'City / Culture', emoji: '🏙️' },
+  { id: 'relaxed', label: 'Relaxed / Low-key', emoji: '🌴' },
+  { id: 'active', label: 'Active / Adventure', emoji: '🏃' },
+  { id: 'budget-conscious', label: 'Budget-conscious', emoji: '💰' }
 ];
 
 const BUDGET_PRESETS = [500, 750, 1000, 1500, 2500];
@@ -57,15 +62,25 @@ export default function PreferencesScreen() {
   } = useGatherlyStore();
 
   const theme = isDarkMode ? colors.dark : colors.light;
-  const currentGroup = groups.find((g) => g.id === id) || groups[0] || { id: id || 'demo', name: 'Trip Circle', inviteCode: 'PACT26', organizerId: currentUserId, status: 'voting', totalMembersCount: 5 };
+  const currentGroup =
+    groups.find((g) => g.id === id) ||
+    groups[0] || {
+      id: id || 'demo',
+      name: 'Trip Circle',
+      inviteCode: 'PACT26',
+      organizerId: currentUserId,
+      status: 'voting' as const,
+      totalMembersCount: 5
+    };
+
   const existingMember = members.find((m) => m.userId === currentUserId);
 
   // Form State
   const [dateStart, setDateStart] = useState(
-    existingMember?.dateRanges[0]?.start || '2026-07-15'
+    existingMember?.dateRanges?.[0]?.start || '2026-07-15'
   );
   const [dateEnd, setDateEnd] = useState(
-    existingMember?.dateRanges[0]?.end || '2026-07-28'
+    existingMember?.dateRanges?.[0]?.end || '2026-07-28'
   );
   const [budgetMin, setBudgetMin] = useState(existingMember?.budgetMin || 600);
   const [budgetMax, setBudgetMax] = useState(existingMember?.budgetMax || 1500);
@@ -73,7 +88,7 @@ export default function PreferencesScreen() {
     existingMember?.tags || ['beach', 'active', 'relaxed']
   );
   const [dealbreakers, setDealbreakers] = useState(
-    existingMember?.dealbreakers.join(', ') || ''
+    existingMember?.dealbreakers?.join(', ') || ''
   );
 
   const [dateQuickChip, setDateQuickChip] = useState<'this' | 'next' | 'custom'>('custom');
@@ -81,12 +96,21 @@ export default function PreferencesScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
+  const triggerHaptic = () => {
+    if (Platform.OS !== 'web') {
+      try {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      } catch (e) {}
+    }
+  };
+
   const toggleTag = (tagId: string) => {
+    triggerHaptic();
     if (selectedTags.includes(tagId)) {
       setSelectedTags(selectedTags.filter((t) => t !== tagId));
     } else {
       if (selectedTags.length >= 3) {
-        alert('You can select a maximum of 3 tags.');
+        Alert.alert('Limit Reached', 'You can select up to 3 preferred vibes.');
         return;
       }
       setSelectedTags([...selectedTags, tagId]);
@@ -94,6 +118,7 @@ export default function PreferencesScreen() {
   };
 
   const handleSelectBudgetPreset = (presetMax: number) => {
+    triggerHaptic();
     setBudgetMax(presetMax);
     if (budgetMin >= presetMax) {
       setBudgetMin(Math.max(300, presetMax - 400));
@@ -101,6 +126,7 @@ export default function PreferencesScreen() {
   };
 
   const handleToggleDealbreakerChip = (chip: string) => {
+    triggerHaptic();
     const list = dealbreakers.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
     if (list.includes(chip)) {
       setDealbreakers(list.filter((s) => s !== chip).join(', '));
@@ -110,6 +136,7 @@ export default function PreferencesScreen() {
   };
 
   const handleQuickDateChip = (type: 'this' | 'next' | 'custom') => {
+    triggerHaptic();
     setDateQuickChip(type);
     if (type === 'this') {
       setDateStart('2026-07-10');
@@ -121,6 +148,7 @@ export default function PreferencesScreen() {
   };
 
   const handleSaveDraft = () => {
+    triggerHaptic();
     savePreferenceDraft(currentGroup.id, {
       userId: currentUserId,
       budgetMin,
@@ -128,29 +156,56 @@ export default function PreferencesScreen() {
       tags: selectedTags,
       dealbreakers: dealbreakers.split(',').map((s) => s.trim()).filter(Boolean)
     });
-    setToastMessage('âœ“ Draft saved locally.');
+    setToastMessage('Draft saved locally.');
     setTimeout(() => setToastMessage(''), 2000);
   };
 
   const handleSubmit = async () => {
-    await submitPreferences({
-      userId: currentUserId,
-      name: existingMember?.name || (existingMember as any)?.userName || 'Member',
-      startDate: dateStart,
-      endDate: dateEnd,
-      budgetMin,
-      budgetMax,
-      preferredTags: selectedTags,
-      dealbreakers: dealbreakers.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean),
-      isFlexible: true,
-      submittedAt: new Date().toISOString()
-    });
+    setValidationError(null);
 
-    setToastMessage('ðŸŽ‰ Preferences submitted privately!');
-    setTimeout(() => {
-      setToastMessage('');
-      router.push(`/groups/${currentGroup.id}/options`);
-    }, 1000);
+    // Form Validations
+    if (!dateStart || !dateEnd) {
+      setValidationError('Please select your available start and end dates.');
+      return;
+    }
+    if (new Date(dateStart) > new Date(dateEnd)) {
+      setValidationError('Start date cannot be after end date.');
+      return;
+    }
+    if (budgetMin > budgetMax) {
+      setValidationError('Minimum budget cannot exceed maximum budget.');
+      return;
+    }
+    if (selectedTags.length === 0) {
+      setValidationError('Please select at least 1 vibe tag.');
+      return;
+    }
+
+    triggerHaptic();
+    setIsSubmitting(true);
+
+    try {
+      await submitPreferences({
+        userId: currentUserId,
+        userName: existingMember?.userName || (existingMember as any)?.name || 'You',
+        dateRanges: [{ start: dateStart, end: dateEnd }],
+        budgetMin,
+        budgetMax,
+        tags: selectedTags,
+        dealbreakers: dealbreakers.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean),
+        submittedAt: new Date().toISOString()
+      });
+
+      setToastMessage('Preferences submitted privately!');
+      setTimeout(() => {
+        setToastMessage('');
+        router.push(`/groups/${currentGroup.id}/options`);
+      }, 1000);
+    } catch (e: any) {
+      setValidationError(e?.message || 'Failed to submit preferences. Please retry.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -166,64 +221,72 @@ export default function PreferencesScreen() {
         <View style={styles.navBar}>
           <TouchableOpacity
             onPress={() => router.push(`/groups/${currentGroup.id}`)}
-            style={[styles.backBtn, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
+            style={[styles.backBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
           >
             <ArrowLeft size={18} color={theme.textPrimary} />
           </TouchableOpacity>
 
           <Text style={[styles.navTitle, { color: theme.textPrimary }]} numberOfLines={1}>
-            My Private Constraints
+            Your Private Constraints
           </Text>
 
-          <View style={{ width: 38 }} />
+          <View style={{ width: 36 }} />
         </View>
 
         {/* Privacy Promise Banner */}
         <View
           style={[
             styles.privacyBanner,
-            { backgroundColor: theme.primaryLight, borderColor: theme.primary }
+            { backgroundColor: isDarkMode ? '#151D2A' : '#FFFFFF', borderColor: theme.border },
+            shadows.sm
           ]}
         >
           <ShieldCheck size={18} color={theme.primary} />
-          <Text style={[styles.privacyBannerText, { color: theme.textPrimary }]}>
-            <Text style={{ fontWeight: '800' }}>100% Private:</Text> Friends only see aggregated trip rankings. Your individual budget and dealbreakers are never revealed.
+          <Text style={[styles.privacyBannerText, { color: theme.textSecondary }]}>
+            Your real budget and dates are <Text style={{ fontWeight: '800', color: theme.textPrimary }}>never shown</Text> to the group. AI only uses them to find the winning compromise.
           </Text>
         </View>
 
-        {toastMessage ? (
-          <View style={[styles.toastBanner, { backgroundColor: theme.successLight }]}>
-            <CheckCircle2 size={16} color={theme.success} />
-            <Text style={[styles.toastText, { color: theme.success }]}>{toastMessage}</Text>
+        {/* Validation Error Banner */}
+        {Boolean(validationError) && (
+          <View style={styles.errorBox}>
+            <AlertCircle size={16} color="#EF4444" />
+            <Text style={styles.errorText}>{validationError}</Text>
           </View>
-        ) : null}
+        )}
 
-        {/* Section 1: Travel Dates */}
+        {/* Toast Feedback */}
+        {Boolean(toastMessage) && (
+          <View style={[styles.toastBox, { backgroundColor: theme.primary }]}>
+            <CheckCircle2 size={16} color="#FFFFFF" />
+            <Text style={styles.toastText}>{toastMessage}</Text>
+          </View>
+        )}
+
+        {/* 1. Date Constraints Card */}
         <View
           style={[
             styles.formCard,
-            { backgroundColor: theme.surface, borderColor: theme.glassBorder },
-            shadows.md
+            { backgroundColor: theme.surface, borderColor: theme.border },
+            shadows.sm
           ]}
         >
-          <View style={styles.cardHeader}>
+          <View style={styles.cardHeaderRow}>
             <Calendar size={18} color={theme.primary} />
             <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>
-              1. When are you free?
+              When are you free?
             </Text>
           </View>
 
           {/* Quick Date Chips */}
-          <View style={styles.quickChipsRow}>
+          <View style={styles.chipRow}>
             <TouchableOpacity
               onPress={() => handleQuickDateChip('this')}
               style={[
                 styles.quickChip,
-                {
-                  backgroundColor:
-                    dateQuickChip === 'this' ? theme.primary : theme.surfaceElevated,
-                  borderColor: dateQuickChip === 'this' ? theme.primary : theme.border
-                }
+                dateQuickChip === 'this'
+                  ? { backgroundColor: theme.primary, borderColor: theme.primary }
+                  : { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }
               ]}
             >
               <Text
@@ -232,7 +295,7 @@ export default function PreferencesScreen() {
                   { color: dateQuickChip === 'this' ? '#FFFFFF' : theme.textSecondary }
                 ]}
               >
-                July Mid (10-15)
+                Jul 10 - Jul 15
               </Text>
             </TouchableOpacity>
 
@@ -240,11 +303,9 @@ export default function PreferencesScreen() {
               onPress={() => handleQuickDateChip('next')}
               style={[
                 styles.quickChip,
-                {
-                  backgroundColor:
-                    dateQuickChip === 'next' ? theme.primary : theme.surfaceElevated,
-                  borderColor: dateQuickChip === 'next' ? theme.primary : theme.border
-                }
+                dateQuickChip === 'next'
+                  ? { backgroundColor: theme.primary, borderColor: theme.primary }
+                  : { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }
               ]}
             >
               <Text
@@ -253,60 +314,23 @@ export default function PreferencesScreen() {
                   { color: dateQuickChip === 'next' ? '#FFFFFF' : theme.textSecondary }
                 ]}
               >
-                July Late (18-25)
+                Jul 18 - Jul 25
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={() => {
-                setDateQuickChip('custom');
-                setDateStart('2026-08-01');
-                setDateEnd('2026-08-10');
-              }}
+              onPress={() => handleQuickDateChip('custom')}
               style={[
                 styles.quickChip,
-                {
-                  backgroundColor:
-                    dateStart === '2026-08-01' ? theme.primary : theme.surfaceElevated,
-                  borderColor: dateStart === '2026-08-01' ? theme.primary : theme.border
-                }
+                dateQuickChip === 'custom'
+                  ? { backgroundColor: theme.primary, borderColor: theme.primary }
+                  : { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }
               ]}
             >
               <Text
                 style={[
                   styles.quickChipText,
-                  { color: dateStart === '2026-08-01' ? '#FFFFFF' : theme.textSecondary }
-                ]}
-              >
-                August (1-10)
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => setDateQuickChip('custom')}
-              style={[
-                styles.quickChip,
-                {
-                  backgroundColor:
-                    dateQuickChip === 'custom' && dateStart !== '2026-08-01'
-                      ? theme.primary
-                      : theme.surfaceElevated,
-                  borderColor:
-                    dateQuickChip === 'custom' && dateStart !== '2026-08-01'
-                      ? theme.primary
-                      : theme.border
-                }
-              ]}
-            >
-              <Text
-                style={[
-                  styles.quickChipText,
-                  {
-                    color:
-                      dateQuickChip === 'custom' && dateStart !== '2026-08-01'
-                        ? '#FFFFFF'
-                        : theme.textSecondary
-                  }
+                  { color: dateQuickChip === 'custom' ? '#FFFFFF' : theme.textSecondary }
                 ]}
               >
                 Custom Range
@@ -314,49 +338,30 @@ export default function PreferencesScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Date Input Fields */}
-          <View style={styles.dateInputsRow}>
-            <View style={styles.dateCol}>
-              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
-                EARLIEST DEPARTURE
-              </Text>
+          {/* Date Inputs */}
+          <View style={styles.inputPairRow}>
+            <View style={styles.inputCol}>
+              <Text style={[styles.fieldLabel, { color: theme.textSecondary }]}>START DATE</Text>
               <TextInput
                 style={[
                   styles.textInput,
-                  {
-                    backgroundColor: theme.surfaceElevated,
-                    color: theme.textPrimary,
-                    borderColor: theme.border
-                  }
+                  { backgroundColor: theme.surfaceSubtle, color: theme.textPrimary, borderColor: theme.border }
                 ]}
                 value={dateStart}
-                onChangeText={(val) => {
-                  setDateStart(val);
-                  setDateQuickChip('custom');
-                }}
+                onChangeText={setDateStart}
                 placeholder="YYYY-MM-DD"
                 placeholderTextColor={theme.textMuted}
               />
             </View>
-
-            <View style={styles.dateCol}>
-              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
-                LATEST RETURN
-              </Text>
+            <View style={styles.inputCol}>
+              <Text style={[styles.fieldLabel, { color: theme.textSecondary }]}>END DATE</Text>
               <TextInput
                 style={[
                   styles.textInput,
-                  {
-                    backgroundColor: theme.surfaceElevated,
-                    color: theme.textPrimary,
-                    borderColor: theme.border
-                  }
+                  { backgroundColor: theme.surfaceSubtle, color: theme.textPrimary, borderColor: theme.border }
                 ]}
                 value={dateEnd}
-                onChangeText={(val) => {
-                  setDateEnd(val);
-                  setDateQuickChip('custom');
-                }}
+                onChangeText={setDateEnd}
                 placeholder="YYYY-MM-DD"
                 placeholderTextColor={theme.textMuted}
               />
@@ -364,131 +369,115 @@ export default function PreferencesScreen() {
           </View>
         </View>
 
-        {/* Section 2: Budget */}
+        {/* 2. Budget Range Card */}
         <View
           style={[
             styles.formCard,
-            { backgroundColor: theme.surface, borderColor: theme.glassBorder },
-            shadows.md
+            { backgroundColor: theme.surface, borderColor: theme.border },
+            shadows.sm
           ]}
         >
-          <View style={styles.cardHeader}>
-            <DollarSign size={18} color={theme.success} />
+          <View style={styles.cardHeaderRow}>
+            <DollarSign size={18} color={theme.primary} />
             <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>
-              2. What's your budget range?
+              What's your comfortable budget?
             </Text>
           </View>
 
-          {/* Large Budget Display */}
-          <View style={styles.budgetDisplayRow}>
-            <Text style={[styles.budgetRangeText, { color: theme.primary }]}>
-              ${budgetMin} â€” ${budgetMax}
-            </Text>
-            <Text style={[styles.perPersonLabel, { color: theme.textSecondary }]}>
-              per person
-            </Text>
-          </View>
-
-          {/* Interactive Min & Max Steppers */}
-          <View style={styles.stepperContainer}>
-            {/* Min Budget Control */}
-            <View style={styles.stepperCol}>
-              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
-                MINIMUM BUDGET
-              </Text>
-              <View
-                style={[
-                  styles.stepperBox,
-                  { backgroundColor: theme.surfaceElevated, borderColor: theme.border }
-                ]}
-              >
-                <TouchableOpacity
-                  onPress={() => setBudgetMin(Math.max(200, budgetMin - 50))}
-                  style={styles.stepBtn}
-                >
-                  <Text style={[styles.stepBtnText, { color: theme.textPrimary }]}>âˆ’</Text>
-                </TouchableOpacity>
-                <TextInput
-                  style={[styles.stepperInput, { color: theme.textPrimary }]}
-                  keyboardType="numeric"
-                  value={String(budgetMin)}
-                  onChangeText={(val) => {
-                    const num = parseInt(val, 10);
-                    if (!isNaN(num)) setBudgetMin(num);
-                  }}
-                />
-                <TouchableOpacity
-                  onPress={() => setBudgetMin(Math.min(budgetMax - 50, budgetMin + 50))}
-                  style={styles.stepBtn}
-                >
-                  <Text style={[styles.stepBtnText, { color: theme.textPrimary }]}>+</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Max Budget Control */}
-            <View style={styles.stepperCol}>
-              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
-                MAXIMUM BUDGET
-              </Text>
-              <View
-                style={[
-                  styles.stepperBox,
-                  { backgroundColor: theme.surfaceElevated, borderColor: theme.border }
-                ]}
-              >
-                <TouchableOpacity
-                  onPress={() => setBudgetMax(Math.max(budgetMin + 50, budgetMax - 50))}
-                  style={styles.stepBtn}
-                >
-                  <Text style={[styles.stepBtnText, { color: theme.textPrimary }]}>âˆ’</Text>
-                </TouchableOpacity>
-                <TextInput
-                  style={[styles.stepperInput, { color: theme.textPrimary }]}
-                  keyboardType="numeric"
-                  value={String(budgetMax)}
-                  onChangeText={(val) => {
-                    const num = parseInt(val, 10);
-                    if (!isNaN(num)) setBudgetMax(num);
-                  }}
-                />
-                <TouchableOpacity
-                  onPress={() => setBudgetMax(budgetMax + 50)}
-                  style={styles.stepBtn}
-                >
-                  <Text style={[styles.stepBtnText, { color: theme.textPrimary }]}>+</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-
-          {/* Quick Preset Chips */}
-          <Text style={[styles.inputLabel, { color: theme.textSecondary, marginBottom: 8, marginTop: 12 }]}>
-            QUICK MAX BUDGET PRESETS:
+          {/* Budget Presets */}
+          <Text style={[styles.fieldLabel, { color: theme.textSecondary, marginBottom: 8 }]}>
+            QUICK CEILING PRESETS
           </Text>
-          <View style={styles.quickChipsRow}>
-            {BUDGET_PRESETS.map((preset) => {
-              const isSelected = budgetMax === preset;
-              return (
-                <TouchableOpacity
-                  key={preset}
-                  onPress={() => handleSelectBudgetPreset(preset)}
+          <View style={styles.chipRow}>
+            {BUDGET_PRESETS.map((preset) => (
+              <TouchableOpacity
+                key={preset}
+                onPress={() => handleSelectBudgetPreset(preset)}
+                style={[
+                  styles.quickChip,
+                  budgetMax === preset
+                    ? { backgroundColor: theme.primary, borderColor: theme.primary }
+                    : { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }
+                ]}
+              >
+                <Text
                   style={[
-                    styles.budgetPresetChip,
-                    {
-                      backgroundColor:
-                        isSelected ? theme.success : theme.surfaceElevated,
-                      borderColor: isSelected ? theme.success : theme.border
-                    }
+                    styles.quickChipText,
+                    { color: budgetMax === preset ? '#FFFFFF' : theme.textSecondary }
                   ]}
                 >
+                  ${preset}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Budget Inputs */}
+          <View style={styles.inputPairRow}>
+            <View style={styles.inputCol}>
+              <Text style={[styles.fieldLabel, { color: theme.textSecondary }]}>MIN BUDGET ($)</Text>
+              <TextInput
+                style={[
+                  styles.textInput,
+                  { backgroundColor: theme.surfaceSubtle, color: theme.textPrimary, borderColor: theme.border }
+                ]}
+                value={String(budgetMin)}
+                onChangeText={(t) => setBudgetMin(Number(t) || 0)}
+                keyboardType="numeric"
+              />
+            </View>
+            <View style={styles.inputCol}>
+              <Text style={[styles.fieldLabel, { color: theme.textSecondary }]}>MAX BUDGET ($)</Text>
+              <TextInput
+                style={[
+                  styles.textInput,
+                  { backgroundColor: theme.surfaceSubtle, color: theme.textPrimary, borderColor: theme.border }
+                ]}
+                value={String(budgetMax)}
+                onChangeText={(t) => setBudgetMax(Number(t) || 0)}
+                keyboardType="numeric"
+              />
+            </View>
+          </View>
+        </View>
+
+        {/* 3. Vibe Preferences Card */}
+        <View
+          style={[
+            styles.formCard,
+            { backgroundColor: theme.surface, borderColor: theme.border },
+            shadows.sm
+          ]}
+        >
+          <View style={styles.cardHeaderRow}>
+            <Tag size={18} color={theme.primary} />
+            <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>
+              Preferred Vibes (Max 3)
+            </Text>
+          </View>
+
+          <View style={styles.tagGrid}>
+            {AVAILABLE_TAGS.map((tag) => {
+              const isSelected = selectedTags.includes(tag.id);
+              return (
+                <TouchableOpacity
+                  key={tag.id}
+                  onPress={() => toggleTag(tag.id)}
+                  style={[
+                    styles.tagChip,
+                    isSelected
+                      ? { backgroundColor: theme.primary, borderColor: theme.primary }
+                      : { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }
+                  ]}
+                >
+                  <Text style={styles.tagEmoji}>{tag.emoji}</Text>
                   <Text
                     style={[
-                      styles.budgetPresetText,
-                      { color: isSelected ? '#FFFFFF' : theme.textSecondary }
+                      styles.tagChipText,
+                      { color: isSelected ? '#FFFFFF' : theme.textPrimary }
                     ]}
                   >
-                    ${preset}
+                    {tag.label}
                   </Text>
                 </TouchableOpacity>
               );
@@ -496,98 +485,45 @@ export default function PreferencesScreen() {
           </View>
         </View>
 
-        {/* Section 3: Tags */}
+        {/* 4. Dealbreakers Card */}
         <View
           style={[
             styles.formCard,
-            { backgroundColor: theme.surface, borderColor: theme.glassBorder },
-            shadows.md
+            { backgroundColor: theme.surface, borderColor: theme.border },
+            shadows.sm
           ]}
         >
-          <View style={styles.cardHeader}>
-            <Tag size={18} color={theme.secondary} />
+          <View style={styles.cardHeaderRow}>
+            <Ban size={18} color="#EF4444" />
             <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>
-              3. What vibe do you want? (Pick up to 3)
+              Dealbreakers (Automatic Veto)
             </Text>
           </View>
-
-          <View style={styles.tagsGrid}>
-            {AVAILABLE_TAGS.map((t) => {
-              const isSelected = selectedTags.includes(t.id);
-              return (
-                <TouchableOpacity
-                  key={t.id}
-                  activeOpacity={0.7}
-                  onPress={() => toggleTag(t.id)}
-                  style={[
-                    styles.tagCard,
-                    {
-                      backgroundColor: isSelected ? theme.primary : theme.surfaceElevated,
-                      borderColor: isSelected ? theme.primary : theme.border
-                    },
-                    isSelected ? shadows.glowPrimary : {}
-                  ]}
-                >
-                  <Text style={styles.tagEmoji}>{t.emoji}</Text>
-                  <Text
-                    style={[
-                      styles.tagCardLabel,
-                      {
-                        color: isSelected ? '#FFFFFF' : theme.textPrimary,
-                        fontWeight: isSelected ? '800' : '600'
-                      }
-                    ]}
-                  >
-                    {t.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </View>
-
-        {/* Section 4: Dealbreakers with Quick Preset Chips */}
-        <View
-          style={[
-            styles.formCard,
-            { backgroundColor: theme.surface, borderColor: theme.glassBorder },
-            shadows.md
-          ]}
-        >
-          <View style={styles.cardHeader}>
-            <Ban size={18} color={theme.danger} />
-            <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>
-              4. Any hard no's or dealbreakers?
-            </Text>
-          </View>
-
-          <Text style={[styles.dealbreakerHint, { color: theme.textSecondary }]}>
-            Trips matching these will trigger an instant 0% score override.
+          <Text style={[styles.fieldSub, { color: theme.textSecondary }]}>
+            Options violating any of your dealbreakers are scored zero for you.
           </Text>
 
-          {/* Quick Dealbreaker Chips */}
-          <View style={styles.quickChipsRow}>
+          <View style={styles.chipRow}>
             {DEALBREAKER_PRESETS.map((preset) => {
-              const isChipActive = dealbreakers.toLowerCase().includes(preset);
+              const isChecked = dealbreakers.toLowerCase().includes(preset);
               return (
                 <TouchableOpacity
                   key={preset}
                   onPress={() => handleToggleDealbreakerChip(preset)}
                   style={[
                     styles.quickChip,
-                    {
-                      backgroundColor: isChipActive ? theme.dangerLight : theme.surfaceElevated,
-                      borderColor: isChipActive ? theme.danger : theme.border
-                    }
+                    isChecked
+                      ? { backgroundColor: '#FEE2E2', borderColor: '#EF4444' }
+                      : { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }
                   ]}
                 >
                   <Text
                     style={[
                       styles.quickChipText,
-                      { color: isChipActive ? theme.danger : theme.textSecondary }
+                      { color: isChecked ? '#EF4444' : theme.textSecondary }
                     ]}
                   >
-                    ðŸš« #{preset}
+                    {preset}
                   </Text>
                 </TouchableOpacity>
               );
@@ -597,60 +533,42 @@ export default function PreferencesScreen() {
           <TextInput
             style={[
               styles.textInput,
-              {
-                backgroundColor: theme.surfaceElevated,
-                color: theme.textPrimary,
-                borderColor: theme.border
-              }
+              { backgroundColor: theme.surfaceSubtle, color: theme.textPrimary, borderColor: theme.border, marginTop: 10 }
             ]}
             value={dealbreakers}
             onChangeText={setDealbreakers}
-            placeholder="e.g. no cold, no camping, no long flights"
+            placeholder="e.g. no overnight buses, strict budget"
             placeholderTextColor={theme.textMuted}
-            maxLength={100}
           />
         </View>
 
-        {/* Footer Actions: Save Draft & Submit */}
-        <View style={styles.footerActions}>
+        {/* Action Buttons */}
+        <View style={styles.actionRow}>
           <TouchableOpacity
-            activeOpacity={0.8}
+            activeOpacity={0.7}
             onPress={handleSaveDraft}
-            style={[
-              styles.secondaryBtn,
-              { backgroundColor: theme.surfaceElevated, borderColor: theme.border }
-            ]}
+            style={[styles.draftBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
           >
             <BookmarkCheck size={16} color={theme.textSecondary} />
-            <Text style={[styles.secondaryBtnText, { color: theme.textSecondary }]}>
-              Save Draft
-            </Text>
+            <Text style={[styles.draftBtnText, { color: theme.textSecondary }]}>Save Draft</Text>
           </TouchableOpacity>
 
-          {validationError && (
-            <View style={{ backgroundColor: '#FEE2E2', borderRadius: 10, padding: 12, marginBottom: 12, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Ban size={16} color="#EF4444" />
-              <Text style={{ color: '#991B1B', fontSize: 13, fontWeight: '600', flex: 1 }}>{validationError}</Text>
-            </View>
-          )}
-
           <TouchableOpacity
-            activeOpacity={0.8}
+            activeOpacity={0.85}
             onPress={handleSubmit}
             disabled={isSubmitting}
-            style={[
-              styles.submitBtn,
-              { backgroundColor: theme.primary, opacity: isSubmitting ? 0.7 : 1 },
-              shadows.glowPrimary
-            ]}
+            style={[styles.submitBtn, { backgroundColor: theme.primary }, shadows.glowPrimary]}
           >
             <Sparkles size={16} color="#FFFFFF" />
-            <Text style={styles.submitBtnText}>{isSubmitting ? 'Submitting...' : 'Submit Constraints Privately'}</Text>
+            <Text style={styles.submitBtnText}>
+              {isSubmitting ? 'Calculating...' : 'Submit Privately'}
+            </Text>
+            <ChevronRight size={16} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
       </ScrollView>
 
-      {/* Floating Bottom Navigation Bar */}
+      {/* Floating Bottom Tab Bar */}
       <BottomTabBar />
     </SafeAreaView>
   );
@@ -661,9 +579,10 @@ const styles = StyleSheet.create({
     flex: 1
   },
   scrollContent: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 12,
     paddingBottom: 140,
-    maxWidth: 680,
+    maxWidth: 640,
     width: '100%',
     alignSelf: 'center'
   },
@@ -671,74 +590,104 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginVertical: 14
+    marginBottom: 14
   },
   backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: radius.pill,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1
   },
   navTitle: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '800',
     flex: 1,
     textAlign: 'center',
-    marginHorizontal: 12
+    letterSpacing: -0.2
   },
   privacyBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    padding: 14,
+    padding: 12,
     borderRadius: radius.md,
     borderWidth: 1,
-    marginBottom: 16
+    marginBottom: 14
   },
   privacyBannerText: {
     fontSize: 12,
-    lineHeight: 17,
+    lineHeight: 16,
     flex: 1
   },
-  toastBanner: {
+  errorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: 12,
+    backgroundColor: '#FEE2E2',
+    borderColor: '#EF4444',
+    borderWidth: 1,
+    borderRadius: radius.md,
+    marginBottom: 14
+  },
+  errorText: {
+    color: '#EF4444',
+    fontSize: 12,
+    fontWeight: '700',
+    flex: 1
+  },
+  toastBox: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     padding: 12,
     borderRadius: radius.md,
-    marginBottom: 16
+    marginBottom: 14
   },
   toastText: {
+    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '700'
   },
   formCard: {
+    padding: 16,
     borderRadius: radius.card,
-    padding: 18,
     borderWidth: 1,
-    marginBottom: 16
+    marginBottom: 14
   },
-  cardHeader: {
+  cardHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 14
+    marginBottom: 12
   },
   cardTitle: {
-    fontSize: 16,
-    fontWeight: '800'
+    fontSize: 15,
+    fontWeight: '800',
+    letterSpacing: -0.2
   },
-  quickChipsRow: {
+  fieldLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+    marginBottom: 4
+  },
+  fieldSub: {
+    fontSize: 12,
+    marginBottom: 10,
+    lineHeight: 16
+  },
+  chipRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: 8,
+    flexWrap: 'wrap',
     marginBottom: 12
   },
   quickChip: {
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 7,
     borderRadius: radius.pill,
     borderWidth: 1
   },
@@ -746,138 +695,73 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700'
   },
-  dateInputsRow: {
+  inputPairRow: {
     flexDirection: 'row',
-    gap: 12
+    gap: 10
   },
-  dateCol: {
+  inputCol: {
     flex: 1
-  },
-  inputLabel: {
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.8,
-    marginBottom: 6
   },
   textInput: {
-    borderWidth: 1,
     borderRadius: radius.md,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    fontSize: 14,
-    fontWeight: '600'
-  },
-  budgetDisplayRow: {
-    alignItems: 'center',
-    paddingVertical: 10,
-    marginBottom: 6
-  },
-  budgetRangeText: {
-    fontSize: 28,
-    fontWeight: '900',
-    letterSpacing: -0.5
-  },
-  perPersonLabel: {
-    fontSize: 12,
-    marginTop: 2
-  },
-  stepperContainer: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 8
-  },
-  stepperCol: {
-    flex: 1
-  },
-  stepperBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: radius.md,
     borderWidth: 1,
-    overflow: 'hidden'
+    fontSize: 14
   },
-  stepBtn: {
-    width: 38,
-    height: 38,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  stepBtnText: {
-    fontSize: 18,
-    fontWeight: '800'
-  },
-  stepperInput: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 14,
-    fontWeight: '700',
-    paddingVertical: 8
-  },
-  budgetPresetChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: radius.pill,
-    borderWidth: 1
-  },
-  budgetPresetText: {
-    fontSize: 12,
-    fontWeight: '700'
-  },
-  tagsGrid: {
+  tagGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8
   },
-  tagCard: {
+  tagChip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingVertical: 9,
     borderRadius: radius.md,
     borderWidth: 1
   },
   tagEmoji: {
-    fontSize: 16
+    fontSize: 14
   },
-  tagCardLabel: {
-    fontSize: 13
-  },
-  dealbreakerHint: {
+  tagChipText: {
     fontSize: 12,
-    lineHeight: 16,
-    marginBottom: 10
+    fontWeight: '700'
   },
-  footerActions: {
+  actionRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 10,
-    marginTop: 8
+    marginTop: 6,
+    marginBottom: 20
   },
-  secondaryBtn: {
+  draftBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 16,
     paddingVertical: 14,
+    paddingHorizontal: 16,
     borderRadius: radius.btn,
     borderWidth: 1
   },
-  secondaryBtnText: {
-    fontSize: 13,
+  draftBtnText: {
+    fontSize: 14,
     fontWeight: '700'
   },
   submitBtn: {
     flex: 1,
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 8,
     paddingVertical: 14,
     borderRadius: radius.btn
   },
   submitBtnText: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '800'
   }
 });

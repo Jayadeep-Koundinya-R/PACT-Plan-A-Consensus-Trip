@@ -5,9 +5,12 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  SafeAreaView
+  SafeAreaView,
+  Platform,
+  Alert
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../src/store/useGatherlyStore';
 import { colors, radius, shadows } from '../src/theme/colors';
 import {
@@ -19,7 +22,8 @@ import {
   ArrowRight,
   Infinity as InfinityIcon,
   Bot,
-  Palette
+  Palette,
+  CheckCircle2
 } from 'lucide-react-native';
 
 export default function PaywallScreen() {
@@ -36,7 +40,16 @@ export default function PaywallScreen() {
 
   const isCurrentPro = subscriptionPlan !== 'free';
 
+  const triggerHaptic = () => {
+    if (Platform.OS !== 'web') {
+      try {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      } catch (e) {}
+    }
+  };
+
   const handleSubscribe = () => {
+    triggerHaptic();
     const selectedPlan = billingCycle === 'annual' ? 'premium_annual' : 'premium_monthly';
     setSubscriptionPlan(selectedPlan);
     setSuccessMessage('🎉 Subscription activated! Welcome to PACT Pro.');
@@ -47,11 +60,13 @@ export default function PaywallScreen() {
   };
 
   const handleRestore = () => {
-    setSuccessMessage('✓ Purchases restored successfully.');
+    triggerHaptic();
+    setSuccessMessage('✅ Purchases restored successfully.');
     setTimeout(() => setSuccessMessage(''), 2000);
   };
 
   const handleCancelSubscription = () => {
+    triggerHaptic();
     setSubscriptionPlan('free');
     setSuccessMessage('Subscription reverted to Free tier.');
     setTimeout(() => setSuccessMessage(''), 1500);
@@ -67,9 +82,9 @@ export default function PaywallScreen() {
         <View style={styles.navBar}>
           <TouchableOpacity
             onPress={() => router.back()}
-            style={[styles.closeBtn, { backgroundColor: theme.surfaceSubtle }]}
+            style={[styles.closeBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
           >
-            <X size={20} color={theme.textPrimary} />
+            <X size={18} color={theme.textPrimary} />
           </TouchableOpacity>
 
           <Text style={[styles.navTitle, { color: theme.textPrimary }]}>
@@ -83,189 +98,169 @@ export default function PaywallScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Hero Header */}
-        <View style={styles.heroSection}>
-          <View
-            style={[
-              styles.crownBox,
-              { backgroundColor: theme.secondaryLight, borderColor: theme.secondary },
-              shadows.glowSecondary
-            ]}
-          >
-            <Crown size={38} color={theme.secondary} />
+        {/* Success Banner */}
+        {Boolean(successMessage) && (
+          <View style={[styles.toastBox, { backgroundColor: theme.primary }]}>
+            <CheckCircle2 size={16} color="#FFFFFF" />
+            <Text style={styles.toastText}>{successMessage}</Text>
+          </View>
+        )}
+
+        {/* Hero Card */}
+        <View
+          style={[
+            styles.heroCard,
+            { backgroundColor: isDarkMode ? '#151D2A' : '#FFFFFF', borderColor: theme.border },
+            shadows.md
+          ]}
+        >
+          <View style={[styles.crownBox, { backgroundColor: theme.primary }]}>
+            <Crown size={28} color="#FFFFFF" />
           </View>
           <Text style={[styles.heroTitle, { color: theme.textPrimary }]}>
-            Unlock Unlimited Trips & AI Insights
+            Unlock Unlimited Trips & AI Pitch Engine
           </Text>
           <Text style={[styles.heroSub, { color: theme.textSecondary }]}>
-            Turn every group idea into an agreed reality with advanced conflict AI and unlimited circles.
+            Power up group trip planning with automatic conflict resolution and unlimited shared circles.
           </Text>
         </View>
 
-        {successMessage ? (
-          <View style={[styles.successBanner, { backgroundColor: theme.successLight }]}>
-            <Check size={16} color={theme.success} />
-            <Text style={[styles.successText, { color: theme.success }]}>
-              {successMessage}
-            </Text>
-          </View>
-        ) : null}
-
-        {/* Plan Selector (Annual vs Monthly) */}
-        <View style={styles.planSelectorRow}>
-          {/* Annual Card */}
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => setBillingCycle('annual')}
+        {/* Feature Highlights Grid */}
+        <View style={styles.featuresList}>
+          <View
             style={[
-              styles.planCard,
-              {
-                backgroundColor: theme.surface,
-                borderColor: billingCycle === 'annual' ? theme.primary : theme.border,
-                borderWidth: billingCycle === 'annual' ? 2 : 1
-              },
-              billingCycle === 'annual' ? shadows.glowPrimary : shadows.sm
-            ]}
-          >
-            <View style={[styles.discountBadge, { backgroundColor: theme.primaryLight, borderColor: theme.primary }]}>
-              <Text style={[styles.discountText, { color: theme.primary }]}>
-                ⭐ BEST VALUE • SAVE 33%
-              </Text>
-            </View>
-            <Text style={[styles.planCardName, { color: theme.textPrimary }]}>
-              Annual Plan
-            </Text>
-            <Text style={[styles.planCardPrice, { color: theme.primary }]}>
-              $39.99
-            </Text>
-            <Text style={[styles.planCardPeriod, { color: theme.textSecondary }]}>
-              $3.33 / month, billed yearly
-            </Text>
-          </TouchableOpacity>
-
-          {/* Monthly Card */}
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => setBillingCycle('monthly')}
-            style={[
-              styles.planCard,
-              {
-                backgroundColor: theme.surface,
-                borderColor: billingCycle === 'monthly' ? theme.primary : theme.border,
-                borderWidth: billingCycle === 'monthly' ? 2 : 1
-              },
+              styles.featureItem,
+              { backgroundColor: theme.surface, borderColor: theme.border },
               shadows.sm
             ]}
           >
-            <View style={[styles.discountBadge, { backgroundColor: theme.surfaceSubtle }]}>
-              <Text style={[styles.discountText, { color: theme.textSecondary }]}>
-                FLEXIBLE
-              </Text>
-            </View>
-            <Text style={[styles.planCardName, { color: theme.textPrimary }]}>
-              Monthly Plan
-            </Text>
-            <Text style={[styles.planCardPrice, { color: theme.textPrimary }]}>
-              $4.99
-            </Text>
-            <Text style={[styles.planCardPeriod, { color: theme.textSecondary }]}>
-              Billed monthly, cancel anytime
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Feature Comparison List */}
-        <View
-          style={[
-            styles.featuresCard,
-            { backgroundColor: theme.surface, borderColor: theme.border },
-            shadows.sm
-          ]}
-        >
-          <Text style={[styles.featuresTitle, { color: theme.textPrimary }]}>
-            Everything included in Pro:
-          </Text>
-
-          <View style={styles.featureItem}>
-            <View style={[styles.featureIconBox, { backgroundColor: theme.primaryLight }]}>
-              <InfinityIcon size={18} color={theme.primaryDark} />
+            <View style={[styles.featureIconBox, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
+              <InfinityIcon size={20} color={theme.primary} />
             </View>
             <View style={styles.featureTextCol}>
-              <Text style={[styles.featureName, { color: theme.textPrimary }]}>
-                Unlimited Trip Circles & Decisions
+              <Text style={[styles.featureTitle, { color: theme.textPrimary }]}>
+                Unlimited Trip Circles
               </Text>
               <Text style={[styles.featureDesc, { color: theme.textSecondary }]}>
-                Free tier is limited to 1 circle. Pro members can organize unlimited reunions and getaways.
+                Organize as many trip groups as you want with unlimited friends and collaborators.
               </Text>
             </View>
           </View>
 
-          <View style={styles.featureItem}>
-            <View style={[styles.featureIconBox, { backgroundColor: theme.secondaryLight }]}>
-              <Bot size={18} color={theme.secondary} />
-            </View>
-            <View style={styles.featureTextCol}>
-              <Text style={[styles.featureName, { color: theme.textPrimary }]}>
-                AI-Powered Conflict Explanation Layer
-              </Text>
-              <Text style={[styles.featureDesc, { color: theme.textSecondary }]}>
-                Deep LLM natural language analysis diagnosing date bottlenecks, budget gaps, and compromise advice.
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.featureItem}>
-            <View style={[styles.featureIconBox, { backgroundColor: theme.successLight }]}>
-              <Palette size={18} color={theme.success} />
-            </View>
-            <View style={styles.featureTextCol}>
-              <Text style={[styles.featureName, { color: theme.textPrimary }]}>
-                Premium Trip Brief Themes & Export
-              </Text>
-              <Text style={[styles.featureDesc, { color: theme.textSecondary }]}>
-                Generate high-resolution social story cards formatted for Instagram, WhatsApp, and iMessage.
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Primary Purchase Button */}
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={handleSubscribe}
-          style={[styles.subscribeBtn, { backgroundColor: theme.primary }, shadows.md]}
-        >
-          <Sparkles size={18} color="#FFFFFF" />
-          <Text style={styles.subscribeBtnText}>
-            {billingCycle === 'annual'
-              ? 'Start PACT Pro Annual ($39.99/yr)'
-              : 'Start PACT Pro Monthly ($4.99/mo)'}
-          </Text>
-          <ArrowRight size={18} color="#FFFFFF" />
-        </TouchableOpacity>
-
-        {isCurrentPro && (
-          <TouchableOpacity
-            onPress={handleCancelSubscription}
-            style={styles.cancelPlanBtn}
+          <View
+            style={[
+              styles.featureItem,
+              { backgroundColor: theme.surface, borderColor: theme.border },
+              shadows.sm
+            ]}
           >
-            <Text style={[styles.cancelPlanText, { color: theme.danger }]}>
-              Switch back to Free Standard Plan
-            </Text>
-          </TouchableOpacity>
-        )}
+            <View style={[styles.featureIconBox, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
+              <Bot size={20} color={theme.primary} />
+            </View>
+            <View style={styles.featureTextCol}>
+              <Text style={[styles.featureTitle, { color: theme.textPrimary }]}>
+                AI Compromise Pitch Engine
+              </Text>
+              <Text style={[styles.featureDesc, { color: theme.textSecondary }]}>
+                Get AI-generated personalized explanations convincing hesitant travelers to say Yes.
+              </Text>
+            </View>
+          </View>
 
-        {/* Security & Legal Footer */}
-        <View style={styles.legalFooter}>
-          <View style={styles.secureRow}>
-            <ShieldCheck size={14} color={theme.textSecondary} />
-            <Text style={[styles.secureText, { color: theme.textSecondary }]}>
-              Secured by RevenueCat • Cancel anytime in App Store settings
+          <View
+            style={[
+              styles.featureItem,
+              { backgroundColor: theme.surface, borderColor: theme.border },
+              shadows.sm
+            ]}
+          >
+            <View style={[styles.featureIconBox, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
+              <Palette size={20} color={theme.primary} />
+            </View>
+            <View style={styles.featureTextCol}>
+              <Text style={[styles.featureTitle, { color: theme.textPrimary }]}>
+                Exportable Social Story Cards
+              </Text>
+              <Text style={[styles.featureDesc, { color: theme.textSecondary }]}>
+                Generate verified Instagram/WhatsApp story cards with official trip consensus stats.
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Billing Cycle Switcher */}
+        <View style={styles.planSection}>
+          <View style={styles.cycleToggleRow}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => {
+                triggerHaptic();
+                setBillingCycle('annual');
+              }}
+              style={[
+                styles.cycleCard,
+                billingCycle === 'annual'
+                  ? { backgroundColor: theme.surface, borderColor: theme.primary, borderWidth: 2 }
+                  : { backgroundColor: theme.surfaceSubtle, borderColor: theme.border, borderWidth: 1 }
+              ]}
+            >
+              <View style={[styles.discountBadge, { backgroundColor: theme.primary }]}>
+                <Text style={styles.discountBadgeText}>SAVE 33%</Text>
+              </View>
+              <Text style={[styles.cycleName, { color: theme.textPrimary }]}>Annual</Text>
+              <Text style={[styles.cyclePrice, { color: theme.primary }]}>$29.99<Text style={styles.cyclePer}>/year</Text></Text>
+              <Text style={[styles.cycleSub, { color: theme.textSecondary }]}>$2.50 / month</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => {
+                triggerHaptic();
+                setBillingCycle('monthly');
+              }}
+              style={[
+                styles.cycleCard,
+                billingCycle === 'monthly'
+                  ? { backgroundColor: theme.surface, borderColor: theme.primary, borderWidth: 2 }
+                  : { backgroundColor: theme.surfaceSubtle, borderColor: theme.border, borderWidth: 1 }
+              ]}
+            >
+              <Text style={[styles.cycleName, { color: theme.textPrimary }]}>Monthly</Text>
+              <Text style={[styles.cyclePrice, { color: theme.primary }]}>$3.99<Text style={styles.cyclePer}>/month</Text></Text>
+              <Text style={[styles.cycleSub, { color: theme.textSecondary }]}>Billed monthly</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Action CTA */}
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={handleSubscribe}
+            style={[styles.subscribeBtn, { backgroundColor: theme.primary }, shadows.glowPrimary]}
+          >
+            <Sparkles size={18} color="#FFFFFF" />
+            <Text style={styles.subscribeBtnText}>
+              {isCurrentPro ? 'Switch Plan' : 'Start 7-Day Free Trial'}
+            </Text>
+            <ArrowRight size={18} color="#FFFFFF" />
+          </TouchableOpacity>
+
+          {isCurrentPro && (
+            <TouchableOpacity
+              onPress={handleCancelSubscription}
+              style={styles.cancelBtn}
+            >
+              <Text style={[styles.cancelBtnText, { color: theme.textSecondary }]}>
+                Revert to Free Tier
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          <View style={styles.guaranteeRow}>
+            <ShieldCheck size={14} color={theme.success} />
+            <Text style={[styles.guaranteeText, { color: theme.textSecondary }]}>
+              Secured by RevenueCat • Cancel anytime in Google Play
             </Text>
           </View>
-          <Text style={[styles.termsText, { color: theme.textMuted }]}>
-            Payment will be charged to your account upon confirmation. Subscriptions auto-renew unless cancelled at least 24h before the end of current period.
-          </Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -277,9 +272,10 @@ const styles = StyleSheet.create({
     flex: 1
   },
   scrollContent: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 12,
     paddingBottom: 40,
-    maxWidth: 580,
+    maxWidth: 600,
     width: '100%',
     alignSelf: 'center'
   },
@@ -290,46 +286,22 @@ const styles = StyleSheet.create({
     marginBottom: 16
   },
   closeBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: radius.pill,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    borderWidth: 1
   },
   navTitle: {
     fontSize: 16,
-    fontWeight: '700'
+    fontWeight: '800'
   },
   restoreText: {
-    fontSize: 14,
-    fontWeight: '600'
-  },
-  heroSection: {
-    alignItems: 'center',
-    marginVertical: 12,
-    paddingHorizontal: 10
-  },
-  crownBox: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12
-  },
-  heroTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    textAlign: 'center',
-    letterSpacing: -0.5
-  },
-  heroSub: {
     fontSize: 13,
-    textAlign: 'center',
-    marginTop: 6,
-    lineHeight: 18
+    fontWeight: '700'
   },
-  successBanner: {
+  toastBox: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
@@ -337,122 +309,145 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     marginBottom: 14
   },
-  successText: {
+  toastText: {
+    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '700'
   },
-  planSelectorRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginVertical: 14
-  },
-  planCard: {
-    flex: 1,
+  heroCard: {
+    alignItems: 'center',
+    padding: 20,
     borderRadius: radius.card,
-    padding: 14,
-    position: 'relative'
+    borderWidth: 1,
+    marginBottom: 16
   },
-  discountBadge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: radius.pill,
+  crownBox: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12
+  },
+  heroTitle: {
+    fontSize: 18,
+    fontWeight: '900',
+    textAlign: 'center',
+    letterSpacing: -0.3,
     marginBottom: 6
   },
-  discountText: {
-    fontSize: 10,
-    fontWeight: '800'
+  heroSub: {
+    fontSize: 13,
+    textAlign: 'center',
+    lineHeight: 18
   },
-  planCardName: {
-    fontSize: 14,
-    fontWeight: '700'
-  },
-  planCardPrice: {
-    fontSize: 22,
-    fontWeight: '900',
-    marginVertical: 2
-  },
-  planCardPeriod: {
-    fontSize: 11,
-    lineHeight: 14
-  },
-  featuresCard: {
-    borderRadius: radius.card,
-    padding: 18,
-    borderWidth: 1,
-    marginBottom: 16,
-    gap: 14
-  },
-  featuresTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    marginBottom: 2
+  featuresList: {
+    gap: 8,
+    marginBottom: 18
   },
   featureItem: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12
+    alignItems: 'center',
+    gap: 12,
+    padding: 14,
+    borderRadius: radius.card,
+    borderWidth: 1
   },
   featureIconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center'
   },
   featureTextCol: {
     flex: 1
   },
-  featureName: {
-    fontSize: 13,
-    fontWeight: '700'
+  featureTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    marginBottom: 2
   },
   featureDesc: {
+    fontSize: 12,
+    lineHeight: 16
+  },
+  planSection: {
+    marginTop: 4
+  },
+  cycleToggleRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 16
+  },
+  cycleCard: {
+    flex: 1,
+    padding: 14,
+    borderRadius: radius.card,
+    alignItems: 'center',
+    position: 'relative'
+  },
+  discountBadge: {
+    position: 'absolute',
+    top: -10,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: radius.pill
+  },
+  discountBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.5
+  },
+  cycleName: {
+    fontSize: 13,
+    fontWeight: '800',
+    marginBottom: 4
+  },
+  cyclePrice: {
+    fontSize: 18,
+    fontWeight: '900'
+  },
+  cyclePer: {
     fontSize: 11,
-    marginTop: 2,
-    lineHeight: 15
+    fontWeight: '600'
+  },
+  cycleSub: {
+    fontSize: 11,
+    marginTop: 2
   },
   subscribeBtn: {
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 8,
-    paddingVertical: 16,
-    borderRadius: radius.btn,
-    marginBottom: 12
+    paddingVertical: 14,
+    borderRadius: radius.btn
   },
   subscribeBtnText: {
     color: '#FFFFFF',
     fontSize: 15,
-    fontWeight: '700'
+    fontWeight: '800'
   },
-  cancelPlanBtn: {
-    paddingVertical: 8,
+  cancelBtn: {
     alignItems: 'center',
-    marginBottom: 8
+    paddingVertical: 10,
+    marginTop: 6
   },
-  cancelPlanText: {
+  cancelBtnText: {
     fontSize: 12,
     fontWeight: '600'
   },
-  legalFooter: {
-    marginTop: 10,
-    alignItems: 'center',
-    gap: 6
-  },
-  secureRow: {
+  guaranteeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: 12
   },
-  secureText: {
+  guaranteeText: {
     fontSize: 11,
-    fontWeight: '600'
-  },
-  termsText: {
-    fontSize: 10,
-    textAlign: 'center',
-    lineHeight: 14,
-    maxWidth: 400
+    fontWeight: '500'
   }
 });

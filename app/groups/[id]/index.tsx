@@ -7,10 +7,12 @@ import {
   StyleSheet,
   SafeAreaView,
   Share,
-  Alert
+  Alert,
+  Platform
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
+import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
 import { StepProgressBar } from '../../../src/components/StepProgressBar';
 import { BottomTabBar } from '../../../src/components/BottomTabBar';
@@ -24,14 +26,11 @@ import {
   Copy,
   Check,
   Users,
-  CheckCircle2,
   Sparkles,
   Vote,
   Sliders,
   ChevronRight,
   QrCode,
-  BellRing,
-  Award,
   Lock,
   Share2,
   UserPlus,
@@ -53,19 +52,27 @@ export default function GroupDetailScreen() {
   } = useGatherlyStore();
 
   const theme = isDarkMode ? colors.dark : colors.light;
-  const currentGroup = groups.find((g) => g.id === id) || groups[0] || { id: id || 'demo', name: 'Trip Circle', inviteCode: 'PACT26', organizerId: currentUserId, status: 'voting', totalMembersCount: 5 };
-  const consensus = getConsensusResults();
+  const currentGroup =
+    groups.find((g) => g.id === id) ||
+    groups[0] || {
+      id: id || 'demo',
+      name: 'College Reunion Trip',
+      inviteCode: 'GOA-2026',
+      organizerId: 'user-maya-001',
+      status: 'voting' as const,
+      totalMembersCount: 5
+    };
 
+  const consensus = getConsensusResults();
   const [copiedCode, setCopiedCode] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
   const [showNudgeModal, setShowNudgeModal] = useState(false);
 
-  const currentUser = members.find((m) => m.userId === currentUserId) || members[0];
   const isOrganizer = currentGroup.organizerId === currentUserId;
   const userHasSubmitted = members.some((m) => m.userId === currentUserId && Boolean(m.submittedAt));
 
   const pendingMembers = members.filter((m) => !m.submittedAt);
-  const pendingNames = pendingMembers.map((m) => m.name);
+  const pendingNames = pendingMembers.map((m) => m.userName || (m as any).name || 'Traveler');
 
   const currentStepNumber =
     currentGroup.status === 'finalized'
@@ -78,7 +85,16 @@ export default function GroupDetailScreen() {
 
   const topOption = consensus.winningOption || consensus.rankedOptions[0];
 
+  const triggerHaptic = () => {
+    if (Platform.OS !== 'web') {
+      try {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      } catch (e) {}
+    }
+  };
+
   const handleCopyCode = async () => {
+    triggerHaptic();
     try {
       await Clipboard.setStringAsync(currentGroup.inviteCode);
     } catch (e) {}
@@ -87,14 +103,16 @@ export default function GroupDetailScreen() {
   };
 
   const handleShareInvite = async () => {
+    triggerHaptic();
     const deepLink = `pact://invite/${currentGroup.inviteCode}`;
-    const shareText = `You're invited to join "${currentGroup.name}" on PACT!\n\nCode: ${currentGroup.inviteCode}\nLink: ${deepLink}`;
+    const shareText = `You're invited to join "${currentGroup.name}" on PACT!\n\nInvite Code: ${currentGroup.inviteCode}\nLink: ${deepLink}\n\nShare your dates and budget privately without peer pressure!`;
     try {
       await Share.share({ message: shareText, title: `Invite to ${currentGroup.name}` });
     } catch (e) {}
   };
 
   const handleLeaveOrDelete = () => {
+    triggerHaptic();
     if (isOrganizer) {
       Alert.alert(
         'Delete Trip Circle',
@@ -132,13 +150,15 @@ export default function GroupDetailScreen() {
 
   // Bottleneck issues
   const bottleneckIssues = [];
-  if (consensus.deadlocks && consensus.deadlocks.length > 0) {
-    consensus.deadlocks.forEach((d) => {
-      bottleneckIssues.push({
-        type: (d.type === 'budget' ? 'budget' : d.type === 'dates' ? 'dates' : 'dealbreaker') as 'budget' | 'dates' | 'dealbreaker',
-        title: d.type === 'budget' ? 'Budget Gap Detected' : d.type === 'dates' ? 'Date Conflict Detected' : 'Dealbreaker Flagged',
-        description: d.description
-      });
+  if (consensus.deadlockDiagnosis && consensus.deadlockDiagnosis.isDeadlocked) {
+    bottleneckIssues.push({
+      type: (consensus.deadlockDiagnosis.primaryCause === 'budget_gap'
+        ? 'budget'
+        : consensus.deadlockDiagnosis.primaryCause === 'date_conflict'
+        ? 'dates'
+        : 'dealbreaker') as 'budget' | 'dates' | 'dealbreaker',
+      title: 'Constraint Conflict Detected',
+      description: consensus.deadlockDiagnosis.diagnosisText
     });
   }
 
@@ -160,8 +180,8 @@ export default function GroupDetailScreen() {
         {/* Navigation Header */}
         <View style={styles.navBar}>
           <TouchableOpacity
-            onPress={() => router.push('/groups')}
-            style={[styles.backBtn, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
+            onPress={() => router.push('/')}
+            style={[styles.backBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
           >
             <ArrowLeft size={18} color={theme.textPrimary} />
           </TouchableOpacity>
@@ -171,8 +191,11 @@ export default function GroupDetailScreen() {
           </Text>
 
           <TouchableOpacity
-            onPress={() => setShowQRModal(true)}
-            style={[styles.qrHeaderBtn, { backgroundColor: theme.primaryLight, borderColor: theme.primary }]}
+            onPress={() => {
+              triggerHaptic();
+              setShowQRModal(true);
+            }}
+            style={[styles.qrHeaderBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
           >
             <QrCode size={18} color={theme.primary} />
           </TouchableOpacity>
@@ -202,7 +225,7 @@ export default function GroupDetailScreen() {
             </View>
 
             <TouchableOpacity
-              activeOpacity={0.8}
+              activeOpacity={0.85}
               onPress={handleShareInvite}
               style={[styles.emptyInviteBtn, { backgroundColor: theme.primary }]}
             >
@@ -227,7 +250,7 @@ export default function GroupDetailScreen() {
           style={[
             styles.inviteCard,
             { backgroundColor: theme.surface, borderColor: theme.border },
-            shadows.md
+            shadows.sm
           ]}
         >
           <View style={styles.inviteHeader}>
@@ -273,15 +296,18 @@ export default function GroupDetailScreen() {
               <TouchableOpacity
                 onPress={handleShareInvite}
                 activeOpacity={0.7}
-                style={[styles.iconActionBtn, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
+                style={[styles.iconActionBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
               >
                 <Share2 size={16} color={theme.textPrimary} />
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={() => setShowQRModal(true)}
+                onPress={() => {
+                  triggerHaptic();
+                  setShowQRModal(true);
+                }}
                 activeOpacity={0.7}
-                style={[styles.iconActionBtn, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
+                style={[styles.iconActionBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
               >
                 <QrCode size={16} color={theme.textPrimary} />
               </TouchableOpacity>
@@ -289,7 +315,7 @@ export default function GroupDetailScreen() {
               <TouchableOpacity
                 onPress={handleCopyCode}
                 activeOpacity={0.7}
-                style={[styles.copyCodeBtn, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
+                style={[styles.copyCodeBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
               >
                 {copiedCode ? (
                   <Check size={16} color={theme.success} />
@@ -309,17 +335,19 @@ export default function GroupDetailScreen() {
           </View>
         </View>
 
-        {/* 2. Bottlenecks Section if any */}
-        <BottlenecksSection
-          issues={bottleneckIssues}
-          isDarkMode={isDarkMode}
-          onResolve={() => router.push(`/groups/${currentGroup.id}/options`)}
-        />
+        {/* 2. Bottlenecks Section */}
+        {bottleneckIssues.length > 0 && (
+          <BottlenecksSection
+            issues={bottleneckIssues}
+            isDarkMode={isDarkMode}
+            onResolve={() => router.push(`/groups/${currentGroup.id}/options`)}
+          />
+        )}
 
         {/* Action Center Buttons */}
         <View style={styles.actionCenter}>
           <TouchableOpacity
-            activeOpacity={0.8}
+            activeOpacity={0.85}
             onPress={() => router.push(`/groups/${currentGroup.id}/preferences`)}
             style={[
               styles.actionCard,
@@ -327,7 +355,7 @@ export default function GroupDetailScreen() {
               shadows.sm
             ]}
           >
-            <View style={[styles.actionIconCircle, { backgroundColor: theme.primaryLight }]}>
+            <View style={[styles.actionIconCircle, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
               <Sliders size={20} color={theme.primary} />
             </View>
             <View style={styles.actionTextCol}>
@@ -344,7 +372,7 @@ export default function GroupDetailScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            activeOpacity={0.8}
+            activeOpacity={0.85}
             onPress={() => router.push(`/groups/${currentGroup.id}/options`)}
             style={[
               styles.actionCard,
@@ -352,8 +380,8 @@ export default function GroupDetailScreen() {
               shadows.sm
             ]}
           >
-            <View style={[styles.actionIconCircle, { backgroundColor: theme.secondaryLight }]}>
-              <Sparkles size={20} color={theme.secondary} />
+            <View style={[styles.actionIconCircle, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
+              <Sparkles size={20} color={theme.primary} />
             </View>
             <View style={styles.actionTextCol}>
               <Text style={[styles.actionCardTitle, { color: theme.textPrimary }]}>
@@ -367,15 +395,15 @@ export default function GroupDetailScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            activeOpacity={0.8}
+            activeOpacity={0.85}
             onPress={() => router.push(`/groups/${currentGroup.id}/vote`)}
             style={[
               styles.actionCard,
-              { backgroundColor: theme.surfaceElevated, borderColor: theme.border },
+              { backgroundColor: theme.surface, borderColor: theme.border },
               shadows.sm
             ]}
           >
-            <View style={[styles.actionIconCircle, { backgroundColor: theme.primaryLight }]}>
+            <View style={[styles.actionIconCircle, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
               <Lock size={20} color={theme.primary} />
             </View>
             <View style={styles.actionTextCol}>
@@ -395,7 +423,7 @@ export default function GroupDetailScreen() {
             onPress={handleLeaveOrDelete}
             style={[
               styles.leaveBtn,
-              { borderColor: theme.border }
+              { borderColor: theme.border, backgroundColor: theme.surface }
             ]}
           >
             {isOrganizer ? (
@@ -444,9 +472,10 @@ const styles = StyleSheet.create({
     flex: 1
   },
   scrollContent: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 12,
     paddingBottom: 140,
-    maxWidth: 680,
+    maxWidth: 640,
     width: '100%',
     alignSelf: 'center'
   },
@@ -454,28 +483,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginVertical: 12
+    marginBottom: 14
   },
   backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: radius.pill,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1
   },
   navTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '800',
     flex: 1,
     textAlign: 'center',
     marginHorizontal: 12,
-    letterSpacing: -0.3
+    letterSpacing: -0.2
   },
   qrHeaderBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: radius.pill,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1
@@ -484,7 +513,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.card,
     padding: 16,
     borderWidth: 1,
-    marginBottom: 16
+    marginBottom: 14
   },
   emptyStateTop: {
     flexDirection: 'row',
@@ -526,9 +555,9 @@ const styles = StyleSheet.create({
   },
   inviteCard: {
     borderRadius: radius.card,
-    padding: 18,
+    padding: 16,
     borderWidth: 1,
-    marginBottom: 16
+    marginBottom: 14
   },
   inviteHeader: {
     flexDirection: 'row',
@@ -557,7 +586,7 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   codeText: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '900',
     letterSpacing: 1.5
   },
@@ -567,8 +596,8 @@ const styles = StyleSheet.create({
     gap: 6
   },
   iconActionBtn: {
-    width: 38,
-    height: 38,
+    width: 36,
+    height: 36,
     borderRadius: radius.md,
     justifyContent: 'center',
     alignItems: 'center',
@@ -579,7 +608,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     paddingHorizontal: 12,
-    paddingVertical: 9,
+    paddingVertical: 8,
     borderRadius: radius.md,
     borderWidth: 1
   },
@@ -588,21 +617,21 @@ const styles = StyleSheet.create({
     fontWeight: '700'
   },
   actionCenter: {
-    gap: 10,
-    marginTop: 8
+    gap: 8,
+    marginTop: 4
   },
   actionCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
+    padding: 14,
     borderRadius: radius.card,
     borderWidth: 1,
     gap: 12
   },
   actionIconCircle: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -610,7 +639,7 @@ const styles = StyleSheet.create({
     flex: 1
   },
   actionCardTitle: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '800',
     marginBottom: 2
   },
@@ -625,7 +654,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: radius.md,
     borderWidth: 1,
-    marginTop: 6
+    marginTop: 6,
+    marginBottom: 20
   },
   leaveBtnText: {
     fontSize: 13,
