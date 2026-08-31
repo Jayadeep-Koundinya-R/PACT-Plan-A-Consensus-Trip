@@ -32,11 +32,11 @@ export const BottomTabBar: React.FC = () => {
 
   const tabs = [
     {
-      id: 'circles',
-      label: 'Circles',
+      id: 'dashboard',
+      label: 'Home',
       icon: Compass,
-      route: '/groups',
-      isActive: pathname === '/groups' || pathname === '/'
+      route: '/',
+      isActive: pathname === '/' || pathname === '/groups'
     },
     {
       id: 'preferences',
@@ -86,10 +86,10 @@ export const BottomTabBar: React.FC = () => {
         style={[
           styles.pillContainer,
           {
-            backgroundColor: isDarkMode ? 'rgba(28, 19, 13, 0.95)' : 'rgba(255, 248, 243, 0.95)',
+            backgroundColor: isDarkMode ? 'rgba(21, 29, 42, 0.95)' : 'rgba(255, 255, 255, 0.96)',
             borderColor: theme.border
           },
-          shadows.lg
+          shadows.md
         ]}
       >
         {tabs.map((tab) => {
@@ -103,7 +103,7 @@ export const BottomTabBar: React.FC = () => {
                 styles.tabBtn,
                 tab.isActive && [
                   styles.activeTabBtn,
-                  { backgroundColor: isDarkMode ? 'rgba(234, 88, 12, 0.2)' : '#FDE8DC' }
+                  { backgroundColor: isDarkMode ? 'rgba(234, 88, 12, 0.2)' : '#FFEDD5' }
                 ]
               ]}
             >
@@ -141,9 +141,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    height: 60,
-    borderRadius: 30,
-    paddingHorizontal: 8,
+    height: 56,
+    borderRadius: 28,
+    paddingHorizontal: 6,
     borderWidth: 1,
     maxWidth: 480,
     width: '92%'
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 4,
     paddingVertical: 8,
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     borderRadius: radius.pill
   },
   activeTabBtn: {

@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { colors, radius, shadows } from '../theme/colors';
-import { Check, HelpCircle, BellRing } from 'lucide-react-native';
+import { Check, HelpCircle, BellRing, Users } from 'lucide-react-native';
 import { MemberPreference } from '../lib/consensus/types';
 
 interface ConsensusMatrixProps {
@@ -63,30 +63,33 @@ export const ConsensusMatrix: React.FC<ConsensusMatrixProps> = ({
     <View
       style={[
         styles.matrixCard,
-        { backgroundColor: theme.surfaceElevated, borderColor: theme.border },
-        shadows.md
+        { backgroundColor: theme.surface, borderColor: theme.border },
+        shadows.sm
       ]}
     >
       {/* Top Row: Title + Leading Badge */}
       <View style={styles.headerRow}>
-        <Text style={[styles.destinationText, { color: theme.textPrimary }]} numberOfLines={1}>
-          {destinationTitle || 'Trip Circle'}
-        </Text>
-        <View style={[styles.leadingBadge, { backgroundColor: isDarkMode ? 'rgba(234, 88, 12, 0.25)' : '#FDEEE5' }]}>
-          <Text style={[styles.leadingText, { color: theme.secondary }]}>LEADING</Text>
+        <View style={styles.titleWithIcon}>
+          <Users size={16} color={theme.primary} />
+          <Text style={[styles.destinationText, { color: theme.textPrimary }]} numberOfLines={1}>
+            {destinationTitle || 'Trip Circle'}
+          </Text>
+        </View>
+        <View style={[styles.leadingBadge, { backgroundColor: isDarkMode ? 'rgba(234, 88, 12, 0.2)' : '#FFEDD5' }]}>
+          <Text style={[styles.leadingText, { color: theme.primary }]}>LEADING OPTION</Text>
         </View>
       </View>
 
       {/* Split Matrix Columns */}
       <View style={styles.splitRow}>
         {/* Yes Column */}
-        <View style={[styles.columnBox, { backgroundColor: isDarkMode ? '#22160F' : '#FDF6F0', borderColor: theme.border }]}>
+        <View style={[styles.columnBox, { backgroundColor: isDarkMode ? '#1E293B' : '#F8FAFC', borderColor: theme.border }]}>
           <View style={styles.colHeaderRow}>
             <View style={[styles.miniCheckCircle, { backgroundColor: theme.success }]}>
               <Check size={10} color="#FFFFFF" strokeWidth={3} />
             </View>
             <Text style={[styles.colTitle, { color: theme.textPrimary }]}>
-              Yes ({submittedMembers.length})
+              Submitted ({submittedMembers.length})
             </Text>
           </View>
 
@@ -98,10 +101,10 @@ export const ConsensusMatrix: React.FC<ConsensusMatrixProps> = ({
                   key={m?.userId || `member-${idx}`}
                   style={[
                     styles.avatarBubble,
-                    { backgroundColor: theme.primaryLight, borderColor: theme.secondary }
+                    { backgroundColor: isDarkMode ? '#334155' : '#FFFFFF', borderColor: theme.primary }
                   ]}
                 >
-                  <Text style={[styles.avatarText, { color: theme.textPrimary }]}>
+                  <Text style={[styles.avatarText, { color: theme.primary }]}>
                     {name.charAt(0).toUpperCase()}
                   </Text>
                 </View>
@@ -111,7 +114,7 @@ export const ConsensusMatrix: React.FC<ConsensusMatrixProps> = ({
         </View>
 
         {/* Pending Column */}
-        <View style={[styles.columnBox, { backgroundColor: isDarkMode ? '#22160F' : '#FDF6F0', borderColor: theme.border }]}>
+        <View style={[styles.columnBox, { backgroundColor: isDarkMode ? '#1E293B' : '#F8FAFC', borderColor: theme.border }]}>
           <View style={styles.colHeaderRow}>
             <HelpCircle size={13} color={theme.textMuted} />
             <Text style={[styles.colTitle, { color: theme.textSecondary }]}>
@@ -126,7 +129,7 @@ export const ConsensusMatrix: React.FC<ConsensusMatrixProps> = ({
                 style={[
                   styles.avatarBubble,
                   styles.pendingAvatarBubble,
-                  { borderColor: theme.textMuted, backgroundColor: theme.surfaceSubtle }
+                  { borderColor: theme.border, backgroundColor: theme.surfaceSubtle }
                 ]}
               >
                 <Text style={[styles.avatarText, { color: theme.textMuted }]}>?</Text>
@@ -140,17 +143,17 @@ export const ConsensusMatrix: React.FC<ConsensusMatrixProps> = ({
       {pendingCount > 0 && (
         <View style={[styles.nudgeFooter, { borderTopColor: theme.border }]}>
           <Text style={[styles.nudgeText, { color: theme.textSecondary }]} numberOfLines={1}>
-            {firstPendingName} needs to confirm constraints.
+            {firstPendingName} hasn't shared constraints yet.
           </Text>
 
           {isOrganizer && (
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={handleNudgePress}
-              style={[styles.nudgeBtn, { backgroundColor: isDarkMode ? '#3A2012' : '#FDE8DC' }]}
+              style={[styles.nudgeBtn, { backgroundColor: isDarkMode ? '#334155' : '#FFEDD5' }]}
             >
-              <Text style={[styles.nudgeBtnText, { color: theme.secondary }]}>NUDGE</Text>
-              <BellRing size={12} color={theme.secondary} />
+              <Text style={[styles.nudgeBtnText, { color: theme.primary }]}>NUDGE</Text>
+              <BellRing size={12} color={theme.primary} />
             </TouchableOpacity>
           )}
         </View>
@@ -173,11 +176,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 12
   },
+  titleWithIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flex: 1
+  },
   destinationText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '800',
-    flex: 1,
-    letterSpacing: -0.3
+    letterSpacing: -0.2
   },
   leadingBadge: {
     paddingHorizontal: 8,
@@ -187,7 +195,7 @@ const styles = StyleSheet.create({
   leadingText: {
     fontSize: 10,
     fontWeight: '800',
-    letterSpacing: 0.8
+    letterSpacing: 0.6
   },
   splitRow: {
     flexDirection: 'row',
@@ -223,9 +231,9 @@ const styles = StyleSheet.create({
     gap: 6
   },
   avatarBubble: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     borderWidth: 1.5,
     justifyContent: 'center',
     alignItems: 'center'
@@ -246,7 +254,7 @@ const styles = StyleSheet.create({
     gap: 8
   },
   nudgeText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '500',
     flex: 1
   },
@@ -254,8 +262,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: radius.pill
   },
   nudgeBtnText: {

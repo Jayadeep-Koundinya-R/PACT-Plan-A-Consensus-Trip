@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,109 +6,230 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
-  ScrollView,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   ActivityIndicator,
   Alert
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../src/store/useGatherlyStore';
+import { signInUser, signUpUser } from '../src/lib/supabase/client';
 import { colors, radius, shadows } from '../src/theme/colors';
-import { Compass, Sparkles, UserCheck, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react-native';
-import { signUpWithEmail, signInWithEmail } from '../src/lib/supabase/service';
+import {
+  Compass,
+  ArrowRight,
+  ShieldCheck,
+  Sparkles,
+  UserCheck,
+  AlertCircle,
+  BrainCircuit,
+  Lock,
+  FileCheck2,
+  ChevronLeft
+} from 'lucide-react-native';
 
 export default function AuthScreen() {
   const router = useRouter();
-  const { isDarkMode, setCurrentUser, members, pendingInviteCode, setPendingInviteCode } = useGatherlyStore();
-  const searchParams = useLocalSearchParams<{ redirect?: string; code?: string }>();
-  const theme = isDarkMode ? colors.dark : colors.light;
+  const params = useLocalSearchParams<{ redirect?: string; code?: string }>();
+  const { isDarkMode, setCurrentUser, members, setPendingInviteCode } = useGatherlyStore();
 
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(true);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const theme = isDarkMode ? colors.dark : colors.light;
+
+  const triggerHaptic = () => {
+    if (Platform.OS !== 'web') {
+      try {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      } catch (e) {}
+    }
+  };
 
   const handleAuthSubmit = async () => {
-    setErrorMessage(null);
+    setErrorMessage('');
     if (!email.trim() || !password.trim()) {
-      setErrorMessage('Please enter both email and password.');
+      setErrorMessage('Please enter your email and password.');
       return;
     }
-    if (isSignUp && password.length < 6) {
-      setErrorMessage('Password must be at least 6 characters.');
+    if (isSignUp && !name.trim()) {
+      setErrorMessage('Please enter your name.');
       return;
     }
 
+    triggerHaptic();
     setIsLoading(true);
+
     try {
       if (isSignUp) {
-        const data = await signUpWithEmail(email.trim(), password, name.trim());
-        if (data.user) {
-          setCurrentUser(data.user.id);
-          const invCode = searchParams?.code || pendingInviteCode;
-          if (searchParams?.redirect === 'invite' && invCode) {
-            if (setPendingInviteCode) setPendingInviteCode(null);
-            router.replace('/invite/' + invCode);
-          } else {
-            router.replace('/groups');
-          }
-        } else {
-          Alert.alert(
-            'Check your email',
-            'Account created! If email confirmation is enabled, please verify your email before logging in.'
-          );
-          setIsSignUp(false);
+        const { user } = await signUpUser(email.trim(), password.trim(), name.trim());
+        if (user) {
+          setCurrentUser(user.id, user.email || email, name.trim());
+          handlePostAuthRedirect();
         }
       } else {
-        const data = await signInWithEmail(email.trim(), password);
-        if (data.user) {
-          setCurrentUser(data.user.id);
-          const invCode = searchParams?.code || pendingInviteCode;
-          if (searchParams?.redirect === 'invite' && invCode) {
-            if (setPendingInviteCode) setPendingInviteCode(null);
-            router.replace('/invite/' + invCode);
-          } else {
-            router.replace('/groups');
-          }
+        const { user } = await signInUser(email.trim(), password.trim());
+        if (user) {
+          const displayName = user.user_metadata?.display_name || email.split('@')[0];
+          setCurrentUser(user.id, user.email || email, displayName);
+          handlePostAuthRedirect();
         }
       }
     } catch (err: any) {
-      setErrorMessage(err?.message || 'Authentication failed. Please check your credentials.');
+      const msg = err?.message || 'Authentication failed. Please try again.';
+      setErrorMessage(msg);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handlePostAuthRedirect = () => {
+    if (params.redirect === 'invite' && params.code) {
+      setPendingInviteCode(params.code);
+      router.replace(`/invite/${params.code}`);
+    } else {
+      router.replace('/');
+    }
+  };
+
   const handleSelectDemoPersona = (userId: string) => {
-    setCurrentUser(userId);
-    router.replace('/groups');
+    triggerHaptic();
+    const persona = members.find((m) => m.userId === userId);
+    if (persona) {
+      setCurrentUser(persona.userId, `${persona.name.toLowerCase()}@pact.demo`, persona.name);
+      handlePostAuthRedirect();
+    }
   };
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.keyboardContainer}
       >
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* Logo & Brand Header */}
+          {/* Header Bar */}
+          <View style={styles.topBar}>
+            <TouchableOpacity
+              onPress={() => router.replace('/')}
+              style={[styles.backBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
+            >
+              <ChevronLeft size={20} color={theme.textPrimary} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Hero Header */}
           <View style={styles.header}>
-            <View style={[styles.logoIcon, { backgroundColor: theme.primary }, shadows.md]}>
-              <Compass size={36} color="#FFFFFF" />
+            <View
+              style={[
+                styles.logoIcon,
+                { backgroundColor: theme.primary },
+                shadows.glowPrimary
+              ]}
+            >
+              <Compass size={32} color="#FFFFFF" strokeWidth={2.5} />
             </View>
-            <Text style={[styles.title, { color: theme.textPrimary }]}>PACT</Text>
+            <Text style={[styles.title, { color: theme.textPrimary }]}>
+              {isSignUp ? 'Join PACT' : 'Welcome Back'}
+            </Text>
             <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-              Plan A Consensus Trip â€” turn "we should" into a confirmed plan.
+              Turn "we should go somewhere" into confirmed trips.
             </Text>
           </View>
 
-          {/* Auth Card */}
+          {/* 4-Pillar Feature Showcase (Why PACT is Worth Using) */}
+          <View style={styles.featuresGrid}>
+            <View
+              style={[
+                styles.featureCard,
+                { backgroundColor: theme.surface, borderColor: theme.border },
+                shadows.sm
+              ]}
+            >
+              <View style={[styles.featureIconCircle, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
+                <ShieldCheck size={18} color={theme.primary} />
+              </View>
+              <View style={styles.featureTextCol}>
+                <Text style={[styles.featureTitle, { color: theme.textPrimary }]}>
+                  Private Constraint Shield
+                </Text>
+                <Text style={[styles.featureDesc, { color: theme.textSecondary }]}>
+                  Share your true budget & available dates privately with zero peer pressure.
+                </Text>
+              </View>
+            </View>
+
+            <View
+              style={[
+                styles.featureCard,
+                { backgroundColor: theme.surface, borderColor: theme.border },
+                shadows.sm
+              ]}
+            >
+              <View style={[styles.featureIconCircle, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
+                <BrainCircuit size={18} color={theme.primary} />
+              </View>
+              <View style={styles.featureTextCol}>
+                <Text style={[styles.featureTitle, { color: theme.textPrimary }]}>
+                  AI Consensus Scoring
+                </Text>
+                <Text style={[styles.featureDesc, { color: theme.textSecondary }]}>
+                  Instantly calculates the exact compromise where everyone is included.
+                </Text>
+              </View>
+            </View>
+
+            <View
+              style={[
+                styles.featureCard,
+                { backgroundColor: theme.surface, borderColor: theme.border },
+                shadows.sm
+              ]}
+            >
+              <View style={[styles.featureIconCircle, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
+                <Lock size={18} color={theme.primary} />
+              </View>
+              <View style={styles.featureTextCol}>
+                <Text style={[styles.featureTitle, { color: theme.textPrimary }]}>
+                  Silent Voting Ballots
+                </Text>
+                <Text style={[styles.featureDesc, { color: theme.textSecondary }]}>
+                  Vote without group chat blame or endless indecisive debates.
+                </Text>
+              </View>
+            </View>
+
+            <View
+              style={[
+                styles.featureCard,
+                { backgroundColor: theme.surface, borderColor: theme.border },
+                shadows.sm
+              ]}
+            >
+              <View style={[styles.featureIconCircle, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
+                <FileCheck2 size={18} color={theme.primary} />
+              </View>
+              <View style={styles.featureTextCol}>
+                <Text style={[styles.featureTitle, { color: theme.textPrimary }]}>
+                  1-Tap Confirmed Brief
+                </Text>
+                <Text style={[styles.featureDesc, { color: theme.textSecondary }]}>
+                  Generates an exportable itinerary summary ready to share in WhatsApp.
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Form Card */}
           <View
             style={[
               styles.card,
@@ -116,31 +237,13 @@ export default function AuthScreen() {
               shadows.md
             ]}
           >
-            <View style={styles.tabRow}>
+            {/* Tab Selector */}
+            <View style={[styles.tabRow, { borderBottomColor: theme.border }]}>
               <TouchableOpacity
                 onPress={() => {
-                  setIsSignUp(false);
-                  setErrorMessage(null);
-                }}
-                style={[
-                  styles.tabBtn,
-                  !isSignUp && { borderBottomColor: theme.primary, borderBottomWidth: 2 }
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.tabText,
-                    { color: !isSignUp ? theme.primary : theme.textSecondary }
-                  ]}
-                >
-                  Sign In
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => {
+                  triggerHaptic();
                   setIsSignUp(true);
-                  setErrorMessage(null);
+                  setErrorMessage('');
                 }}
                 style={[
                   styles.tabBtn,
@@ -150,24 +253,54 @@ export default function AuthScreen() {
                 <Text
                   style={[
                     styles.tabText,
-                    { color: isSignUp ? theme.primary : theme.textSecondary }
+                    { color: isSignUp ? theme.primary : theme.textMuted }
                   ]}
                 >
                   Create Account
                 </Text>
               </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => {
+                  triggerHaptic();
+                  setIsSignUp(false);
+                  setErrorMessage('');
+                }}
+                style={[
+                  styles.tabBtn,
+                  !isSignUp && { borderBottomColor: theme.primary, borderBottomWidth: 2 }
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.tabText,
+                    { color: !isSignUp ? theme.primary : theme.textMuted }
+                  ]}
+                >
+                  Sign In
+                </Text>
+              </TouchableOpacity>
             </View>
 
-            {errorMessage && (
-              <View style={[styles.errorBox, { backgroundColor: theme.dangerLight, borderColor: theme.danger }]}>
+            {/* Error Banner */}
+            {Boolean(errorMessage) && (
+              <View
+                style={[
+                  styles.errorBox,
+                  { backgroundColor: isDarkMode ? '#2D1515' : '#FEE2E2', borderColor: '#F87171' }
+                ]}
+              >
                 <AlertCircle size={16} color={theme.danger} />
-                <Text style={[styles.errorText, { color: theme.danger }]}>{errorMessage}</Text>
+                <Text style={[styles.errorText, { color: theme.danger }]}>
+                  {errorMessage}
+                </Text>
               </View>
             )}
 
+            {/* Form Fields */}
             {isSignUp && (
               <View style={styles.formGroup}>
-                <Text style={[styles.label, { color: theme.textSecondary }]}>Your Name</Text>
+                <Text style={[styles.label, { color: theme.textSecondary }]}>Your Full Name</Text>
                 <TextInput
                   style={[
                     styles.input,
@@ -219,14 +352,14 @@ export default function AuthScreen() {
                 ]}
                 value={password}
                 onChangeText={setPassword}
-                placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                placeholder="••••••••••••"
                 placeholderTextColor={theme.textMuted}
                 secureTextEntry
               />
             </View>
 
             <TouchableOpacity
-              activeOpacity={0.8}
+              activeOpacity={0.85}
               onPress={handleAuthSubmit}
               disabled={isLoading}
               style={[styles.submitBtn, { backgroundColor: theme.primary, opacity: isLoading ? 0.7 : 1 }]}
@@ -236,7 +369,7 @@ export default function AuthScreen() {
               ) : (
                 <>
                   <Text style={styles.submitBtnText}>
-                    {isSignUp ? 'Create Account' : 'Sign In'}
+                    {isSignUp ? 'Create Account & Start' : 'Sign In'}
                   </Text>
                   <ArrowRight size={18} color="#FFFFFF" />
                 </>
@@ -256,33 +389,33 @@ export default function AuthScreen() {
             <View
               style={[
                 styles.demoCard,
-                { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }
+                { backgroundColor: theme.surface, borderColor: theme.border },
+                shadows.sm
               ]}
             >
               <View style={styles.demoHeader}>
-                <Sparkles size={16} color={theme.secondary} />
+                <Sparkles size={16} color={theme.primary} />
                 <Text style={[styles.demoTitle, { color: theme.textPrimary }]}>
-                  DEV Demo: Switch Personas in 1-Tap
+                  DEV Quick-Test Personas
                 </Text>
               </View>
               <Text style={[styles.demoSub, { color: theme.textSecondary }]}>
-                Select a demo member to test local views:
+                Select a member to test local views instantly:
               </Text>
 
               <View style={styles.personaGrid}>
-                {members.map((m) => (
+                {members.slice(0, 3).map((m) => (
                   <TouchableOpacity
                     key={m.userId}
                     onPress={() => handleSelectDemoPersona(m.userId)}
                     activeOpacity={0.7}
                     style={[
                       styles.personaBtn,
-                      { backgroundColor: theme.surface, borderColor: theme.border },
-                      shadows.sm
+                      { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }
                     ]}
                   >
-                    <View style={[styles.avatarCircle, { backgroundColor: theme.primaryLight }]}>
-                      <Text style={[styles.avatarLetter, { color: theme.primaryDark }]}>
+                    <View style={[styles.avatarCircle, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
+                      <Text style={[styles.avatarLetter, { color: theme.primary }]}>
                         {m.name ? m.name.charAt(0) : 'U'}
                       </Text>
                     </View>
@@ -291,7 +424,7 @@ export default function AuthScreen() {
                         {m.name} {m.userId === 'user-maya-001' ? '(Organizer)' : ''}
                       </Text>
                       <Text style={[styles.personaBudget, { color: theme.textSecondary }]}>
-                        ${m.budgetMin}-${m.budgetMax} â€¢ [{m.preferredTags.join(', ')}]
+                        Budget: ${m.budgetMin}-${m.budgetMax}
                       </Text>
                     </View>
                     <UserCheck size={16} color={theme.primary} />
@@ -306,7 +439,6 @@ export default function AuthScreen() {
   );
 }
 
-
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1
@@ -315,46 +447,88 @@ const styles = StyleSheet.create({
     flex: 1
   },
   scrollContent: {
-    padding: 20,
+    paddingHorizontal: 16,
+    paddingTop: 12,
     paddingBottom: 40,
-    maxWidth: 520,
+    maxWidth: 540,
     width: '100%',
     alignSelf: 'center'
   },
+  topBar: {
+    marginBottom: 8
+  },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1
+  },
   header: {
     alignItems: 'center',
-    marginVertical: 24
+    marginBottom: 20
   },
   logoIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12
   },
   title: {
-    fontSize: 28,
-    fontWeight: '800',
-    letterSpacing: -0.5
+    fontSize: 24,
+    fontWeight: '900',
+    letterSpacing: -0.3
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 13,
     textAlign: 'center',
-    marginTop: 6,
-    lineHeight: 20
+    marginTop: 4,
+    lineHeight: 18
+  },
+  featuresGrid: {
+    gap: 8,
+    marginBottom: 20
+  },
+  featureCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 12,
+    borderRadius: radius.md,
+    borderWidth: 1
+  },
+  featureIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  featureTextCol: {
+    flex: 1
+  },
+  featureTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    marginBottom: 2
+  },
+  featureDesc: {
+    fontSize: 11,
+    lineHeight: 15
   },
   card: {
     borderRadius: radius.card,
-    padding: 20,
+    padding: 18,
     borderWidth: 1,
-    marginBottom: 24
+    marginBottom: 16
   },
   tabRow: {
     flexDirection: 'row',
-    marginBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0'
+    marginBottom: 18,
+    borderBottomWidth: 1
   },
   tabBtn: {
     flex: 1,
@@ -362,7 +536,7 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   tabText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700'
   },
   errorBox: {
@@ -372,28 +546,28 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: radius.md,
     borderWidth: 1,
-    marginBottom: 16
+    marginBottom: 14
   },
   errorText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
     flex: 1
   },
   formGroup: {
-    marginBottom: 16
+    marginBottom: 14
   },
   label: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
     marginBottom: 6,
-    textTransform: 'uppercase'
+    letterSpacing: 0.5
   },
   input: {
     borderRadius: radius.md,
     paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingVertical: 11,
     borderWidth: 1,
-    fontSize: 15
+    fontSize: 14
   },
   submitBtn: {
     flexDirection: 'row',
@@ -402,11 +576,11 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 14,
     borderRadius: radius.btn,
-    marginTop: 8
+    marginTop: 6
   },
   submitBtnText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700'
   },
   privacyNote: {
@@ -414,7 +588,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    marginTop: 16
+    marginTop: 14
   },
   privacyText: {
     fontSize: 11,
@@ -422,7 +596,7 @@ const styles = StyleSheet.create({
   },
   demoCard: {
     borderRadius: radius.card,
-    padding: 18,
+    padding: 16,
     borderWidth: 1
   },
   demoHeader: {
@@ -436,11 +610,11 @@ const styles = StyleSheet.create({
     fontWeight: '800'
   },
   demoSub: {
-    fontSize: 12,
-    marginBottom: 12
+    fontSize: 11,
+    marginBottom: 10
   },
   personaGrid: {
-    gap: 8
+    gap: 6
   },
   personaBtn: {
     flexDirection: 'row',
@@ -451,25 +625,25 @@ const styles = StyleSheet.create({
     gap: 10
   },
   avatarCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     justifyContent: 'center',
     alignItems: 'center'
   },
   avatarLetter: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '800'
   },
   personaTextCol: {
     flex: 1
   },
   personaName: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700'
   },
   personaBudget: {
-    fontSize: 11,
-    marginTop: 2
+    fontSize: 10,
+    marginTop: 1
   }
 });

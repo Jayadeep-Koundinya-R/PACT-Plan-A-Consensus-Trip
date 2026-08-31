@@ -8,9 +8,9 @@ import {
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { colors, radius, shadows } from '../theme/colors';
-import { AlertTriangle, Sparkles, ArrowRight } from 'lucide-react-native';
+import { AlertTriangle, Sparkles, ChevronRight, DollarSign, Calendar, ShieldAlert } from 'lucide-react-native';
 
-interface BottleneckIssue {
+export interface BottleneckIssue {
   type: 'budget' | 'dates' | 'dealbreaker';
   title: string;
   description: string;
@@ -34,7 +34,7 @@ export const BottlenecksSection: React.FC<BottlenecksSectionProps> = ({
   const triggerHaptic = () => {
     if (Platform.OS !== 'web') {
       try {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       } catch (e) {}
     }
   };
@@ -45,111 +45,148 @@ export const BottlenecksSection: React.FC<BottlenecksSectionProps> = ({
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={[styles.sectionHeading, { color: theme.textPrimary }]}>
-        Bottlenecks
-      </Text>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: isDarkMode ? '#1E293B' : '#FFF7ED', borderColor: isDarkMode ? 'rgba(234, 88, 12, 0.3)' : '#FED7AA' },
+        shadows.sm
+      ]}
+    >
+      {/* Header */}
+      <View style={styles.headerRow}>
+        <View style={[styles.iconBox, { backgroundColor: isDarkMode ? 'rgba(234, 88, 12, 0.2)' : '#FFEDD5' }]}>
+          <AlertTriangle size={18} color={theme.primary} />
+        </View>
+        <View style={styles.headerTextCol}>
+          <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>
+            AI Conflict Detection
+          </Text>
+          <Text style={[styles.sectionSubtitle, { color: theme.textSecondary }]}>
+            {issues.length} {issues.length === 1 ? 'constraint conflict' : 'constraint conflicts'} surfaced privately
+          </Text>
+        </View>
+      </View>
 
-      {issues.map((issue, idx) => (
-        <View
-          key={idx}
-          style={[
-            styles.card,
-            { backgroundColor: isDarkMode ? '#22140F' : '#FFF3EB', borderColor: isDarkMode ? 'rgba(234, 88, 12, 0.2)' : '#FED7AA' },
-            shadows.sm
-          ]}
-        >
-          <View style={styles.topRow}>
-            <View style={[styles.iconBox, { backgroundColor: isDarkMode ? 'rgba(239, 68, 68, 0.2)' : '#FEE2E2' }]}>
-              <AlertTriangle size={18} color="#EF4444" />
+      {/* Issues List */}
+      <View style={styles.issuesList}>
+        {issues.map((issue, idx) => (
+          <View
+            key={`issue-${idx}`}
+            style={[
+              styles.issueCard,
+              { backgroundColor: theme.surface, borderColor: theme.border }
+            ]}
+          >
+            <View style={styles.issueIconCircle}>
+              {issue.type === 'budget' ? (
+                <DollarSign size={14} color="#F59E0B" />
+              ) : issue.type === 'dates' ? (
+                <Calendar size={14} color="#3B82F6" />
+              ) : (
+                <ShieldAlert size={14} color="#EF4444" />
+              )}
             </View>
-
-            <View style={styles.textContent}>
-              <Text style={[styles.title, { color: theme.textPrimary }]}>
+            <View style={styles.issueTextCol}>
+              <Text style={[styles.issueTitle, { color: theme.textPrimary }]}>
                 {issue.title}
               </Text>
-              <Text style={[styles.description, { color: theme.textSecondary }]}>
+              <Text style={[styles.issueDesc, { color: theme.textSecondary }]}>
                 {issue.description}
               </Text>
             </View>
           </View>
+        ))}
+      </View>
 
-          {onResolve && (
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={handleResolvePress}
-              style={[
-                styles.resolveBtn,
-                { backgroundColor: isDarkMode ? '#341D12' : '#FDE0D0', borderColor: isDarkMode ? 'rgba(234, 88, 12, 0.3)' : '#FDBA74' }
-              ]}
-            >
-              <Sparkles size={14} color={theme.secondary} />
-              <Text style={[styles.resolveBtnText, { color: theme.secondary }]}>
-                Quick AI Resolve
-              </Text>
-              <ArrowRight size={13} color={theme.secondary} />
-            </TouchableOpacity>
-          )}
-        </View>
-      ))}
+      {/* Action: Quick AI Resolve */}
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={handleResolvePress}
+        style={[styles.resolveBtn, { backgroundColor: theme.primary }]}
+      >
+        <Sparkles size={16} color="#FFFFFF" />
+        <Text style={styles.resolveBtnText}>AI Resolve: View Compromise Options</Text>
+        <ChevronRight size={16} color="#FFFFFF" />
+      </TouchableOpacity>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 20,
-    marginBottom: 16
-  },
-  sectionHeading: {
-    fontSize: 16,
-    fontWeight: '800',
-    marginBottom: 10,
-    letterSpacing: -0.3
-  },
-  card: {
     borderRadius: radius.card,
     padding: 16,
     borderWidth: 1,
-    marginBottom: 12
+    marginBottom: 16
   },
-  topRow: {
+  headerRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: 12,
-    marginBottom: 12
+    marginBottom: 14
   },
   iconBox: {
     width: 36,
     height: 36,
-    borderRadius: 10,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center'
   },
-  textContent: {
+  headerTextCol: {
     flex: 1
   },
-  title: {
-    fontSize: 14,
+  sectionTitle: {
+    fontSize: 15,
     fontWeight: '800',
-    marginBottom: 4
+    letterSpacing: -0.2
   },
-  description: {
+  sectionSubtitle: {
     fontSize: 12,
-    lineHeight: 17
+    marginTop: 2
+  },
+  issuesList: {
+    gap: 8,
+    marginBottom: 14
+  },
+  issueCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    padding: 12,
+    borderRadius: radius.md,
+    borderWidth: 1
+  },
+  issueIconCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 1
+  },
+  issueTextCol: {
+    flex: 1
+  },
+  issueTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    marginBottom: 2
+  },
+  issueDesc: {
+    fontSize: 12,
+    lineHeight: 16
   },
   resolveBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: radius.md,
-    borderWidth: 1
+    gap: 8,
+    paddingVertical: 12,
+    borderRadius: radius.md
   },
   resolveBtnText: {
-    fontSize: 12,
-    fontWeight: '800'
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700'
   }
 });
