@@ -2,25 +2,27 @@
   "expo": {
     "name": "PACT",
     "slug": "pact",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0EA5E9"
+      "backgroundColor": "#7C2D12"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.pact.app"
+      "bundleIdentifier": "com.pact.app",
+      "buildNumber": "2"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0EA5E9"
+        "backgroundColor": "#7C2D12"
       },
       "package": "com.pact.app",
+      "versionCode": 2,
       "intentFilters": [
         {
           "action": "VIEW",

@@ -169,7 +169,7 @@ export default function DashboardScreen() {
             </View>
             <View>
               <Text style={[styles.brandTitle, { color: theme.textPrimary }]}>
-                PACT
+                PACT <Text style={{ fontSize: 11, fontWeight: '800', color: theme.secondary }}>v1.1</Text>
               </Text>
               <Text style={[styles.brandSubtitle, { color: theme.textSecondary }]}>
                 Plan A Consensus Trip
@@ -273,7 +273,7 @@ export default function DashboardScreen() {
                         { color: isSelected ? 'rgba(255,255,255,0.8)' : theme.textSecondary }
                       ]}
                     >
-                      {grp.totalMembersCount || 5} members • Active now
+                      {grp.totalMembersCount || 5} members â€¢ Active now
                     </Text>
                   </View>
                 </View>
