@@ -1,4 +1,4 @@
-﻿import { supabase } from './client';
+import { supabase } from './client';
 import { MemberPreference, TripOption, ScoredTripOption, ConsensusResult } from '../consensus/types';
 
 export interface SupabaseProfile {
@@ -293,4 +293,33 @@ async function seedDefaultTripOptions(groupId: string) {
       tags: ['cold', 'nature', 'adventure'] }
   ];
   await supabase.from('trip_options').insert(defaultOptions);
+}
+
+// ============================================================
+// Group Ownership & Membership Lifecycle
+// ============================================================
+
+export async function leaveSupabaseGroup(groupId: string, userId: string): Promise<void> {
+  const { error } = await supabase
+    .from('group_members')
+    .delete()
+    .eq('group_id', groupId)
+    .eq('user_id', userId);
+  if (error) throw error;
+}
+
+export async function deleteSupabaseGroup(groupId: string): Promise<void> {
+  const { error } = await supabase
+    .from('groups')
+    .delete()
+    .eq('id', groupId);
+  if (error) throw error;
+}
+
+export async function transferGroupOwnership(groupId: string, newOrganizerId: string): Promise<void> {
+  const { error } = await supabase
+    .from('groups')
+    .update({ organizer_id: newOrganizerId })
+    .eq('id', groupId);
+  if (error) throw error;
 }

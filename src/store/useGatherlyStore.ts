@@ -16,6 +16,9 @@ import {
   fetchGroupPreferencesFromSupabase,
   fetchTripOptionsFromSupabase,
   castVoteInSupabase,
+  leaveSupabaseGroup,
+  deleteSupabaseGroup,
+  transferGroupOwnership,
   fetchGroupVotesFromSupabase,
   signOutUser
 } from '../lib/supabase/service';
@@ -66,6 +69,8 @@ interface GatherlyState {
   logout: () => Promise<void>;
   setSubscriptionPlan: (plan: 'free' | 'premium_monthly' | 'premium_annual') => void;
   createGroup: (name: string) => Promise<Group>;
+  leaveGroup: (groupId: string) => Promise<void>;
+  deleteGroup: (groupId: string) => Promise<void>;
   joinGroupByCode: (code: string) => Promise<{ success: boolean; message: string; group?: Group }>;
   setActiveGroup: (groupId: string) => void;
   fetchUserGroupsFromCloud: () => Promise<void>;
@@ -215,6 +220,35 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     }
   },
 
+  leaveGroup: async (groupId: string) => {
+    const { currentUserId, groups } = get();
+    try {
+      if (currentUserId && !currentUserId.startsWith('user-')) {
+        await leaveSupabaseGroup(groupId, currentUserId);
+      }
+    } catch (e) {
+      console.warn('Error leaving group in Supabase:', e);
+    }
+    set((state) => ({
+      groups: state.groups.filter((g) => g.id !== groupId),
+      activeGroupId: state.groups.find((g) => g.id !== groupId)?.id || ''
+    }));
+  },
+
+  deleteGroup: async (groupId: string) => {
+    const { currentUserId } = get();
+    try {
+      if (currentUserId && !currentUserId.startsWith('user-')) {
+        await deleteSupabaseGroup(groupId);
+      }
+    } catch (e) {
+      console.warn('Error deleting group in Supabase:', e);
+    }
+    set((state) => ({
+      groups: state.groups.filter((g) => g.id !== groupId),
+      activeGroupId: state.groups.find((g) => g.id !== groupId)?.id || ''
+    }));
+  },
   createGroup: async (name: string) => {
     const { currentUserId, groups } = get();
     const cleanName = name.trim() || 'New Trip Circle';

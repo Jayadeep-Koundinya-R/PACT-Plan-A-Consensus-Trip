@@ -6,7 +6,8 @@ import {
   ScrollView,
   StyleSheet,
   SafeAreaView,
-  Share
+  Share,
+  Alert
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
@@ -32,7 +33,10 @@ import {
   BellRing,
   Award,
   Lock,
-  Share2
+  Share2,
+  UserPlus,
+  Trash2,
+  LogOut
 } from 'lucide-react-native';
 
 export default function GroupDetailScreen() {
@@ -43,7 +47,9 @@ export default function GroupDetailScreen() {
     groups,
     members,
     currentUserId,
-    getConsensusResults
+    getConsensusResults,
+    leaveGroup,
+    deleteGroup
   } = useGatherlyStore();
 
   const theme = isDarkMode ? colors.dark : colors.light;
@@ -88,6 +94,42 @@ export default function GroupDetailScreen() {
     } catch (e) {}
   };
 
+  const handleLeaveOrDelete = () => {
+    if (isOrganizer) {
+      Alert.alert(
+        'Delete Trip Circle',
+        `Are you sure you want to delete "${currentGroup.name}"? This action cannot be undone.`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Delete',
+            style: 'destructive',
+            onPress: async () => {
+              await deleteGroup(currentGroup.id);
+              router.replace('/groups');
+            }
+          }
+        ]
+      );
+    } else {
+      Alert.alert(
+        'Leave Trip Circle',
+        `Are you sure you want to leave "${currentGroup.name}"?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Leave',
+            style: 'destructive',
+            onPress: async () => {
+              await leaveGroup(currentGroup.id);
+              router.replace('/groups');
+            }
+          }
+        ]
+      );
+    }
+  };
+
   // Bottleneck issues
   const bottleneckIssues = [];
   if (consensus.deadlocks && consensus.deadlocks.length > 0) {
@@ -99,6 +141,8 @@ export default function GroupDetailScreen() {
       });
     });
   }
+
+  const isSoloGroup = members.length <= 1;
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
@@ -133,6 +177,40 @@ export default function GroupDetailScreen() {
             <QrCode size={18} color={theme.primary} />
           </TouchableOpacity>
         </View>
+
+        {/* Empty Group State Prompt (Solo Circle) */}
+        {isSoloGroup && (
+          <View
+            style={[
+              styles.emptyStateCard,
+              { backgroundColor: isDarkMode ? '#25160E' : '#FFF3EA', borderColor: isDarkMode ? 'rgba(234, 88, 12, 0.3)' : '#FED7AA' },
+              shadows.sm
+            ]}
+          >
+            <View style={styles.emptyStateTop}>
+              <View style={[styles.emptyIconBox, { backgroundColor: theme.primary }]}>
+                <UserPlus size={18} color="#FFFFFF" />
+              </View>
+              <View style={styles.emptyTextCol}>
+                <Text style={[styles.emptyTitle, { color: theme.textPrimary }]}>
+                  You're the first one here! 🚀
+                </Text>
+                <Text style={[styles.emptySub, { color: theme.textSecondary }]}>
+                  Share your 6-digit code with friends so they can submit their private dates and budget.
+                </Text>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={handleShareInvite}
+              style={[styles.emptyInviteBtn, { backgroundColor: theme.primary }]}
+            >
+              <Share2 size={14} color="#FFFFFF" />
+              <Text style={styles.emptyInviteBtnText}>Invite Friends</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* 1. Consensus Matrix Card */}
         <ConsensusMatrix
@@ -310,6 +388,30 @@ export default function GroupDetailScreen() {
             </View>
             <ChevronRight size={18} color={theme.textSecondary} />
           </TouchableOpacity>
+
+          {/* Leave or Delete Group Button */}
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={handleLeaveOrDelete}
+            style={[
+              styles.leaveBtn,
+              { borderColor: theme.border }
+            ]}
+          >
+            {isOrganizer ? (
+              <Trash2 size={15} color="#EF4444" />
+            ) : (
+              <LogOut size={15} color={theme.textSecondary} />
+            )}
+            <Text
+              style={[
+                styles.leaveBtnText,
+                { color: isOrganizer ? '#EF4444' : theme.textSecondary }
+              ]}
+            >
+              {isOrganizer ? 'Delete Trip Circle' : 'Leave Circle'}
+            </Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
 
@@ -377,6 +479,50 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1
+  },
+  emptyStateCard: {
+    borderRadius: radius.card,
+    padding: 16,
+    borderWidth: 1,
+    marginBottom: 16
+  },
+  emptyStateTop: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    marginBottom: 12
+  },
+  emptyIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  emptyTextCol: {
+    flex: 1
+  },
+  emptyTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    marginBottom: 4
+  },
+  emptySub: {
+    fontSize: 12,
+    lineHeight: 17
+  },
+  emptyInviteBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: radius.md
+  },
+  emptyInviteBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700'
   },
   inviteCard: {
     borderRadius: radius.card,
@@ -470,5 +616,19 @@ const styles = StyleSheet.create({
   },
   actionCardSub: {
     fontSize: 12
+  },
+  leaveBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    marginTop: 6
+  },
+  leaveBtnText: {
+    fontSize: 13,
+    fontWeight: '700'
   }
 });
