@@ -97,6 +97,7 @@ export default function OptionsScreen() {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      <View style={[styles.topBorderLine, { backgroundColor: theme.primary }]} />
       {/* 4-Step Progress Journey */}
       <StepProgressBar
         currentStep={2}
@@ -251,6 +252,10 @@ export default function OptionsScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1
+  },
+  topBorderLine: {
+    height: 3,
+    width: '100%'
   },
   scrollContent: {
     paddingHorizontal: 16,

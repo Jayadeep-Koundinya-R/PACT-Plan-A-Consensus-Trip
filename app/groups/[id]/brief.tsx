@@ -127,6 +127,7 @@ export default function TripBriefScreen() {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      <View style={[styles.topBorderLine, { backgroundColor: theme.primary }]} />
       <ConfettiEffect active={true} />
 
       {/* 4-Step Consensus Journey Progress Bar */}
@@ -297,6 +298,10 @@ export default function TripBriefScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1
+  },
+  topBorderLine: {
+    height: 3,
+    width: '100%'
   },
   scrollContent: {
     paddingHorizontal: 16,

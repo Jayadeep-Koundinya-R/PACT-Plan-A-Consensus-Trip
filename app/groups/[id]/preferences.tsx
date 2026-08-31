@@ -210,6 +210,7 @@ export default function PreferencesScreen() {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      <View style={[styles.topBorderLine, { backgroundColor: theme.primary }]} />
       {/* 4-Step Consensus Journey Progress Bar */}
       <StepProgressBar currentStep={1} groupId={currentGroup.id} isDarkMode={isDarkMode} />
 
@@ -577,6 +578,10 @@ export default function PreferencesScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1
+  },
+  topBorderLine: {
+    height: 3,
+    width: '100%'
   },
   scrollContent: {
     paddingHorizontal: 16,

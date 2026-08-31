@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { colors, radius } from '../theme/colors';
 import { Check } from 'lucide-react-native';
 
@@ -12,7 +13,7 @@ interface StepProgressBarProps {
 
 const STEPS = [
   { step: 1, label: 'Constraints', route: 'preferences' },
-  { step: 2, label: 'Ranking', route: 'options' },
+  { step: 2, label: 'Rankings', route: 'options' },
   { step: 3, label: 'Silent Vote', route: 'vote' },
   { step: 4, label: 'Trip Brief', route: 'brief' }
 ] as const;
@@ -20,16 +21,22 @@ const STEPS = [
 export const StepProgressBar: React.FC<StepProgressBarProps> = ({
   currentStep,
   groupId,
-  isDarkMode = true
+  isDarkMode = false
 }) => {
   const router = useRouter();
   const theme = isDarkMode ? colors.dark : colors.light;
 
-  const handleStepPress = (stepNum: number, route: string) => {
-    // Only allow navigating to completed or current step (or if all completed)
-    if (stepNum <= currentStep || currentStep === 4) {
-      router.push(`/groups/${groupId}/${route}`);
+  const triggerHaptic = () => {
+    if (Platform.OS !== 'web') {
+      try {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      } catch (e) {}
     }
+  };
+
+  const handleStepPress = (route: string) => {
+    triggerHaptic();
+    router.push(`/groups/${groupId}/${route}` as any);
   };
 
   return (
@@ -38,7 +45,9 @@ export const StepProgressBar: React.FC<StepProgressBarProps> = ({
         styles.container,
         {
           backgroundColor: theme.surface,
-          borderBottomColor: theme.border
+          borderBottomColor: theme.border,
+          borderTopWidth: 2,
+          borderTopColor: theme.primary
         }
       ]}
     >
@@ -46,15 +55,13 @@ export const StepProgressBar: React.FC<StepProgressBarProps> = ({
         {STEPS.map((s, idx) => {
           const isCompleted = s.step < currentStep || currentStep === 4;
           const isCurrent = s.step === currentStep;
-          const isClickable = s.step <= currentStep || currentStep === 4;
 
           return (
             <React.Fragment key={s.step}>
               {/* Step item */}
               <TouchableOpacity
-                activeOpacity={isClickable ? 0.7 : 1}
-                disabled={!isClickable}
-                onPress={() => handleStepPress(s.step, s.route)}
+                activeOpacity={0.7}
+                onPress={() => handleStepPress(s.route)}
                 style={styles.stepItem}
               >
                 <View
@@ -65,9 +72,9 @@ export const StepProgressBar: React.FC<StepProgressBarProps> = ({
                       borderColor: theme.primary,
                       shadowColor: theme.primary,
                       shadowOffset: { width: 0, height: 0 },
-                      shadowOpacity: 0.5,
-                      shadowRadius: 8,
-                      elevation: 4
+                      shadowOpacity: 0.35,
+                      shadowRadius: 6,
+                      elevation: 3
                     },
                     isCompleted && !isCurrent && {
                       backgroundColor: theme.success,
@@ -108,7 +115,7 @@ export const StepProgressBar: React.FC<StepProgressBarProps> = ({
                         : isCompleted
                         ? theme.textSecondary
                         : theme.textMuted,
-                      fontWeight: isCurrent ? '700' : '500'
+                      fontWeight: isCurrent ? '800' : '600'
                     }
                   ]}
                 >
@@ -140,7 +147,7 @@ export const StepProgressBar: React.FC<StepProgressBarProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    height: 64,
+    height: 56,
     paddingHorizontal: 16,
     justifyContent: 'center',
     borderBottomWidth: 1,
@@ -157,28 +164,30 @@ const styles = StyleSheet.create({
   stepItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 4
   },
   circle: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center'
   },
   stepNumber: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '800'
   },
   label: {
-    fontSize: 12,
+    fontSize: 11,
     letterSpacing: -0.2
   },
   connectingLine: {
     flex: 1,
     height: 2,
-    marginHorizontal: 8,
+    marginHorizontal: 6,
     borderRadius: 1
   }
 });

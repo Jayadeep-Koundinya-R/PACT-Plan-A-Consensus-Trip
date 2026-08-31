@@ -33,7 +33,8 @@ import {
   ShieldCheck,
   CheckCircle2,
   Clock,
-  ArrowRight
+  ArrowRight,
+  Vote
 } from 'lucide-react-native';
 
 const FALLBACK_GROUP = {
@@ -81,6 +82,8 @@ export default function DashboardScreen() {
     }
   }, []);
 
+  const theme = isDarkMode ? colors.dark : colors.light;
+
   const triggerHaptic = () => {
     if (Platform.OS !== 'web') {
       try {
@@ -89,15 +92,15 @@ export default function DashboardScreen() {
     }
   };
 
-  const theme = isDarkMode ? colors.dark : colors.light;
+  // Resolve safe groups list
   const safeGroups = Array.isArray(groups) && groups.length > 0 ? groups : [FALLBACK_GROUP];
-  const currentGroup = safeGroups.find((g) => g.id === activeGroupId) || safeGroups[0] || FALLBACK_GROUP;
+  const currentGroup = safeGroups.find((g) => g && g.id === activeGroupId) || safeGroups[0];
 
+  // Resolve consensus
   let consensus;
   try {
     consensus = getConsensusResults();
   } catch (e) {
-    console.warn('Consensus calc fallback:', e);
     consensus = {
       groupId: currentGroup.id,
       totalMembersCount: 5,
@@ -124,16 +127,9 @@ export default function DashboardScreen() {
     castVote(optionId, !isApproved);
   };
 
-  const handleFinalize = () => {
+  const handleGoToVoting = () => {
     triggerHaptic();
-    try {
-      const brief = finalizeTrip(currentUserId);
-      if (brief) {
-        setBriefModalVisible(true);
-      }
-    } catch (err: any) {
-      Alert.alert('Notice', err.message);
-    }
+    router.push(`/groups/${currentGroup.id}/vote` as any);
   };
 
   const handleCreateGroup = async () => {
@@ -177,11 +173,14 @@ export default function DashboardScreen() {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      {/* Top Accent Line & Gap */}
+      <View style={[styles.topBorderLine, { backgroundColor: theme.primary }]} />
+
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Navigation / Header */}
+        {/* Navigation / Brand Header */}
         <View style={styles.navBar}>
           <View style={styles.brandRow}>
             <View
@@ -195,10 +194,10 @@ export default function DashboardScreen() {
             </View>
             <View>
               <Text style={[styles.brandTitle, { color: theme.textPrimary }]}>
-                PACT <Text style={{ fontSize: 11, fontWeight: '800', color: theme.primary }}>v1.1</Text>
+                PACT
               </Text>
-              <Text style={[styles.brandSubtitle, { color: theme.textSecondary }]}>
-                AI Consensus Engine
+              <Text style={[styles.brandSubtitle, { color: theme.primary }]}>
+                Plan A Consensus Trip
               </Text>
             </View>
           </View>
@@ -263,82 +262,71 @@ export default function DashboardScreen() {
                 }}
                 style={[
                   styles.circleCard,
-                  isSelected
-                    ? { backgroundColor: theme.primary, borderColor: theme.primary }
-                    : { backgroundColor: theme.surface, borderColor: theme.border },
+                  {
+                    backgroundColor: theme.surface,
+                    borderColor: isSelected ? theme.primary : theme.border
+                  },
                   shadows.sm
                 ]}
               >
                 <View style={styles.circleLeft}>
                   <View
                     style={[
-                      styles.circleIconBox,
+                      styles.circleAvatarBox,
                       {
-                        backgroundColor: isSelected
-                          ? 'rgba(255,255,255,0.2)'
-                          : isDarkMode
-                          ? 'rgba(234, 88, 12, 0.15)'
+                        backgroundColor: isDarkMode
+                          ? '#1E293B'
                           : '#FFEDD5'
                       }
                     ]}
                   >
-                    <Users size={18} color={isSelected ? '#FFFFFF' : theme.primary} />
+                    <Users size={18} color={theme.primary} />
                   </View>
-
                   <View style={styles.circleTextCol}>
-                    <Text
-                      style={[
-                        styles.circleName,
-                        { color: isSelected ? '#FFFFFF' : theme.textPrimary }
-                      ]}
-                    >
+                    <Text style={[styles.circleName, { color: theme.textPrimary }]}>
                       {grp.name}
                     </Text>
-                    <Text
-                      style={[
-                        styles.circleSub,
-                        { color: isSelected ? 'rgba(255,255,255,0.85)' : theme.textSecondary }
-                      ]}
-                    >
-                      {grp.totalMembersCount || 5} members • Active voting
+                    <Text style={[styles.circleMeta, { color: theme.textSecondary }]}>
+                      {grp.totalMembersCount || 5} members • Code: {grp.inviteCode}
                     </Text>
                   </View>
                 </View>
 
-                <ChevronRight
-                  size={18}
-                  color={isSelected ? '#FFFFFF' : theme.textMuted}
-                />
+                <ChevronRight size={18} color={theme.textMuted} />
               </TouchableOpacity>
             );
           })}
         </View>
 
-        {/* Private Constraint Action Bar */}
+        {/* Private Constraint Prompt */}
         <TouchableOpacity
-          activeOpacity={0.8}
+          activeOpacity={0.85}
           onPress={() => router.push(`/groups/${currentGroup.id}/preferences`)}
           style={[
-            styles.constraintBanner,
+            styles.constraintStatusCard,
             {
-              backgroundColor: isDarkMode ? '#151D2A' : '#FFFFFF',
-              borderColor: currentUserSubmitted ? (isDarkMode ? 'rgba(16, 185, 129, 0.3)' : '#A7F3D0') : (isDarkMode ? 'rgba(234, 88, 12, 0.3)' : '#FED7AA')
+              backgroundColor: theme.surface,
+              borderColor: currentUserSubmitted ? theme.success : theme.primary
             },
             shadows.sm
           ]}
         >
-          <View style={styles.constraintBannerLeft}>
+          <View style={styles.constraintStatusLeft}>
             {currentUserSubmitted ? (
-              <CheckCircle2 size={18} color={theme.success} />
+              <ShieldCheck size={20} color={theme.success} />
             ) : (
-              <Clock size={18} color={theme.primary} />
+              <Clock size={20} color={theme.primary} />
             )}
-            <View style={styles.constraintBannerTextCol}>
-              <Text style={[styles.constraintBannerTitle, { color: theme.textPrimary }]}>
-                {currentUserSubmitted ? 'Constraints Submitted (Private)' : 'Share Your Dates & Budget'}
+            <View style={styles.constraintTextCol}>
+              <Text style={[styles.constraintTitle, { color: theme.textPrimary }]}>
+                {currentUserSubmitted
+                  ? 'Constraints Submitted (Private) ✅'
+                  : 'Share Your Dates & Budget (Private)'}
               </Text>
-              <Text style={[styles.constraintBannerSub, { color: theme.textSecondary }]}>
-                {currentUserSubmitted ? 'Your constraints are protected by AI' : 'Privately input availability with zero peer pressure'}
+              <Text style={[styles.constraintSub, { color: theme.textSecondary }]}>
+                {currentUserSubmitted
+                  ? 'Tap to update dates or budget. Invisible to friends.'
+                  : 'Submit privately so AI can rank options for everyone.'}
               </Text>
             </View>
           </View>
@@ -347,48 +335,49 @@ export default function DashboardScreen() {
 
         {/* 1. Consensus Matrix */}
         <ConsensusMatrix
-          destinationTitle={topOption?.option?.name || currentGroup?.name || 'Trip Circle'}
-          members={members || []}
-          totalMembersCount={currentGroup?.totalMembersCount || (members || []).length || 5}
+          destinationTitle={topOption?.option?.name || currentGroup.name}
+          members={members}
+          totalMembersCount={currentGroup.totalMembersCount || members.length}
           isOrganizer={isOrganizer}
           isDarkMode={isDarkMode}
-          onNudge={(name) => Alert.alert('Nudge Sent! 🔔', `Friendly reminder sent to ${name} to submit constraints.`)}
+          onNudge={(name) => Alert.alert('Nudge Sent', `Sent a push reminder to ${name}.`)}
         />
 
-        {/* Section: Top Pick / Ranked Options */}
-        <View style={styles.sectionHeader}>
+        {/* 2. Top Ranked Options */}
+        <View style={styles.sectionHeaderRow}>
           <Text style={[styles.sectionHeading, { color: theme.textPrimary }]}>
-            Top Ranked Compromise
+            Top Ranked Compromises
           </Text>
-          {consensus?.consensusReached && (
-            <View style={[styles.unlockedTag, { backgroundColor: isDarkMode ? 'rgba(16, 185, 129, 0.2)' : '#D1FAE5' }]}>
-              <Text style={[styles.unlockedTagText, { color: theme.success }]}>
-                CONSENSUS REACHED
+          <TouchableOpacity
+            onPress={() => router.push(`/groups/${currentGroup.id}/options`)}
+          >
+            <Text style={[styles.viewAllText, { color: theme.primary }]}>
+              View All ({consensus?.rankedOptions?.length || 0})
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Ranked Option Cards */}
+        <View style={styles.cardsList}>
+          {topOption ? (
+            <RankedOptionCard
+              key={topOption.option.id}
+              scoredOption={topOption}
+              isDarkMode={isDarkMode}
+              isApprovedByUser={votes[`${topOption.option.id}_${currentUserId}`] === true}
+              approvalCount={getOptionApprovalCount(topOption.option.id)}
+              onToggleVote={handleToggleVote}
+            />
+          ) : (
+            <View style={[styles.emptyCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
+                Waiting for members to submit their dates and budgets.
               </Text>
             </View>
           )}
         </View>
 
-        {/* Ranked Option Cards with Hero Photos */}
-        <View style={styles.cardsList}>
-          {consensus?.rankedOptions?.slice(0, 3).map((scoredOption) => {
-            const isApproved = votes[`${scoredOption.option.id}_${currentUserId}`] === true;
-            const count = getOptionApprovalCount(scoredOption.option.id);
-
-            return (
-              <RankedOptionCard
-                key={scoredOption.option.id}
-                scoredOption={scoredOption}
-                isDarkMode={isDarkMode}
-                isApprovedByUser={isApproved}
-                approvalCount={count}
-                onToggleVote={handleToggleVote}
-              />
-            );
-          })}
-        </View>
-
-        {/* 2. Bottlenecks Section */}
+        {/* 3. Bottlenecks Section */}
         {bottleneckIssues.length > 0 && (
           <BottlenecksSection
             issues={bottleneckIssues}
@@ -397,33 +386,36 @@ export default function DashboardScreen() {
           />
         )}
 
-        {/* Lock It In Action for Organizer */}
-        {isOrganizer && (
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={handleFinalize}
-            style={[styles.lockItInBtn, { backgroundColor: theme.primary }, shadows.glowPrimary]}
-          >
-            <Lock size={18} color="#FFFFFF" />
-            <Text style={styles.lockItInBtnText}>Lock It In</Text>
-          </TouchableOpacity>
-        )}
+        {/* 4. Action CTA ("Lock It In" / "Go to Silent Voting") */}
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={handleGoToVoting}
+          style={[
+            styles.finalizeBtn,
+            { backgroundColor: theme.primary },
+            shadows.glowPrimary
+          ]}
+        >
+          <Vote size={18} color="#FFFFFF" />
+          <Text style={styles.finalizeBtnText}>
+            {isOrganizer ? 'Lock It In & Silent Voting' : 'Cast Silent Vote'}
+          </Text>
+          <Lock size={16} color="#FFFFFF" />
+        </TouchableOpacity>
       </ScrollView>
 
-      {/* Floating Bottom Navigation Bar */}
+      {/* Floating Bottom Tab Bar */}
       <BottomTabBar />
 
-      {/* Finalized Trip Brief Modal */}
-      {finalizedBrief && (
-        <TripBriefModal
-          visible={briefModalVisible}
-          brief={finalizedBrief}
-          isDarkMode={isDarkMode}
-          onClose={() => setBriefModalVisible(false)}
-        />
-      )}
+      {/* Trip Brief Modal */}
+      <TripBriefModal
+        visible={briefModalVisible}
+        finalizedBrief={finalizedBrief}
+        isDarkMode={isDarkMode}
+        onClose={() => setBriefModalVisible(false)}
+      />
 
-      {/* Create Circle Modal */}
+      {/* Create Group Modal */}
       <Modal
         visible={createModalVisible}
         transparent={true}
@@ -463,7 +455,7 @@ export default function DashboardScreen() {
             />
 
             <TouchableOpacity
-              activeOpacity={0.8}
+              activeOpacity={0.85}
               onPress={handleCreateGroup}
               disabled={isCreating || !newGroupName.trim()}
               style={[
@@ -472,7 +464,7 @@ export default function DashboardScreen() {
               ]}
             >
               <Text style={styles.createSubmitBtnText}>
-                {isCreating ? 'Creating...' : 'Create & Invite Friends'}
+                {isCreating ? 'Creating...' : 'Create Circle'}
               </Text>
             </TouchableOpacity>
           </View>
@@ -486,9 +478,13 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1
   },
+  topBorderLine: {
+    height: 3,
+    width: '100%'
+  },
   scrollContent: {
     paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingTop: 16,
     paddingBottom: 140,
     maxWidth: 640,
     width: '100%',
@@ -506,20 +502,23 @@ const styles = StyleSheet.create({
     gap: 10
   },
   logoIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
+    width: 42,
+    height: 42,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center'
   },
   brandTitle: {
     fontSize: 18,
     fontWeight: '900',
-    letterSpacing: 0.3
+    letterSpacing: -0.3,
+    lineHeight: 20
   },
   brandSubtitle: {
     fontSize: 11,
-    fontWeight: '600'
+    fontWeight: '800',
+    letterSpacing: 0.5,
+    marginTop: 1
   },
   navActions: {
     flexDirection: 'row',
@@ -544,14 +543,14 @@ const styles = StyleSheet.create({
     marginBottom: 8
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '800',
     letterSpacing: -0.2
   },
   plusCircleBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -559,7 +558,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 14,
+    padding: 12,
     borderRadius: radius.card,
     borderWidth: 1,
     marginBottom: 8
@@ -567,12 +566,12 @@ const styles = StyleSheet.create({
   circleLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
     flex: 1
   },
-  circleIconBox: {
-    width: 38,
-    height: 38,
+  circleAvatarBox: {
+    width: 36,
+    height: 36,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center'
@@ -581,40 +580,40 @@ const styles = StyleSheet.create({
     flex: 1
   },
   circleName: {
-    fontSize: 15,
-    fontWeight: '800',
-    marginBottom: 2
+    fontSize: 14,
+    fontWeight: '800'
   },
-  circleSub: {
-    fontSize: 11
+  circleMeta: {
+    fontSize: 11,
+    marginTop: 1
   },
-  constraintBanner: {
+  constraintStatusCard: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 12,
-    borderRadius: radius.md,
+    borderRadius: radius.card,
     borderWidth: 1,
     marginBottom: 14
   },
-  constraintBannerLeft: {
+  constraintStatusLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     flex: 1
   },
-  constraintBannerTextCol: {
+  constraintTextCol: {
     flex: 1
   },
-  constraintBannerTitle: {
+  constraintTitle: {
     fontSize: 13,
-    fontWeight: '700'
+    fontWeight: '800'
   },
-  constraintBannerSub: {
+  constraintSub: {
     fontSize: 11,
-    marginTop: 1
+    marginTop: 2
   },
-  sectionHeader: {
+  sectionHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -622,34 +621,39 @@ const styles = StyleSheet.create({
     marginBottom: 10
   },
   sectionHeading: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '800',
     letterSpacing: -0.2
   },
-  unlockedTag: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: radius.pill
-  },
-  unlockedTagText: {
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.5
+  viewAllText: {
+    fontSize: 12,
+    fontWeight: '700'
   },
   cardsList: {
-    gap: 4
+    gap: 12,
+    marginBottom: 14
   },
-  lockItInBtn: {
+  emptyCard: {
+    padding: 18,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    alignItems: 'center'
+  },
+  emptyText: {
+    fontSize: 12,
+    textAlign: 'center'
+  },
+  finalizeBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
     paddingVertical: 14,
     borderRadius: radius.btn,
-    marginTop: 10,
+    marginTop: 6,
     marginBottom: 20
   },
-  lockItInBtnText: {
+  finalizeBtnText: {
     color: '#FFFFFF',
     fontSize: 15,
     fontWeight: '800'

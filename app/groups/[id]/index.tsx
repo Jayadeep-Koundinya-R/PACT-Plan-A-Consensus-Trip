@@ -166,6 +166,7 @@ export default function GroupDetailScreen() {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      <View style={[styles.topBorderLine, { backgroundColor: theme.primary }]} />
       {/* 4-Step Consensus Journey Progress Bar */}
       <StepProgressBar
         currentStep={currentStepNumber as 1 | 2 | 3 | 4}
@@ -470,6 +471,10 @@ export default function GroupDetailScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1
+  },
+  topBorderLine: {
+    height: 3,
+    width: '100%'
   },
   scrollContent: {
     paddingHorizontal: 16,

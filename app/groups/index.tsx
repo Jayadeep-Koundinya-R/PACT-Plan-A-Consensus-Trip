@@ -111,6 +111,7 @@ export default function GroupsScreen() {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      <View style={[styles.topBorderLine, { backgroundColor: theme.primary }]} />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -303,6 +304,10 @@ export default function GroupsScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1
+  },
+  topBorderLine: {
+    height: 3,
+    width: '100%'
   },
   scrollContent: {
     paddingHorizontal: 16,

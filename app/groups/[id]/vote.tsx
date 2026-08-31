@@ -7,7 +7,8 @@ import {
   StyleSheet,
   SafeAreaView,
   Platform,
-  ImageBackground
+  ImageBackground,
+  Alert
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -24,11 +25,11 @@ import {
   Sparkles,
   ShieldCheck,
   CheckCircle2,
-  AlertTriangle,
   Lock,
   Award,
   Calendar,
-  DollarSign
+  DollarSign,
+  ChevronRight
 } from 'lucide-react-native';
 
 const DESTINATION_IMAGES: Record<string, string> = {
@@ -54,12 +55,21 @@ export default function VoteScreen() {
     votes,
     castVote,
     getOptionApprovalCount,
-    finalizeTrip,
-    reopenVoting
+    finalizeTrip
   } = useGatherlyStore();
 
   const theme = isDarkMode ? colors.dark : colors.light;
-  const currentGroup = groups.find((g) => g.id === id) || groups[0] || { id: id || 'demo', name: 'Trip Circle', inviteCode: 'PACT26', organizerId: currentUserId, status: 'voting', totalMembersCount: 5 };
+  const currentGroup =
+    groups.find((g) => g.id === id) ||
+    groups[0] || {
+      id: id || 'demo',
+      name: 'College Reunion Trip',
+      inviteCode: 'GOA-2026',
+      organizerId: currentUserId,
+      status: 'voting' as const,
+      totalMembersCount: 5
+    };
+
   const consensus = getConsensusResults();
   const isOrganizer = currentGroup.organizerId === currentUserId;
 
@@ -81,12 +91,12 @@ export default function VoteScreen() {
   };
 
   const handleFinalize = () => {
+    triggerHaptic();
     try {
       finalizeTrip(currentUserId);
-      triggerHaptic();
       router.push(`/groups/${currentGroup.id}/brief`);
     } catch (err: any) {
-      alert(err.message);
+      Alert.alert('Notice', err.message);
     }
   };
 
@@ -105,7 +115,7 @@ export default function VoteScreen() {
         <View style={styles.navBar}>
           <TouchableOpacity
             onPress={() => router.push(`/groups/${currentGroup.id}`)}
-            style={[styles.backBtn, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
+            style={[styles.backBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
           >
             <ArrowLeft size={18} color={theme.textPrimary} />
           </TouchableOpacity>
@@ -114,7 +124,7 @@ export default function VoteScreen() {
             Silent Voting Room
           </Text>
 
-          <View style={{ width: 38 }} />
+          <View style={{ width: 36 }} />
         </View>
 
         {/* 1. Consensus Matrix Card */}
@@ -124,6 +134,7 @@ export default function VoteScreen() {
           totalMembersCount={currentGroup.totalMembersCount || members.length}
           isOrganizer={isOrganizer}
           isDarkMode={isDarkMode}
+          onNudge={(name) => Alert.alert('Nudge Sent', `Sent a push reminder to ${name}.`)}
         />
 
         {/* 2. Top Pick Hero Card with Image */}
@@ -145,7 +156,7 @@ export default function VoteScreen() {
                   <View style={styles.heroTopTagRow}>
                     <View style={[styles.heroPickBadge, { backgroundColor: theme.primary }]}>
                       <Award size={12} color="#FFFFFF" />
-                      <Text style={styles.heroPickBadgeText}>TOP PICK</Text>
+                      <Text style={styles.heroPickBadgeText}>TOP COMPROMISE</Text>
                     </View>
                     <View style={[styles.heroMatchPill, { backgroundColor: isDarkMode ? 'rgba(15, 23, 42, 0.85)' : 'rgba(255, 255, 255, 0.92)' }]}>
                       <Text style={[styles.heroMatchPillText, { color: theme.primary }]}>
@@ -158,16 +169,15 @@ export default function VoteScreen() {
                     <Text style={styles.heroTitleText}>{topOption.option.name}</Text>
                     <View style={styles.heroMetaRow}>
                       <View style={styles.heroMetaItem}>
-                        <Calendar size={11} color="#FFFFFF" />
+                        <Calendar size={13} color="#FFFFFF" />
                         <Text style={styles.heroMetaText}>
                           {formatFriendlyDateRange(topOption.option.dateStart, topOption.option.dateEnd)}
                         </Text>
                       </View>
-                      <Text style={{ color: '#94A3B8' }}>•</Text>
                       <View style={styles.heroMetaItem}>
-                        <DollarSign size={11} color="#10B981" />
-                        <Text style={[styles.heroMetaText, { color: '#FFFFFF', fontWeight: '700' }]}>
-                          ${topOption.option.budgetPerPerson}/person
+                        <DollarSign size={13} color="#FFFFFF" />
+                        <Text style={styles.heroMetaText}>
+                          ${topOption.option.budgetPerPerson} / person
                         </Text>
                       </View>
                     </View>
@@ -176,136 +186,86 @@ export default function VoteScreen() {
               </ImageBackground>
             </View>
 
-            {/* Agreement & Lock It In Button */}
-            <View style={styles.heroBottomBody}>
-              <View style={styles.agreementRow}>
-                <Text style={[styles.agreementLabel, { color: theme.textSecondary }]}>
-                  Group Agreement
+            {/* Voting Toggle Row */}
+            <View style={styles.heroBottomRow}>
+              <View style={styles.heroAgreementCol}>
+                <Text style={[styles.heroAgreementLabel, { color: theme.textSecondary }]}>
+                  GROUP CONSENSUS
                 </Text>
-                <Text style={[styles.agreementValue, { color: isThresholdMet ? theme.success : theme.secondary }]}>
-                  {topOption.consensusPercent >= 70 ? 'High' : 'Collecting'} ({topOption.consensusPercent}%)
+                <Text style={[styles.heroAgreementValue, { color: isThresholdMet ? theme.success : theme.primary }]}>
+                  {topOption.consensusPercent}% Agreement ({getOptionApprovalCount(topOption.option.id)}/{currentGroup.totalMembersCount || members.length} votes)
                 </Text>
               </View>
 
-              <ConsensusMeter
-                percentage={topOption.consensusPercent}
-                threshold={70}
-                isDarkMode={isDarkMode}
-              />
-
-              {/* Lock It In Action */}
-              {isOrganizer ? (
-                <View style={styles.organizerBox}>
-                  <TouchableOpacity
-                    activeOpacity={0.8}
-                    disabled={!isThresholdMet}
-                    onPress={handleFinalize}
-                    style={[
-                      styles.lockItInBtn,
-                      {
-                        backgroundColor: isThresholdMet ? theme.primary : theme.surfaceSubtle,
-                        opacity: isThresholdMet ? 1 : 0.6
-                      },
-                      isThresholdMet ? shadows.glowPrimary : {}
-                    ]}
-                  >
-                    <Lock size={18} color={isThresholdMet ? '#FFFFFF' : theme.textMuted} />
-                    <Text
-                      style={[
-                        styles.lockItInBtnText,
-                        { color: isThresholdMet ? '#FFFFFF' : theme.textMuted }
-                      ]}
-                    >
-                      {isThresholdMet ? 'Lock It In' : '70% Consensus Required to Lock In'}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <View style={[styles.memberStatusBox, { backgroundColor: theme.surfaceSubtle }]}>
-                  <ShieldCheck size={16} color={theme.success} />
-                  <Text style={[styles.memberStatusText, { color: theme.textSecondary }]}>
-                    {isThresholdMet
-                      ? 'Consensus reached! Waiting for organizer to Lock It In.'
-                      : 'Voting in progress. 70% approval needed to unlock.'}
-                  </Text>
-                </View>
-              )}
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => handleToggleVote(topOption.option.id)}
+                style={[
+                  styles.voteHeartBtn,
+                  votes[`${topOption.option.id}_${currentUserId}`]
+                    ? { backgroundColor: theme.primary, borderColor: theme.primary }
+                    : { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }
+                ]}
+              >
+                <Heart
+                  size={20}
+                  color={votes[`${topOption.option.id}_${currentUserId}`] ? '#FFFFFF' : theme.textSecondary}
+                  fill={votes[`${topOption.option.id}_${currentUserId}`] ? '#FFFFFF' : 'none'}
+                />
+                <Text
+                  style={[
+                    styles.voteHeartBtnText,
+                    { color: votes[`${topOption.option.id}_${currentUserId}`] ? '#FFFFFF' : theme.textPrimary }
+                  ]}
+                >
+                  {votes[`${topOption.option.id}_${currentUserId}`] ? 'Approved' : 'Approve'}
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         )}
 
-        {/* Section: Cast Your Votes */}
-        <Text style={[styles.sectionHeading, { color: theme.textPrimary }]}>
-          Cast Your Votes
-        </Text>
+        {/* 3. Realtime Consensus Meter */}
+        <ConsensusMeter
+          destinationTitle={topOption?.option.name || 'Trip Destination'}
+          consensusScore={topOption?.totalScore || 85}
+          isConsensusReached={isThresholdMet}
+          threshold={70}
+          isDarkMode={isDarkMode}
+        />
 
-        <View style={styles.ballotList}>
-          {consensus.rankedOptions.map((scoredOption) => {
-            const isApproved = votes[`${scoredOption.option.id}_${currentUserId}`] === true;
-            const count = getOptionApprovalCount(scoredOption.option.id);
-
-            return (
-              <View
-                key={scoredOption.option.id}
-                style={[
-                  styles.ballotCard,
-                  {
-                    backgroundColor: theme.surface,
-                    borderColor: isApproved ? theme.primary : theme.border
-                  },
-                  shadows.sm
-                ]}
-              >
-                <View style={styles.ballotCardLeft}>
-                  <View style={styles.ballotRankPill}>
-                    <Text style={[styles.ballotRankText, { color: theme.textSecondary }]}>
-                      #{scoredOption.rank}
-                    </Text>
-                  </View>
-
-                  <View style={styles.ballotInfo}>
-                    <Text style={[styles.ballotTitle, { color: theme.textPrimary }]}>
-                      {scoredOption.option.name}
-                    </Text>
-                    <Text style={[styles.ballotSub, { color: theme.textSecondary }]}>
-                      ${scoredOption.option.budgetPerPerson} • {scoredOption.totalScore}% match
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Tactile Vote Toggle */}
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={() => handleToggleVote(scoredOption.option.id)}
-                  style={[
-                    styles.voteHeartBtn,
-                    {
-                      backgroundColor: isApproved ? theme.primaryLight : theme.surfaceSubtle,
-                      borderColor: isApproved ? theme.primary : theme.border
-                    }
-                  ]}
-                >
-                  <Heart
-                    size={20}
-                    color={isApproved ? theme.primary : theme.textMuted}
-                    fill={isApproved ? theme.primary : 'none'}
-                  />
-                  <Text
-                    style={[
-                      styles.voteHeartCount,
-                      { color: isApproved ? theme.primary : theme.textSecondary }
-                    ]}
-                  >
-                    {count}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            );
-          })}
+        {/* Privacy Note */}
+        <View style={[styles.privacyBox, { backgroundColor: isDarkMode ? '#151D2A' : '#FFFFFF', borderColor: theme.border }]}>
+          <ShieldCheck size={16} color={theme.success} />
+          <Text style={[styles.privacyText, { color: theme.textSecondary }]}>
+            Silent Voting is aggregate-only. Friends only see the total approval count, never who voted for what.
+          </Text>
         </View>
+
+        {/* Organizer Lock It In Button */}
+        {isOrganizer ? (
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={handleFinalize}
+            style={[styles.finalizeBtn, { backgroundColor: theme.primary }, shadows.glowPrimary]}
+          >
+            <Lock size={18} color="#FFFFFF" />
+            <Text style={styles.finalizeBtnText}>Lock It In & Generate Brief</Text>
+            <ChevronRight size={18} color="#FFFFFF" />
+          </TouchableOpacity>
+        ) : (
+          <View style={[styles.waitingNotice, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}>
+            <CheckCircle2 size={16} color={theme.success} />
+            <Text style={[styles.waitingNoticeText, { color: theme.textSecondary }]}>
+              {votes[`${topOption?.option?.id}_${currentUserId}`]
+                ? 'Your vote is recorded! Waiting for organizer to lock it in.'
+                : 'Cast your silent approval above.'}
+            </Text>
+          </View>
+        )}
       </ScrollView>
 
-      {/* Floating Bottom Navigation Bar */}
+      {/* Floating Bottom Tab Bar */}
       <BottomTabBar />
     </SafeAreaView>
   );
@@ -316,9 +276,10 @@ const styles = StyleSheet.create({
     flex: 1
   },
   scrollContent: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 12,
     paddingBottom: 140,
-    maxWidth: 680,
+    maxWidth: 640,
     width: '100%',
     alignSelf: 'center'
   },
@@ -326,47 +287,46 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginVertical: 12
+    marginBottom: 14
   },
   backBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: radius.pill,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1
   },
   navTitle: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '800',
     flex: 1,
     textAlign: 'center',
-    marginHorizontal: 12,
-    letterSpacing: -0.3
+    letterSpacing: -0.2
   },
   heroPickCard: {
     borderRadius: radius.card,
     borderWidth: 1,
     overflow: 'hidden',
-    marginBottom: 20
+    marginBottom: 14
   },
   heroImageWrapper: {
-    width: '100%',
-    height: 140
+    height: 140,
+    width: '100%'
   },
   heroImage: {
     width: '100%',
     height: '100%'
   },
   heroImageRadius: {
-    borderTopLeftRadius: radius.card - 1,
-    borderTopRightRadius: radius.card - 1
+    borderTopLeftRadius: radius.card,
+    borderTopRightRadius: radius.card
   },
   heroScrim: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.45)',
-    justifyContent: 'space-between',
-    padding: 12
+    padding: 14,
+    justifyContent: 'space-between'
   },
   heroTopTagRow: {
     flexDirection: 'row',
@@ -378,14 +338,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingVertical: 4,
     borderRadius: radius.pill
   },
   heroPickBadgeText: {
     color: '#FFFFFF',
     fontSize: 10,
     fontWeight: '800',
-    letterSpacing: 0.8
+    letterSpacing: 0.5
   },
   heroMatchPill: {
     paddingHorizontal: 8,
@@ -394,19 +354,18 @@ const styles = StyleSheet.create({
   },
   heroMatchPillText: {
     fontSize: 11,
-    fontWeight: '800'
+    fontWeight: '900'
   },
   heroTitleText: {
     color: '#FFFFFF',
     fontSize: 18,
-    fontWeight: '800',
+    fontWeight: '900',
     letterSpacing: -0.3,
-    marginBottom: 2
+    marginBottom: 4
   },
   heroMetaRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6
+    gap: 14
   },
   heroMetaItem: {
     flexDirection: 'row',
@@ -414,113 +373,84 @@ const styles = StyleSheet.create({
     gap: 4
   },
   heroMetaText: {
-    color: '#E2E8F0',
-    fontSize: 11,
-    fontWeight: '500'
-  },
-  heroBottomBody: {
-    padding: 16
-  },
-  agreementRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 6
-  },
-  agreementLabel: {
+    color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '600'
   },
-  agreementValue: {
-    fontSize: 12,
-    fontWeight: '800'
-  },
-  organizerBox: {
-    marginTop: 14
-  },
-  lockItInBtn: {
+  heroBottomRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: radius.btn
-  },
-  lockItInBtnText: {
-    fontSize: 15,
-    fontWeight: '800'
-  },
-  memberStatusBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    padding: 12,
-    borderRadius: radius.md,
-    marginTop: 12
-  },
-  memberStatusText: {
-    fontSize: 12,
-    lineHeight: 16,
-    flex: 1
-  },
-  sectionHeading: {
-    fontSize: 16,
-    fontWeight: '800',
-    marginBottom: 12,
-    letterSpacing: -0.3
-  },
-  ballotList: {
-    gap: 8,
-    marginBottom: 24
-  },
-  ballotCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 14,
-    borderRadius: radius.card,
-    borderWidth: 1
-  },
-  ballotCardLeft: {
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    padding: 14
+  },
+  heroAgreementCol: {
     flex: 1
   },
-  ballotRankPill: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: 'rgba(0,0,0,0.05)',
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  ballotRankText: {
-    fontSize: 12,
-    fontWeight: '800'
-  },
-  ballotInfo: {
-    flex: 1
-  },
-  ballotTitle: {
-    fontSize: 14,
-    fontWeight: '700',
+  heroAgreementLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
     marginBottom: 2
   },
-  ballotSub: {
-    fontSize: 11
+  heroAgreementValue: {
+    fontSize: 13,
+    fontWeight: '800'
   },
   voteHeartBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
     borderRadius: radius.pill,
     borderWidth: 1
   },
-  voteHeartCount: {
+  voteHeartBtnText: {
     fontSize: 13,
+    fontWeight: '700'
+  },
+  privacyBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: 12,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    marginBottom: 14
+  },
+  privacyText: {
+    fontSize: 11,
+    lineHeight: 15,
+    flex: 1
+  },
+  finalizeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: radius.btn,
+    marginTop: 4,
+    marginBottom: 20
+  },
+  finalizeBtnText: {
+    color: '#FFFFFF',
+    fontSize: 15,
     fontWeight: '800'
+  },
+  waitingNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    padding: 14,
+    borderRadius: radius.btn,
+    borderWidth: 1,
+    marginTop: 4,
+    marginBottom: 20
+  },
+  waitingNoticeText: {
+    fontSize: 12,
+    fontWeight: '600'
   }
 });

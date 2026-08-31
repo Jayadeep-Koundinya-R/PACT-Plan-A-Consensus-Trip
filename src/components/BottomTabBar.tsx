@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
-import { useRouter, usePathname } from 'expo-router';
+import { useRouter, usePathname, useSegments } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../store/useGatherlyStore';
 import { colors, radius, shadows } from '../theme/colors';
@@ -16,11 +16,18 @@ import {
 export const BottomTabBar: React.FC = () => {
   const router = useRouter();
   const pathname = usePathname();
-  const { isDarkMode, activeGroupId, groups } = useGatherlyStore();
+  const segments = useSegments();
+  const { isDarkMode, activeGroupId, groups = [] } = useGatherlyStore();
   const theme = isDarkMode ? colors.dark : colors.light;
 
-  const currentGroup = groups.find((g) => g.id === activeGroupId) || groups[0];
-  const targetGroupId = currentGroup?.id || 'circle-college-reunion-2026';
+  // Extract current group ID from route segments if present, or store
+  let currentGroupId = activeGroupId;
+  if (segments && segments[0] === 'groups' && segments[1] && segments[1] !== 'undefined') {
+    currentGroupId = segments[1] as string;
+  }
+  if (!currentGroupId || !groups.some((g) => g.id === currentGroupId)) {
+    currentGroupId = groups[0]?.id || 'circle-college-reunion-2026';
+  }
 
   const triggerHaptic = () => {
     if (Platform.OS !== 'web') {
@@ -42,28 +49,28 @@ export const BottomTabBar: React.FC = () => {
       id: 'preferences',
       label: 'Input',
       icon: Sliders,
-      route: `/groups/${targetGroupId}/preferences`,
+      route: `/groups/${currentGroupId}/preferences`,
       isActive: pathname.includes('/preferences')
     },
     {
       id: 'options',
       label: 'Rankings',
       icon: Trophy,
-      route: `/groups/${targetGroupId}/options`,
+      route: `/groups/${currentGroupId}/options`,
       isActive: pathname.includes('/options')
     },
     {
       id: 'vote',
       label: 'Vote',
       icon: Heart,
-      route: `/groups/${targetGroupId}/vote`,
+      route: `/groups/${currentGroupId}/vote`,
       isActive: pathname.includes('/vote')
     },
     {
       id: 'brief',
       label: 'Brief',
       icon: Award,
-      route: `/groups/${targetGroupId}/brief`,
+      route: `/groups/${currentGroupId}/brief`,
       isActive: pathname.includes('/brief')
     },
     {
@@ -86,7 +93,7 @@ export const BottomTabBar: React.FC = () => {
         style={[
           styles.pillContainer,
           {
-            backgroundColor: isDarkMode ? 'rgba(21, 29, 42, 0.95)' : 'rgba(255, 255, 255, 0.96)',
+            backgroundColor: isDarkMode ? 'rgba(21, 29, 42, 0.95)' : 'rgba(255, 255, 255, 0.97)',
             borderColor: theme.border
           },
           shadows.md

@@ -109,6 +109,7 @@ export default function AuthScreen() {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      <View style={[styles.topBorderLine, { backgroundColor: theme.primary }]} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.keyboardContainer}
@@ -139,10 +140,13 @@ export default function AuthScreen() {
               <Compass size={32} color="#FFFFFF" strokeWidth={2.5} />
             </View>
             <Text style={[styles.title, { color: theme.textPrimary }]}>
-              {isSignUp ? 'Join PACT' : 'Welcome Back'}
+              PACT
+            </Text>
+            <Text style={[styles.brandDefinition, { color: theme.primary }]}>
+              Plan A Consensus Trip
             </Text>
             <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-              Turn "we should go somewhere" into confirmed trips.
+              {isSignUp ? 'Turn "we should go somewhere" into confirmed trips.' : 'Welcome back to your travel spaces.'}
             </Text>
           </View>
 
@@ -443,6 +447,10 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1
   },
+  topBorderLine: {
+    height: 3,
+    width: '100%'
+  },
   keyboardContainer: {
     flex: 1
   },
@@ -478,7 +486,15 @@ const styles = StyleSheet.create({
     marginBottom: 12
   },
   title: {
-    fontSize: 24,
+    fontSize: 26,
+    fontWeight: '900',
+  },
+  brandDefinition: {
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+    marginTop: 2,
+    marginBottom: 4,
     fontWeight: '900',
     letterSpacing: -0.3
   },
