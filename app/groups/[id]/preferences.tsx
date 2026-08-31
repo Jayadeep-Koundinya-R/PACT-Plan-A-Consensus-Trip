@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -26,12 +26,12 @@ import {
 } from 'lucide-react-native';
 
 const AVAILABLE_TAGS = [
-  { id: 'beach', label: 'Beach / Coastal', emoji: '🏖️' },
-  { id: 'mountains', label: 'Mountains / Nature', emoji: '⛰️' },
-  { id: 'city', label: 'City / Culture', emoji: '🏙️' },
-  { id: 'relaxed', label: 'Relaxed / Low-key', emoji: '😌' },
-  { id: 'active', label: 'Active / Adventure', emoji: '🏃' },
-  { id: 'budget-conscious', label: 'Budget-conscious', emoji: '💰' }
+  { id: 'beach', label: 'Beach / Coastal', emoji: 'ðŸ–ï¸' },
+  { id: 'mountains', label: 'Mountains / Nature', emoji: 'â›°ï¸' },
+  { id: 'city', label: 'City / Culture', emoji: 'ðŸ™ï¸' },
+  { id: 'relaxed', label: 'Relaxed / Low-key', emoji: 'ðŸ˜Œ' },
+  { id: 'active', label: 'Active / Adventure', emoji: 'ðŸƒ' },
+  { id: 'budget-conscious', label: 'Budget-conscious', emoji: 'ðŸ’°' }
 ];
 
 const BUDGET_PRESETS = [500, 750, 1000, 1500, 2500];
@@ -77,6 +77,8 @@ export default function PreferencesScreen() {
   );
 
   const [dateQuickChip, setDateQuickChip] = useState<'this' | 'next' | 'custom'>('custom');
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
   const toggleTag = (tagId: string) => {
@@ -126,26 +128,29 @@ export default function PreferencesScreen() {
       tags: selectedTags,
       dealbreakers: dealbreakers.split(',').map((s) => s.trim()).filter(Boolean)
     });
-    setToastMessage('✓ Draft saved locally.');
+    setToastMessage('âœ“ Draft saved locally.');
     setTimeout(() => setToastMessage(''), 2000);
   };
 
-  const handleSubmit = () => {
-    submitPreferences(currentGroup.id, {
+  const handleSubmit = async () => {
+    await submitPreferences({
       userId: currentUserId,
-      userName: existingMember?.userName || 'Member',
-      dateRanges: [{ start: dateStart, end: dateEnd }],
+      name: existingMember?.name || (existingMember as any)?.userName || 'Member',
+      startDate: dateStart,
+      endDate: dateEnd,
       budgetMin,
       budgetMax,
-      tags: selectedTags,
-      dealbreakers: dealbreakers.split(',').map((s) => s.trim()).filter(Boolean)
+      preferredTags: selectedTags,
+      dealbreakers: dealbreakers.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean),
+      isFlexible: true,
+      submittedAt: new Date().toISOString()
     });
 
-    setToastMessage('🎉 Preferences submitted privately!');
+    setToastMessage('ðŸŽ‰ Preferences submitted privately!');
     setTimeout(() => {
       setToastMessage('');
       router.push(`/groups/${currentGroup.id}/options`);
-    }, 1200);
+    }, 1000);
   };
 
   return (
@@ -377,7 +382,7 @@ export default function PreferencesScreen() {
           {/* Large Budget Display */}
           <View style={styles.budgetDisplayRow}>
             <Text style={[styles.budgetRangeText, { color: theme.primary }]}>
-              ${budgetMin} — ${budgetMax}
+              ${budgetMin} â€” ${budgetMax}
             </Text>
             <Text style={[styles.perPersonLabel, { color: theme.textSecondary }]}>
               per person
@@ -401,7 +406,7 @@ export default function PreferencesScreen() {
                   onPress={() => setBudgetMin(Math.max(200, budgetMin - 50))}
                   style={styles.stepBtn}
                 >
-                  <Text style={[styles.stepBtnText, { color: theme.textPrimary }]}>−</Text>
+                  <Text style={[styles.stepBtnText, { color: theme.textPrimary }]}>âˆ’</Text>
                 </TouchableOpacity>
                 <TextInput
                   style={[styles.stepperInput, { color: theme.textPrimary }]}
@@ -436,7 +441,7 @@ export default function PreferencesScreen() {
                   onPress={() => setBudgetMax(Math.max(budgetMin + 50, budgetMax - 50))}
                   style={styles.stepBtn}
                 >
-                  <Text style={[styles.stepBtnText, { color: theme.textPrimary }]}>−</Text>
+                  <Text style={[styles.stepBtnText, { color: theme.textPrimary }]}>âˆ’</Text>
                 </TouchableOpacity>
                 <TextInput
                   style={[styles.stepperInput, { color: theme.textPrimary }]}
@@ -582,7 +587,7 @@ export default function PreferencesScreen() {
                       { color: isChipActive ? theme.danger : theme.textSecondary }
                     ]}
                   >
-                    🚫 #{preset}
+                    ðŸš« #{preset}
                   </Text>
                 </TouchableOpacity>
               );
@@ -622,17 +627,25 @@ export default function PreferencesScreen() {
             </Text>
           </TouchableOpacity>
 
+          {validationError && (
+            <View style={{ backgroundColor: '#FEE2E2', borderRadius: 10, padding: 12, marginBottom: 12, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Ban size={16} color="#EF4444" />
+              <Text style={{ color: '#991B1B', fontSize: 13, fontWeight: '600', flex: 1 }}>{validationError}</Text>
+            </View>
+          )}
+
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={handleSubmit}
+            disabled={isSubmitting}
             style={[
               styles.submitBtn,
-              { backgroundColor: theme.primary },
+              { backgroundColor: theme.primary, opacity: isSubmitting ? 0.7 : 1 },
               shadows.glowPrimary
             ]}
           >
             <Sparkles size={16} color="#FFFFFF" />
-            <Text style={styles.submitBtnText}>Submit Constraints Privately</Text>
+            <Text style={styles.submitBtnText}>{isSubmitting ? 'Submitting...' : 'Submit Constraints Privately'}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

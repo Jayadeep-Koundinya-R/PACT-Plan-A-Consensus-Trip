@@ -22,3 +22,9 @@ Desktop.ini
 .env
 .env.local
 .env.production
+
+*.apk
+.vscode/
+android/.gradle/
+android/app/build/
+android/build/

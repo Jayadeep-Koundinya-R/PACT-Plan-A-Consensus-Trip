@@ -8,6 +8,18 @@ import {
 import { calculateConsensus } from '../lib/consensus/engine';
 import { DEMO_MEMBERS, DEMO_TRIP_OPTIONS, DEMO_GROUP_ID } from '../lib/consensus/seedData';
 import { assertOrganizerCanFinalize } from '../lib/security/accessControl';
+import {
+  createSupabaseGroup,
+  fetchUserGroups,
+  joinGroupWithCode,
+  savePreferencesToSupabase,
+  fetchGroupPreferencesFromSupabase,
+  fetchTripOptionsFromSupabase,
+  castVoteInSupabase,
+  fetchGroupVotesFromSupabase,
+  signOutUser
+} from '../lib/supabase/service';
+import { supabase } from '../lib/supabase/client';
 
 export interface Group {
   id: string;
@@ -30,6 +42,8 @@ export interface TripBrief {
 interface GatherlyState {
   // Auth & Profile
   currentUserId: string;
+  userEmail: string | null;
+  userName: string | null;
   isDarkMode: boolean;
   subscriptionPlan: 'free' | 'premium_monthly' | 'premium_annual';
 
@@ -40,25 +54,32 @@ interface GatherlyState {
   tripOptions: TripOption[];
   preferenceDrafts: Record<string, Partial<MemberPreference>>; // key: `${groupId}_${userId}`
 
+  pendingInviteCode: string | null;
   // Voting & Consensus
   votes: Record<string, boolean>; // key: `${optionId}_${userId}` -> true (approved)
   finalizedBrief: TripBrief | null;
 
   // Actions
   toggleDarkMode: () => void;
-  setCurrentUser: (userId: string) => void;
+  setCurrentUser: (userId: string, email?: string, name?: string) => void;
+  initAuthSession: () => Promise<void>;
+  logout: () => Promise<void>;
   setSubscriptionPlan: (plan: 'free' | 'premium_monthly' | 'premium_annual') => void;
-  createGroup: (name: string) => Group;
-  joinGroupByCode: (code: string) => { success: boolean; message: string; group?: Group };
+  createGroup: (name: string) => Promise<Group>;
+  joinGroupByCode: (code: string) => Promise<{ success: boolean; message: string; group?: Group }>;
   setActiveGroup: (groupId: string) => void;
+  fetchUserGroupsFromCloud: () => Promise<void>;
+  fetchGroupDataFromCloud: (groupId: string) => Promise<void>;
   savePreferenceDraft: (groupId: string, draft: Partial<MemberPreference>) => void;
-  submitPreferences: (preference: MemberPreference) => void;
-  castVote: (optionId: string, approved: boolean) => void;
+  submitPreferences: (preference: MemberPreference) => Promise<void>;
+  castVote: (optionId: string, approved: boolean) => Promise<void>;
   getConsensusResults: () => ConsensusResult;
   getOptionApprovalCount: (optionId: string) => number;
   finalizeTrip: (callerUserId?: string) => TripBrief;
   reopenVoting: (groupId: string, callerUserId?: string) => void;
+
   setDemoScenario: (scenario: 'consensus_winner' | 'budget_deadlock' | 'dealbreaker_deadlock') => void;
+  setPendingInviteCode: (code: string | null) => void;
   resetDemoState: () => void;
 }
 
@@ -73,6 +94,8 @@ const initialGroup: Group = {
 
 export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   currentUserId: 'user-maya-001',
+  userEmail: null,
+  userName: null,
   isDarkMode: false,
   subscriptionPlan: 'free',
 
@@ -82,6 +105,7 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   tripOptions: DEMO_TRIP_OPTIONS,
   preferenceDrafts: {},
 
+  pendingInviteCode: null,
   votes: {
     'opt-goa-01_user-maya-001': true,
     'opt-goa-01_user-jake-002': true,
@@ -99,40 +123,180 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
 
   toggleDarkMode: () => set((state) => ({ isDarkMode: !state.isDarkMode })),
 
-  setCurrentUser: (userId: string) => set({ currentUserId: userId }),
+  setCurrentUser: (userId: string, email?: string, name?: string) => {
+    set({
+      currentUserId: userId,
+      userEmail: email || null,
+      userName: name || null
+    });
+    // Fetch groups for the user
+    get().fetchUserGroupsFromCloud();
+  },
+
+  initAuthSession: async () => {
+    try {
+      const { data } = await supabase.auth.getSession();
+      if (data.session?.user) {
+        set({
+          currentUserId: data.session.user.id,
+          userEmail: data.session.user.email || null,
+          userName: data.session.user.user_metadata?.display_name || null
+        });
+        get().fetchUserGroupsFromCloud();
+      }
+    } catch (e) {
+      console.warn('Error checking Supabase session:', e);
+    }
+  },
+
+  logout: async () => {
+    try {
+      await signOutUser();
+    } catch (e) {
+      console.warn('Sign out error:', e);
+    }
+    set({
+      currentUserId: 'user-maya-001',
+      userEmail: null,
+      userName: null,
+      groups: [initialGroup],
+      activeGroupId: DEMO_GROUP_ID
+    });
+  },
 
   setSubscriptionPlan: (plan) => set({ subscriptionPlan: plan }),
 
-  setActiveGroup: (groupId: string) => set({ activeGroupId: groupId }),
+  setActiveGroup: (groupId: string) => {
+    set({ activeGroupId: groupId });
+    get().fetchGroupDataFromCloud(groupId);
+  },
 
-  createGroup: (name: string) => {
+  fetchUserGroupsFromCloud: async () => {
+    const { currentUserId } = get();
+    if (!currentUserId || currentUserId.startsWith('user-')) return;
+    try {
+      const cloudGroups = await fetchUserGroups(currentUserId);
+      if (cloudGroups.length > 0) {
+        const mappedGroups: Group[] = cloudGroups.map((g) => ({
+          id: g.id,
+          name: g.name,
+          inviteCode: g.invite_code,
+          organizerId: g.organizer_id,
+          status: g.status,
+          totalMembersCount: g.total_members_count || 1
+        }));
+        set({
+          groups: mappedGroups,
+          activeGroupId: mappedGroups[0].id
+        });
+        get().fetchGroupDataFromCloud(mappedGroups[0].id);
+      }
+    } catch (e) {
+      console.warn('Error fetching groups from Supabase:', e);
+    }
+  },
+
+  fetchGroupDataFromCloud: async (groupId: string) => {
+    if (!groupId || groupId === DEMO_GROUP_ID) return;
+    try {
+      const [cloudPrefs, cloudOptions, cloudVotes] = await Promise.all([
+        fetchGroupPreferencesFromSupabase(groupId),
+        fetchTripOptionsFromSupabase(groupId),
+        fetchGroupVotesFromSupabase(groupId)
+      ]);
+
+      set((state) => ({
+        members: cloudPrefs.length > 0 ? cloudPrefs : state.members,
+        tripOptions: cloudOptions.length > 0 ? cloudOptions : state.tripOptions,
+        votes: { ...state.votes, ...cloudVotes }
+      }));
+    } catch (e) {
+      console.warn('Error fetching group data from Supabase:', e);
+    }
+  },
+
+  createGroup: async (name: string) => {
     const { currentUserId, groups } = get();
     const cleanName = name.trim() || 'New Trip Circle';
-    const code = cleanName
-      .replace(/[^A-Za-z0-9]/g, '')
-      .slice(0, 4)
-      .toUpperCase() + '-' + Math.floor(1000 + Math.random() * 9000);
 
-    const newGroup: Group = {
-      id: `group-${Date.now()}`,
-      name: cleanName,
-      inviteCode: code,
-      organizerId: currentUserId,
-      status: 'collecting',
-      totalMembersCount: 1
-    };
+    let newGroup: Group;
+    if (currentUserId && !currentUserId.startsWith('user-')) {
+      try {
+        const cloudGroup = await createSupabaseGroup(cleanName, currentUserId);
+        newGroup = {
+          id: cloudGroup.id,
+          name: cloudGroup.name,
+          inviteCode: cloudGroup.invite_code,
+          organizerId: cloudGroup.organizer_id,
+          status: cloudGroup.status,
+          totalMembersCount: 1
+        };
+      } catch (e) {
+        console.warn('Supabase createGroup failed, falling back to local:', e);
+        const code = cleanName.slice(0, 4).toUpperCase() + '-' + Math.floor(1000 + Math.random() * 9000);
+        newGroup = {
+          id: `group-${Date.now()}`,
+          name: cleanName,
+          inviteCode: code,
+          organizerId: currentUserId,
+          status: 'collecting',
+          totalMembersCount: 1
+        };
+      }
+    } else {
+      const code = cleanName.slice(0, 4).toUpperCase() + '-' + Math.floor(1000 + Math.random() * 9000);
+      newGroup = {
+        id: `group-${Date.now()}`,
+        name: cleanName,
+        inviteCode: code,
+        organizerId: currentUserId,
+        status: 'collecting',
+        totalMembersCount: 1
+      };
+    }
 
     set({
-      groups: [...groups, newGroup],
+      groups: [newGroup, ...groups],
       activeGroupId: newGroup.id
     });
 
     return newGroup;
   },
 
-  joinGroupByCode: (code: string) => {
+  joinGroupByCode: async (code: string) => {
     const clean = code.trim().toUpperCase();
-    const { groups } = get();
+    const { currentUserId, groups } = get();
+
+    if (currentUserId && !currentUserId.startsWith('user-')) {
+      try {
+        const joined = await joinGroupWithCode(clean, currentUserId);
+        const mapped: Group = {
+          id: joined.id,
+          name: joined.name,
+          inviteCode: joined.invite_code,
+          organizerId: joined.organizer_id,
+          status: joined.status,
+          totalMembersCount: 2
+        };
+        set({
+          groups: [mapped, ...groups.filter((g) => g.id !== mapped.id)],
+          activeGroupId: mapped.id
+        });
+        get().fetchGroupDataFromCloud(mapped.id);
+        return { success: true, message: `Joined ${mapped.name}!`, group: mapped };
+      } catch (e: any) {
+        const msg = e?.message || '';
+        const friendlyMessages: Record<string, string> = {
+          'INVALID_CODE': 'Invalid invite code. Please check and try again.',
+          'ALREADY_MEMBER': "You're already a member of this group!",
+          'GROUP_FULL': 'This circle is full (10/10 members).',
+          'GROUP_CANCELLED': 'This trip has been cancelled.',
+          'GROUP_FINALIZED': 'This trip has already been finalized.'
+        };
+        return { success: false, message: friendlyMessages[msg] || msg || 'Failed to join group.' };
+      }
+    }
+
     const found = groups.find((g) => g.inviteCode.toUpperCase() === clean);
     if (found) {
       set({ activeGroupId: found.id });
@@ -152,7 +316,26 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     }));
   },
 
-  submitPreferences: (preference: MemberPreference) => {
+  submitPreferences: async (preference: MemberPreference) => {
+    const { activeGroupId, currentUserId } = get();
+    
+    // If connected to Supabase and not a demo user, insert to database
+    if (currentUserId && !currentUserId.startsWith('user-') && activeGroupId && activeGroupId !== DEMO_GROUP_ID) {
+      try {
+        await savePreferencesToSupabase(activeGroupId, currentUserId, {
+          startDate: preference.startDate,
+          endDate: preference.endDate,
+          budgetMin: preference.budgetMin,
+          budgetMax: preference.budgetMax,
+          preferredTags: preference.preferredTags,
+          dealbreakers: preference.dealbreakers,
+          isFlexible: preference.isFlexible
+        });
+      } catch (e) {
+        console.warn('Supabase submitPreferences error:', e);
+      }
+    }
+
     set((state) => {
       const existingIdx = state.members.findIndex((m) => m.userId === preference.userId);
       let updated: MemberPreference[];
@@ -166,9 +349,18 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     });
   },
 
-  castVote: (optionId: string, approved: boolean) => {
-    const { currentUserId, votes } = get();
+  castVote: async (optionId: string, approved: boolean) => {
+    const { currentUserId, activeGroupId, votes } = get();
     const key = `${optionId}_${currentUserId}`;
+    
+    if (currentUserId && !currentUserId.startsWith('user-') && activeGroupId && activeGroupId !== DEMO_GROUP_ID) {
+      try {
+        await castVoteInSupabase(activeGroupId, optionId, currentUserId, approved);
+      } catch (e) {
+        console.warn('Supabase castVote error:', e);
+      }
+    }
+
     const newVotes = { ...votes };
     if (approved) {
       newVotes[key] = true;
@@ -177,6 +369,7 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     }
     set({ votes: newVotes });
   },
+
 
   getConsensusResults: () => {
     const { activeGroupId, groups, tripOptions, members } = get();
@@ -248,6 +441,9 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
       )
     }));
   },
+
+
+  setPendingInviteCode: (code: string | null) => set({ pendingInviteCode: code }),
 
   setDemoScenario: (scenario: 'consensus_winner' | 'budget_deadlock' | 'dealbreaker_deadlock') => {
     const freshOptions: TripOption[] = JSON.parse(JSON.stringify(DEMO_TRIP_OPTIONS));

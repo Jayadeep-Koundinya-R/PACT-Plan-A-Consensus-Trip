@@ -6,23 +6,29 @@ import {
   ScrollView,
   StyleSheet,
   SafeAreaView,
-  Modal
+  Modal,
+  Platform,
+  Alert
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
 import { RankedOptionCard } from '../../../src/components/RankedOptionCard';
+import { ConsensusMatrix } from '../../../src/components/ConsensusMatrix';
+import { BottlenecksSection } from '../../../src/components/BottlenecksSection';
 import { StepProgressBar } from '../../../src/components/StepProgressBar';
 import { BottomTabBar } from '../../../src/components/BottomTabBar';
-import { generateAIEnhancedExplanation } from '../../../src/lib/revenuecat/entitlements';
+import { generateAIEnhancedExplanation } from '../../../src/lib/ai/pitchGenerator';
 import { colors, radius, shadows } from '../../../src/theme/colors';
 import {
   ArrowLeft,
   Sparkles,
   Bot,
-  Vote,
-  ShieldCheck,
   Crown,
-  X
+  X,
+  Vote,
+  Lock,
+  ArrowRight
 } from 'lucide-react-native';
 
 export default function OptionsScreen() {
@@ -32,6 +38,7 @@ export default function OptionsScreen() {
     isDarkMode,
     groups,
     currentUserId,
+    members,
     getConsensusResults,
     votes,
     castVote,
@@ -43,16 +50,34 @@ export default function OptionsScreen() {
   const currentGroup = groups.find((g) => g.id === id) || groups[0];
   const consensus = getConsensusResults();
   const isPro = subscriptionPlan !== 'free';
+  const isOrganizer = currentGroup.organizerId === currentUserId;
 
   const [aiModalVisible, setAiModalVisible] = useState(false);
-  const [selectedAIInsight, setSelectedAIInsight] = useState('');
+  const [selectedAIInsight, setSelectedAIInsight] = useState<string>('');
+
+  const topOption = consensus.winningOption || consensus.rankedOptions[0];
+
+  const triggerHaptic = () => {
+    if (Platform.OS !== 'web') {
+      try {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      } catch (e) {}
+    }
+  };
 
   const handleToggleVote = (optionId: string) => {
+    triggerHaptic();
     const isApproved = votes[`${optionId}_${currentUserId}`] === true;
     castVote(optionId, !isApproved);
   };
 
-  const handleShowAIInsight = (optionName: string, score: number, consensusPct: number, reason: string) => {
+  const handleShowAIInsight = (
+    optionName: string,
+    score: number,
+    consensusPct: number,
+    reason: string
+  ) => {
+    triggerHaptic();
     if (!isPro) {
       router.push('/paywall');
       return;
@@ -60,6 +85,32 @@ export default function OptionsScreen() {
     const insight = generateAIEnhancedExplanation(optionName, score, consensusPct, reason);
     setSelectedAIInsight(insight);
     setAiModalVisible(true);
+  };
+
+  // Build list of bottleneck issues if any
+  const bottleneckIssues = [];
+  if (consensus.deadlocks && consensus.deadlocks.length > 0) {
+    consensus.deadlocks.forEach((d) => {
+      bottleneckIssues.push({
+        type: (d.type === 'budget' ? 'budget' : d.type === 'dates' ? 'dates' : 'dealbreaker') as 'budget' | 'dates' | 'dealbreaker',
+        title: d.type === 'budget' ? 'Budget Gap Detected' : d.type === 'dates' ? 'Date Conflict Detected' : 'Dealbreaker Flagged',
+        description: d.description
+      });
+    });
+  } else if (consensus.rankedOptions.some((o) => o.budgetGapFlag)) {
+    const affected = members.filter((m) => m.budgetMax < 700).map((m) => m.name);
+    bottleneckIssues.push({
+      type: 'budget' as const,
+      title: 'Budget Gap Detected',
+      description: `${affected.join(' and ') || 'Some travelers'} prefer lower budgets, while the rest are flexible.`
+    });
+  }
+
+  const handleNudgeMember = (pendingName: string) => {
+    Alert.alert(
+      'Nudge Sent! 🔔',
+      `A friendly notification was sent to ${pendingName} to submit their travel constraints.`
+    );
   };
 
   return (
@@ -81,37 +132,42 @@ export default function OptionsScreen() {
           </TouchableOpacity>
 
           <Text style={[styles.navTitle, { color: theme.textPrimary }]} numberOfLines={1}>
-            Ranked Trip Options
+            {currentGroup.name}
           </Text>
 
           <TouchableOpacity
             onPress={() => router.push(`/groups/${currentGroup.id}/vote`)}
-            style={[styles.voteHeaderBtn, { backgroundColor: theme.primaryLight, borderColor: theme.primary }]}
+            style={[styles.voteHeaderBtn, { backgroundColor: theme.primary, borderColor: theme.primary }]}
           >
-            <Vote size={18} color={theme.primary} />
+            <Vote size={16} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
 
-        {/* Formula Explainer Hero Card */}
-        <View
-          style={[
-            styles.heroCard,
-            { backgroundColor: theme.surface, borderColor: theme.glassBorder },
-            shadows.md
-          ]}
-        >
-          <View style={styles.heroHeaderRow}>
-            <Sparkles size={18} color={theme.primary} />
-            <Text style={[styles.heroHeading, { color: theme.textPrimary }]}>
-              Deterministic Ranking Engine
-            </Text>
-          </View>
-          <Text style={[styles.heroDesc, { color: theme.textSecondary }]}>
-            Scored mathematically from all 5 members' private dates (35%), budget (35%), and tags (25%). Any member dealbreaker triggers an instant 0% compatibility override.
+        {/* 1. Consensus Matrix Component */}
+        <ConsensusMatrix
+          destinationTitle={topOption?.option.name || 'Trip Options'}
+          members={members}
+          totalMembersCount={currentGroup.totalMembersCount || members.length}
+          isOrganizer={isOrganizer}
+          isDarkMode={isDarkMode}
+          onNudge={handleNudgeMember}
+        />
+
+        {/* Section Heading: Top Picks */}
+        <View style={styles.sectionHeaderRow}>
+          <Text style={[styles.sectionHeading, { color: theme.textPrimary }]}>
+            Top Picks
           </Text>
+          {topOption && (topOption.consensusPercent >= 70) && (
+            <View style={[styles.unlockedTag, { backgroundColor: isDarkMode ? 'rgba(16, 185, 129, 0.2)' : '#D1FAE5' }]}>
+              <Text style={[styles.unlockedTagText, { color: theme.success }]}>
+                CONSENSUS UNLOCKED
+              </Text>
+            </View>
+          )}
         </View>
 
-        {/* List of Ranked Option Cards */}
+        {/* List of Ranked Option Cards with Image Hero */}
         <View style={styles.cardsList}>
           {consensus.rankedOptions.map((scoredOption) => {
             const isApproved = votes[`${scoredOption.option.id}_${currentUserId}`] === true;
@@ -153,13 +209,35 @@ export default function OptionsScreen() {
                       { color: isPro ? theme.secondary : theme.textSecondary }
                     ]}
                   >
-                    {isPro ? '✨ View AI Conflict Analysis' : '👑 Unlock AI Conflict Analysis (Pro)'}
+                    {isPro ? '✨ View AI Conflict Analysis' : '🔒 Unlock AI Conflict Analysis (Pro)'}
                   </Text>
                 </TouchableOpacity>
               </View>
             );
           })}
         </View>
+
+        {/* 2. Bottlenecks Section */}
+        <BottlenecksSection
+          issues={bottleneckIssues}
+          isDarkMode={isDarkMode}
+          onResolve={() => {
+            if (topOption) {
+              handleShowAIInsight(topOption.option.name, topOption.totalScore, topOption.consensusPercent, topOption.plainEnglishReason);
+            }
+          }}
+        />
+
+        {/* Vote / Lock In CTA Button */}
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => router.push(`/groups/${currentGroup.id}/vote`)}
+          style={[styles.primaryCtaBtn, { backgroundColor: theme.primary }, shadows.glowPrimary]}
+        >
+          <Lock size={16} color="#FFFFFF" />
+          <Text style={styles.primaryCtaBtnText}>Go to Voting & Finalize</Text>
+          <ArrowRight size={16} color="#FFFFFF" />
+        </TouchableOpacity>
       </ScrollView>
 
       {/* Floating Bottom Navigation Bar */}
@@ -224,7 +302,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginVertical: 14
+    marginVertical: 12
   },
   backBtn: {
     width: 38,
@@ -239,7 +317,8 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     flex: 1,
     textAlign: 'center',
-    marginHorizontal: 12
+    marginHorizontal: 12,
+    letterSpacing: -0.3
   },
   voteHeaderBtn: {
     width: 38,
@@ -249,28 +328,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1
   },
-  heroCard: {
-    borderRadius: radius.card,
-    padding: 16,
-    borderWidth: 1,
-    marginBottom: 16
-  },
-  heroHeaderRow: {
+  sectionHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 6
+    justifyContent: 'space-between',
+    marginTop: 6,
+    marginBottom: 12
   },
-  heroHeading: {
-    fontSize: 15,
-    fontWeight: '800'
+  sectionHeading: {
+    fontSize: 18,
+    fontWeight: '800',
+    letterSpacing: -0.3
   },
-  heroDesc: {
-    fontSize: 12,
-    lineHeight: 17
+  unlockedTag: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.pill
+  },
+  unlockedTagText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5
   },
   cardsList: {
-    gap: 8
+    gap: 4
   },
   aiInsightBtn: {
     flexDirection: 'row',
@@ -281,10 +362,25 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     borderWidth: 1,
     marginTop: -8,
-    marginBottom: 16
+    marginBottom: 14
   },
   aiInsightBtnText: {
     fontSize: 12,
+    fontWeight: '700'
+  },
+  primaryCtaBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: radius.btn,
+    marginTop: 8,
+    marginBottom: 20
+  },
+  primaryCtaBtnText: {
+    color: '#FFFFFF',
+    fontSize: 15,
     fontWeight: '700'
   },
   modalOverlay: {

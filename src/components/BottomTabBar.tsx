@@ -86,8 +86,8 @@ export const BottomTabBar: React.FC = () => {
         style={[
           styles.pillContainer,
           {
-            backgroundColor: isDarkMode ? 'rgba(19, 27, 46, 0.94)' : 'rgba(255, 255, 255, 0.94)',
-            borderColor: theme.glassBorder
+            backgroundColor: isDarkMode ? 'rgba(28, 19, 13, 0.95)' : 'rgba(255, 248, 243, 0.95)',
+            borderColor: theme.border
           },
           shadows.lg
         ]}
@@ -103,7 +103,7 @@ export const BottomTabBar: React.FC = () => {
                 styles.tabBtn,
                 tab.isActive && [
                   styles.activeTabBtn,
-                  { backgroundColor: theme.primaryLight }
+                  { backgroundColor: isDarkMode ? 'rgba(234, 88, 12, 0.2)' : '#FDE8DC' }
                 ]
               ]}
             >
@@ -155,8 +155,7 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingVertical: 8,
     paddingHorizontal: 10,
-    borderRadius: radius.pill,
-    ...(Platform.OS === 'web' ? { cursor: 'pointer' as any } : {})
+    borderRadius: radius.pill
   },
   activeTabBtn: {
     paddingHorizontal: 12

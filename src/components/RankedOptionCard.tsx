@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ImageBackground,
+  Platform
+} from 'react-native';
 import { ScoredTripOption } from '../lib/consensus/types';
 import { formatFriendlyDateRange } from '../lib/format/dateFormatter';
-import { ConsensusMeter } from './ConsensusMeter';
 import { colors, radius, shadows } from '../theme/colors';
 import {
   Calendar,
@@ -15,7 +21,8 @@ import {
   CheckCircle2,
   XCircle,
   Award,
-  Tag
+  Tag,
+  Users
 } from 'lucide-react-native';
 
 interface RankedOptionCardProps {
@@ -26,9 +33,21 @@ interface RankedOptionCardProps {
   onToggleVote: (optionId: string) => void;
 }
 
+const DESTINATION_IMAGES: Record<string, string> = {
+  'Goa Beach Weekend': 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?q=80&w=800&auto=format&fit=crop',
+  'Coastal Getaway': 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?q=80&w=800&auto=format&fit=crop',
+  'Manali High Altitude Adventure': 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?q=80&w=800&auto=format&fit=crop',
+  'Mountain Retreat': 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?q=80&w=800&auto=format&fit=crop',
+  'Kerala Backwaters Chill': 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?q=80&w=800&auto=format&fit=crop',
+  'Nature & Houseboat': 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?q=80&w=800&auto=format&fit=crop',
+  'Bangalore Craft Brewery Tour': 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=800&auto=format&fit=crop'
+};
+
+const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=800&auto=format&fit=crop';
+
 export const RankedOptionCard: React.FC<RankedOptionCardProps> = ({
   scoredOption,
-  isDarkMode = true,
+  isDarkMode = false,
   isApprovedByUser,
   approvalCount,
   onToggleVote
@@ -37,7 +56,11 @@ export const RankedOptionCard: React.FC<RankedOptionCardProps> = ({
   const theme = isDarkMode ? colors.dark : colors.light;
   const { option, rank, totalScore, consensusPercent, budgetGapFlag, plainEnglishReason, memberBreakdowns } = scoredOption;
 
-  const isWinner = rank === 1 && consensusPercent >= 70;
+  const isWinner = rank === 1;
+  const imageUrl = DESTINATION_IMAGES[option.name] || DESTINATION_IMAGES[option.destinationType] || DEFAULT_IMAGE;
+
+  // Segmented agreement bars (10 segments)
+  const activeSegments = Math.round((consensusPercent / 100) * 10);
 
   return (
     <View
@@ -45,218 +68,191 @@ export const RankedOptionCard: React.FC<RankedOptionCardProps> = ({
         styles.card,
         {
           backgroundColor: theme.surface,
-          borderColor: isWinner ? theme.success : theme.glassBorder,
-          borderWidth: isWinner ? 2 : 1,
-          shadowColor: isWinner ? theme.success : '#000'
+          borderColor: isWinner ? (isDarkMode ? 'rgba(234, 88, 12, 0.4)' : '#FED7AA') : theme.border
         },
-        isWinner ? shadows.glowSuccess : shadows.md
+        shadows.md
       ]}
     >
-      {/* Header Row: Rank Badge + Type + Heart Vote */}
-      <View style={styles.header}>
-        <View style={styles.rankContainer}>
-          {isWinner ? (
-            <View
-              style={[
-                styles.winnerBadge,
-                {
-                  backgroundColor: theme.success,
-                  shadowColor: theme.success,
-                  shadowOffset: { width: 0, height: 0 },
-                  shadowOpacity: 0.5,
-                  shadowRadius: 10,
-                  elevation: 4
-                }
-              ]}
-            >
-              <Award size={12} color="#FFFFFF" />
-              <Text style={styles.winnerText}>TOP PICK #1</Text>
-            </View>
-          ) : (
-            <View style={[styles.rankBadge, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}>
-              <Text style={[styles.rankText, { color: theme.textSecondary }]}>
-                #{rank}
-              </Text>
-            </View>
-          )}
-
-          <Text style={[styles.destinationType, { color: theme.textSecondary }]}>
-            {option.destinationType}
-          </Text>
-        </View>
-
-        {/* Tactile Silent Vote Heart Button */}
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={() => onToggleVote(option.id)}
-          style={[
-            styles.voteButton,
-            {
-              backgroundColor: isApprovedByUser ? theme.primaryLight : theme.surfaceElevated,
-              borderColor: isApprovedByUser ? theme.primary : theme.border
-            }
-          ]}
+      {/* Top Hero Image (Height 130px with overlay) */}
+      <View style={styles.imageWrapper}>
+        <ImageBackground
+          source={{ uri: imageUrl }}
+          style={styles.imageBackground}
+          imageStyle={styles.imageStyle}
         >
-          <Heart
-            size={18}
-            color={isApprovedByUser ? theme.primary : theme.textMuted}
-            fill={isApprovedByUser ? theme.primary : 'none'}
-          />
-          <Text
-            style={[
-              styles.voteCount,
-              { color: isApprovedByUser ? theme.primary : theme.textSecondary }
-            ]}
-          >
-            {approvalCount}
-          </Text>
-        </TouchableOpacity>
-      </View>
+          {/* Gradient Scrim Overlay */}
+          <View style={styles.scrimOverlay}>
+            {/* Top Row: Rank/Winner Tag + Match Pill */}
+            <View style={styles.imageTopRow}>
+              {isWinner ? (
+                <View style={[styles.topPickBadge, { backgroundColor: theme.primary }]}>
+                  <Award size={12} color="#FFFFFF" />
+                  <Text style={styles.topPickBadgeText}>TOP PICK #1</Text>
+                </View>
+              ) : (
+                <View style={[styles.rankPill, { backgroundColor: 'rgba(0,0,0,0.6)' }]}>
+                  <Text style={styles.rankPillText}>#{rank}</Text>
+                </View>
+              )}
 
-      {/* Destination Title & Description */}
-      <Text style={[styles.title, { color: theme.textPrimary }]}>{option.name}</Text>
-      {option.description ? (
-        <Text style={[styles.description, { color: theme.textSecondary }]} numberOfLines={2}>
-          {option.description}
-        </Text>
-      ) : null}
-
-      {/* Meta Row: Dates | Price | Tags */}
-      <View style={styles.metaRow}>
-        <View style={styles.metaItem}>
-          <Calendar size={13} color={theme.textSecondary} />
-          <Text style={[styles.metaText, { color: theme.textSecondary }]}>
-            {formatFriendlyDateRange(option.dateStart, option.dateEnd)}
-          </Text>
-        </View>
-        <View style={styles.metaItem}>
-          <DollarSign size={13} color={theme.success} />
-          <Text style={[styles.metaText, { color: theme.textPrimary, fontWeight: '700' }]}>
-            ${option.budgetPerPerson} / person
-          </Text>
-        </View>
-      </View>
-
-      {/* Tags Chips */}
-      <View style={styles.tagsContainer}>
-        {option.tags.map((tag) => (
-          <View
-            key={tag}
-            style={[styles.tagPill, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
-          >
-            <Text style={[styles.tagText, { color: theme.textSecondary }]}>
-              #{tag}
-            </Text>
-          </View>
-        ))}
-      </View>
-
-      {/* Score Box */}
-      <View style={[styles.scoreBox, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}>
-        <View style={styles.scoreRow}>
-          <Text style={[styles.scoreLabel, { color: theme.textSecondary }]}>
-            Consensus Match Score
-          </Text>
-          <Text style={[styles.scoreValue, { color: isWinner ? theme.success : theme.primary }]}>
-            {totalScore}%
-          </Text>
-        </View>
-        <ConsensusMeter percentage={consensusPercent} isDarkMode={isDarkMode} />
-      </View>
-
-      {/* Plain English Reason Box */}
-      <View
-        style={[
-          styles.reasonBox,
-          {
-            backgroundColor: isWinner
-              ? theme.successLight
-              : budgetGapFlag
-              ? theme.warningLight
-              : theme.surfaceElevated,
-            borderColor: isWinner ? 'rgba(16, 185, 129, 0.3)' : theme.border
-          }
-        ]}
-      >
-        <View style={styles.reasonHeader}>
-          <Sparkles
-            size={13}
-            color={isWinner ? theme.success : theme.warning}
-          />
-          <Text
-            style={[
-              styles.reasonTitle,
-              { color: isWinner ? theme.success : theme.warning }
-            ]}
-          >
-            Why this rank:
-          </Text>
-        </View>
-        <Text style={[styles.reasonText, { color: theme.textPrimary }]}>
-          {plainEnglishReason}
-        </Text>
-      </View>
-
-      {/* Budget Gap Warning Banner */}
-      {budgetGapFlag && (
-        <View style={[styles.warningBanner, { backgroundColor: theme.warningLight, borderColor: theme.warning }]}>
-          <AlertTriangle size={14} color={theme.warning} />
-          <Text style={[styles.warningText, { color: theme.warning }]}>
-            Budget Division: &gt;30% of members cannot afford this price.
-          </Text>
-        </View>
-      )}
-
-      {/* Expand / Collapse Member Breakdown */}
-      <TouchableOpacity
-        activeOpacity={0.7}
-        onPress={() => setIsExpanded(!isExpanded)}
-        style={styles.expandToggle}
-      >
-        <Text style={[styles.expandText, { color: theme.primary }]}>
-          {isExpanded ? 'Hide Member Overlap Grid' : 'View Per-Member Overlap Details'}
-        </Text>
-        {isExpanded ? (
-          <ChevronUp size={16} color={theme.primary} />
-        ) : (
-          <ChevronDown size={16} color={theme.primary} />
-        )}
-      </TouchableOpacity>
-
-      {/* Expanded Per-Member Grid */}
-      {isExpanded && (
-        <View style={[styles.breakdownContainer, { borderTopColor: theme.border }]}>
-          <Text style={[styles.breakdownTitle, { color: theme.textSecondary }]}>
-            Anonymous Group Match Details:
-          </Text>
-          {memberBreakdowns.map((m) => (
-            <View key={m.userId} style={styles.memberRow}>
-              <View style={styles.memberNameCol}>
-                {m.isViable ? (
-                  <CheckCircle2 size={13} color={theme.success} />
-                ) : (
-                  <XCircle size={13} color={theme.danger} />
-                )}
-                <Text style={[styles.memberName, { color: theme.textPrimary }]}>
-                  {m.userName}
+              <View style={[styles.matchBadge, { backgroundColor: isDarkMode ? 'rgba(28, 19, 13, 0.85)' : 'rgba(255, 255, 255, 0.92)' }]}>
+                <Text style={[styles.matchPercentText, { color: theme.primary }]}>
+                  {totalScore}%
+                </Text>
+                <Text style={[styles.matchLabelText, { color: theme.textSecondary }]}>
+                  MATCH
                 </Text>
               </View>
+            </View>
 
-              <View style={styles.memberScoreCol}>
-                {m.dealbreakerHit ? (
-                  <Text style={[styles.dealbreakerAlert, { color: theme.danger }]}>
-                    ❌ Dealbreaker Triggered
+            {/* Bottom Row on Image: Title, Date, Budget */}
+            <View style={styles.imageBottomRow}>
+              <Text style={styles.imageTitleText} numberOfLines={1}>
+                {option.name}
+              </Text>
+              <View style={styles.imageSubRow}>
+                <View style={styles.imageMetaItem}>
+                  <Calendar size={11} color="#FFFFFF" />
+                  <Text style={styles.imageMetaText}>
+                    {formatFriendlyDateRange(option.dateStart, option.dateEnd)}
                   </Text>
-                ) : (
-                  <Text style={[styles.memberScoreDetails, { color: theme.textSecondary }]}>
-                    Date: {(m.dateScore * 100).toFixed(0)}% • Budget: {(m.budgetScore * 100).toFixed(0)}% • Tags: {(m.tagScore * 100).toFixed(0)}%
+                </View>
+                <Text style={styles.imageDot}>•</Text>
+                <View style={styles.imageMetaItem}>
+                  <DollarSign size={11} color="#10B981" />
+                  <Text style={[styles.imageMetaText, { color: '#FFFFFF', fontWeight: '700' }]}>
+                    ${option.budgetPerPerson}/person
                   </Text>
-                )}
+                </View>
               </View>
             </View>
+          </View>
+        </ImageBackground>
+      </View>
+
+      {/* Body Content */}
+      <View style={styles.bodyContent}>
+        {/* Segmented Group Agreement Meter */}
+        <View style={styles.agreementRow}>
+          <Text style={[styles.agreementLabel, { color: theme.textSecondary }]}>
+            Group Agreement
+          </Text>
+          <Text style={[styles.agreementStatus, { color: consensusPercent >= 70 ? theme.success : theme.secondary }]}>
+            {consensusPercent >= 70 ? 'High' : consensusPercent >= 40 ? 'Moderate' : 'Low'} ({consensusPercent}%)
+          </Text>
+        </View>
+
+        <View style={styles.segmentedMeter}>
+          {Array.from({ length: 10 }).map((_, idx) => (
+            <View
+              key={idx}
+              style={[
+                styles.meterSegment,
+                {
+                  backgroundColor:
+                    idx < activeSegments
+                      ? theme.primary
+                      : theme.meterTrack
+                }
+              ]}
+            />
           ))}
         </View>
-      )}
+
+        {/* Reason Explainer */}
+        <View style={[styles.reasonBox, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}>
+          <Text style={[styles.reasonText, { color: theme.textSecondary }]}>
+            {plainEnglishReason}
+          </Text>
+        </View>
+
+        {/* Action Row: Silent Vote Heart + Expand Button */}
+        <View style={styles.actionRow}>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => onToggleVote(option.id)}
+            style={[
+              styles.voteBtn,
+              {
+                backgroundColor: isApprovedByUser ? theme.primaryLight : theme.surfaceSubtle,
+                borderColor: isApprovedByUser ? theme.primary : theme.border
+              }
+            ]}
+          >
+            <Heart
+              size={16}
+              color={isApprovedByUser ? theme.primary : theme.textMuted}
+              fill={isApprovedByUser ? theme.primary : 'none'}
+            />
+            <Text style={[styles.voteBtnText, { color: isApprovedByUser ? theme.primary : theme.textSecondary }]}>
+              {approvalCount} {approvalCount === 1 ? 'Vote' : 'Votes'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => setIsExpanded(!isExpanded)}
+            style={[styles.expandBtn, { borderColor: theme.border }]}
+          >
+            <Text style={[styles.expandBtnText, { color: theme.textSecondary }]}>
+              {isExpanded ? 'Hide Details' : 'View Breakdown'}
+            </Text>
+            {isExpanded ? (
+              <ChevronUp size={14} color={theme.textSecondary} />
+            ) : (
+              <ChevronDown size={14} color={theme.textSecondary} />
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {/* Expanded Member Breakdowns */}
+        {isExpanded && (
+          <View style={[styles.breakdownContainer, { borderTopColor: theme.border }]}>
+            <Text style={[styles.breakdownHeading, { color: theme.textPrimary }]}>
+              Individual Traveler Compatibility
+            </Text>
+
+            {memberBreakdowns.map((mb, idx) => (
+              <View
+                key={mb.memberId || idx}
+                style={[
+                  styles.memberRow,
+                  { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }
+                ]}
+              >
+                <View style={styles.memberLeft}>
+                  <View style={[styles.memberAvatar, { backgroundColor: theme.primaryLight }]}>
+                    <Text style={[styles.memberAvatarText, { color: theme.textPrimary }]}>
+                      {(mb.memberName || 'M').charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                  <View>
+                    <Text style={[styles.memberName, { color: theme.textPrimary }]}>
+                      {mb.memberName}
+                    </Text>
+                    <Text style={[styles.memberScoreBreakdown, { color: theme.textSecondary }]}>
+                      Dates {mb.dateScore}% • Budget {mb.budgetScore}% • Tags {mb.tagScore}%
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.memberRight}>
+                  {mb.dealbreakerTriggered ? (
+                    <View style={styles.dealbreakerPill}>
+                      <XCircle size={12} color="#EF4444" />
+                      <Text style={styles.dealbreakerPillText}>VETO</Text>
+                    </View>
+                  ) : (
+                    <Text style={[styles.memberScorePill, { color: theme.success }]}>
+                      {mb.totalScore}%
+                    </Text>
+                  )}
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+      </View>
     </View>
   );
 };
@@ -264,207 +260,231 @@ export const RankedOptionCard: React.FC<RankedOptionCardProps> = ({
 const styles = StyleSheet.create({
   card: {
     borderRadius: radius.card,
-    padding: 20,
+    borderWidth: 1,
+    overflow: 'hidden',
     marginBottom: 16
   },
-  header: {
-    flexDirection: 'row',
+  imageWrapper: {
+    width: '100%',
+    height: 135
+  },
+  imageBackground: {
+    width: '100%',
+    height: '100%'
+  },
+  imageStyle: {
+    borderTopLeftRadius: radius.card - 1,
+    borderTopRightRadius: radius.card - 1
+  },
+  scrimOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10
+    padding: 12
   },
-  rankContainer: {
+  imageTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8
+    justifyContent: 'space-between'
   },
-  winnerBadge: {
+  topPickBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: radius.pill
   },
-  winnerText: {
+  topPickBadgeText: {
     color: '#FFFFFF',
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '800',
-    letterSpacing: 0.6
+    letterSpacing: 0.8
   },
-  rankBadge: {
+  rankPill: {
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: radius.pill,
-    borderWidth: 1
+    borderRadius: radius.pill
   },
-  rankText: {
+  rankPillText: {
+    color: '#FFFFFF',
     fontSize: 11,
     fontWeight: '800'
   },
-  destinationType: {
-    fontSize: 12,
-    fontWeight: '500'
-  },
-  voteButton: {
+  matchBadge: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: radius.pill,
-    borderWidth: 1
-  },
-  voteCount: {
-    fontSize: 12,
-    fontWeight: '700'
-  },
-  title: {
-    fontSize: 19,
-    fontWeight: '800',
-    marginBottom: 4,
-    letterSpacing: -0.3
-  },
-  description: {
-    fontSize: 13,
-    lineHeight: 18,
-    marginBottom: 12
-  },
-  metaRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 16,
-    marginBottom: 12
-  },
-  metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5
-  },
-  metaText: {
-    fontSize: 12
-  },
-  tagsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 14
-  },
-  tagPill: {
+    alignItems: 'baseline',
+    gap: 3,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: radius.sm,
-    borderWidth: 1
+    borderRadius: radius.pill
   },
-  tagText: {
+  matchPercentText: {
+    fontSize: 12,
+    fontWeight: '800'
+  },
+  matchLabelText: {
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.5
+  },
+  imageBottomRow: {
+    gap: 2
+  },
+  imageTitleText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: -0.3
+  },
+  imageSubRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6
+  },
+  imageMetaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4
+  },
+  imageMetaText: {
+    color: '#E2E8F0',
     fontSize: 11,
-    fontWeight: '600'
+    fontWeight: '500'
   },
-  scoreBox: {
-    padding: 12,
-    borderRadius: radius.md,
-    marginBottom: 10,
-    borderWidth: 1
+  imageDot: {
+    color: '#94A3B8',
+    fontSize: 10
   },
-  scoreRow: {
+  bodyContent: {
+    padding: 14
+  },
+  agreementRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 6
   },
-  scoreLabel: {
+  agreementLabel: {
     fontSize: 12,
     fontWeight: '600'
   },
-  scoreValue: {
-    fontSize: 19,
-    fontWeight: '900'
+  agreementStatus: {
+    fontSize: 12,
+    fontWeight: '800'
+  },
+  segmentedMeter: {
+    flexDirection: 'row',
+    gap: 4,
+    marginBottom: 12
+  },
+  meterSegment: {
+    flex: 1,
+    height: 6,
+    borderRadius: 3
   },
   reasonBox: {
-    padding: 12,
+    padding: 10,
     borderRadius: radius.md,
-    marginBottom: 10,
-    borderWidth: 1
-  },
-  reasonHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    marginBottom: 4
-  },
-  reasonTitle: {
-    fontSize: 11,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5
+    borderWidth: 1,
+    marginBottom: 12
   },
   reasonText: {
     fontSize: 12,
-    lineHeight: 17,
-    fontWeight: '500'
+    lineHeight: 16
   },
-  warningBanner: {
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10
+  },
+  voteBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    padding: 10,
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    marginBottom: 10
-  },
-  warningText: {
-    fontSize: 11,
-    fontWeight: '700',
-    flex: 1
-  },
-  expandToggle: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingHorizontal: 12,
     paddingVertical: 8,
-    gap: 4
+    borderRadius: radius.pill,
+    borderWidth: 1
   },
-  expandText: {
+  voteBtnText: {
     fontSize: 12,
     fontWeight: '700'
   },
-  breakdownContainer: {
-    marginTop: 8,
-    paddingTop: 10,
-    borderTopWidth: 1
+  expandBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: radius.pill,
+    borderWidth: 1
   },
-  breakdownTitle: {
+  expandBtnText: {
     fontSize: 11,
+    fontWeight: '600'
+  },
+  breakdownContainer: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    gap: 6
+  },
+  breakdownHeading: {
+    fontSize: 12,
     fontWeight: '700',
-    marginBottom: 8,
-    textTransform: 'uppercase'
+    marginBottom: 4
   },
   memberRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 4
+    padding: 8,
+    borderRadius: radius.sm,
+    borderWidth: 1
   },
-  memberNameCol: {
+  memberLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    width: 85
+    gap: 8,
+    flex: 1
+  },
+  memberAvatar: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  memberAvatarText: {
+    fontSize: 10,
+    fontWeight: '800'
   },
   memberName: {
     fontSize: 12,
     fontWeight: '700'
   },
-  memberScoreCol: {
-    flex: 1,
-    alignItems: 'flex-end'
+  memberScoreBreakdown: {
+    fontSize: 10
   },
-  memberScoreDetails: {
-    fontSize: 11,
-    fontWeight: '500'
+  memberRight: {},
+  dealbreakerPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    backgroundColor: '#FEE2E2',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: radius.pill
   },
-  dealbreakerAlert: {
-    fontSize: 11,
+  dealbreakerPillText: {
+    color: '#EF4444',
+    fontSize: 9,
+    fontWeight: '800'
+  },
+  memberScorePill: {
+    fontSize: 12,
     fontWeight: '800'
   }
 });

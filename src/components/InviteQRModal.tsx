@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { colors, radius, shadows } from '../theme/colors';
 import { QrCode, X, Copy, Check, Share2, Compass, ShieldCheck } from 'lucide-react-native';
+import * as Clipboard from 'expo-clipboard';
 
 interface InviteQRModalProps {
   visible: boolean;
@@ -30,25 +31,19 @@ export const InviteQRModal: React.FC<InviteQRModalProps> = ({
   const theme = isDarkMode ? colors.dark : colors.light;
   const [copied, setCopied] = useState(false);
 
-  const inviteLink = `https://pact.app/invite/${inviteCode}`;
-  const shareText = `🌴 You're invited to join "${groupName}" on PACT!\n\nJoin privately to submit your dates, budget, and tags:\n👉 Code: ${inviteCode}\n👉 Link: ${inviteLink}`;
+  const inviteLink = `pact://invite/${inviteCode}`;
+  const shareText = `ðŸŒ´ You're invited to join "${groupName}" on PACT!\n\nJoin privately to submit your dates, budget, and tags:\nðŸ‘‰ Code: ${inviteCode}\nðŸ‘‰ Link: ${inviteLink}`;
 
   const handleCopyLink = async () => {
-    if (Platform.OS === 'web') {
+    try {
+      await Clipboard.setStringAsync(inviteCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch (e) {
+      // Fallback to native share
       try {
-        await navigator.clipboard.writeText(inviteLink);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2500);
-      } catch (e) {
-        alert(inviteLink);
-      }
-    } else {
-      try {
-        await Share.share({
-          message: shareText,
-          title: `Invite to ${groupName}`
-        });
-      } catch (e) {}
+        await Share.share({ message: shareText, title: `Invite to ${groupName}` });
+      } catch (_) {}
     }
   };
 

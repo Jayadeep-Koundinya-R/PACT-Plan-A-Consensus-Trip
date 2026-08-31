@@ -5,12 +5,16 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  SafeAreaView
+  SafeAreaView,
+  Share
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as Clipboard from 'expo-clipboard';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
 import { StepProgressBar } from '../../../src/components/StepProgressBar';
 import { BottomTabBar } from '../../../src/components/BottomTabBar';
+import { ConsensusMatrix } from '../../../src/components/ConsensusMatrix';
+import { BottlenecksSection } from '../../../src/components/BottlenecksSection';
 import { NudgeModal } from '../../../src/components/NudgeModal';
 import { InviteQRModal } from '../../../src/components/InviteQRModal';
 import { colors, radius, shadows } from '../../../src/theme/colors';
@@ -26,7 +30,9 @@ import {
   ChevronRight,
   QrCode,
   BellRing,
-  Award
+  Award,
+  Lock,
+  Share2
 } from 'lucide-react-native';
 
 export default function GroupDetailScreen() {
@@ -50,10 +56,10 @@ export default function GroupDetailScreen() {
 
   const currentUser = members.find((m) => m.userId === currentUserId) || members[0];
   const isOrganizer = currentGroup.organizerId === currentUserId;
-  const userHasSubmitted = members.some((m) => m.userId === currentUserId);
+  const userHasSubmitted = members.some((m) => m.userId === currentUserId && Boolean(m.submittedAt));
 
   const pendingMembers = members.filter((m) => !m.submittedAt);
-  const pendingNames = pendingMembers.map((m) => m.userName);
+  const pendingNames = pendingMembers.map((m) => m.name);
 
   const currentStepNumber =
     currentGroup.status === 'finalized'
@@ -64,10 +70,35 @@ export default function GroupDetailScreen() {
       ? 2
       : 1;
 
-  const handleCopyCode = () => {
+  const topOption = consensus.winningOption || consensus.rankedOptions[0];
+
+  const handleCopyCode = async () => {
+    try {
+      await Clipboard.setStringAsync(currentGroup.inviteCode);
+    } catch (e) {}
     setCopiedCode(true);
     setTimeout(() => setCopiedCode(false), 2000);
   };
+
+  const handleShareInvite = async () => {
+    const deepLink = `pact://invite/${currentGroup.inviteCode}`;
+    const shareText = `You're invited to join "${currentGroup.name}" on PACT!\n\nCode: ${currentGroup.inviteCode}\nLink: ${deepLink}`;
+    try {
+      await Share.share({ message: shareText, title: `Invite to ${currentGroup.name}` });
+    } catch (e) {}
+  };
+
+  // Bottleneck issues
+  const bottleneckIssues = [];
+  if (consensus.deadlocks && consensus.deadlocks.length > 0) {
+    consensus.deadlocks.forEach((d) => {
+      bottleneckIssues.push({
+        type: (d.type === 'budget' ? 'budget' : d.type === 'dates' ? 'dates' : 'dealbreaker') as 'budget' | 'dates' | 'dealbreaker',
+        title: d.type === 'budget' ? 'Budget Gap Detected' : d.type === 'dates' ? 'Date Conflict Detected' : 'Dealbreaker Flagged',
+        description: d.description
+      });
+    });
+  }
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
@@ -103,11 +134,21 @@ export default function GroupDetailScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Hero Status Card */}
+        {/* 1. Consensus Matrix Card */}
+        <ConsensusMatrix
+          destinationTitle={topOption?.option.name || 'Trip Circle'}
+          members={members}
+          totalMembersCount={currentGroup.totalMembersCount || members.length}
+          isOrganizer={isOrganizer}
+          isDarkMode={isDarkMode}
+          onNudge={() => setShowNudgeModal(true)}
+        />
+
+        {/* Invite Code & Share Card */}
         <View
           style={[
             styles.inviteCard,
-            { backgroundColor: theme.surface, borderColor: theme.glassBorder },
+            { backgroundColor: theme.surface, borderColor: theme.border },
             shadows.md
           ]}
         >
@@ -152,6 +193,14 @@ export default function GroupDetailScreen() {
             </Text>
             <View style={styles.codeActions}>
               <TouchableOpacity
+                onPress={handleShareInvite}
+                activeOpacity={0.7}
+                style={[styles.iconActionBtn, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
+              >
+                <Share2 size={16} color={theme.textPrimary} />
+              </TouchableOpacity>
+
+              <TouchableOpacity
                 onPress={() => setShowQRModal(true)}
                 activeOpacity={0.7}
                 style={[styles.iconActionBtn, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
@@ -169,193 +218,98 @@ export default function GroupDetailScreen() {
                 ) : (
                   <Copy size={16} color={theme.textSecondary} />
                 )}
-                <Text style={[styles.copyCodeText, { color: theme.textSecondary }]}>
-                  {copiedCode ? 'Copied!' : 'Copy'}
+                <Text
+                  style={[
+                    styles.copyCodeText,
+                    { color: copiedCode ? theme.success : theme.textPrimary }
+                  ]}
+                >
+                  {copiedCode ? 'Copied' : 'Copy'}
                 </Text>
               </TouchableOpacity>
             </View>
           </View>
-
-          <Text style={[styles.inviteHint, { color: theme.textSecondary }]}>
-            Share this code with friends so they can submit their private dates, budget, and dealbreakers.
-          </Text>
         </View>
 
-        {/* Action Navigation Tiles */}
-        <View style={styles.actionsGrid}>
-          {/* Step 1: Preferences */}
+        {/* 2. Bottlenecks Section if any */}
+        <BottlenecksSection
+          issues={bottleneckIssues}
+          isDarkMode={isDarkMode}
+          onResolve={() => router.push(`/groups/${currentGroup.id}/options`)}
+        />
+
+        {/* Action Center Buttons */}
+        <View style={styles.actionCenter}>
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => router.push(`/groups/${currentGroup.id}/preferences`)}
             style={[
-              styles.actionTile,
-              { backgroundColor: theme.surface, borderColor: theme.glassBorder },
+              styles.actionCard,
+              { backgroundColor: theme.surface, borderColor: theme.border },
               shadows.sm
             ]}
           >
-            <View style={[styles.tileIconCircle, { backgroundColor: theme.secondaryLight }]}>
-              <Sliders size={20} color={theme.secondary} />
+            <View style={[styles.actionIconCircle, { backgroundColor: theme.primaryLight }]}>
+              <Sliders size={20} color={theme.primary} />
             </View>
-            <View style={styles.tileTextCol}>
-              <Text style={[styles.tileTitle, { color: theme.textPrimary }]}>
-                1. Private Constraints
+            <View style={styles.actionTextCol}>
+              <Text style={[styles.actionCardTitle, { color: theme.textPrimary }]}>
+                {userHasSubmitted ? 'Edit My Constraints' : 'Submit My Constraints'}
               </Text>
-              <Text style={[styles.tileSub, { color: theme.textSecondary }]}>
-                {userHasSubmitted ? 'Dates, budget & tags submitted' : 'Not submitted yet'}
+              <Text style={[styles.actionCardSub, { color: theme.textSecondary }]}>
+                {userHasSubmitted
+                  ? 'Update your dates, budget, and tags privately'
+                  : 'Share your private availability & preferences'}
               </Text>
             </View>
-            <ChevronRight size={18} color={theme.textMuted} />
+            <ChevronRight size={18} color={theme.textSecondary} />
           </TouchableOpacity>
 
-          {/* Step 2: Ranked Options */}
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => router.push(`/groups/${currentGroup.id}/options`)}
             style={[
-              styles.actionTile,
-              { backgroundColor: theme.surface, borderColor: theme.glassBorder },
+              styles.actionCard,
+              { backgroundColor: theme.surface, borderColor: theme.border },
               shadows.sm
             ]}
           >
-            <View style={[styles.tileIconCircle, { backgroundColor: theme.primaryLight }]}>
-              <Sparkles size={20} color={theme.primary} />
+            <View style={[styles.actionIconCircle, { backgroundColor: theme.secondaryLight }]}>
+              <Sparkles size={20} color={theme.secondary} />
             </View>
-            <View style={styles.tileTextCol}>
-              <Text style={[styles.tileTitle, { color: theme.textPrimary }]}>
-                2. Ranked Options
+            <View style={styles.actionTextCol}>
+              <Text style={[styles.actionCardTitle, { color: theme.textPrimary }]}>
+                View Ranked Options
               </Text>
-              <Text style={[styles.tileSub, { color: theme.textSecondary }]}>
-                Deterministic scoring & plain-English reasons
+              <Text style={[styles.actionCardSub, { color: theme.textSecondary }]}>
+                See deterministic scores & top matches
               </Text>
             </View>
-            <ChevronRight size={18} color={theme.textMuted} />
+            <ChevronRight size={18} color={theme.textSecondary} />
           </TouchableOpacity>
 
-          {/* Step 3: Silent Voting */}
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => router.push(`/groups/${currentGroup.id}/vote`)}
             style={[
-              styles.actionTile,
-              { backgroundColor: theme.surface, borderColor: theme.glassBorder },
+              styles.actionCard,
+              { backgroundColor: theme.surfaceElevated, borderColor: theme.border },
               shadows.sm
             ]}
           >
-            <View style={[styles.tileIconCircle, { backgroundColor: theme.successLight }]}>
-              <Vote size={20} color={theme.success} />
+            <View style={[styles.actionIconCircle, { backgroundColor: theme.primaryLight }]}>
+              <Lock size={20} color={theme.primary} />
             </View>
-            <View style={styles.tileTextCol}>
-              <Text style={[styles.tileTitle, { color: theme.textPrimary }]}>
-                3. Silent Vote & Consensus
+            <View style={styles.actionTextCol}>
+              <Text style={[styles.actionCardTitle, { color: theme.textPrimary }]}>
+                Voting & Lock It In
               </Text>
-              <Text style={[styles.tileSub, { color: theme.textSecondary }]}>
-                {consensus.winningOption
-                  ? `Consensus: ${consensus.winningOption.consensusPercent}%`
-                  : 'Voting active'}
+              <Text style={[styles.actionCardSub, { color: theme.textSecondary }]}>
+                Cast silent approval votes & finalize trip
               </Text>
             </View>
-            <ChevronRight size={18} color={theme.textMuted} />
+            <ChevronRight size={18} color={theme.textSecondary} />
           </TouchableOpacity>
-
-          {/* Step 4: Trip Brief */}
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => router.push(`/groups/${currentGroup.id}/brief`)}
-            style={[
-              styles.actionTile,
-              { backgroundColor: theme.surface, borderColor: theme.glassBorder },
-              shadows.sm
-            ]}
-          >
-            <View style={[styles.tileIconCircle, { backgroundColor: theme.secondaryLight }]}>
-              <Award size={20} color={theme.secondary} />
-            </View>
-            <View style={styles.tileTextCol}>
-              <Text style={[styles.tileTitle, { color: theme.textPrimary }]}>
-                4. Confirmed Trip Brief
-              </Text>
-              <Text style={[styles.tileSub, { color: theme.textSecondary }]}>
-                Boarding pass summary & social share
-              </Text>
-            </View>
-            <ChevronRight size={18} color={theme.textMuted} />
-          </TouchableOpacity>
-        </View>
-
-        {/* Member Roster with Status Rings */}
-        <View style={styles.rosterSection}>
-          <View style={styles.rosterHeader}>
-            <View style={styles.rosterHeaderLeft}>
-              <Users size={18} color={theme.textPrimary} />
-              <Text style={[styles.rosterTitle, { color: theme.textPrimary }]}>
-                Circle Members ({members.length}/{currentGroup.totalMembersCount})
-              </Text>
-            </View>
-
-            <TouchableOpacity
-              onPress={() => setShowNudgeModal(true)}
-              style={[styles.nudgeBtn, { backgroundColor: theme.secondaryLight }]}
-            >
-              <BellRing size={13} color={theme.secondary} />
-              <Text style={[styles.nudgeBtnText, { color: theme.secondary }]}>
-                Nudge Friends
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.membersList}>
-            {members.map((m) => {
-              const isSelf = m.userId === currentUserId;
-              const isGroupOrganizer = m.userId === currentGroup.organizerId;
-
-              return (
-                <View
-                  key={m.userId}
-                  style={[
-                    styles.memberCard,
-                    { backgroundColor: theme.surface, borderColor: theme.glassBorder },
-                    shadows.sm
-                  ]}
-                >
-                  {/* Avatar with Status Ring */}
-                  <View
-                    style={[
-                      styles.avatarRing,
-                      { borderColor: m.submittedAt ? theme.success : theme.warning }
-                    ]}
-                  >
-                    <View style={[styles.memberAvatar, { backgroundColor: theme.primaryLight }]}>
-                      <Text style={[styles.memberAvatarText, { color: theme.primaryDark }]}>
-                        {m.userName.charAt(0)}
-                      </Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.memberInfo}>
-                    <View style={styles.memberNameRow}>
-                      <Text style={[styles.memberNameText, { color: theme.textPrimary }]}>
-                        {m.userName} {isSelf ? '(You)' : ''}
-                      </Text>
-                      {isGroupOrganizer && (
-                        <View style={[styles.roleBadge, { backgroundColor: theme.secondaryLight }]}>
-                          <Text style={[styles.roleBadgeText, { color: theme.secondary }]}>
-                            Organizer
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                    <Text style={[styles.memberMetaText, { color: theme.textSecondary }]}>
-                      {m.submittedAt ? 'Preferences submitted' : 'Pending submission'} • {m.tags.length} tags selected
-                    </Text>
-                  </View>
-
-                  <View style={styles.submittedBadge}>
-                    <CheckCircle2 size={16} color={m.submittedAt ? theme.success : theme.warning} />
-                  </View>
-                </View>
-              );
-            })}
-          </View>
         </View>
       </ScrollView>
 
@@ -371,14 +325,11 @@ export default function GroupDetailScreen() {
         onClose={() => setShowQRModal(false)}
       />
 
-      {/* Soft Reminder Nudge Modal */}
+      {/* Nudge Modal */}
       <NudgeModal
         visible={showNudgeModal}
         groupName={currentGroup.name}
-        inviteCode={currentGroup.inviteCode}
-        respondedCount={members.length}
-        totalCount={currentGroup.totalMembersCount}
-        pendingMemberNames={pendingNames}
+        pendingMembers={pendingNames}
         isDarkMode={isDarkMode}
         onClose={() => setShowNudgeModal(false)}
       />
@@ -401,7 +352,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginVertical: 14
+    marginVertical: 12
   },
   backBtn: {
     width: 38,
@@ -412,11 +363,12 @@ const styles = StyleSheet.create({
     borderWidth: 1
   },
   navTitle: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '800',
     flex: 1,
     textAlign: 'center',
-    marginHorizontal: 12
+    marginHorizontal: 12,
+    letterSpacing: -0.3
   },
   qrHeaderBtn: {
     width: 38,
@@ -450,18 +402,18 @@ const styles = StyleSheet.create({
   },
   statusTagText: {
     fontSize: 10,
-    fontWeight: '800'
+    fontWeight: '800',
+    letterSpacing: 0.5
   },
   codeRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginVertical: 6
+    alignItems: 'center'
   },
   codeText: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: '900',
-    letterSpacing: 2
+    letterSpacing: 1.5
   },
   codeActions: {
     flexDirection: 'row',
@@ -469,9 +421,9 @@ const styles = StyleSheet.create({
     gap: 6
   },
   iconActionBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: radius.pill,
+    width: 38,
+    height: 38,
+    borderRadius: radius.md,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1
@@ -481,132 +433,42 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: radius.pill,
+    paddingVertical: 9,
+    borderRadius: radius.md,
     borderWidth: 1
   },
   copyCodeText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '700'
   },
-  inviteHint: {
-    fontSize: 12,
-    marginTop: 6,
-    lineHeight: 16
-  },
-  actionsGrid: {
+  actionCenter: {
     gap: 10,
-    marginBottom: 20
+    marginTop: 8
   },
-  actionTile: {
+  actionCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 14,
+    padding: 16,
     borderRadius: radius.card,
     borderWidth: 1,
     gap: 12
   },
-  tileIconCircle: {
+  actionIconCircle: {
     width: 42,
     height: 42,
     borderRadius: 21,
     justifyContent: 'center',
     alignItems: 'center'
   },
-  tileTextCol: {
+  actionTextCol: {
     flex: 1
   },
-  tileTitle: {
+  actionCardTitle: {
     fontSize: 15,
-    fontWeight: '700'
+    fontWeight: '800',
+    marginBottom: 2
   },
-  tileSub: {
-    fontSize: 12,
-    marginTop: 2
-  },
-  rosterSection: {
-    marginTop: 4
-  },
-  rosterHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12
-  },
-  rosterHeaderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8
-  },
-  rosterTitle: {
-    fontSize: 15,
-    fontWeight: '700'
-  },
-  nudgeBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: radius.pill
-  },
-  nudgeBtnText: {
-    fontSize: 11,
-    fontWeight: '700'
-  },
-  membersList: {
-    gap: 8
-  },
-  memberCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    gap: 12
-  },
-  avatarRing: {
-    borderWidth: 2,
-    borderRadius: 20,
-    padding: 2
-  },
-  memberAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  memberAvatarText: {
-    fontSize: 13,
-    fontWeight: '800'
-  },
-  memberInfo: {
-    flex: 1
-  },
-  memberNameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6
-  },
-  memberNameText: {
-    fontSize: 14,
-    fontWeight: '700'
-  },
-  roleBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: radius.pill
-  },
-  roleBadgeText: {
-    fontSize: 9,
-    fontWeight: '800'
-  },
-  memberMetaText: {
-    fontSize: 11,
-    marginTop: 2
-  },
-  submittedBadge: {
-    padding: 4
+  actionCardSub: {
+    fontSize: 12
   }
 });

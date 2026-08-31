@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,8 @@ import {
 import { useRouter } from 'expo-router';
 import { useGatherlyStore } from '../src/store/useGatherlyStore';
 import { RankedOptionCard } from '../src/components/RankedOptionCard';
+import { ConsensusMatrix } from '../src/components/ConsensusMatrix';
+import { BottlenecksSection } from '../src/components/BottlenecksSection';
 import { TripBriefModal } from '../src/components/TripBriefModal';
 import { BottomTabBar } from '../src/components/BottomTabBar';
 import { ThemeToggle } from '../src/components/ThemeToggle';
@@ -33,20 +35,28 @@ import {
   Crown,
   ChevronRight,
   ShieldCheck,
-  X
+  X,
+  LogOut,
+  Lock,
+  Layers
 } from 'lucide-react-native';
 
-export default function HomeScreen() {
+export default function DashboardScreen() {
   const router = useRouter();
   const {
     isDarkMode,
     currentUserId,
+    userEmail,
+    userName,
     setCurrentUser,
+    initAuthSession,
+    logout,
     groups,
-    createGroup,
     activeGroupId,
     setActiveGroup,
     members,
+    tripOptions,
+    createGroup,
     getConsensusResults,
     votes,
     castVote,
@@ -64,6 +74,11 @@ export default function HomeScreen() {
   const [demoScriptVisible, setDemoScriptVisible] = useState(false);
   const [feedbackVisible, setFeedbackVisible] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
+
+  useEffect(() => {
+    initAuthSession();
+  }, []);
 
   const theme = isDarkMode ? colors.dark : colors.light;
   const currentGroup = groups.find((g) => g.id === activeGroupId) || groups[0];
@@ -71,6 +86,8 @@ export default function HomeScreen() {
   const currentUser = members.find((m) => m.userId === currentUserId) || members[0];
   const isOrganizer = currentGroup.organizerId === currentUserId;
   const isPro = subscriptionPlan !== 'free';
+
+  const topOption = consensus.winningOption || consensus.rankedOptions[0];
 
   const handleCopyCode = () => {
     setCopiedCode(true);
@@ -93,18 +110,44 @@ export default function HomeScreen() {
     }
   };
 
-  const handleCreateGroup = () => {
+  const handleCreateGroup = async () => {
     if (!newGroupName.trim()) return;
-    if (!isPro && groups.length >= 1) {
+    if (!isPro && groups.length >= 1 && currentUserId.startsWith('user-')) {
       setCreateModalVisible(false);
       router.push('/paywall');
       return;
     }
-    const group = createGroup(newGroupName.trim());
-    setNewGroupName('');
-    setCreateModalVisible(false);
-    router.push(`/groups/${group.id}`);
+    setIsCreating(true);
+    try {
+      const group = await createGroup(newGroupName.trim());
+      setNewGroupName('');
+      setCreateModalVisible(false);
+      router.push(`/groups/${group.id}`);
+    } catch (err: any) {
+      alert(err?.message || 'Error creating group');
+    } finally {
+      setIsCreating(false);
+    }
   };
+
+  // Bottlenecks list
+  const bottleneckIssues = [];
+  if (consensus.deadlocks && consensus.deadlocks.length > 0) {
+    consensus.deadlocks.forEach((d) => {
+      bottleneckIssues.push({
+        type: (d.type === 'budget' ? 'budget' : d.type === 'dates' ? 'dates' : 'dealbreaker') as 'budget' | 'dates' | 'dealbreaker',
+        title: d.type === 'budget' ? 'Budget Gap Detected' : d.type === 'dates' ? 'Date Conflict Detected' : 'Dealbreaker Flagged',
+        description: d.description
+      });
+    });
+  } else if (consensus.rankedOptions.some((o) => o.budgetGapFlag)) {
+    const affected = members.filter((m) => m.budgetMax < 700).map((m) => m.name);
+    bottleneckIssues.push({
+      type: 'budget' as const,
+      title: 'Budget Gap Detected',
+      description: `${affected.join(' and ') || 'Some travelers'} prefer $650, while the rest are okay with $900.`
+    });
+  }
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
@@ -112,7 +155,7 @@ export default function HomeScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header: Brand Logo + ThemeToggle + Pro Badge + Tour */}
+        {/* Navigation / Header */}
         <View style={styles.navBar}>
           <View style={styles.brandRow}>
             <View
@@ -135,317 +178,192 @@ export default function HomeScreen() {
           </View>
 
           <View style={styles.navActions}>
-            <TouchableOpacity
-              onPress={() => setDemoScriptVisible(true)}
-              style={[
-                styles.tourPill,
-                {
-                  backgroundColor: theme.secondaryLight,
-                  borderColor: theme.secondary
-                }
-              ]}
-            >
-              <Text style={[styles.tourPillText, { color: theme.secondary }]}>
-                🎬 PITCH
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => setDemoTourVisible(true)}
-              style={[
-                styles.tourPill,
-                {
-                  backgroundColor: theme.primaryLight,
-                  borderColor: theme.primary
-                }
-              ]}
-            >
-              <Sparkles size={13} color={theme.primary} />
-              <Text style={[styles.tourPillText, { color: theme.primary }]}>
-                TOUR
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => router.push('/paywall')}
-              style={[
-                styles.proPill,
-                {
-                  backgroundColor: isPro ? theme.secondaryLight : theme.surfaceElevated,
-                  borderColor: isPro ? theme.secondary : theme.border
-                }
-              ]}
-            >
-              <Crown size={14} color={isPro ? theme.secondary : theme.textSecondary} />
-              <Text
+            {userEmail ? (
+              <TouchableOpacity
+                onPress={() => {
+                  logout();
+                  router.replace('/auth');
+                }}
                 style={[
-                  styles.proPillText,
-                  { color: isPro ? theme.secondary : theme.textSecondary }
+                  styles.iconButton,
+                  { backgroundColor: theme.surfaceElevated, borderColor: theme.border }
                 ]}
+                title="Log Out"
               >
-                {isPro ? 'PRO' : 'UPGRADE'}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => setFeedbackVisible(true)}
-              style={[
-                styles.iconButton,
-                {
-                  backgroundColor: theme.surfaceElevated,
-                  borderColor: theme.border
-                }
-              ]}
-              title="Organizer Feedback"
-            >
-              <Users size={15} color={theme.textSecondary} />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={resetDemoState}
-              style={[
-                styles.iconButton,
-                {
-                  backgroundColor: theme.surfaceElevated,
-                  borderColor: theme.border
-                }
-              ]}
-              title="Reset Demo State"
-            >
-              <RotateCcw size={15} color={theme.textSecondary} />
-            </TouchableOpacity>
+                <LogOut size={15} color={theme.danger || '#EF4444'} />
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                onPress={() => router.push('/auth')}
+                style={[
+                  styles.iconButton,
+                  { backgroundColor: theme.surfaceElevated, borderColor: theme.border }
+                ]}
+                title="Sign In"
+              >
+                <Users size={15} color={theme.textSecondary} />
+              </TouchableOpacity>
+            )}
 
             <ThemeToggle />
           </View>
         </View>
 
-        {/* Multi-Scenario Edge-Case Engine Switcher */}
-        <ScenarioSwitcher />
-
-        {/* Section: Active Circles Cards */}
+        {/* Section: Spaces / Circles */}
         <View style={styles.circlesSection}>
           <View style={styles.sectionTitleRow}>
             <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>
-              Active Trip Circles ({groups.length})
+              Spaces
             </Text>
             <TouchableOpacity
               onPress={() => setCreateModalVisible(true)}
-              style={styles.newCircleLink}
+              style={[styles.plusCircleBtn, { backgroundColor: isDarkMode ? '#341D12' : '#FDE8DC' }]}
             >
-              <Plus size={14} color={theme.primary} />
-              <Text style={[styles.newCircleLinkText, { color: theme.primary }]}>
-                New Circle
-              </Text>
+              <Plus size={16} color={theme.primary} />
             </TouchableOpacity>
           </View>
 
           {groups.map((grp) => {
             const isSelected = grp.id === activeGroupId;
-            const statusDotColor =
-              grp.status === 'finalized'
-                ? theme.success
-                : grp.status === 'voting'
-                ? theme.primary
-                : theme.warning;
 
             return (
               <TouchableOpacity
                 key={grp.id}
-                activeOpacity={0.7}
+                activeOpacity={0.8}
                 onPress={() => {
                   setActiveGroup(grp.id);
                   router.push(`/groups/${grp.id}`);
                 }}
                 style={[
                   styles.circleCard,
-                  {
-                    backgroundColor: theme.surface,
-                    borderColor: isSelected ? theme.primary : theme.glassBorder,
-                    borderWidth: isSelected ? 2 : 1
-                  },
+                  isSelected
+                    ? { backgroundColor: theme.primary, borderColor: theme.primary }
+                    : { backgroundColor: theme.surfaceElevated, borderColor: theme.border },
                   shadows.md
                 ]}
               >
-                <View style={styles.circleTopRow}>
-                  <View style={styles.circleTitleCol}>
-                    <View style={styles.circleHeaderRow}>
-                      <View style={[styles.statusDot, { backgroundColor: statusDotColor }]} />
-                      <Text style={[styles.circleName, { color: theme.textPrimary }]}>
-                        {grp.name}
-                      </Text>
-                    </View>
-                    <Text style={[styles.circleSub, { color: theme.textSecondary }]}>
-                      Code: <Text style={{ fontWeight: '800', color: theme.primary }}>{grp.inviteCode}</Text> • 5 of {grp.totalMembersCount} responded
-                    </Text>
-                  </View>
-
-                  <ChevronRight size={18} color={theme.textMuted} />
-                </View>
-
-                {/* Member Avatars Row */}
-                <View style={styles.avatarRosterRow}>
-                  <View style={styles.avatarsGroup}>
-                    {members.map((m) => (
-                      <View
-                        key={m.userId}
-                        style={[
-                          styles.avatarDot,
-                          {
-                            backgroundColor: theme.primaryLight,
-                            borderColor: theme.surface
-                          }
-                        ]}
-                      >
-                        <Text style={[styles.avatarDotText, { color: theme.primaryDark }]}>
-                          {m.userName.charAt(0)}
-                        </Text>
-                      </View>
-                    ))}
-                  </View>
-
+                <View style={styles.circleLeft}>
                   <View
                     style={[
-                      styles.circleStatusBadge,
-                      { backgroundColor: `${statusDotColor}20` }
+                      styles.circleIconBox,
+                      {
+                        backgroundColor: isSelected
+                          ? 'rgba(255,255,255,0.2)'
+                          : isDarkMode
+                          ? 'rgba(234, 88, 12, 0.15)'
+                          : '#FDEEE5'
+                      }
                     ]}
                   >
-                    <Text style={[styles.circleStatusBadgeText, { color: statusDotColor }]}>
-                      {grp.status.toUpperCase()}
+                    <Users size={18} color={isSelected ? '#FFFFFF' : theme.primary} />
+                  </View>
+
+                  <View style={styles.circleTextCol}>
+                    <Text
+                      style={[
+                        styles.circleName,
+                        { color: isSelected ? '#FFFFFF' : theme.textPrimary }
+                      ]}
+                    >
+                      {grp.name}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.circleSub,
+                        { color: isSelected ? 'rgba(255,255,255,0.8)' : theme.textSecondary }
+                      ]}
+                    >
+                      {grp.totalMembersCount || 5} members • Active now
                     </Text>
                   </View>
                 </View>
+
+                <ChevronRight
+                  size={18}
+                  color={isSelected ? '#FFFFFF' : theme.textMuted}
+                />
               </TouchableOpacity>
             );
           })}
         </View>
 
-        {/* Persona Simulation Switcher (Judging/Testing Tool) */}
-        <View
-          style={[
-            styles.personaBox,
-            { backgroundColor: theme.surface, borderColor: theme.glassBorder },
-            shadows.sm
-          ]}
-        >
-          <View style={styles.personaHeader}>
-            <ShieldCheck size={14} color={theme.primary} />
-            <Text style={[styles.personaLabel, { color: theme.textSecondary }]}>
-              SIMULATE PRIVATE VIEW AS:
-            </Text>
-          </View>
+        {/* 1. Consensus Matrix */}
+        <ConsensusMatrix
+          destinationTitle={topOption?.option.name || 'Trip Circle'}
+          members={members}
+          totalMembersCount={currentGroup.totalMembersCount || members.length}
+          isOrganizer={isOrganizer}
+          isDarkMode={isDarkMode}
+          onNudge={(name) => alert(`Nudge notification sent to ${name}!`)}
+        />
 
-          <View style={styles.personaGrid}>
-            {members.map((m) => (
-              <TouchableOpacity
-                key={m.userId}
-                onPress={() => setCurrentUser(m.userId)}
-                activeOpacity={0.7}
-                style={[
-                  styles.personaPill,
-                  {
-                    backgroundColor:
-                      m.userId === currentUserId ? theme.primary : theme.surfaceElevated,
-                    borderColor:
-                      m.userId === currentUserId ? theme.primary : theme.border
-                  }
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.personaText,
-                    {
-                      color:
-                        m.userId === currentUserId ? '#FFFFFF' : theme.textPrimary,
-                      fontWeight: m.userId === currentUserId ? '800' : '600'
-                    }
-                  ]}
-                >
-                  {m.userName} {m.userId === 'user-maya-001' ? '(Org)' : ''}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        {/* Engine Status Banner */}
-        {consensus.consensusReached ? (
-          <View
-            style={[
-              styles.statusBanner,
-              { backgroundColor: theme.successLight, borderColor: 'rgba(16, 185, 129, 0.3)' },
-              shadows.glowSuccess
-            ]}
-          >
-            <CheckCircle2 size={20} color={theme.success} />
-            <View style={styles.statusBannerTextCol}>
-              <Text style={[styles.statusBannerTitle, { color: theme.success }]}>
-                Consensus Unlocked! (100% Agreement)
-              </Text>
-              <Text style={[styles.statusBannerSub, { color: theme.textPrimary }]}>
-                "{consensus.winningOption?.option.name}" matches all constraints. Ready to finalize.
-              </Text>
-            </View>
-          </View>
-        ) : (
-          <View style={[styles.statusBanner, { backgroundColor: theme.warningLight, borderColor: theme.warning }]}>
-            <AlertCircle size={20} color={theme.warning} />
-            <View style={styles.statusBannerTextCol}>
-              <Text style={[styles.statusBannerTitle, { color: theme.warning }]}>
-                Deadlock Alert: {consensus.deadlockDiagnosis.diagnosisText}
-              </Text>
-            </View>
-          </View>
-        )}
-
-        {/* Section: Ranked Trip Options */}
+        {/* Section: Top Pick / Ranked Options */}
         <View style={styles.sectionHeader}>
-          <View>
-            <Text style={[styles.sectionHeading, { color: theme.textPrimary }]}>
-              Ranked Trip Options
-            </Text>
-            <Text style={[styles.sectionSubHeading, { color: theme.textSecondary }]}>
-              Deterministic Score: Date (35%) + Budget (35%) + Tags (25%)
-            </Text>
-          </View>
-
-          {isOrganizer && consensus.winningOption && (
-            <TouchableOpacity
-              onPress={handleFinalize}
-              activeOpacity={0.8}
-              style={[
-                styles.finalizeBtn,
-                { backgroundColor: theme.success },
-                shadows.glowSuccess
-              ]}
-            >
-              <Sparkles size={16} color="#FFFFFF" />
-              <Text style={styles.finalizeBtnText}>Finalize Trip</Text>
-            </TouchableOpacity>
+          <Text style={[styles.sectionHeading, { color: theme.textPrimary }]}>
+            Top Picks
+          </Text>
+          {consensus.consensusReached && (
+            <View style={[styles.unlockedTag, { backgroundColor: isDarkMode ? 'rgba(16, 185, 129, 0.2)' : '#D1FAE5' }]}>
+              <Text style={[styles.unlockedTagText, { color: theme.success }]}>
+                CONSENSUS UNLOCKED
+              </Text>
+            </View>
           )}
         </View>
 
-        {/* Option Cards List */}
-        {consensus.rankedOptions.map((scoredOption) => {
-          const isApproved = votes[`${scoredOption.option.id}_${currentUserId}`] === true;
-          const count = getOptionApprovalCount(scoredOption.option.id);
+        {/* Ranked Option Cards with Hero Photos */}
+        <View style={styles.cardsList}>
+          {consensus.rankedOptions.map((scoredOption) => {
+            const isApproved = votes[`${scoredOption.option.id}_${currentUserId}`] === true;
+            const count = getOptionApprovalCount(scoredOption.option.id);
 
-          return (
-            <RankedOptionCard
-              key={scoredOption.option.id}
-              scoredOption={scoredOption}
-              isDarkMode={isDarkMode}
-              isApprovedByUser={isApproved}
-              approvalCount={count}
-              onToggleVote={handleToggleVote}
-            />
-          );
-        })}
+            return (
+              <RankedOptionCard
+                key={scoredOption.option.id}
+                scoredOption={scoredOption}
+                isDarkMode={isDarkMode}
+                isApprovedByUser={isApproved}
+                approvalCount={count}
+                onToggleVote={handleToggleVote}
+              />
+            );
+          })}
+        </View>
+
+        {/* 2. Bottlenecks Section */}
+        <BottlenecksSection
+          issues={bottleneckIssues}
+          isDarkMode={isDarkMode}
+          onResolve={() => router.push(`/groups/${currentGroup.id}/options`)}
+        />
+
+        {/* Lock It In Action for Organizer */}
+        {isOrganizer && (
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={handleFinalize}
+            style={[styles.lockItInBtn, { backgroundColor: theme.primary }, shadows.glowPrimary]}
+          >
+            <Lock size={18} color="#FFFFFF" />
+            <Text style={styles.lockItInBtnText}>Lock It In</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
 
       {/* Floating Bottom Navigation Bar */}
       <BottomTabBar />
 
-      {/* Create New Group Modal */}
+      {/* Finalized Trip Brief Modal */}
+      {finalizedBrief && (
+        <TripBriefModal
+          visible={briefModalVisible}
+          brief={finalizedBrief}
+          isDarkMode={isDarkMode}
+          onClose={() => setBriefModalVisible(false)}
+        />
+      )}
+
+      {/* Create Circle Modal */}
       <Modal
         visible={createModalVisible}
         transparent={true}
@@ -455,86 +373,51 @@ export default function HomeScreen() {
         <View style={styles.modalOverlay}>
           <View
             style={[
-              styles.modalCard,
-              { backgroundColor: theme.surface, borderColor: theme.glassBorder },
+              styles.createModalCard,
+              { backgroundColor: theme.surface, borderColor: theme.border },
               shadows.lg
             ]}
           >
             <View style={styles.modalHeader}>
               <Text style={[styles.modalTitle, { color: theme.textPrimary }]}>
-                Create a Trip Circle
+                Create Trip Circle
               </Text>
               <TouchableOpacity onPress={() => setCreateModalVisible(false)}>
                 <X size={20} color={theme.textSecondary} />
               </TouchableOpacity>
             </View>
 
-            <Text style={[styles.modalSub, { color: theme.textSecondary }]}>
-              Give your trip group a name. We will generate a private shareable invite code.
+            <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
+              CIRCLE NAME
             </Text>
-
             <TextInput
               style={[
                 styles.modalInput,
-                {
-                  backgroundColor: theme.surfaceElevated,
-                  color: theme.textPrimary,
-                  borderColor: theme.border
-                }
+                { backgroundColor: theme.surfaceSubtle, color: theme.textPrimary, borderColor: theme.border }
               ]}
-              placeholder="e.g. Goa New Year's Getaway"
-              placeholderTextColor={theme.textMuted}
               value={newGroupName}
               onChangeText={setNewGroupName}
+              placeholder="e.g. Goa Reunion 2026"
+              placeholderTextColor={theme.textMuted}
               autoFocus
             />
 
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={handleCreateGroup}
-              style={[styles.modalSubmitBtn, { backgroundColor: theme.primary }, shadows.glowPrimary]}
+              disabled={isCreating || !newGroupName.trim()}
+              style={[
+                styles.createSubmitBtn,
+                { backgroundColor: theme.primary, opacity: isCreating || !newGroupName.trim() ? 0.6 : 1 }
+              ]}
             >
-              <Sparkles size={16} color="#FFFFFF" />
-              <Text style={styles.modalSubmitBtnText}>Create Circle & Invite Friends</Text>
+              <Text style={styles.createSubmitBtnText}>
+                {isCreating ? 'Creating...' : 'Create & Invite Friends'}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
-
-      {/* Trip Brief Finalization Modal */}
-      <TripBriefModal
-        visible={briefModalVisible || Boolean(finalizedBrief)}
-        brief={finalizedBrief || (consensus.winningOption ? {
-          groupId: activeGroupId,
-          winningOption: consensus.winningOption,
-          finalizedAt: new Date().toISOString(),
-          confirmedParticipants: members.map((m) => m.userName),
-          totalBudgetRange: `$${Math.min(...members.map((m) => m.budgetMin))} - $${Math.max(...members.map((m) => m.budgetMax))}`,
-          travelWindow: `${consensus.winningOption.option.dateStart} to ${consensus.winningOption.option.dateEnd}`
-        } : null)}
-        isDarkMode={isDarkMode}
-        onClose={() => setBriefModalVisible(false)}
-      />
-      {/* Demo Tour Modal */}
-      <DemoTourModal
-        visible={demoTourVisible}
-        isDarkMode={isDarkMode}
-        onClose={() => setDemoTourVisible(false)}
-      />
-
-      {/* Demo Script Teleprompter Modal */}
-      <DemoScriptModal
-        visible={demoScriptVisible}
-        isDarkMode={isDarkMode}
-        onClose={() => setDemoScriptVisible(false)}
-      />
-
-      {/* Organizer Feedback Modal */}
-      <FeedbackModal
-        visible={feedbackVisible}
-        isDarkMode={isDarkMode}
-        onClose={() => setFeedbackVisible(false)}
-      />
     </SafeAreaView>
   );
 }
@@ -545,80 +428,53 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 140, // Account for floating bottom bar with breathing space
+    paddingBottom: 140,
     maxWidth: 680,
     width: '100%',
     alignSelf: 'center'
   },
   navBar: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20
+    justifyContent: 'space-between',
+    marginVertical: 12
   },
   brandRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12
+    gap: 10
   },
   logoIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
+    width: 38,
+    height: 38,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center'
   },
   brandTitle: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: '900',
-    letterSpacing: -0.5
+    letterSpacing: 0.5
   },
   brandSubtitle: {
     fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 0.2
+    fontWeight: '500'
   },
   navActions: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8
   },
-  tourPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: radius.pill,
-    borderWidth: 1
-  },
-  tourPillText: {
-    fontSize: 11,
-    fontWeight: '800'
-  },
-  proPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: radius.pill,
-    borderWidth: 1
-  },
-  proPillText: {
-    fontSize: 11,
-    fontWeight: '800'
-  },
   iconButton: {
-    width: 38,
-    height: 38,
-    borderRadius: radius.pill,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1
   },
   circlesSection: {
-    marginBottom: 16
+    marginBottom: 18
   },
   sectionTitleRow: {
     flexDirection: 'row',
@@ -627,160 +483,89 @@ const styles = StyleSheet.create({
     marginBottom: 10
   },
   sectionTitle: {
-    fontSize: 15,
+    fontSize: 18,
     fontWeight: '800',
-    letterSpacing: -0.2
+    letterSpacing: -0.3
   },
-  newCircleLink: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4
-  },
-  newCircleLinkText: {
-    fontSize: 13,
-    fontWeight: '700'
+  plusCircleBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   circleCard: {
-    borderRadius: radius.card,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     padding: 16,
+    borderRadius: radius.card,
+    borderWidth: 1,
     marginBottom: 10
   },
-  circleTopRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12
-  },
-  circleTitleCol: {
-    flex: 1
-  },
-  circleHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4
-  },
-  circleName: {
-    fontSize: 16,
-    fontWeight: '700'
-  },
-  circleSub: {
-    fontSize: 12,
-    marginTop: 3
-  },
-  avatarRosterRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center'
-  },
-  avatarsGroup: {
-    flexDirection: 'row',
-    alignItems: 'center'
-  },
-  avatarDot: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    borderWidth: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: -6
-  },
-  avatarDotText: {
-    fontSize: 10,
-    fontWeight: '800'
-  },
-  circleStatusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: radius.pill
-  },
-  circleStatusBadgeText: {
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.5
-  },
-  personaBox: {
-    borderRadius: radius.card,
-    padding: 14,
-    borderWidth: 1,
-    marginBottom: 16
-  },
-  personaHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 8
-  },
-  personaLabel: {
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.8
-  },
-  personaGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6
-  },
-  personaPill: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: radius.pill,
-    borderWidth: 1
-  },
-  personaText: {
-    fontSize: 11
-  },
-  statusBanner: {
+  circleLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    padding: 14,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    marginBottom: 16
-  },
-  statusBannerTextCol: {
     flex: 1
   },
-  statusBannerTitle: {
-    fontSize: 13,
-    fontWeight: '800'
+  circleIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center'
   },
-  statusBannerSub: {
-    fontSize: 12,
-    marginTop: 2,
-    fontWeight: '500'
+  circleTextCol: {
+    flex: 1
+  },
+  circleName: {
+    fontSize: 15,
+    fontWeight: '800',
+    marginBottom: 2
+  },
+  circleSub: {
+    fontSize: 11
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 10,
     marginBottom: 12
   },
   sectionHeading: {
-    fontSize: 16,
-    fontWeight: '800'
+    fontSize: 18,
+    fontWeight: '800',
+    letterSpacing: -0.3
   },
-  sectionSubHeading: {
-    fontSize: 11
-  },
-  finalizeBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+  unlockedTag: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
     borderRadius: radius.pill
   },
-  finalizeBtnText: {
+  unlockedTagText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5
+  },
+  cardsList: {
+    gap: 6
+  },
+  lockItInBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: radius.btn,
+    marginTop: 10,
+    marginBottom: 20
+  },
+  lockItInBtnText: {
     color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '700'
+    fontSize: 16,
+    fontWeight: '800'
   },
   modalOverlay: {
     flex: 1,
@@ -789,7 +574,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20
   },
-  modalCard: {
+  createModalCard: {
     width: '100%',
     maxWidth: 440,
     borderRadius: radius.card,
@@ -800,36 +585,34 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8
+    marginBottom: 16
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: '800'
   },
-  modalSub: {
-    fontSize: 13,
-    lineHeight: 18,
-    marginBottom: 16
+  inputLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    marginBottom: 6
   },
   modalInput: {
-    borderWidth: 1,
     borderRadius: radius.md,
     paddingHorizontal: 14,
     paddingVertical: 12,
+    borderWidth: 1,
     fontSize: 15,
-    marginBottom: 16
+    marginBottom: 18
   },
-  modalSubmitBtn: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
+  createSubmitBtn: {
     paddingVertical: 14,
-    borderRadius: radius.btn
+    borderRadius: radius.btn,
+    alignItems: 'center'
   },
-  modalSubmitBtnText: {
+  createSubmitBtnText: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700'
   }
 });

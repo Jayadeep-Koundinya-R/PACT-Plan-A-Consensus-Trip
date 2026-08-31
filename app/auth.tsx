@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,26 +8,78 @@ import {
   SafeAreaView,
   ScrollView,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  ActivityIndicator,
+  Alert
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useGatherlyStore } from '../src/store/useGatherlyStore';
 import { colors, radius, shadows } from '../src/theme/colors';
-import { Compass, Sparkles, UserCheck, ArrowRight, ShieldCheck } from 'lucide-react-native';
+import { Compass, Sparkles, UserCheck, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react-native';
+import { signUpWithEmail, signInWithEmail } from '../src/lib/supabase/service';
 
 export default function AuthScreen() {
   const router = useRouter();
-  const { isDarkMode, setCurrentUser, members } = useGatherlyStore();
+  const { isDarkMode, setCurrentUser, members, pendingInviteCode, setPendingInviteCode } = useGatherlyStore();
+  const searchParams = useLocalSearchParams<{ redirect?: string; code?: string }>();
   const theme = isDarkMode ? colors.dark : colors.light;
 
   const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail] = useState('maya@gatherly.app');
-  const [password, setPassword] = useState('password123');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleLogin = () => {
-    // Default to Maya (Organizer) on direct login or match member email
-    setCurrentUser('user-maya-001');
-    router.replace('/groups');
+  const handleAuthSubmit = async () => {
+    setErrorMessage(null);
+    if (!email.trim() || !password.trim()) {
+      setErrorMessage('Please enter both email and password.');
+      return;
+    }
+    if (isSignUp && password.length < 6) {
+      setErrorMessage('Password must be at least 6 characters.');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      if (isSignUp) {
+        const data = await signUpWithEmail(email.trim(), password, name.trim());
+        if (data.user) {
+          setCurrentUser(data.user.id);
+          const invCode = searchParams?.code || pendingInviteCode;
+          if (searchParams?.redirect === 'invite' && invCode) {
+            if (setPendingInviteCode) setPendingInviteCode(null);
+            router.replace('/invite/' + invCode);
+          } else {
+            router.replace('/groups');
+          }
+        } else {
+          Alert.alert(
+            'Check your email',
+            'Account created! If email confirmation is enabled, please verify your email before logging in.'
+          );
+          setIsSignUp(false);
+        }
+      } else {
+        const data = await signInWithEmail(email.trim(), password);
+        if (data.user) {
+          setCurrentUser(data.user.id);
+          const invCode = searchParams?.code || pendingInviteCode;
+          if (searchParams?.redirect === 'invite' && invCode) {
+            if (setPendingInviteCode) setPendingInviteCode(null);
+            router.replace('/invite/' + invCode);
+          } else {
+            router.replace('/groups');
+          }
+        }
+      }
+    } catch (err: any) {
+      setErrorMessage(err?.message || 'Authentication failed. Please check your credentials.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSelectDemoPersona = (userId: string) => {
@@ -52,7 +104,7 @@ export default function AuthScreen() {
             </View>
             <Text style={[styles.title, { color: theme.textPrimary }]}>PACT</Text>
             <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-              Plan A Consensus Trip — turn "we should" into a confirmed plan.
+              Plan A Consensus Trip â€” turn "we should" into a confirmed plan.
             </Text>
           </View>
 
@@ -66,7 +118,10 @@ export default function AuthScreen() {
           >
             <View style={styles.tabRow}>
               <TouchableOpacity
-                onPress={() => setIsSignUp(false)}
+                onPress={() => {
+                  setIsSignUp(false);
+                  setErrorMessage(null);
+                }}
                 style={[
                   styles.tabBtn,
                   !isSignUp && { borderBottomColor: theme.primary, borderBottomWidth: 2 }
@@ -83,7 +138,10 @@ export default function AuthScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={() => setIsSignUp(true)}
+                onPress={() => {
+                  setIsSignUp(true);
+                  setErrorMessage(null);
+                }}
                 style={[
                   styles.tabBtn,
                   isSignUp && { borderBottomColor: theme.primary, borderBottomWidth: 2 }
@@ -99,6 +157,34 @@ export default function AuthScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
+
+            {errorMessage && (
+              <View style={[styles.errorBox, { backgroundColor: theme.dangerLight, borderColor: theme.danger }]}>
+                <AlertCircle size={16} color={theme.danger} />
+                <Text style={[styles.errorText, { color: theme.danger }]}>{errorMessage}</Text>
+              </View>
+            )}
+
+            {isSignUp && (
+              <View style={styles.formGroup}>
+                <Text style={[styles.label, { color: theme.textSecondary }]}>Your Name</Text>
+                <TextInput
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: theme.surfaceSubtle,
+                      color: theme.textPrimary,
+                      borderColor: theme.border
+                    }
+                  ]}
+                  value={name}
+                  onChangeText={setName}
+                  placeholder="e.g. Maya Chen"
+                  placeholderTextColor={theme.textMuted}
+                  autoCapitalize="words"
+                />
+              </View>
+            )}
 
             <View style={styles.formGroup}>
               <Text style={[styles.label, { color: theme.textSecondary }]}>Email Address</Text>
@@ -133,7 +219,7 @@ export default function AuthScreen() {
                 ]}
                 value={password}
                 onChangeText={setPassword}
-                placeholder="••••••••"
+                placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                 placeholderTextColor={theme.textMuted}
                 secureTextEntry
               />
@@ -141,13 +227,20 @@ export default function AuthScreen() {
 
             <TouchableOpacity
               activeOpacity={0.8}
-              onPress={handleLogin}
-              style={[styles.submitBtn, { backgroundColor: theme.primary }]}
+              onPress={handleAuthSubmit}
+              disabled={isLoading}
+              style={[styles.submitBtn, { backgroundColor: theme.primary, opacity: isLoading ? 0.7 : 1 }]}
             >
-              <Text style={styles.submitBtnText}>
-                {isSignUp ? 'Get Started' : 'Sign In'}
-              </Text>
-              <ArrowRight size={18} color="#FFFFFF" />
+              {isLoading ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                <>
+                  <Text style={styles.submitBtnText}>
+                    {isSignUp ? 'Create Account' : 'Sign In'}
+                  </Text>
+                  <ArrowRight size={18} color="#FFFFFF" />
+                </>
+              )}
             </TouchableOpacity>
 
             <View style={styles.privacyNote}>
@@ -158,58 +251,61 @@ export default function AuthScreen() {
             </View>
           </View>
 
-          {/* Quick Demo Personas (One-tap Tester) */}
-          <View
-            style={[
-              styles.demoCard,
-              { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }
-            ]}
-          >
-            <View style={styles.demoHeader}>
-              <Sparkles size={16} color={theme.secondary} />
-              <Text style={[styles.demoTitle, { color: theme.textPrimary }]}>
-                Hackathon Demo: Switch Personas in 1-Tap
+          {/* Quick Demo Personas (Only in __DEV__ mode) */}
+          {__DEV__ && (
+            <View
+              style={[
+                styles.demoCard,
+                { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }
+              ]}
+            >
+              <View style={styles.demoHeader}>
+                <Sparkles size={16} color={theme.secondary} />
+                <Text style={[styles.demoTitle, { color: theme.textPrimary }]}>
+                  DEV Demo: Switch Personas in 1-Tap
+                </Text>
+              </View>
+              <Text style={[styles.demoSub, { color: theme.textSecondary }]}>
+                Select a demo member to test local views:
               </Text>
-            </View>
-            <Text style={[styles.demoSub, { color: theme.textSecondary }]}>
-              Select a demo member to experience their private view:
-            </Text>
 
-            <View style={styles.personaGrid}>
-              {members.map((m) => (
-                <TouchableOpacity
-                  key={m.userId}
-                  onPress={() => handleSelectDemoPersona(m.userId)}
-                  activeOpacity={0.7}
-                  style={[
-                    styles.personaBtn,
-                    { backgroundColor: theme.surface, borderColor: theme.border },
-                    shadows.sm
-                  ]}
-                >
-                  <View style={[styles.avatarCircle, { backgroundColor: theme.primaryLight }]}>
-                    <Text style={[styles.avatarLetter, { color: theme.primaryDark }]}>
-                      {m.userName.charAt(0)}
-                    </Text>
-                  </View>
-                  <View style={styles.personaTextCol}>
-                    <Text style={[styles.personaName, { color: theme.textPrimary }]}>
-                      {m.userName} {m.userId === 'user-maya-001' ? '(Organizer)' : ''}
-                    </Text>
-                    <Text style={[styles.personaBudget, { color: theme.textSecondary }]}>
-                      ${m.budgetMin}-${m.budgetMax} • [{m.tags.join(', ')}]
-                    </Text>
-                  </View>
-                  <UserCheck size={16} color={theme.primary} />
-                </TouchableOpacity>
-              ))}
+              <View style={styles.personaGrid}>
+                {members.map((m) => (
+                  <TouchableOpacity
+                    key={m.userId}
+                    onPress={() => handleSelectDemoPersona(m.userId)}
+                    activeOpacity={0.7}
+                    style={[
+                      styles.personaBtn,
+                      { backgroundColor: theme.surface, borderColor: theme.border },
+                      shadows.sm
+                    ]}
+                  >
+                    <View style={[styles.avatarCircle, { backgroundColor: theme.primaryLight }]}>
+                      <Text style={[styles.avatarLetter, { color: theme.primaryDark }]}>
+                        {m.name ? m.name.charAt(0) : 'U'}
+                      </Text>
+                    </View>
+                    <View style={styles.personaTextCol}>
+                      <Text style={[styles.personaName, { color: theme.textPrimary }]}>
+                        {m.name} {m.userId === 'user-maya-001' ? '(Organizer)' : ''}
+                      </Text>
+                      <Text style={[styles.personaBudget, { color: theme.textSecondary }]}>
+                        ${m.budgetMin}-${m.budgetMax} â€¢ [{m.preferredTags.join(', ')}]
+                      </Text>
+                    </View>
+                    <UserCheck size={16} color={theme.primary} />
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
-          </View>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
+
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -268,6 +364,20 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 15,
     fontWeight: '700'
+  },
+  errorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: 12,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    marginBottom: 16
+  },
+  errorText: {
+    fontSize: 13,
+    fontWeight: '600',
+    flex: 1
   },
   formGroup: {
     marginBottom: 16

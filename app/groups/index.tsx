@@ -48,39 +48,54 @@ export default function GroupsScreen() {
   const [newGroupName, setNewGroupName] = useState('');
   const [joinCode, setJoinCode] = useState('');
   const [joinError, setJoinError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const currentUser = members.find((m) => m.userId === currentUserId);
 
-  const handleCreateGroup = () => {
+  const handleCreateGroup = async () => {
     if (!newGroupName.trim()) {
       alert('Please enter a group name.');
       return;
     }
 
-    if (!isPro && groups.length >= 1) {
+    if (!isPro && groups.length >= 1 && currentUserId.startsWith('user-')) {
       setCreateModalVisible(false);
       router.push('/paywall');
       return;
     }
 
-    const created = createGroup(newGroupName.trim(), currentUserId);
-    setNewGroupName('');
-    setCreateModalVisible(false);
-    router.push(`/groups/${created.id}`);
+    setIsSubmitting(true);
+    try {
+      const created = await createGroup(newGroupName.trim());
+      setNewGroupName('');
+      setCreateModalVisible(false);
+      router.push(`/groups/${created.id}`);
+    } catch (err: any) {
+      alert(err?.message || 'Error creating group');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleJoinGroup = () => {
+  const handleJoinGroup = async () => {
     if (!joinCode.trim()) {
       setJoinError('Please enter an invite code.');
       return;
     }
-    const joined = joinGroupByCode(joinCode.trim(), currentUserId);
-    if (joined) {
-      setJoinCode('');
-      setJoinError('');
-      router.push(`/groups/${joined.id}`);
-    } else {
-      setJoinError('Invalid invite code. Try GOA-2026 for the demo group.');
+    setIsSubmitting(true);
+    try {
+      const result = await joinGroupByCode(joinCode.trim());
+      if (result.success && result.group) {
+        setJoinCode('');
+        setJoinError('');
+        router.push(`/groups/${result.group.id}`);
+      } else {
+        setJoinError(result.message || 'Invalid invite code.');
+      }
+    } catch (err: any) {
+      setJoinError(err?.message || 'Failed to join group.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 

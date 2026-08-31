@@ -7,14 +7,17 @@
   "scripts": {
     "start": "expo start",
     "web": "expo start --web",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "test": "node --test src/lib/consensus/__tests__/*.test.mjs src/lib/security/__tests__/*.test.mjs",
     "verify-demo": "node scripts/run-demo-scoring.mjs"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "1.23.1",
     "@supabase/supabase-js": "^2.49.1",
     "expo": "~52.0.38",
+    "expo-asset": "~11.0.5",
+    "expo-clipboard": "7.0.1",
     "expo-constants": "~17.0.7",
     "expo-font": "~13.0.4",
     "expo-haptics": "~14.0.1",
