@@ -17,82 +17,85 @@ import { BottlenecksSection } from '../src/components/BottlenecksSection';
 import { TripBriefModal } from '../src/components/TripBriefModal';
 import { BottomTabBar } from '../src/components/BottomTabBar';
 import { ThemeToggle } from '../src/components/ThemeToggle';
-import { DemoTourModal } from '../src/components/DemoTourModal';
-import { ScenarioSwitcher } from '../src/components/ScenarioSwitcher';
-import { DemoScriptModal } from '../src/components/DemoScriptModal';
-import { FeedbackModal } from '../src/components/FeedbackModal';
 import { colors, radius, shadows } from '../src/theme/colors';
 import {
   Compass,
   Users,
-  Copy,
-  Sparkles,
-  CheckCircle2,
-  AlertCircle,
-  RotateCcw,
-  Check,
-  Plus,
-  Crown,
   ChevronRight,
-  ShieldCheck,
-  X,
-  LogOut,
+  Plus,
   Lock,
-  Layers
+  LogOut,
+  X
 } from 'lucide-react-native';
+
+const FALLBACK_GROUP = {
+  id: 'circle-college-reunion-2026',
+  name: 'College Reunion Trip',
+  inviteCode: 'GOA-2026',
+  organizerId: 'user-maya-001',
+  status: 'voting' as const,
+  totalMembersCount: 5
+};
 
 export default function DashboardScreen() {
   const router = useRouter();
   const {
     isDarkMode,
-    currentUserId,
+    currentUserId = 'user-maya-001',
     userEmail,
     userName,
-    setCurrentUser,
     initAuthSession,
     logout,
-    groups,
+    groups = [],
     activeGroupId,
     setActiveGroup,
-    members,
-    tripOptions,
+    members = [],
     createGroup,
     getConsensusResults,
-    votes,
+    votes = {},
     castVote,
     getOptionApprovalCount,
     finalizeTrip,
     finalizedBrief,
-    subscriptionPlan,
-    resetDemoState
+    subscriptionPlan
   } = useGatherlyStore();
 
-  const [copiedCode, setCopiedCode] = useState(false);
   const [briefModalVisible, setBriefModalVisible] = useState(false);
   const [createModalVisible, setCreateModalVisible] = useState(false);
-  const [demoTourVisible, setDemoTourVisible] = useState(false);
-  const [demoScriptVisible, setDemoScriptVisible] = useState(false);
-  const [feedbackVisible, setFeedbackVisible] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
-    initAuthSession();
+    try {
+      initAuthSession();
+    } catch (e) {
+      console.warn('Auth init failed:', e);
+    }
   }, []);
 
   const theme = isDarkMode ? colors.dark : colors.light;
-  const currentGroup = groups.find((g) => g.id === activeGroupId) || groups[0];
-  const consensus = getConsensusResults();
-  const currentUser = members.find((m) => m.userId === currentUserId) || members[0];
-  const isOrganizer = currentGroup.organizerId === currentUserId;
+  const safeGroups = Array.isArray(groups) && groups.length > 0 ? groups : [FALLBACK_GROUP];
+  const currentGroup = safeGroups.find((g) => g.id === activeGroupId) || safeGroups[0] || FALLBACK_GROUP;
+
+  let consensus;
+  try {
+    consensus = getConsensusResults();
+  } catch (e) {
+    console.warn('Consensus calc fallback:', e);
+    consensus = {
+      groupId: currentGroup.id,
+      totalMembersCount: 5,
+      respondedMembersCount: 5,
+      rankedOptions: [],
+      winningOption: undefined,
+      deadlockDiagnosis: { isDeadlocked: false, topOptionConsensus: 0, primaryCause: 'none' as const, diagnosisText: '', organizerSuggestions: [] },
+      consensusReached: false
+    };
+  }
+
+  const isOrganizer = currentGroup ? currentGroup.organizerId === currentUserId : false;
   const isPro = subscriptionPlan !== 'free';
-
-  const topOption = consensus.winningOption || consensus.rankedOptions[0];
-
-  const handleCopyCode = () => {
-    setCopiedCode(true);
-    setTimeout(() => setCopiedCode(false), 2000);
-  };
+  const topOption = consensus?.winningOption || consensus?.rankedOptions?.[0] || null;
 
   const handleToggleVote = (optionId: string) => {
     const isApproved = votes[`${optionId}_${currentUserId}`] === true;
@@ -112,7 +115,7 @@ export default function DashboardScreen() {
 
   const handleCreateGroup = async () => {
     if (!newGroupName.trim()) return;
-    if (!isPro && groups.length >= 1 && currentUserId.startsWith('user-')) {
+    if (!isPro && safeGroups.length >= 1 && currentUserId.startsWith('user-')) {
       setCreateModalVisible(false);
       router.push('/paywall');
       return;
@@ -132,16 +135,15 @@ export default function DashboardScreen() {
 
   // Bottlenecks list
   const bottleneckIssues = [];
-  if (consensus.deadlocks && consensus.deadlocks.length > 0) {
-    consensus.deadlocks.forEach((d) => {
-      bottleneckIssues.push({
-        type: (d.type === 'budget' ? 'budget' : d.type === 'dates' ? 'dates' : 'dealbreaker') as 'budget' | 'dates' | 'dealbreaker',
-        title: d.type === 'budget' ? 'Budget Gap Detected' : d.type === 'dates' ? 'Date Conflict Detected' : 'Dealbreaker Flagged',
-        description: d.description
-      });
+  if (consensus?.deadlockDiagnosis?.isDeadlocked) {
+    const dType = consensus.deadlockDiagnosis.primaryCause === 'budget_gap' ? 'budget' : consensus.deadlockDiagnosis.primaryCause === 'date_conflict' ? 'dates' : 'dealbreaker';
+    bottleneckIssues.push({
+      type: dType as 'budget' | 'dates' | 'dealbreaker',
+      title: dType === 'budget' ? 'Budget Gap Detected' : dType === 'dates' ? 'Date Conflict Detected' : 'Dealbreaker Flagged',
+      description: consensus.deadlockDiagnosis.diagnosisText
     });
-  } else if (consensus.rankedOptions.some((o) => o.budgetGapFlag)) {
-    const affected = members.filter((m) => m.budgetMax < 700).map((m) => m.name);
+  } else if (consensus?.rankedOptions?.some((o) => o.budgetGapFlag)) {
+    const affected = (members || []).filter((m) => m.budgetMax < 700).map((m) => m.userName || (m as any).name);
     bottleneckIssues.push({
       type: 'budget' as const,
       title: 'Budget Gap Detected',
@@ -223,7 +225,7 @@ export default function DashboardScreen() {
             </TouchableOpacity>
           </View>
 
-          {groups.map((grp) => {
+          {safeGroups.map((grp) => {
             const isSelected = grp.id === activeGroupId;
 
             return (
@@ -273,7 +275,7 @@ export default function DashboardScreen() {
                         { color: isSelected ? 'rgba(255,255,255,0.8)' : theme.textSecondary }
                       ]}
                     >
-                      {grp.totalMembersCount || 5} members â€¢ Active now
+                      {grp.totalMembersCount || 5} members • Active now
                     </Text>
                   </View>
                 </View>
@@ -289,12 +291,12 @@ export default function DashboardScreen() {
 
         {/* 1. Consensus Matrix */}
         <ConsensusMatrix
-          destinationTitle={topOption?.option.name || 'Trip Circle'}
-          members={members}
-          totalMembersCount={currentGroup.totalMembersCount || members.length}
+          destinationTitle={topOption?.option?.name || currentGroup?.name || 'Trip Circle'}
+          members={members || []}
+          totalMembersCount={currentGroup?.totalMembersCount || (members || []).length || 5}
           isOrganizer={isOrganizer}
           isDarkMode={isDarkMode}
-          onNudge={(name) => alert(`Nudge notification sent to ${name}!`)}
+          onNudge={(name) => alert(`Nudge reminder sent to ${name}!`)}
         />
 
         {/* Section: Top Pick / Ranked Options */}
@@ -302,7 +304,7 @@ export default function DashboardScreen() {
           <Text style={[styles.sectionHeading, { color: theme.textPrimary }]}>
             Top Picks
           </Text>
-          {consensus.consensusReached && (
+          {consensus?.consensusReached && (
             <View style={[styles.unlockedTag, { backgroundColor: isDarkMode ? 'rgba(16, 185, 129, 0.2)' : '#D1FAE5' }]}>
               <Text style={[styles.unlockedTagText, { color: theme.success }]}>
                 CONSENSUS UNLOCKED
@@ -313,7 +315,7 @@ export default function DashboardScreen() {
 
         {/* Ranked Option Cards with Hero Photos */}
         <View style={styles.cardsList}>
-          {consensus.rankedOptions.map((scoredOption) => {
+          {consensus?.rankedOptions?.map((scoredOption) => {
             const isApproved = votes[`${scoredOption.option.id}_${currentUserId}`] === true;
             const count = getOptionApprovalCount(scoredOption.option.id);
 
@@ -331,11 +333,13 @@ export default function DashboardScreen() {
         </View>
 
         {/* 2. Bottlenecks Section */}
-        <BottlenecksSection
-          issues={bottleneckIssues}
-          isDarkMode={isDarkMode}
-          onResolve={() => router.push(`/groups/${currentGroup.id}/options`)}
-        />
+        {bottleneckIssues.length > 0 && (
+          <BottlenecksSection
+            issues={bottleneckIssues}
+            isDarkMode={isDarkMode}
+            onResolve={() => router.push(`/groups/${currentGroup.id}/options`)}
+          />
+        )}
 
         {/* Lock It In Action for Organizer */}
         {isOrganizer && (

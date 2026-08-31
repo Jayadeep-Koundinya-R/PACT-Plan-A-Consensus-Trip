@@ -9,31 +9,34 @@ import {
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { colors, radius, shadows } from '../theme/colors';
-import { Check, HelpCircle, BellRing, Sparkles } from 'lucide-react-native';
+import { Check, HelpCircle, BellRing } from 'lucide-react-native';
 import { MemberPreference } from '../lib/consensus/types';
 
 interface ConsensusMatrixProps {
-  destinationTitle: string;
-  members: MemberPreference[];
-  totalMembersCount: number;
-  isOrganizer: boolean;
+  destinationTitle?: string;
+  members?: MemberPreference[];
+  totalMembersCount?: number;
+  isOrganizer?: boolean;
   isDarkMode?: boolean;
   onNudge?: (pendingName: string) => void;
 }
 
 export const ConsensusMatrix: React.FC<ConsensusMatrixProps> = ({
-  destinationTitle,
-  members,
-  totalMembersCount,
-  isOrganizer,
+  destinationTitle = 'Trip Circle',
+  members = [],
+  totalMembersCount = 5,
+  isOrganizer = false,
   isDarkMode = false,
   onNudge
 }) => {
   const theme = isDarkMode ? colors.dark : colors.light;
 
-  const submittedMembers = members.filter((m) => Boolean(m.submittedAt));
-  const pendingCount = Math.max(0, totalMembersCount - submittedMembers.length);
-  const pendingNames = members.filter((m) => !m.submittedAt).map((m) => m.name);
+  const safeMembers = Array.isArray(members) ? members : [];
+  const submittedMembers = safeMembers.filter((m) => Boolean(m?.submittedAt));
+  const pendingCount = Math.max(0, (totalMembersCount || 5) - submittedMembers.length);
+  const pendingNames = safeMembers
+    .filter((m) => !m?.submittedAt)
+    .map((m) => m?.userName || (m as any)?.name || 'Traveler');
   const firstPendingName = pendingNames.length > 0 ? pendingNames[0] : 'Pending travelers';
 
   const triggerHaptic = () => {
@@ -51,7 +54,7 @@ export const ConsensusMatrix: React.FC<ConsensusMatrixProps> = ({
     } else {
       Alert.alert(
         'Nudge Sent! 🔔',
-        `A friendly reminder was sent to ${firstPendingName} to submit their dates and budget.`
+        `A friendly reminder was sent to ${firstPendingName} to submit their constraints.`
       );
     }
   };
@@ -67,7 +70,7 @@ export const ConsensusMatrix: React.FC<ConsensusMatrixProps> = ({
       {/* Top Row: Title + Leading Badge */}
       <View style={styles.headerRow}>
         <Text style={[styles.destinationText, { color: theme.textPrimary }]} numberOfLines={1}>
-          {destinationTitle}
+          {destinationTitle || 'Trip Circle'}
         </Text>
         <View style={[styles.leadingBadge, { backgroundColor: isDarkMode ? 'rgba(234, 88, 12, 0.25)' : '#FDEEE5' }]}>
           <Text style={[styles.leadingText, { color: theme.secondary }]}>LEADING</Text>
@@ -88,19 +91,22 @@ export const ConsensusMatrix: React.FC<ConsensusMatrixProps> = ({
           </View>
 
           <View style={styles.avatarGrid}>
-            {submittedMembers.map((m, idx) => (
-              <View
-                key={m.userId || idx}
-                style={[
-                  styles.avatarBubble,
-                  { backgroundColor: theme.primaryLight, borderColor: theme.secondary }
-                ]}
-              >
-                <Text style={[styles.avatarText, { color: theme.textPrimary }]}>
-                  {(m.name || 'U').charAt(0).toUpperCase()}
-                </Text>
-              </View>
-            ))}
+            {submittedMembers.map((m, idx) => {
+              const name = m?.userName || (m as any)?.name || `Traveler ${idx + 1}`;
+              return (
+                <View
+                  key={m?.userId || `member-${idx}`}
+                  style={[
+                    styles.avatarBubble,
+                    { backgroundColor: theme.primaryLight, borderColor: theme.secondary }
+                  ]}
+                >
+                  <Text style={[styles.avatarText, { color: theme.textPrimary }]}>
+                    {name.charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+              );
+            })}
           </View>
         </View>
 

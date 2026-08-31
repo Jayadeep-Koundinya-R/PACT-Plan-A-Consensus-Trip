@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -57,7 +57,7 @@ export default function PreferencesScreen() {
   } = useGatherlyStore();
 
   const theme = isDarkMode ? colors.dark : colors.light;
-  const currentGroup = groups.find((g) => g.id === id) || groups[0];
+  const currentGroup = groups.find((g) => g.id === id) || groups[0] || { id: id || 'demo', name: 'Trip Circle', inviteCode: 'PACT26', organizerId: currentUserId, status: 'voting', totalMembersCount: 5 };
   const existingMember = members.find((m) => m.userId === currentUserId);
 
   // Form State

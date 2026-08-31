@@ -16,13 +16,8 @@ import {
   Heart,
   ChevronDown,
   ChevronUp,
-  AlertTriangle,
-  Sparkles,
-  CheckCircle2,
-  XCircle,
   Award,
-  Tag,
-  Users
+  XCircle
 } from 'lucide-react-native';
 
 interface RankedOptionCardProps {
@@ -54,13 +49,16 @@ export const RankedOptionCard: React.FC<RankedOptionCardProps> = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const theme = isDarkMode ? colors.dark : colors.light;
-  const { option, rank, totalScore, consensusPercent, budgetGapFlag, plainEnglishReason, memberBreakdowns } = scoredOption;
+
+  if (!scoredOption || !scoredOption.option) return null;
+
+  const { option, rank = 1, totalScore = 0, consensusPercent = 0, plainEnglishReason = '', memberBreakdowns = [] } = scoredOption;
 
   const isWinner = rank === 1;
   const imageUrl = DESTINATION_IMAGES[option.name] || DESTINATION_IMAGES[option.destinationType] || DEFAULT_IMAGE;
 
   // Segmented agreement bars (10 segments)
-  const activeSegments = Math.round((consensusPercent / 100) * 10);
+  const activeSegments = Math.max(0, Math.min(10, Math.round(((consensusPercent || 0) / 100) * 10)));
 
   return (
     <View
@@ -73,7 +71,7 @@ export const RankedOptionCard: React.FC<RankedOptionCardProps> = ({
         shadows.md
       ]}
     >
-      {/* Top Hero Image (Height 130px with overlay) */}
+      {/* Top Hero Image (Height 135px with overlay) */}
       <View style={styles.imageWrapper}>
         <ImageBackground
           source={{ uri: imageUrl }}
@@ -108,7 +106,7 @@ export const RankedOptionCard: React.FC<RankedOptionCardProps> = ({
             {/* Bottom Row on Image: Title, Date, Budget */}
             <View style={styles.imageBottomRow}>
               <Text style={styles.imageTitleText} numberOfLines={1}>
-                {option.name}
+                {option.name || 'Trip Option'}
               </Text>
               <View style={styles.imageSubRow}>
                 <View style={styles.imageMetaItem}>
@@ -121,7 +119,7 @@ export const RankedOptionCard: React.FC<RankedOptionCardProps> = ({
                 <View style={styles.imageMetaItem}>
                   <DollarSign size={11} color="#10B981" />
                   <Text style={[styles.imageMetaText, { color: '#FFFFFF', fontWeight: '700' }]}>
-                    ${option.budgetPerPerson}/person
+                    ${option.budgetPerPerson || 0}/person
                   </Text>
                 </View>
               </View>
@@ -160,11 +158,13 @@ export const RankedOptionCard: React.FC<RankedOptionCardProps> = ({
         </View>
 
         {/* Reason Explainer */}
-        <View style={[styles.reasonBox, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}>
-          <Text style={[styles.reasonText, { color: theme.textSecondary }]}>
-            {plainEnglishReason}
-          </Text>
-        </View>
+        {plainEnglishReason ? (
+          <View style={[styles.reasonBox, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}>
+            <Text style={[styles.reasonText, { color: theme.textSecondary }]}>
+              {plainEnglishReason}
+            </Text>
+          </View>
+        ) : null}
 
         {/* Action Row: Silent Vote Heart + Expand Button */}
         <View style={styles.actionRow}>
@@ -185,71 +185,82 @@ export const RankedOptionCard: React.FC<RankedOptionCardProps> = ({
               fill={isApprovedByUser ? theme.primary : 'none'}
             />
             <Text style={[styles.voteBtnText, { color: isApprovedByUser ? theme.primary : theme.textSecondary }]}>
-              {approvalCount} {approvalCount === 1 ? 'Vote' : 'Votes'}
+              {approvalCount || 0} {(approvalCount || 0) === 1 ? 'Vote' : 'Votes'}
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() => setIsExpanded(!isExpanded)}
-            style={[styles.expandBtn, { borderColor: theme.border }]}
-          >
-            <Text style={[styles.expandBtnText, { color: theme.textSecondary }]}>
-              {isExpanded ? 'Hide Details' : 'View Breakdown'}
-            </Text>
-            {isExpanded ? (
-              <ChevronUp size={14} color={theme.textSecondary} />
-            ) : (
-              <ChevronDown size={14} color={theme.textSecondary} />
-            )}
-          </TouchableOpacity>
+          {memberBreakdowns.length > 0 && (
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => setIsExpanded(!isExpanded)}
+              style={[styles.expandBtn, { borderColor: theme.border }]}
+            >
+              <Text style={[styles.expandBtnText, { color: theme.textSecondary }]}>
+                {isExpanded ? 'Hide Details' : 'View Breakdown'}
+              </Text>
+              {isExpanded ? (
+                <ChevronUp size={14} color={theme.textSecondary} />
+              ) : (
+                <ChevronDown size={14} color={theme.textSecondary} />
+              )}
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Expanded Member Breakdowns */}
-        {isExpanded && (
+        {isExpanded && memberBreakdowns.length > 0 && (
           <View style={[styles.breakdownContainer, { borderTopColor: theme.border }]}>
             <Text style={[styles.breakdownHeading, { color: theme.textPrimary }]}>
               Individual Traveler Compatibility
             </Text>
 
-            {memberBreakdowns.map((mb, idx) => (
-              <View
-                key={mb.memberId || idx}
-                style={[
-                  styles.memberRow,
-                  { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }
-                ]}
-              >
-                <View style={styles.memberLeft}>
-                  <View style={[styles.memberAvatar, { backgroundColor: theme.primaryLight }]}>
-                    <Text style={[styles.memberAvatarText, { color: theme.textPrimary }]}>
-                      {(mb.memberName || 'M').charAt(0).toUpperCase()}
-                    </Text>
-                  </View>
-                  <View>
-                    <Text style={[styles.memberName, { color: theme.textPrimary }]}>
-                      {mb.memberName}
-                    </Text>
-                    <Text style={[styles.memberScoreBreakdown, { color: theme.textSecondary }]}>
-                      Dates {mb.dateScore}% • Budget {mb.budgetScore}% • Tags {mb.tagScore}%
-                    </Text>
-                  </View>
-                </View>
+            {memberBreakdowns.map((mb, idx) => {
+              const name = mb?.userName || (mb as any)?.memberName || `Traveler ${idx + 1}`;
+              const dScore = Math.round((mb?.dateScore || 0) * 100);
+              const bScore = Math.round((mb?.budgetScore || 0) * 100);
+              const tScore = Math.round((mb?.tagScore || 0) * 100);
+              const mScore = Math.round((mb?.memberScore || 0) * 100);
+              const isDealbreaker = Boolean(mb?.dealbreakerHit || (mb as any)?.dealbreakerTriggered);
 
-                <View style={styles.memberRight}>
-                  {mb.dealbreakerTriggered ? (
-                    <View style={styles.dealbreakerPill}>
-                      <XCircle size={12} color="#EF4444" />
-                      <Text style={styles.dealbreakerPillText}>VETO</Text>
+              return (
+                <View
+                  key={mb?.userId || `mb-${idx}`}
+                  style={[
+                    styles.memberRow,
+                    { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }
+                  ]}
+                >
+                  <View style={styles.memberLeft}>
+                    <View style={[styles.memberAvatar, { backgroundColor: theme.primaryLight }]}>
+                      <Text style={[styles.memberAvatarText, { color: theme.textPrimary }]}>
+                        {name.charAt(0).toUpperCase()}
+                      </Text>
                     </View>
-                  ) : (
-                    <Text style={[styles.memberScorePill, { color: theme.success }]}>
-                      {mb.totalScore}%
-                    </Text>
-                  )}
+                    <View>
+                      <Text style={[styles.memberName, { color: theme.textPrimary }]}>
+                        {name}
+                      </Text>
+                      <Text style={[styles.memberScoreBreakdown, { color: theme.textSecondary }]}>
+                        Dates {dScore}% • Budget {bScore}% • Tags {tScore}%
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.memberRight}>
+                    {isDealbreaker ? (
+                      <View style={styles.dealbreakerPill}>
+                        <XCircle size={12} color="#EF4444" />
+                        <Text style={styles.dealbreakerPillText}>VETO</Text>
+                      </View>
+                    ) : (
+                      <Text style={[styles.memberScorePill, { color: theme.success }]}>
+                        {mScore}%
+                      </Text>
+                    )}
+                  </View>
                 </View>
-              </View>
-            ))}
+              );
+            })}
           </View>
         )}
       </View>

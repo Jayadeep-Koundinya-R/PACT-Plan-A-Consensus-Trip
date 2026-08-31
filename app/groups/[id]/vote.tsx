@@ -59,7 +59,7 @@ export default function VoteScreen() {
   } = useGatherlyStore();
 
   const theme = isDarkMode ? colors.dark : colors.light;
-  const currentGroup = groups.find((g) => g.id === id) || groups[0];
+  const currentGroup = groups.find((g) => g.id === id) || groups[0] || { id: id || 'demo', name: 'Trip Circle', inviteCode: 'PACT26', organizerId: currentUserId, status: 'voting', totalMembersCount: 5 };
   const consensus = getConsensusResults();
   const isOrganizer = currentGroup.organizerId === currentUserId;
 
