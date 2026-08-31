@@ -180,8 +180,14 @@ export default function DashboardScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Navigation / Brand Header */}
-        <View style={styles.navBar}>
+        {/* Top PACT Brand Header Frame Box */}
+        <View
+          style={[
+            styles.brandHeaderBox,
+            { backgroundColor: theme.surface, borderColor: theme.border },
+            shadows.sm
+          ]}
+        >
           <View style={styles.brandRow}>
             <View
               style={[
@@ -211,7 +217,7 @@ export default function DashboardScreen() {
                 }}
                 style={[
                   styles.iconButton,
-                  { backgroundColor: theme.surface, borderColor: theme.border }
+                  { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }
                 ]}
                 accessibilityLabel="Log Out"
               >
@@ -222,7 +228,7 @@ export default function DashboardScreen() {
                 onPress={() => router.push('/auth')}
                 style={[
                   styles.iconButton,
-                  { backgroundColor: theme.surface, borderColor: theme.border }
+                  { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }
                 ]}
                 accessibilityLabel="Sign In"
               >
@@ -490,10 +496,13 @@ const styles = StyleSheet.create({
     width: '100%',
     alignSelf: 'center'
   },
-  navBar: {
+  brandHeaderBox: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    padding: 12,
+    borderRadius: radius.card,
+    borderWidth: 1.5,
     marginBottom: 16
   },
   brandRow: {

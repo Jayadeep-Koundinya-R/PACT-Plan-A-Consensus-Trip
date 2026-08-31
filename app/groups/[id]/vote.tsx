@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -29,7 +29,9 @@ import {
   Award,
   Calendar,
   DollarSign,
-  ChevronRight
+  ChevronRight,
+  Compass,
+  Sliders
 } from 'lucide-react-native';
 
 const DESTINATION_IMAGES: Record<string, string> = {
@@ -48,32 +50,58 @@ export default function VoteScreen() {
   const router = useRouter();
   const {
     isDarkMode,
-    groups,
-    currentUserId,
-    members,
+    groups = [],
+    activeGroupId,
+    setActiveGroup,
+    currentUserId = 'user-maya-001',
+    members = [],
+    tripOptions = [],
     getConsensusResults,
-    votes,
+    votes = {},
     castVote,
     getOptionApprovalCount,
     finalizeTrip
   } = useGatherlyStore();
 
   const theme = isDarkMode ? colors.dark : colors.light;
+
+  useEffect(() => {
+    if (id && id !== activeGroupId) {
+      try {
+        setActiveGroup(id);
+      } catch (e) {}
+    }
+  }, [id, activeGroupId]);
+
   const currentGroup =
-    groups.find((g) => g.id === id) ||
+    groups.find((g) => g && g.id === id) ||
+    groups.find((g) => g && g.id === activeGroupId) ||
     groups[0] || {
-      id: id || 'demo',
+      id: id || 'circle-college-reunion-2026',
       name: 'College Reunion Trip',
       inviteCode: 'GOA-2026',
-      organizerId: currentUserId,
+      organizerId: 'user-maya-001',
       status: 'voting' as const,
       totalMembersCount: 5
     };
 
-  const consensus = getConsensusResults();
-  const isOrganizer = currentGroup.organizerId === currentUserId;
+  let consensus;
+  try {
+    consensus = getConsensusResults();
+  } catch (e) {
+    consensus = {
+      groupId: currentGroup.id,
+      totalMembersCount: currentGroup.totalMembersCount || 5,
+      respondedMembersCount: members.length,
+      rankedOptions: [],
+      winningOption: undefined,
+      deadlockDiagnosis: { isDeadlocked: false, topOptionConsensus: 0, primaryCause: 'none' as const, diagnosisText: '', organizerSuggestions: [] },
+      consensusReached: false
+    };
+  }
 
-  const topOption = consensus.winningOption || consensus.rankedOptions[0];
+  const isOrganizer = currentGroup.organizerId === currentUserId;
+  const topOption = consensus?.winningOption || consensus?.rankedOptions?.[0] || null;
   const isThresholdMet = (topOption?.consensusPercent || 0) >= 70;
 
   const triggerHaptic = () => {
@@ -85,6 +113,7 @@ export default function VoteScreen() {
   };
 
   const handleToggleVote = (optionId: string) => {
+    if (!optionId) return;
     triggerHaptic();
     const isApproved = votes[`${optionId}_${currentUserId}`] === true;
     castVote(optionId, !isApproved);
@@ -94,13 +123,16 @@ export default function VoteScreen() {
     triggerHaptic();
     try {
       finalizeTrip(currentUserId);
-      router.push(`/groups/${currentGroup.id}/brief`);
+      router.push(`/groups/${currentGroup.id}/brief` as any);
     } catch (err: any) {
-      Alert.alert('Notice', err.message);
+      Alert.alert('Notice', err?.message || 'Could not finalize trip yet.');
     }
   };
 
-  const topImageUrl = topOption ? (DESTINATION_IMAGES[topOption.option.name] || DEFAULT_IMAGE) : DEFAULT_IMAGE;
+  const topImageUrl =
+    topOption && topOption.option?.name
+      ? DESTINATION_IMAGES[topOption.option.name] || DEFAULT_IMAGE
+      : DEFAULT_IMAGE;
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
@@ -111,34 +143,54 @@ export default function VoteScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Navigation Header */}
-        <View style={styles.navBar}>
+        {/* Top PACT Brand Header Frame */}
+        <View
+          style={[
+            styles.brandHeaderBox,
+            { backgroundColor: theme.surface, borderColor: theme.border },
+            shadows.sm
+          ]}
+        >
           <TouchableOpacity
-            onPress={() => router.push(`/groups/${currentGroup.id}`)}
-            style={[styles.backBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
+            onPress={() => router.push(`/groups/${currentGroup.id}` as any)}
+            style={[styles.backBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
           >
-            <ArrowLeft size={18} color={theme.textPrimary} />
+            <ArrowLeft size={16} color={theme.textPrimary} />
           </TouchableOpacity>
 
-          <Text style={[styles.navTitle, { color: theme.textPrimary }]} numberOfLines={1}>
-            Silent Voting Room
-          </Text>
+          <View style={styles.brandTextCol}>
+            <View style={styles.brandTitleRow}>
+              <View style={[styles.brandLogoCircle, { backgroundColor: theme.primary }]}>
+                <Compass size={14} color="#FFFFFF" strokeWidth={2.5} />
+              </View>
+              <Text style={[styles.brandTitleText, { color: theme.textPrimary }]}>
+                PACT
+              </Text>
+            </View>
+            <Text style={[styles.brandSubtitleText, { color: theme.primary }]}>
+              Plan A Consensus Trip
+            </Text>
+          </View>
 
-          <View style={{ width: 36 }} />
+          <View style={[styles.stepBadge, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
+            <Text style={[styles.stepBadgeText, { color: theme.primary }]}>
+              Step 3: Vote
+            </Text>
+          </View>
         </View>
 
         {/* 1. Consensus Matrix Card */}
         <ConsensusMatrix
-          destinationTitle={topOption?.option.name || 'Trip Options'}
+          destinationTitle={topOption?.option?.name || currentGroup.name || 'Trip Options'}
           members={members}
           totalMembersCount={currentGroup.totalMembersCount || members.length}
           isOrganizer={isOrganizer}
           isDarkMode={isDarkMode}
-          onNudge={(name) => Alert.alert('Nudge Sent', `Sent a push reminder to ${name}.`)}
+          onNudge={(name) => Alert.alert('Nudge Sent', `Sent a reminder to ${name}.`)}
         />
 
         {/* 2. Top Pick Hero Card with Image */}
-        {topOption && (
+        {topOption && topOption.option ? (
           <View
             style={[
               styles.heroPickCard,
@@ -158,7 +210,12 @@ export default function VoteScreen() {
                       <Award size={12} color="#FFFFFF" />
                       <Text style={styles.heroPickBadgeText}>TOP COMPROMISE</Text>
                     </View>
-                    <View style={[styles.heroMatchPill, { backgroundColor: isDarkMode ? 'rgba(15, 23, 42, 0.85)' : 'rgba(255, 255, 255, 0.92)' }]}>
+                    <View
+                      style={[
+                        styles.heroMatchPill,
+                        { backgroundColor: isDarkMode ? 'rgba(15, 23, 42, 0.85)' : 'rgba(255, 255, 255, 0.92)' }
+                      ]}
+                    >
                       <Text style={[styles.heroMatchPillText, { color: theme.primary }]}>
                         {topOption.totalScore}% MATCH
                       </Text>
@@ -208,7 +265,7 @@ export default function VoteScreen() {
                 ]}
               >
                 <Heart
-                  size={20}
+                  size={18}
                   color={votes[`${topOption.option.id}_${currentUserId}`] ? '#FFFFFF' : theme.textSecondary}
                   fill={votes[`${topOption.option.id}_${currentUserId}`] ? '#FFFFFF' : 'none'}
                 />
@@ -223,11 +280,35 @@ export default function VoteScreen() {
               </TouchableOpacity>
             </View>
           </View>
+        ) : (
+          <View
+            style={[
+              styles.emptyStateCard,
+              { backgroundColor: theme.surface, borderColor: theme.border },
+              shadows.sm
+            ]}
+          >
+            <Sparkles size={24} color={theme.primary} />
+            <Text style={[styles.emptyStateTitle, { color: theme.textPrimary }]}>
+              No Trip Options Ranked Yet
+            </Text>
+            <Text style={[styles.emptyStateSub, { color: theme.textSecondary }]}>
+              Submit dates and budget constraints so AI can rank compromise destinations.
+            </Text>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => router.push(`/groups/${currentGroup.id}/preferences` as any)}
+              style={[styles.emptyActionBtn, { backgroundColor: theme.primary }]}
+            >
+              <Sliders size={16} color="#FFFFFF" />
+              <Text style={styles.emptyActionBtnText}>Submit Constraints</Text>
+            </TouchableOpacity>
+          </View>
         )}
 
         {/* 3. Realtime Consensus Meter */}
         <ConsensusMeter
-          destinationTitle={topOption?.option.name || 'Trip Destination'}
+          destinationTitle={topOption?.option?.name || 'Trip Destination'}
           consensusScore={topOption?.totalScore || 85}
           isConsensusReached={isThresholdMet}
           threshold={70}
@@ -257,7 +338,7 @@ export default function VoteScreen() {
           <View style={[styles.waitingNotice, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}>
             <CheckCircle2 size={16} color={theme.success} />
             <Text style={[styles.waitingNoticeText, { color: theme.textSecondary }]}>
-              {votes[`${topOption?.option?.id}_${currentUserId}`]
+              {topOption && votes[`${topOption.option?.id}_${currentUserId}`]
                 ? 'Your vote is recorded! Waiting for organizer to lock it in.'
                 : 'Cast your silent approval above.'}
             </Text>
@@ -283,26 +364,58 @@ const styles = StyleSheet.create({
     width: '100%',
     alignSelf: 'center'
   },
-  navBar: {
+  brandHeaderBox: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    padding: 10,
+    borderRadius: radius.card,
+    borderWidth: 1.5,
     marginBottom: 14
   },
   backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1
   },
-  navTitle: {
+  brandTextCol: {
+    alignItems: 'center',
+    flex: 1
+  },
+  brandTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6
+  },
+  brandLogoCircle: {
+    width: 22,
+    height: 22,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  brandTitleText: {
     fontSize: 16,
-    fontWeight: '800',
-    flex: 1,
-    textAlign: 'center',
+    fontWeight: '900',
     letterSpacing: -0.2
+  },
+  brandSubtitleText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+    marginTop: 1
+  },
+  stepBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: radius.pill
+  },
+  stepBadgeText: {
+    fontSize: 10,
+    fontWeight: '800'
   },
   heroPickCard: {
     borderRadius: radius.card,
@@ -406,6 +519,38 @@ const styles = StyleSheet.create({
     borderWidth: 1
   },
   voteHeartBtnText: {
+    fontSize: 13,
+    fontWeight: '700'
+  },
+  emptyStateCard: {
+    alignItems: 'center',
+    padding: 24,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    marginBottom: 14
+  },
+  emptyStateTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    marginTop: 10,
+    marginBottom: 4
+  },
+  emptyStateSub: {
+    fontSize: 12,
+    textAlign: 'center',
+    lineHeight: 16,
+    marginBottom: 14
+  },
+  emptyActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: radius.btn
+  },
+  emptyActionBtnText: {
+    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '700'
   },

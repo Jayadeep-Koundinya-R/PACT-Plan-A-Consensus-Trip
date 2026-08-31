@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
-  Platform
+  Platform,
+  Alert
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -24,7 +25,8 @@ import {
   Trophy,
   ChevronRight,
   Vote,
-  Compass
+  Compass,
+  Sliders
 } from 'lucide-react-native';
 
 export default function OptionsScreen() {
@@ -32,11 +34,13 @@ export default function OptionsScreen() {
   const router = useRouter();
   const {
     isDarkMode,
-    groups,
-    members,
-    currentUserId,
+    groups = [],
+    members = [],
+    activeGroupId,
+    setActiveGroup,
+    currentUserId = 'user-maya-001',
     getConsensusResults,
-    votes,
+    votes = {},
     castVote,
     getOptionApprovalCount
   } = useGatherlyStore();
@@ -44,10 +48,20 @@ export default function OptionsScreen() {
   const [activeFilter, setActiveFilter] = useState<'all' | 'high_agreement' | 'budget'>('all');
 
   const theme = isDarkMode ? colors.dark : colors.light;
+
+  useEffect(() => {
+    if (id && id !== activeGroupId) {
+      try {
+        setActiveGroup(id);
+      } catch (e) {}
+    }
+  }, [id, activeGroupId]);
+
   const currentGroup =
-    groups.find((g) => g.id === id) ||
+    groups.find((g) => g && g.id === id) ||
+    groups.find((g) => g && g.id === activeGroupId) ||
     groups[0] || {
-      id: id || 'demo',
+      id: id || 'circle-college-reunion-2026',
       name: 'College Reunion Trip',
       inviteCode: 'GOA-2026',
       organizerId: 'user-maya-001',
@@ -55,8 +69,22 @@ export default function OptionsScreen() {
       totalMembersCount: 5
     };
 
-  const consensus = getConsensusResults();
-  const topOption = consensus.winningOption || consensus.rankedOptions[0];
+  let consensus;
+  try {
+    consensus = getConsensusResults();
+  } catch (e) {
+    consensus = {
+      groupId: currentGroup.id,
+      totalMembersCount: currentGroup.totalMembersCount || 5,
+      respondedMembersCount: members.length,
+      rankedOptions: [],
+      winningOption: undefined,
+      deadlockDiagnosis: { isDeadlocked: false, topOptionConsensus: 0, primaryCause: 'none' as const, diagnosisText: '', organizerSuggestions: [] },
+      consensusReached: false
+    };
+  }
+
+  const topOption = consensus?.winningOption || consensus?.rankedOptions?.[0] || null;
   const isOrganizer = currentGroup.organizerId === currentUserId;
 
   const triggerHaptic = () => {
@@ -68,13 +96,14 @@ export default function OptionsScreen() {
   };
 
   const handleToggleVote = (optionId: string) => {
+    if (!optionId) return;
     triggerHaptic();
     const isApproved = votes[`${optionId}_${currentUserId}`] === true;
     castVote(optionId, !isApproved);
   };
 
   // Filtered options
-  let filteredOptions = consensus.rankedOptions || [];
+  let filteredOptions = consensus?.rankedOptions || [];
   if (activeFilter === 'high_agreement') {
     filteredOptions = filteredOptions.filter((o) => o.consensusPercent >= 70);
   } else if (activeFilter === 'budget') {
@@ -83,7 +112,7 @@ export default function OptionsScreen() {
 
   // Bottleneck issues
   const bottleneckIssues = [];
-  if (consensus.deadlockDiagnosis && consensus.deadlockDiagnosis.isDeadlocked) {
+  if (consensus?.deadlockDiagnosis?.isDeadlocked) {
     bottleneckIssues.push({
       type: (consensus.deadlockDiagnosis.primaryCause === 'budget_gap'
         ? 'budget'
@@ -97,7 +126,6 @@ export default function OptionsScreen() {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
-      <View style={[styles.topBorderLine, { backgroundColor: theme.primary }]} />
       {/* 4-Step Progress Journey */}
       <StepProgressBar
         currentStep={2}
@@ -109,30 +137,50 @@ export default function OptionsScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Navigation Bar */}
-        <View style={styles.navBar}>
+        {/* Top PACT Brand Header Frame */}
+        <View
+          style={[
+            styles.brandHeaderBox,
+            { backgroundColor: theme.surface, borderColor: theme.border },
+            shadows.sm
+          ]}
+        >
           <TouchableOpacity
-            onPress={() => router.push(`/groups/${currentGroup.id}`)}
-            style={[styles.backBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
+            onPress={() => router.push(`/groups/${currentGroup.id}` as any)}
+            style={[styles.backBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
           >
-            <ArrowLeft size={18} color={theme.textPrimary} />
+            <ArrowLeft size={16} color={theme.textPrimary} />
           </TouchableOpacity>
 
-          <Text style={[styles.navTitle, { color: theme.textPrimary }]} numberOfLines={1}>
-            Ranked Compromise Options
-          </Text>
+          <View style={styles.brandTextCol}>
+            <View style={styles.brandTitleRow}>
+              <View style={[styles.brandLogoCircle, { backgroundColor: theme.primary }]}>
+                <Compass size={14} color="#FFFFFF" strokeWidth={2.5} />
+              </View>
+              <Text style={[styles.brandTitleText, { color: theme.textPrimary }]}>
+                PACT
+              </Text>
+            </View>
+            <Text style={[styles.brandSubtitleText, { color: theme.primary }]}>
+              Plan A Consensus Trip
+            </Text>
+          </View>
 
-          <View style={styles.emptyRight} />
+          <View style={[styles.stepBadge, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
+            <Text style={[styles.stepBadgeText, { color: theme.primary }]}>
+              Step 2: Rankings
+            </Text>
+          </View>
         </View>
 
         {/* 1. Consensus Matrix */}
         <ConsensusMatrix
-          destinationTitle={topOption?.option.name || 'Trip Circle'}
+          destinationTitle={topOption?.option?.name || currentGroup.name || 'Trip Circle'}
           members={members}
           totalMembersCount={currentGroup.totalMembersCount || members.length}
           isOrganizer={isOrganizer}
           isDarkMode={isDarkMode}
-          onNudge={(name) => alert(`Nudge sent to ${name}!`)}
+          onNudge={(name) => Alert.alert('Nudge Sent', `Sent a reminder to ${name}.`)}
         />
 
         {/* Filter Chips */}
@@ -155,7 +203,7 @@ export default function OptionsScreen() {
                 { color: activeFilter === 'all' ? '#FFFFFF' : theme.textSecondary }
               ]}
             >
-              All Ranked ({consensus.rankedOptions.length})
+              All Ranked ({consensus?.rankedOptions?.length || 0})
             </Text>
           </TouchableOpacity>
 
@@ -205,23 +253,49 @@ export default function OptionsScreen() {
         </View>
 
         {/* Options Cards */}
-        <View style={styles.cardsList}>
-          {filteredOptions.map((scoredOption) => {
-            const isApproved = votes[`${scoredOption.option.id}_${currentUserId}`] === true;
-            const count = getOptionApprovalCount(scoredOption.option.id);
+        {filteredOptions.length > 0 ? (
+          <View style={styles.cardsList}>
+            {filteredOptions.map((scoredOption) => {
+              const isApproved = votes[`${scoredOption.option.id}_${currentUserId}`] === true;
+              const count = getOptionApprovalCount(scoredOption.option.id);
 
-            return (
-              <RankedOptionCard
-                key={scoredOption.option.id}
-                scoredOption={scoredOption}
-                isDarkMode={isDarkMode}
-                isApprovedByUser={isApproved}
-                approvalCount={count}
-                onToggleVote={handleToggleVote}
-              />
-            );
-          })}
-        </View>
+              return (
+                <RankedOptionCard
+                  key={scoredOption.option.id}
+                  scoredOption={scoredOption}
+                  isDarkMode={isDarkMode}
+                  isApprovedByUser={isApproved}
+                  approvalCount={count}
+                  onToggleVote={handleToggleVote}
+                />
+              );
+            })}
+          </View>
+        ) : (
+          <View
+            style={[
+              styles.emptyStateCard,
+              { backgroundColor: theme.surface, borderColor: theme.border },
+              shadows.sm
+            ]}
+          >
+            <Sparkles size={24} color={theme.primary} />
+            <Text style={[styles.emptyStateTitle, { color: theme.textPrimary }]}>
+              No Options Available Yet
+            </Text>
+            <Text style={[styles.emptyStateSub, { color: theme.textSecondary }]}>
+              Submit dates and budget constraints to let the AI score and rank compromises.
+            </Text>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => router.push(`/groups/${currentGroup.id}/preferences` as any)}
+              style={[styles.emptyActionBtn, { backgroundColor: theme.primary }]}
+            >
+              <Sliders size={16} color="#FFFFFF" />
+              <Text style={styles.emptyActionBtnText}>Submit Constraints</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Bottlenecks Section */}
         {bottleneckIssues.length > 0 && (
@@ -234,7 +308,7 @@ export default function OptionsScreen() {
         {/* Next Step Action Button */}
         <TouchableOpacity
           activeOpacity={0.85}
-          onPress={() => router.push(`/groups/${currentGroup.id}/vote`)}
+          onPress={() => router.push(`/groups/${currentGroup.id}/vote` as any)}
           style={[styles.primaryActionBtn, { backgroundColor: theme.primary }, shadows.glowPrimary]}
         >
           <Vote size={18} color="#FFFFFF" />
@@ -253,10 +327,6 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1
   },
-  topBorderLine: {
-    height: 3,
-    width: '100%'
-  },
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 12,
@@ -265,30 +335,58 @@ const styles = StyleSheet.create({
     width: '100%',
     alignSelf: 'center'
   },
-  navBar: {
+  brandHeaderBox: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16
+    padding: 10,
+    borderRadius: radius.card,
+    borderWidth: 1.5,
+    marginBottom: 14
   },
   backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1
   },
-  navTitle: {
+  brandTextCol: {
+    alignItems: 'center',
+    flex: 1
+  },
+  brandTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6
+  },
+  brandLogoCircle: {
+    width: 22,
+    height: 22,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  brandTitleText: {
     fontSize: 16,
-    fontWeight: '800',
-    flex: 1,
-    textAlign: 'center',
-    marginHorizontal: 12,
+    fontWeight: '900',
     letterSpacing: -0.2
   },
-  emptyRight: {
-    width: 36
+  brandSubtitleText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+    marginTop: 1
+  },
+  stepBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: radius.pill
+  },
+  stepBadgeText: {
+    fontSize: 10,
+    fontWeight: '800'
   },
   filterRow: {
     flexDirection: 'row',
@@ -307,8 +405,40 @@ const styles = StyleSheet.create({
     fontWeight: '700'
   },
   cardsList: {
-    gap: 6,
+    gap: 8,
     marginBottom: 14
+  },
+  emptyStateCard: {
+    alignItems: 'center',
+    padding: 24,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    marginBottom: 14
+  },
+  emptyStateTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    marginTop: 10,
+    marginBottom: 4
+  },
+  emptyStateSub: {
+    fontSize: 12,
+    textAlign: 'center',
+    lineHeight: 16,
+    marginBottom: 14
+  },
+  emptyActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: radius.btn
+  },
+  emptyActionBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700'
   },
   primaryActionBtn: {
     flexDirection: 'row',

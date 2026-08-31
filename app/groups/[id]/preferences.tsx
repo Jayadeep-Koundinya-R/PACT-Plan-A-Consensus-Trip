@@ -18,6 +18,7 @@ import { BottomTabBar } from '../../../src/components/BottomTabBar';
 import { colors, radius, shadows } from '../../../src/theme/colors';
 import {
   ArrowLeft,
+  Compass,
   Calendar,
   DollarSign,
   Tag,
@@ -218,20 +219,40 @@ export default function PreferencesScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Navigation Header */}
-        <View style={styles.navBar}>
+        {/* Top PACT Brand Header Frame */}
+        <View
+          style={[
+            styles.brandHeaderBox,
+            { backgroundColor: theme.surface, borderColor: theme.border },
+            shadows.sm
+          ]}
+        >
           <TouchableOpacity
-            onPress={() => router.push(`/groups/${currentGroup.id}`)}
-            style={[styles.backBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
+            onPress={() => router.push(`/groups/${currentGroup.id}` as any)}
+            style={[styles.backBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
           >
-            <ArrowLeft size={18} color={theme.textPrimary} />
+            <ArrowLeft size={16} color={theme.textPrimary} />
           </TouchableOpacity>
 
-          <Text style={[styles.navTitle, { color: theme.textPrimary }]} numberOfLines={1}>
-            Your Private Constraints
-          </Text>
+          <View style={styles.brandTextCol}>
+            <View style={styles.brandTitleRow}>
+              <View style={[styles.brandLogoCircle, { backgroundColor: theme.primary }]}>
+                <Compass size={14} color="#FFFFFF" strokeWidth={2.5} />
+              </View>
+              <Text style={[styles.brandTitleText, { color: theme.textPrimary }]}>
+                PACT
+              </Text>
+            </View>
+            <Text style={[styles.brandSubtitleText, { color: theme.primary }]}>
+              Plan A Consensus Trip
+            </Text>
+          </View>
 
-          <View style={{ width: 36 }} />
+          <View style={[styles.stepBadge, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
+            <Text style={[styles.stepBadgeText, { color: theme.primary }]}>
+              Step 1: Input
+            </Text>
+          </View>
         </View>
 
         {/* Privacy Promise Banner */}
@@ -591,26 +612,58 @@ const styles = StyleSheet.create({
     width: '100%',
     alignSelf: 'center'
   },
-  navBar: {
+  brandHeaderBox: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    padding: 10,
+    borderRadius: radius.card,
+    borderWidth: 1.5,
     marginBottom: 14
   },
   backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1
   },
-  navTitle: {
+  brandTextCol: {
+    alignItems: 'center',
+    flex: 1
+  },
+  brandTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6
+  },
+  brandLogoCircle: {
+    width: 22,
+    height: 22,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  brandTitleText: {
     fontSize: 16,
-    fontWeight: '800',
-    flex: 1,
-    textAlign: 'center',
+    fontWeight: '900',
     letterSpacing: -0.2
+  },
+  brandSubtitleText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+    marginTop: 1
+  },
+  stepBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: radius.pill
+  },
+  stepBadgeText: {
+    fontSize: 10,
+    fontWeight: '800'
   },
   privacyBanner: {
     flexDirection: 'row',
