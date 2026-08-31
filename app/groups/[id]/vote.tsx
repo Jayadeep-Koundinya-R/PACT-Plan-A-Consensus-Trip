@@ -147,7 +147,7 @@ export default function VoteScreen() {
                       <Award size={12} color="#FFFFFF" />
                       <Text style={styles.heroPickBadgeText}>TOP PICK</Text>
                     </View>
-                    <View style={[styles.heroMatchPill, { backgroundColor: isDarkMode ? 'rgba(28, 19, 13, 0.85)' : 'rgba(255, 255, 255, 0.92)' }]}>
+                    <View style={[styles.heroMatchPill, { backgroundColor: isDarkMode ? 'rgba(15, 23, 42, 0.85)' : 'rgba(255, 255, 255, 0.92)' }]}>
                       <Text style={[styles.heroMatchPillText, { color: theme.primary }]}>
                         {topOption.totalScore}% MATCH
                       </Text>

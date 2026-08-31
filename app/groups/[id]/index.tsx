@@ -183,7 +183,7 @@ export default function GroupDetailScreen() {
           <View
             style={[
               styles.emptyStateCard,
-              { backgroundColor: isDarkMode ? '#25160E' : '#FFF3EA', borderColor: isDarkMode ? 'rgba(234, 88, 12, 0.3)' : '#FED7AA' },
+              { backgroundColor: isDarkMode ? '#1E293B' : '#FFF7ED', borderColor: isDarkMode ? 'rgba(234, 88, 12, 0.3)' : '#FED7AA' },
               shadows.sm
             ]}
           >
