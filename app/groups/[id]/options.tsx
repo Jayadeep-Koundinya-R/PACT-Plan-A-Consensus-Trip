@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -20,7 +20,7 @@ import { BottlenecksSection } from '../../../src/components/BottlenecksSection';
 import { BottomTabBar } from '../../../src/components/BottomTabBar';
 import { ThemeToggle } from '../../../src/components/ThemeToggle';
 import { AICompromiseModal } from '../../../src/components/AICompromiseModal';
-import { colors, radius, shadows } from '../../../src/theme/colors';
+import { colors, radius, shadows, spacing } from '../../../src/theme/colors';
 import {
   ArrowLeft,
   Filter,
@@ -29,7 +29,10 @@ import {
   ChevronRight,
   Vote,
   Compass,
-  Sliders
+  Sliders,
+  AlertTriangle,
+  Lock,
+  DollarSign
 } from 'lucide-react-native';
 
 export default function OptionsScreen() {
@@ -90,6 +93,7 @@ export default function OptionsScreen() {
 
   const topOption = consensus?.winningOption || consensus?.rankedOptions?.[0] || null;
   const isOrganizer = currentGroup.organizerId === currentUserId;
+  const isDeadlocked = Boolean(consensus?.deadlockDiagnosis?.isDeadlocked);
 
   const triggerHaptic = () => {
     if (Platform.OS !== 'web') {
@@ -141,17 +145,17 @@ export default function OptionsScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Top PACT Brand Header Frame */}
+        {/* Top PACT Brand Header Frame Box - Document Style */}
         <View
           style={[
             styles.brandHeaderBox,
-            { backgroundColor: theme.surface, borderColor: theme.border },
-            shadows.sm
+            { backgroundColor: theme.surface, borderColor: theme.border }
           ]}
         >
           <TouchableOpacity
             onPress={() => router.push(`/groups/${currentGroup.id}` as any)}
             style={[styles.backBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
+            accessibilityLabel="Back to Group Hub"
           >
             <ArrowLeft size={16} color={theme.textPrimary} />
           </TouchableOpacity>
@@ -159,22 +163,58 @@ export default function OptionsScreen() {
           <View style={styles.brandTextCol}>
             <View style={styles.brandTitleRow}>
               <View style={[styles.brandLogoCircle, { backgroundColor: theme.primary }]}>
-                <Compass size={14} color="#FFFFFF" strokeWidth={2.5} />
+                <Compass size={13} color="#FFFFFF" strokeWidth={2.5} />
               </View>
               <Text style={[styles.brandTitleText, { color: theme.textPrimary }]}>
                 PACT
               </Text>
             </View>
             <Text style={[styles.brandSubtitleText, { color: theme.primary }]}>
-              Plan A Consensus Trip
+              PLAN A CONSENSUS TRIP
             </Text>
           </View>
 
           <ThemeToggle />
+        </View>
+
+        {/* Explicit Deadlock / Budget Division Diagnosis State Card */}
+        {isDeadlocked && (
+          <View
+            style={[
+              styles.deadlockAlertCard,
+              { backgroundColor: theme.surface, borderColor: theme.danger }
+            ]}
+          >
+            <View style={styles.deadlockHeaderRow}>
+              <View style={[styles.deadlockIconBox, { backgroundColor: theme.dangerLight }]}>
+                <AlertTriangle size={18} color={theme.danger} />
+              </View>
+              <View style={styles.deadlockTextCol}>
+                <Text style={[styles.deadlockTitle, { color: theme.danger }]}>
+                  Group Deadlock Detected ({consensus?.deadlockDiagnosis?.primaryCause?.toUpperCase()})
+                </Text>
+                <Text style={[styles.deadlockDesc, { color: theme.textSecondary }]}>
+                  {consensus?.deadlockDiagnosis?.diagnosisText ||
+                    'Private budgets and dates do not have an exact natural overlap across all 5 travelers.'}
+                </Text>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              onPress={() => setShowAICompromise(true)}
+              style={[styles.resolveDeadlockBtn, { backgroundColor: theme.danger }]}
+            >
+              <Sparkles size={14} color="#FFFFFF" />
+              <Text style={styles.resolveDeadlockBtnText}>
+                Generate AI Bridge Compromise Option →
+              </Text>
+            </TouchableOpacity>
           </View>
+        )}
 
         {/* 1. Consensus Matrix */}
         <ConsensusMatrix
+          groupId={currentGroup.id}
           destinationTitle={topOption?.option?.name || currentGroup.name || 'Trip Circle'}
           members={members}
           totalMembersCount={currentGroup.totalMembersCount || members.length}
@@ -182,6 +222,36 @@ export default function OptionsScreen() {
           isDarkMode={isDarkMode}
           onNudge={(name) => Alert.alert('Nudge Sent', `Sent a reminder to ${name}.`)}
         />
+
+        {/* AI Compromise Engine Card (Ticket/Document Motif) */}
+        {!isDeadlocked && (
+          <TouchableOpacity
+            onPress={() => setShowAICompromise(true)}
+            activeOpacity={0.85}
+            style={[
+              styles.aiBannerCard,
+              {
+                backgroundColor: theme.surface,
+                borderColor: theme.secondary
+              }
+            ]}
+          >
+            <View style={styles.aiBannerLeft}>
+              <View style={[styles.aiBannerIconBox, { backgroundColor: theme.secondaryLight }]}>
+                <Sparkles size={18} color={theme.secondary} />
+              </View>
+              <View style={styles.aiBannerTextCol}>
+                <Text style={[styles.aiBannerTitle, { color: theme.textPrimary }]}>
+                  AI Compromise Whisperer
+                </Text>
+                <Text style={[styles.aiBannerSub, { color: theme.textSecondary }]}>
+                  Auto-negotiate dates & rates to create an optimal option for all 5 members.
+                </Text>
+              </View>
+            </View>
+            <ChevronRight size={18} color={theme.secondary} />
+          </TouchableOpacity>
+        )}
 
         {/* Filter Chips */}
         <View style={styles.filterRow}>
@@ -225,7 +295,7 @@ export default function OptionsScreen() {
                 { color: activeFilter === 'high_agreement' ? '#FFFFFF' : theme.textSecondary }
               ]}
             >
-              High Agreement (&gt;70%)
+              High Match (&gt;70%)
             </Text>
           </TouchableOpacity>
 
@@ -247,78 +317,75 @@ export default function OptionsScreen() {
                 { color: activeFilter === 'budget' ? '#FFFFFF' : theme.textSecondary }
               ]}
             >
-              No Budget Gaps
+              No Budget Gap
             </Text>
           </TouchableOpacity>
         </View>
 
-        {/* Options Cards */}
-        {filteredOptions.length > 0 ? (
-          <View style={styles.cardsList}>
-            {filteredOptions.map((scoredOption) => {
-              const isApproved = votes[`${scoredOption.option.id}_${currentUserId}`] === true;
-              const count = getOptionApprovalCount(scoredOption.option.id);
+        {/* 2. Ranked Options List (Ticket Cards) */}
+        <View style={styles.optionsList}>
+          {filteredOptions.length === 0 ? (
+            <View style={[styles.emptyCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <Text style={[styles.emptyTitle, { color: theme.textPrimary }]}>No Matching Destinations</Text>
+              <Text style={[styles.emptyDesc, { color: theme.textSecondary }]}>
+                Try adjusting the filters above or adding new candidate destinations.
+              </Text>
+            </View>
+          ) : (
+            filteredOptions.map((item, index) => (
+              <RankedOptionCard
+                key={item.option?.id || index}
+                item={item}
+                index={index}
+                isDarkMode={isDarkMode}
+                isApprovedByUser={votes[`${item.option.id}_${currentUserId}`] === true}
+                approvalCount={getOptionApprovalCount(item.option.id)}
+                onToggleVote={handleToggleVote}
+              />
+            ))
+          )}
+        </View>
 
-              return (
-                <RankedOptionCard
-                  key={scoredOption.option.id}
-                  scoredOption={scoredOption}
-                  isDarkMode={isDarkMode}
-                  isApprovedByUser={isApproved}
-                  approvalCount={count}
-                  onToggleVote={handleToggleVote}
-                />
-              );
-            })}
-          </View>
-        ) : (
-          <View
-            style={[
-              styles.emptyStateCard,
-              { backgroundColor: theme.surface, borderColor: theme.border },
-              shadows.sm
-            ]}
-          >
-            <Sparkles size={24} color={theme.primary} />
-            <Text style={[styles.emptyStateTitle, { color: theme.textPrimary }]}>
-              No Options Available Yet
-            </Text>
-            <Text style={[styles.emptyStateSub, { color: theme.textSecondary }]}>
-              Submit dates and budget constraints to let the AI score and rank compromises.
-            </Text>
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={() => router.push(`/groups/${currentGroup.id}/preferences` as any)}
-              style={[styles.emptyActionBtn, { backgroundColor: theme.primary }]}
-            >
-              <Sliders size={16} color="#FFFFFF" />
-              <Text style={styles.emptyActionBtnText}>Submit Constraints</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* Bottlenecks Section */}
+        {/* 3. Bottlenecks Section */}
         {bottleneckIssues.length > 0 && (
           <BottlenecksSection
             issues={bottleneckIssues}
             isDarkMode={isDarkMode}
+            onResolve={() => setShowAICompromise(true)}
           />
         )}
 
-        {/* Next Step Action Button */}
+        {/* 4. Action CTA: Go to Voting */}
         <TouchableOpacity
           activeOpacity={0.85}
           onPress={() => router.push(`/groups/${currentGroup.id}/vote` as any)}
-          style={[styles.primaryActionBtn, { backgroundColor: theme.primary }, shadows.glowPrimary]}
+          style={[
+            styles.finalizeBtn,
+            { backgroundColor: theme.primary }
+          ]}
         >
           <Vote size={18} color="#FFFFFF" />
-          <Text style={styles.primaryActionBtnText}>Proceed to Silent Voting</Text>
-          <ChevronRight size={18} color="#FFFFFF" />
+          <Text style={styles.finalizeBtnText}>
+            Proceed to Silent Voting & Lock In
+          </Text>
+          <Lock size={16} color="#FFFFFF" />
         </TouchableOpacity>
       </ScrollView>
 
       {/* Floating Bottom Tab Bar */}
       <BottomTabBar />
+
+      {/* AI Compromise Engine Modal */}
+      <AICompromiseModal
+        visible={showAICompromise}
+        groupId={currentGroup.id}
+        isDarkMode={isDarkMode}
+        onClose={() => setShowAICompromise(false)}
+        onApplied={() => {
+          setShowAICompromise(false);
+          router.push(`/groups/${currentGroup.id}/vote` as any);
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -330,8 +397,8 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: 140,
-    maxWidth: 640,
+    paddingBottom: 130,
+    maxWidth: 600,
     width: '100%',
     alignSelf: 'center'
   },
@@ -340,14 +407,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 10,
-    borderRadius: radius.card,
-    borderWidth: 1.5,
+    borderRadius: radius.sm,
+    borderWidth: 1,
     marginBottom: 14
   },
   backBtn: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: radius.sm,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1
@@ -362,9 +429,9 @@ const styles = StyleSheet.create({
     gap: 6
   },
   brandLogoCircle: {
-    width: 22,
-    height: 22,
-    borderRadius: 8,
+    width: 20,
+    height: 20,
+    borderRadius: 6,
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -374,127 +441,138 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2
   },
   brandSubtitleText: {
-    fontSize: 10,
+    fontSize: 9.5,
     fontWeight: '800',
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
     marginTop: 1
   },
-  stepBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: radius.pill
-  },
-  stepBadgeText: {
-    fontSize: 10,
-    fontWeight: '800'
-  },
-  aiEngineCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  deadlockAlertCard: {
     padding: 14,
-    borderRadius: radius.card,
+    borderRadius: radius.sm,
     borderWidth: 1.5,
-    marginBottom: 14,
-    gap: 12
+    borderLeftWidth: 4,
+    marginBottom: 14
   },
-  aiIconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 14,
+  deadlockHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    marginBottom: 10
+  },
+  deadlockIconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: radius.sm,
     justifyContent: 'center',
     alignItems: 'center'
   },
-  aiTextCol: {
+  deadlockTextCol: {
     flex: 1
   },
-  aiTitleRow: {
+  deadlockTitle: {
+    fontSize: 13,
+    fontWeight: '900',
+    letterSpacing: 0.2
+  },
+  deadlockDesc: {
+    fontSize: 11.5,
+    marginTop: 2,
+    lineHeight: 16
+  },
+  resolveDeadlockBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 2
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 9,
+    borderRadius: radius.btn
   },
-  aiCardTitle: {
-    fontSize: 14,
+  resolveDeadlockBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12.5,
     fontWeight: '800'
   },
-  aiPill: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: radius.pill
+  aiBannerCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 12,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    marginBottom: 12
   },
-  aiPillText: {
-    fontSize: 9,
+  aiBannerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1
+  },
+  aiBannerIconBox: {
+    width: 34,
+    height: 34,
+    borderRadius: radius.sm,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  aiBannerTextCol: {
+    flex: 1
+  },
+  aiBannerTitle: {
+    fontSize: 13,
     fontWeight: '800'
   },
-  aiCardSub: {
+  aiBannerSub: {
     fontSize: 11,
-    lineHeight: 15
+    marginTop: 1
   },
   filterRow: {
     flexDirection: 'row',
-    gap: 8,
-    marginBottom: 14,
+    gap: 6,
+    marginBottom: 12,
     flexWrap: 'wrap'
   },
   filterChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: radius.pill,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: radius.btn,
     borderWidth: 1
   },
   filterChipText: {
-    fontSize: 12,
-    fontWeight: '700'
+    fontSize: 11.5,
+    fontWeight: '800'
   },
-  cardsList: {
-    gap: 8,
+  optionsList: {
+    gap: 10,
     marginBottom: 14
   },
-  emptyStateCard: {
-    alignItems: 'center',
-    padding: 24,
-    borderRadius: radius.card,
+  emptyCard: {
+    padding: 20,
+    borderRadius: radius.sm,
     borderWidth: 1,
-    marginBottom: 14
+    alignItems: 'center'
   },
-  emptyStateTitle: {
-    fontSize: 16,
+  emptyTitle: {
+    fontSize: 14,
     fontWeight: '800',
-    marginTop: 10,
     marginBottom: 4
   },
-  emptyStateSub: {
+  emptyDesc: {
     fontSize: 12,
-    textAlign: 'center',
-    lineHeight: 16,
-    marginBottom: 14
+    textAlign: 'center'
   },
-  emptyActionBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: radius.btn
-  },
-  emptyActionBtnText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '700'
-  },
-  primaryActionBtn: {
+  finalizeBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
     paddingVertical: 14,
     borderRadius: radius.btn,
-    marginTop: 8,
+    marginTop: 4,
     marginBottom: 20
   },
-  primaryActionBtnText: {
+  finalizeBtnText: {
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: 14.5,
     fontWeight: '800'
   }
 });

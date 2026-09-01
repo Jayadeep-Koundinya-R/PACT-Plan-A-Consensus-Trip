@@ -1,38 +1,39 @@
-import React, { useEffect } from 'react';
+﻿import React, { useEffect } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   ScrollView,
+  TouchableOpacity,
   StyleSheet,
   SafeAreaView,
-  Platform,
   ImageBackground,
+  Platform,
   Alert
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
-import { ConsensusMeter } from '../../../src/components/ConsensusMeter';
-import { ConsensusMatrix } from '../../../src/components/ConsensusMatrix';
 import { StepProgressBar } from '../../../src/components/StepProgressBar';
+import { ConsensusMatrix } from '../../../src/components/ConsensusMatrix';
+import { ConsensusMeter } from '../../../src/components/ConsensusMeter';
 import { BottomTabBar } from '../../../src/components/BottomTabBar';
 import { ThemeToggle } from '../../../src/components/ThemeToggle';
 import { formatFriendlyDateRange } from '../../../src/lib/format/dateFormatter';
-import { colors, radius, shadows } from '../../../src/theme/colors';
+import { colors, radius, shadows, spacing } from '../../../src/theme/colors';
 import {
   ArrowLeft,
-  Heart,
-  Sparkles,
-  ShieldCheck,
-  CheckCircle2,
-  Lock,
-  Award,
   Calendar,
   DollarSign,
+  Heart,
+  CheckCircle2,
+  Lock,
   ChevronRight,
+  ShieldCheck,
+  Award,
+  Sparkles,
+  Sliders,
   Compass,
-  Sliders
+  Vote
 } from 'lucide-react-native';
 
 const DESTINATION_IMAGES: Record<string, string> = {
@@ -104,6 +105,7 @@ export default function VoteScreen() {
   const isOrganizer = currentGroup.organizerId === currentUserId;
   const topOption = consensus?.winningOption || consensus?.rankedOptions?.[0] || null;
   const isThresholdMet = (topOption?.consensusPercent || 0) >= 70;
+  const hasUserVoted = topOption && votes[`${topOption.option?.id}_${currentUserId}`] === true;
 
   const triggerHaptic = () => {
     if (Platform.OS !== 'web') {
@@ -144,17 +146,17 @@ export default function VoteScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Top PACT Brand Header Frame */}
+        {/* Top PACT Brand Header Frame Box - Document Style */}
         <View
           style={[
             styles.brandHeaderBox,
-            { backgroundColor: theme.surface, borderColor: theme.border },
-            shadows.sm
+            { backgroundColor: theme.surface, borderColor: theme.border }
           ]}
         >
           <TouchableOpacity
             onPress={() => router.push(`/groups/${currentGroup.id}` as any)}
             style={[styles.backBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
+            accessibilityLabel="Back to Group Hub"
           >
             <ArrowLeft size={16} color={theme.textPrimary} />
           </TouchableOpacity>
@@ -162,22 +164,43 @@ export default function VoteScreen() {
           <View style={styles.brandTextCol}>
             <View style={styles.brandTitleRow}>
               <View style={[styles.brandLogoCircle, { backgroundColor: theme.primary }]}>
-                <Compass size={14} color="#FFFFFF" strokeWidth={2.5} />
+                <Compass size={13} color="#FFFFFF" strokeWidth={2.5} />
               </View>
               <Text style={[styles.brandTitleText, { color: theme.textPrimary }]}>
                 PACT
               </Text>
             </View>
             <Text style={[styles.brandSubtitleText, { color: theme.primary }]}>
-              Plan A Consensus Trip
+              PLAN A CONSENSUS TRIP
             </Text>
           </View>
 
           <ThemeToggle />
+        </View>
+
+        {/* Silent Vote Confirmation Banner (When Voted) */}
+        {hasUserVoted && (
+          <View
+            style={[
+              styles.votedConfirmationCard,
+              { backgroundColor: theme.surface, borderColor: theme.success }
+            ]}
+          >
+            <CheckCircle2 size={18} color={theme.success} />
+            <View style={styles.votedTextCol}>
+              <Text style={[styles.votedTitle, { color: theme.success }]}>
+                Your Vote Is Recorded
+              </Text>
+              <Text style={[styles.votedSub, { color: theme.textSecondary }]}>
+                Ballots are private. Only the aggregate approval percentage is shared.
+              </Text>
+            </View>
           </View>
+        )}
 
         {/* 1. Consensus Matrix Card */}
         <ConsensusMatrix
+          groupId={currentGroup.id}
           destinationTitle={topOption?.option?.name || currentGroup.name || 'Trip Options'}
           members={members}
           totalMembersCount={currentGroup.totalMembersCount || members.length}
@@ -186,16 +209,19 @@ export default function VoteScreen() {
           onNudge={(name) => Alert.alert('Nudge Sent', `Sent a reminder to ${name}.`)}
         />
 
-        {/* 2. Top Pick Hero Card with Image */}
+        {/* 2. Top Pick Ticket Card (Ticket Motif: Perforation, Stub & Top-Right Radius) */}
         {topOption && topOption.option ? (
           <View
             style={[
-              styles.heroPickCard,
-              { backgroundColor: theme.surface, borderColor: isThresholdMet ? theme.primary : theme.border },
-              shadows.md
+              styles.ticketCard,
+              {
+                backgroundColor: theme.surface,
+                borderColor: isThresholdMet ? theme.primary : theme.border
+              }
             ]}
           >
-            <View style={styles.heroImageWrapper}>
+            {/* Top Ticket Hero Header */}
+            <View style={styles.ticketHeroHeader}>
               <ImageBackground
                 source={{ uri: topImageUrl }}
                 style={styles.heroImage}
@@ -205,16 +231,16 @@ export default function VoteScreen() {
                   <View style={styles.heroTopTagRow}>
                     <View style={[styles.heroPickBadge, { backgroundColor: theme.primary }]}>
                       <Award size={12} color="#FFFFFF" />
-                      <Text style={styles.heroPickBadgeText}>TOP COMPROMISE</Text>
+                      <Text style={styles.heroPickBadgeText}>LEAD COMPROMISE</Text>
                     </View>
                     <View
                       style={[
                         styles.heroMatchPill,
-                        { backgroundColor: isDarkMode ? 'rgba(15, 23, 42, 0.85)' : 'rgba(255, 255, 255, 0.92)' }
+                        { backgroundColor: isDarkMode ? 'rgba(15, 23, 42, 0.88)' : 'rgba(255, 255, 255, 0.94)' }
                       ]}
                     >
                       <Text style={[styles.heroMatchPillText, { color: theme.primary }]}>
-                        {topOption.totalScore}% MATCH
+                        {topOption.totalScore}% CONSENSUS
                       </Text>
                     </View>
                   </View>
@@ -223,15 +249,15 @@ export default function VoteScreen() {
                     <Text style={styles.heroTitleText}>{topOption.option.name}</Text>
                     <View style={styles.heroMetaRow}>
                       <View style={styles.heroMetaItem}>
-                        <Calendar size={13} color="#FFFFFF" />
+                        <Calendar size={12} color="#FFFFFF" />
                         <Text style={styles.heroMetaText}>
                           {formatFriendlyDateRange(topOption.option.dateStart, topOption.option.dateEnd)}
                         </Text>
                       </View>
                       <View style={styles.heroMetaItem}>
-                        <DollarSign size={13} color="#FFFFFF" />
+                        <DollarSign size={12} color="#FFFFFF" />
                         <Text style={styles.heroMetaText}>
-                          ${topOption.option.budgetPerPerson} / person
+                          ${topOption.option.budgetPerPerson} / traveler
                         </Text>
                       </View>
                     </View>
@@ -240,49 +266,76 @@ export default function VoteScreen() {
               </ImageBackground>
             </View>
 
-            {/* Voting Toggle Row */}
-            <View style={styles.heroBottomRow}>
-              <View style={styles.heroAgreementCol}>
-                <Text style={[styles.heroAgreementLabel, { color: theme.textSecondary }]}>
-                  GROUP CONSENSUS
+            {/* Perforation Line (Dashed) */}
+            <View style={[styles.perforationLine, { borderColor: theme.border }]} />
+
+            {/* Ticket Stub & Vote Action Row */}
+            <View style={styles.ticketBottomRow}>
+              {/* Left Stub: Score / Consensus */}
+              <View style={[styles.ticketStub, { backgroundColor: theme.surfaceSubtle }]}>
+                <Text style={[styles.stubScoreText, { color: isThresholdMet ? theme.success : theme.primary }]}>
+                  {topOption.consensusPercent}%
                 </Text>
-                <Text style={[styles.heroAgreementValue, { color: isThresholdMet ? theme.success : theme.primary }]}>
-                  {topOption.consensusPercent}% Agreement ({getOptionApprovalCount(topOption.option.id)}/{currentGroup.totalMembersCount || members.length} votes)
+                <Text style={[styles.stubLabelText, { color: theme.textSecondary }]}>
+                  AGREEMENT
                 </Text>
               </View>
 
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => handleToggleVote(topOption.option.id)}
-                style={[
-                  styles.voteHeartBtn,
-                  votes[`${topOption.option.id}_${currentUserId}`]
-                    ? { backgroundColor: theme.primary, borderColor: theme.primary }
-                    : { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }
-                ]}
-              >
-                <Heart
-                  size={18}
-                  color={votes[`${topOption.option.id}_${currentUserId}`] ? '#FFFFFF' : theme.textSecondary}
-                  fill={votes[`${topOption.option.id}_${currentUserId}`] ? '#FFFFFF' : 'none'}
-                />
-                <Text
+              {/* Right Content & Vote Heart Button */}
+              <View style={styles.ticketRightCol}>
+                <Text style={[styles.ticketVoteCount, { color: theme.textSecondary }]}>
+                  {getOptionApprovalCount(topOption.option.id)} of {currentGroup.totalMembersCount || members.length} votes cast
+                </Text>
+
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => handleToggleVote(topOption.option.id)}
                   style={[
-                    styles.voteHeartBtnText,
-                    { color: votes[`${topOption.option.id}_${currentUserId}`] ? '#FFFFFF' : theme.textPrimary }
+                    styles.voteHeartBtn,
+                    {
+                      backgroundColor: votes[`${topOption.option.id}_${currentUserId}`]
+                        ? theme.primaryLight
+                        : theme.surfaceSubtle,
+                      borderColor: votes[`${topOption.option.id}_${currentUserId}`]
+                        ? theme.primary
+                        : theme.border
+                    }
                   ]}
                 >
-                  {votes[`${topOption.option.id}_${currentUserId}`] ? 'Approved' : 'Approve'}
-                </Text>
-              </TouchableOpacity>
+                  <Heart
+                    size={16}
+                    color={
+                      votes[`${topOption.option.id}_${currentUserId}`]
+                        ? theme.primary
+                        : theme.textMuted
+                    }
+                    fill={
+                      votes[`${topOption.option.id}_${currentUserId}`]
+                        ? theme.primary
+                        : 'none'
+                    }
+                  />
+                  <Text
+                    style={[
+                      styles.voteHeartBtnText,
+                      {
+                        color: votes[`${topOption.option.id}_${currentUserId}`]
+                          ? theme.primary
+                          : theme.textSecondary
+                      }
+                    ]}
+                  >
+                    {votes[`${topOption.option.id}_${currentUserId}`] ? 'Voted Yes' : 'Cast Silent Vote'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         ) : (
           <View
             style={[
               styles.emptyStateCard,
-              { backgroundColor: theme.surface, borderColor: theme.border },
-              shadows.sm
+              { backgroundColor: theme.surface, borderColor: theme.border }
             ]}
           >
             <Sparkles size={24} color={theme.primary} />
@@ -297,7 +350,7 @@ export default function VoteScreen() {
               onPress={() => router.push(`/groups/${currentGroup.id}/preferences` as any)}
               style={[styles.emptyActionBtn, { backgroundColor: theme.primary }]}
             >
-              <Sliders size={16} color="#FFFFFF" />
+              <Sliders size={15} color="#FFFFFF" />
               <Text style={styles.emptyActionBtnText}>Submit Constraints</Text>
             </TouchableOpacity>
           </View>
@@ -313,10 +366,10 @@ export default function VoteScreen() {
         />
 
         {/* Privacy Note */}
-        <View style={[styles.privacyBox, { backgroundColor: isDarkMode ? '#151D2A' : '#FFFFFF', borderColor: theme.border }]}>
+        <View style={[styles.privacyBox, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <ShieldCheck size={16} color={theme.success} />
           <Text style={[styles.privacyText, { color: theme.textSecondary }]}>
-            Silent Voting is aggregate-only. Friends only see the total approval count, never who voted for what.
+            Silent Voting is aggregate-only. Friends only see the total approval percentage, never who voted for what.
           </Text>
         </View>
 
@@ -325,10 +378,10 @@ export default function VoteScreen() {
           <TouchableOpacity
             activeOpacity={0.85}
             onPress={handleFinalize}
-            style={[styles.finalizeBtn, { backgroundColor: theme.primary }, shadows.glowPrimary]}
+            style={[styles.finalizeBtn, { backgroundColor: theme.primary }]}
           >
             <Lock size={18} color="#FFFFFF" />
-            <Text style={styles.finalizeBtnText}>Lock It In & Generate Brief</Text>
+            <Text style={styles.finalizeBtnText}>Lock It In & Seal PACT</Text>
             <ChevronRight size={18} color="#FFFFFF" />
           </TouchableOpacity>
         ) : (
@@ -356,8 +409,8 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: 140,
-    maxWidth: 640,
+    paddingBottom: 130,
+    maxWidth: 600,
     width: '100%',
     alignSelf: 'center'
   },
@@ -366,14 +419,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 10,
-    borderRadius: radius.card,
-    borderWidth: 1.5,
+    borderRadius: radius.sm,
+    borderWidth: 1,
     marginBottom: 14
   },
   backBtn: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: radius.sm,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1
@@ -388,9 +441,9 @@ const styles = StyleSheet.create({
     gap: 6
   },
   brandLogoCircle: {
-    width: 22,
-    height: 22,
-    borderRadius: 8,
+    width: 20,
+    height: 20,
+    borderRadius: 6,
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -400,28 +453,43 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2
   },
   brandSubtitleText: {
-    fontSize: 10,
+    fontSize: 9.5,
     fontWeight: '800',
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
     marginTop: 1
   },
-  stepBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: radius.pill
+  votedConfirmationCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    padding: 12,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderLeftWidth: 3.5,
+    marginBottom: 12
   },
-  stepBadgeText: {
-    fontSize: 10,
+  votedTextCol: {
+    flex: 1
+  },
+  votedTitle: {
+    fontSize: 13,
     fontWeight: '800'
   },
-  heroPickCard: {
-    borderRadius: radius.card,
+  votedSub: {
+    fontSize: 11,
+    marginTop: 1
+  },
+  ticketCard: {
+    borderTopRightRadius: radius.md,
+    borderTopLeftRadius: 0,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
     borderWidth: 1,
     overflow: 'hidden',
     marginBottom: 14
   },
-  heroImageWrapper: {
-    height: 140,
+  ticketHeroHeader: {
+    height: 135,
     width: '100%'
   },
   heroImage: {
@@ -429,13 +497,13 @@ const styles = StyleSheet.create({
     height: '100%'
   },
   heroImageRadius: {
-    borderTopLeftRadius: radius.card,
-    borderTopRightRadius: radius.card
+    borderTopRightRadius: radius.md,
+    borderTopLeftRadius: 0
   },
   heroScrim: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    padding: 14,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    padding: 12,
     justifyContent: 'space-between'
   },
   heroTopTagRow: {
@@ -448,34 +516,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: radius.pill
+    paddingVertical: 3.5,
+    borderRadius: radius.btn
   },
   heroPickBadgeText: {
     color: '#FFFFFF',
-    fontSize: 10,
+    fontSize: 9.5,
     fontWeight: '800',
     letterSpacing: 0.5
   },
   heroMatchPill: {
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: radius.pill
+    borderRadius: radius.btn
   },
   heroMatchPillText: {
-    fontSize: 11,
+    fontSize: 10.5,
     fontWeight: '900'
   },
   heroTitleText: {
     color: '#FFFFFF',
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '900',
-    letterSpacing: -0.3,
-    marginBottom: 4
+    letterSpacing: -0.2,
+    marginBottom: 3
   },
   heroMetaRow: {
     flexDirection: 'row',
-    gap: 14
+    gap: 12
   },
   heroMetaItem: {
     flexDirection: 'row',
@@ -484,85 +552,109 @@ const styles = StyleSheet.create({
   },
   heroMetaText: {
     color: '#FFFFFF',
-    fontSize: 12,
+    fontSize: 11.5,
     fontWeight: '600'
   },
-  heroBottomRow: {
+  perforationLine: {
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    width: '100%',
+    marginVertical: 0
+  },
+  ticketBottomRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  ticketStub: {
+    width: '28%',
+    paddingVertical: 14,
+    paddingHorizontal: 8,
     alignItems: 'center',
-    padding: 14
+    justifyContent: 'center',
+    borderRightWidth: 1,
+    borderRightColor: 'rgba(0,0,0,0.06)'
   },
-  heroAgreementCol: {
-    flex: 1
+  stubScoreText: {
+    fontSize: 19,
+    fontWeight: '900',
+    letterSpacing: -0.5
   },
-  heroAgreementLabel: {
-    fontSize: 10,
+  stubLabelText: {
+    fontSize: 8.5,
     fontWeight: '800',
-    letterSpacing: 0.5,
-    marginBottom: 2
+    letterSpacing: 0.6,
+    marginTop: 1
   },
-  heroAgreementValue: {
-    fontSize: 13,
-    fontWeight: '800'
+  ticketRightCol: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingVertical: 10
+  },
+  ticketVoteCount: {
+    fontSize: 11.5,
+    fontWeight: '600',
+    flex: 1
   },
   voteHeartBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderRadius: radius.pill,
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: radius.btn,
     borderWidth: 1
   },
   voteHeartBtnText: {
-    fontSize: 13,
-    fontWeight: '700'
+    fontSize: 12,
+    fontWeight: '800'
   },
   emptyStateCard: {
     alignItems: 'center',
-    padding: 24,
-    borderRadius: radius.card,
+    padding: 22,
+    borderRadius: radius.sm,
     borderWidth: 1,
     marginBottom: 14
   },
   emptyStateTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '800',
-    marginTop: 10,
+    marginTop: 8,
     marginBottom: 4
   },
   emptyStateSub: {
     fontSize: 12,
     textAlign: 'center',
     lineHeight: 16,
-    marginBottom: 14
+    marginBottom: 12
   },
   emptyActionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 9,
     borderRadius: radius.btn
   },
   emptyActionBtnText: {
     color: '#FFFFFF',
     fontSize: 13,
-    fontWeight: '700'
+    fontWeight: '800'
   },
   privacyBox: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     padding: 12,
-    borderRadius: radius.md,
+    borderRadius: radius.sm,
     borderWidth: 1,
     marginBottom: 14
   },
   privacyText: {
-    fontSize: 11,
-    lineHeight: 15,
+    fontSize: 11.5,
+    lineHeight: 16,
     flex: 1
   },
   finalizeBtn: {
@@ -577,7 +669,7 @@ const styles = StyleSheet.create({
   },
   finalizeBtnText: {
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: 14.5,
     fontWeight: '800'
   },
   waitingNotice: {
@@ -585,8 +677,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    padding: 14,
-    borderRadius: radius.btn,
+    padding: 12,
+    borderRadius: radius.sm,
     borderWidth: 1,
     marginTop: 4,
     marginBottom: 20

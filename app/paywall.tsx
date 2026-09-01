@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   ScrollView,
+  TouchableOpacity,
   StyleSheet,
   SafeAreaView,
   Platform,
@@ -14,19 +14,20 @@ import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../src/store/useGatherlyStore';
 import { BottomTabBar } from '../src/components/BottomTabBar';
 import { ThemeToggle } from '../src/components/ThemeToggle';
-import { colors, radius, shadows } from '../src/theme/colors';
+import { colors, radius, shadows, spacing } from '../src/theme/colors';
 import {
-  X,
-  Sparkles,
-  Check,
   Crown,
+  Check,
+  Zap,
   ShieldCheck,
   ArrowRight,
+  X,
+  Sparkles,
   Infinity as InfinityIcon,
   Bot,
   Palette,
   CheckCircle2,
-  Compass
+  Lock
 } from 'lucide-react-native';
 
 export default function PaywallScreen() {
@@ -64,7 +65,7 @@ export default function PaywallScreen() {
 
   const handleRestore = () => {
     triggerHaptic();
-    setSuccessMessage('✅ Purchases restored successfully.');
+    setSuccessMessage('✓ Purchases restored successfully.');
     setTimeout(() => setSuccessMessage(''), 2000);
   };
 
@@ -81,12 +82,11 @@ export default function PaywallScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Top PACT Brand Header Frame Box */}
+        {/* Top PACT Brand Header Frame Box - Document Style */}
         <View
           style={[
             styles.brandHeaderBox,
-            { backgroundColor: theme.surface, borderColor: theme.border },
-            shadows.sm
+            { backgroundColor: theme.surface, borderColor: theme.border }
           ]}
         >
           <TouchableOpacity
@@ -101,14 +101,14 @@ export default function PaywallScreen() {
           <View style={styles.brandTextCol}>
             <View style={styles.brandTitleRow}>
               <View style={[styles.brandLogoCircle, { backgroundColor: theme.primary }]}>
-                <Crown size={14} color="#FFFFFF" strokeWidth={2.5} />
+                <Crown size={13} color="#FFFFFF" strokeWidth={2.5} />
               </View>
               <Text style={[styles.brandTitleText, { color: theme.textPrimary }]}>
                 PACT Pro
               </Text>
             </View>
             <Text style={[styles.brandSubtitleText, { color: theme.primary }]}>
-              Plan A Consensus Trip
+              {isCurrentPro ? 'PRO ACTIVE' : 'UNLIMITED CONSENSUS'}
             </Text>
           </View>
 
@@ -130,36 +130,43 @@ export default function PaywallScreen() {
           </View>
         )}
 
-        {/* Hero Card */}
+        {/* Hero Document Card */}
         <View
           style={[
             styles.heroCard,
-            { backgroundColor: theme.surface, borderColor: theme.border },
-            shadows.md
+            { backgroundColor: theme.surface, borderColor: theme.border }
           ]}
         >
-          <View style={[styles.crownBox, { backgroundColor: theme.primary }]}>
-            <Crown size={28} color="#FFFFFF" />
+          <View style={[styles.crownBox, { backgroundColor: theme.primaryLight }]}>
+            <Crown size={24} color={theme.primary} />
           </View>
           <Text style={[styles.heroTitle, { color: theme.textPrimary }]}>
-            Unlock Unlimited Trips & AI Pitch Engine
+            Unlimited Circles & AI Compromise Engine
           </Text>
           <Text style={[styles.heroSub, { color: theme.textSecondary }]}>
-            Power up group trip planning with automatic conflict resolution and unlimited shared circles.
+            Power up your group trips with automatic bottleneck negotiation and unlimited shared travel pacts.
           </Text>
+
+          {isCurrentPro && (
+            <View style={[styles.proActiveBadge, { backgroundColor: theme.successLight, borderColor: theme.success }]}>
+              <CheckCircle2 size={13} color={theme.success} />
+              <Text style={[styles.proActiveBadgeText, { color: theme.success }]}>
+                PRO ENTITLEMENT ACTIVE ({subscriptionPlan.toUpperCase()})
+              </Text>
+            </View>
+          )}
         </View>
 
-        {/* Feature Highlights Grid */}
+        {/* Feature Highlights Grid (Document Motif) */}
         <View style={styles.featuresList}>
           <View
             style={[
               styles.featureItem,
-              { backgroundColor: theme.surface, borderColor: theme.border },
-              shadows.sm
+              { backgroundColor: theme.surface, borderColor: theme.border }
             ]}
           >
-            <View style={[styles.featureIconBox, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
-              <InfinityIcon size={20} color={theme.primary} />
+            <View style={[styles.featureIconBox, { backgroundColor: theme.surfaceSubtle }]}>
+              <InfinityIcon size={18} color={theme.primary} />
             </View>
             <View style={styles.featureTextCol}>
               <Text style={[styles.featureTitle, { color: theme.textPrimary }]}>
@@ -174,19 +181,18 @@ export default function PaywallScreen() {
           <View
             style={[
               styles.featureItem,
-              { backgroundColor: theme.surface, borderColor: theme.border },
-              shadows.sm
+              { backgroundColor: theme.surface, borderColor: theme.border }
             ]}
           >
-            <View style={[styles.featureIconBox, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
-              <Bot size={20} color={theme.primary} />
+            <View style={[styles.featureIconBox, { backgroundColor: theme.surfaceSubtle }]}>
+              <Bot size={18} color={theme.secondary} />
             </View>
             <View style={styles.featureTextCol}>
               <Text style={[styles.featureTitle, { color: theme.textPrimary }]}>
-                AI Compromise Pitch Engine
+                AI Compromise Whisperer
               </Text>
               <Text style={[styles.featureDesc, { color: theme.textSecondary }]}>
-                Get AI-generated personalized explanations convincing hesitant travelers to say Yes.
+                Auto-negotiate shoulder season dates and budget ceilings for 100% group fit.
               </Text>
             </View>
           </View>
@@ -194,19 +200,18 @@ export default function PaywallScreen() {
           <View
             style={[
               styles.featureItem,
-              { backgroundColor: theme.surface, borderColor: theme.border },
-              shadows.sm
+              { backgroundColor: theme.surface, borderColor: theme.border }
             ]}
           >
-            <View style={[styles.featureIconBox, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
-              <Palette size={20} color={theme.primary} />
+            <View style={[styles.featureIconBox, { backgroundColor: theme.surfaceSubtle }]}>
+              <Palette size={18} color={theme.primary} />
             </View>
             <View style={styles.featureTextCol}>
               <Text style={[styles.featureTitle, { color: theme.textPrimary }]}>
-                Custom Circle Themes
+                Custom Circle Themes & Brief Export
               </Text>
               <Text style={[styles.featureDesc, { color: theme.textSecondary }]}>
-                Personalize your trip circles with custom colors and custom destination photos.
+                Export sealed travel documents with .ics calendar syncing and shareable social story cards.
               </Text>
             </View>
           </View>
@@ -260,13 +265,12 @@ export default function PaywallScreen() {
           onPress={handleSubscribe}
           style={[
             styles.ctaBtn,
-            { backgroundColor: theme.primary },
-            shadows.glowPrimary
+            { backgroundColor: theme.primary }
           ]}
         >
           <Crown size={18} color="#FFFFFF" />
           <Text style={styles.ctaBtnText}>
-            {isCurrentPro ? 'Switch Billing Cycle' : 'Upgrade to PACT Pro'}
+            {isCurrentPro ? 'Switch Billing Plan' : 'Upgrade to PACT Pro'}
           </Text>
           <ArrowRight size={18} color="#FFFFFF" />
         </TouchableOpacity>
@@ -276,7 +280,7 @@ export default function PaywallScreen() {
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={handleCancelSubscription}
-            style={[styles.cancelBtn, { borderColor: theme.border }]}
+            style={[styles.cancelBtn, { borderColor: theme.border, backgroundColor: theme.surface }]}
           >
             <Text style={[styles.cancelBtnText, { color: theme.textSecondary }]}>
               Revert to Free Plan
@@ -286,9 +290,9 @@ export default function PaywallScreen() {
 
         {/* Guarantee footer */}
         <View style={styles.guaranteeRow}>
-          <ShieldCheck size={16} color={theme.success} />
+          <ShieldCheck size={15} color={theme.success} />
           <Text style={[styles.guaranteeText, { color: theme.textSecondary }]}>
-            Secured via Google Play. Cancel anytime in Store settings.
+            Secured via Google Play & App Store. Cancel anytime in Store settings.
           </Text>
         </View>
       </ScrollView>
@@ -306,8 +310,8 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: 140,
-    maxWidth: 640,
+    paddingBottom: 130,
+    maxWidth: 600,
     width: '100%',
     alignSelf: 'center'
   },
@@ -316,14 +320,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 10,
-    borderRadius: radius.card,
-    borderWidth: 1.5,
+    borderRadius: radius.sm,
+    borderWidth: 1,
     marginBottom: 14
   },
   backBtn: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: radius.sm,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1
@@ -338,9 +342,9 @@ const styles = StyleSheet.create({
     gap: 6
   },
   brandLogoCircle: {
-    width: 22,
-    height: 22,
-    borderRadius: 8,
+    width: 20,
+    height: 20,
+    borderRadius: 6,
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -350,71 +354,87 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2
   },
   brandSubtitleText: {
-    fontSize: 10,
+    fontSize: 9.5,
     fontWeight: '800',
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
     marginTop: 1
   },
   restoreText: {
-    fontSize: 13,
-    fontWeight: '700'
+    fontSize: 12.5,
+    fontWeight: '800'
   },
   toastBox: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     padding: 12,
-    borderRadius: radius.md,
-    marginBottom: 14
+    borderRadius: radius.sm,
+    marginBottom: 12
   },
   toastText: {
     color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '700'
+    fontSize: 12.5,
+    fontWeight: '800'
   },
   heroCard: {
     alignItems: 'center',
-    padding: 20,
-    borderRadius: radius.card,
+    padding: 18,
+    borderRadius: radius.sm,
     borderWidth: 1,
-    marginBottom: 16
+    marginBottom: 14
   },
   crownBox: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 44,
+    height: 44,
+    borderRadius: radius.sm,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12
+    marginBottom: 10
   },
   heroTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '900',
     textAlign: 'center',
-    letterSpacing: -0.3,
-    marginBottom: 6
+    letterSpacing: -0.2,
+    marginBottom: 6,
+    lineHeight: 23
   },
   heroSub: {
-    fontSize: 13,
+    fontSize: 12.5,
     textAlign: 'center',
-    lineHeight: 18
+    lineHeight: 17
+  },
+  proActiveBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: radius.btn,
+    borderWidth: 1,
+    marginTop: 10
+  },
+  proActiveBadgeText: {
+    fontSize: 10.5,
+    fontWeight: '800',
+    letterSpacing: 0.5
   },
   featuresList: {
-    gap: 10,
-    marginBottom: 16
+    gap: 8,
+    marginBottom: 14
   },
   featureItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    padding: 14,
-    borderRadius: radius.card,
+    padding: 12,
+    borderRadius: radius.sm,
     borderWidth: 1
   },
   featureIconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: 36,
+    height: 36,
+    borderRadius: radius.sm,
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -422,49 +442,49 @@ const styles = StyleSheet.create({
     flex: 1
   },
   featureTitle: {
-    fontSize: 14,
+    fontSize: 13.5,
     fontWeight: '800',
-    marginBottom: 2
+    marginBottom: 1
   },
   featureDesc: {
-    fontSize: 11,
+    fontSize: 11.5,
     lineHeight: 15
   },
   planSelectorRow: {
     flexDirection: 'row',
-    gap: 12,
-    marginBottom: 18
+    gap: 10,
+    marginBottom: 14
   },
   planCard: {
     flex: 1,
-    padding: 16,
-    borderRadius: radius.card,
+    padding: 14,
+    borderRadius: radius.sm,
     alignItems: 'center',
     position: 'relative'
   },
   saveBadge: {
     position: 'absolute',
-    top: -10,
+    top: -9,
     paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: radius.pill
+    paddingVertical: 2.5,
+    borderRadius: radius.btn
   },
   saveBadgeText: {
     color: '#FFFFFF',
-    fontSize: 9,
+    fontSize: 8.5,
     fontWeight: '900',
     letterSpacing: 0.5
   },
   planPeriod: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '800',
-    marginTop: 4,
-    marginBottom: 4
+    marginTop: 2,
+    marginBottom: 2
   },
   planPrice: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '900',
-    marginBottom: 2
+    marginBottom: 1
   },
   planSub: {
     fontSize: 11
@@ -474,13 +494,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    paddingVertical: 15,
+    paddingVertical: 14,
     borderRadius: radius.btn,
-    marginBottom: 10
+    marginBottom: 8
   },
   ctaBtnText: {
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: 14.5,
     fontWeight: '800'
   },
   cancelBtn: {
@@ -492,7 +512,7 @@ const styles = StyleSheet.create({
   },
   cancelBtnText: {
     fontSize: 12,
-    fontWeight: '600'
+    fontWeight: '700'
   },
   guaranteeRow: {
     flexDirection: 'row',

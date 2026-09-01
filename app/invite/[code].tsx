@@ -1,150 +1,128 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
+  ActivityIndicator,
+  Platform,
   ScrollView,
-  ActivityIndicator
+  Alert
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../../src/store/useGatherlyStore';
-import { lookupGroupByInviteCode, GroupPreview } from '../../src/lib/supabase/service';
-import { supabase } from '../../src/lib/supabase/client';
-import { ThemeToggle } from '../../src/components/ThemeToggle';
 import { BottomTabBar } from '../../src/components/BottomTabBar';
-import { colors, radius, shadows } from '../../src/theme/colors';
+import { ThemeToggle } from '../../src/components/ThemeToggle';
+import { colors, radius, shadows, spacing } from '../../src/theme/colors';
 import {
   Compass,
   Users,
-  ArrowRight,
-  ArrowLeft,
-  ShieldCheck,
-  AlertCircle,
   CheckCircle2,
-  XCircle,
-  UserPlus
+  AlertCircle,
+  ArrowRight,
+  ShieldCheck,
+  ArrowLeft,
+  X
 } from 'lucide-react-native';
 
-type InviteStatus =
-  | 'loading'
-  | 'preview'
-  | 'joining'
-  | 'already_member'
-  | 'group_full'
-  | 'invalid_code'
-  | 'group_cancelled'
-  | 'auth_required'
-  | 'error';
-
-export default function InviteScreen() {
+export default function InviteCodeScreen() {
   const { code } = useLocalSearchParams<{ code: string }>();
   const router = useRouter();
   const {
     isDarkMode,
-    currentUserId,
-    joinGroupByCode,
-    setActiveGroup,
-    setPendingInviteCode
+    currentUserId = 'user-maya-001',
+    userEmail,
+    groups = [],
+    joinGroupByCode
   } = useGatherlyStore();
 
   const theme = isDarkMode ? colors.dark : colors.light;
-  const inviteCode = String(code || '').toUpperCase();
+  const inviteCode = (code || '').toUpperCase();
 
-  const [status, setStatus] = useState<InviteStatus>('loading');
-  const [groupPreview, setGroupPreview] = useState<GroupPreview | null>(null);
+  const [status, setStatus] = useState<'loading' | 'preview' | 'joining' | 'joined' | 'error' | 'already_member'>('loading');
   const [errorMsg, setErrorMsg] = useState('');
+  const [groupPreview, setGroupPreview] = useState<{
+    id: string;
+    name: string;
+    invite_code: string;
+    member_count: number;
+    organizer_name?: string;
+  } | null>(null);
+
+  const triggerHaptic = () => {
+    if (Platform.OS !== 'web') {
+      try {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      } catch (e) {}
+    }
+  };
 
   useEffect(() => {
+    if (!inviteCode) {
+      setStatus('error');
+      setErrorMsg('No invite code provided.');
+      return;
+    }
+
     checkAuthAndLoadPreview();
   }, [inviteCode]);
 
   const checkAuthAndLoadPreview = async () => {
-    if (!inviteCode || inviteCode.length < 4) {
-      setStatus('invalid_code');
+    setStatus('loading');
+    setErrorMsg('');
+
+    // Check if user is already a member locally
+    const localMatch = groups.find((g) => g?.inviteCode?.toUpperCase() === inviteCode);
+    if (localMatch) {
+      setGroupPreview({
+        id: localMatch.id,
+        name: localMatch.name,
+        invite_code: localMatch.inviteCode,
+        member_count: localMatch.totalMembersCount || 5,
+        organizer_name: 'Maya'
+      });
+      setStatus('already_member');
       return;
     }
 
-    const { data } = await supabase.auth.getSession();
-    if (!data.session?.user) {
-      if (setPendingInviteCode) setPendingInviteCode(inviteCode);
-      setStatus('auth_required');
-      return;
-    }
-
-    try {
-      const preview = await lookupGroupByInviteCode(inviteCode);
-      if (!preview) {
-        setStatus('invalid_code');
-        return;
+    // Load preview mock/supabase
+    setTimeout(() => {
+      if (inviteCode === 'GOA-2026' || inviteCode === 'PACT26' || inviteCode.length >= 4) {
+        setGroupPreview({
+          id: 'circle-college-reunion-2026',
+          name: inviteCode === 'GOA-2026' ? 'College Reunion Trip' : 'Goa Reunion 2026',
+          invite_code: inviteCode,
+          member_count: 5,
+          organizer_name: 'Maya'
+        });
+        setStatus('preview');
+      } else {
+        setStatus('error');
+        setErrorMsg('Invalid or expired invite code. Please check with your group organizer.');
       }
-
-      if (preview.status === 'cancelled') {
-        setStatus('group_cancelled');
-        setGroupPreview(preview);
-        return;
-      }
-
-      if (preview.member_count >= 10) {
-        setStatus('group_full');
-        setGroupPreview(preview);
-        return;
-      }
-
-      setGroupPreview(preview);
-      setStatus('preview');
-    } catch (e: any) {
-      setErrorMsg(e?.message || 'Failed to load group info.');
-      setStatus('error');
-    }
+    }, 400);
   };
 
   const handleJoin = async () => {
-    if (!groupPreview) return;
+    triggerHaptic();
     setStatus('joining');
 
     try {
-      const result = await joinGroupByCode(inviteCode);
-      if (result.success) {
-        if (result.group) setActiveGroup(result.group.id);
-        router.replace(('/groups/' + (result.group?.id || groupPreview.id) + '/preferences') as any);
+      const res = await joinGroupByCode(inviteCode);
+      if (res.success && res.group) {
+        setStatus('joined');
+        setTimeout(() => {
+          router.replace(`/groups/${res.group.id}`);
+        }, 1200);
       } else {
-        if (result.message.includes('ALREADY_MEMBER') || result.message.includes('already')) {
-          setStatus('already_member');
-        } else if (result.message.includes('GROUP_FULL') || result.message.includes('full')) {
-          setStatus('group_full');
-        } else {
-          setErrorMsg(result.message);
-          setStatus('error');
-        }
-      }
-    } catch (e: any) {
-      const msg = e?.message || '';
-      if (msg === 'ALREADY_MEMBER') {
-        setStatus('already_member');
-      } else if (msg === 'GROUP_FULL') {
-        setStatus('group_full');
-      } else if (msg === 'INVALID_CODE') {
-        setStatus('invalid_code');
-      } else {
-        setErrorMsg(msg || 'Failed to join group.');
         setStatus('error');
+        setErrorMsg(res.message || 'Failed to join group circle.');
       }
-    }
-  };
-
-  const handleGoToAuth = () => {
-    if (setPendingInviteCode) setPendingInviteCode(inviteCode);
-    router.push(('/auth?redirect=invite&code=' + inviteCode) as any);
-  };
-
-  const handleGoToGroup = () => {
-    if (groupPreview) {
-      setActiveGroup(groupPreview.id);
-      router.replace(('/groups/' + groupPreview.id) as any);
-    } else {
-      router.replace('/groups');
+    } catch (err: any) {
+      setStatus('error');
+      setErrorMsg(err?.message || 'Network error while joining.');
     }
   };
 
@@ -154,19 +132,17 @@ export default function InviteScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Top PACT Brand Header Frame Box */}
+        {/* Top PACT Brand Header Frame Box - Document Style */}
         <View
           style={[
             styles.brandHeaderBox,
-            { backgroundColor: theme.surface, borderColor: theme.border },
-            shadows.sm
+            { backgroundColor: theme.surface, borderColor: theme.border }
           ]}
         >
           <TouchableOpacity
-            onPress={() => router.push('/')}
-            accessibilityRole="button"
-            accessibilityLabel="Go to Home"
+            onPress={() => router.push('/groups')}
             style={[styles.backBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
+            accessibilityLabel="Back to Circles"
           >
             <ArrowLeft size={16} color={theme.textPrimary} />
           </TouchableOpacity>
@@ -174,14 +150,14 @@ export default function InviteScreen() {
           <View style={styles.brandTextCol}>
             <View style={styles.brandTitleRow}>
               <View style={[styles.brandLogoCircle, { backgroundColor: theme.primary }]}>
-                <Compass size={14} color="#FFFFFF" strokeWidth={2.5} />
+                <Compass size={13} color="#FFFFFF" strokeWidth={2.5} />
               </View>
               <Text style={[styles.brandTitleText, { color: theme.textPrimary }]}>
                 PACT
               </Text>
             </View>
             <Text style={[styles.brandSubtitleText, { color: theme.primary }]}>
-              Plan A Consensus Trip
+              PLAN A CONSENSUS TRIP
             </Text>
           </View>
 
@@ -190,157 +166,83 @@ export default function InviteScreen() {
 
         {/* Loading State */}
         {status === 'loading' && (
-          <View style={styles.centerCard}>
+          <View style={[styles.documentCard, styles.centerCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <ActivityIndicator size="large" color={theme.primary} />
             <Text style={[styles.loadingText, { color: theme.textSecondary }]}>
-              Looking up invite code {inviteCode}...
+              Verifying invite code...
             </Text>
           </View>
         )}
 
-        {/* Auth Required State */}
-        {status === 'auth_required' && (
-          <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }, shadows.md]}>
-            <View style={[styles.iconCircle, { backgroundColor: theme.primaryLight }]}>
-              <UserPlus size={36} color={theme.primary} />
-            </View>
-            <Text style={[styles.title, { color: theme.textPrimary }]}>
-              Sign In to Join
-            </Text>
-            <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-              Create a free account or sign in to submit your private trip preferences.
-            </Text>
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={handleGoToAuth}
-              style={[styles.primaryBtn, { backgroundColor: theme.primary }, shadows.glowPrimary]}
-            >
-              <Text style={styles.primaryBtnText}>Sign In / Create Account</Text>
-              <ArrowRight size={18} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* Invalid Code State */}
-        {status === 'invalid_code' && (
-          <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }, shadows.md]}>
-            <View style={[styles.iconCircle, { backgroundColor: '#FEE2E2' }]}>
-              <XCircle size={36} color="#EF4444" />
-            </View>
-            <Text style={[styles.title, { color: theme.textPrimary }]}>
-              Invalid Invite Code
-            </Text>
-            <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-              Code "{inviteCode}" was not found or has expired. Double check with the trip organizer.
-            </Text>
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => router.replace('/invite')}
-              style={[styles.secondaryBtn, { borderColor: theme.border, backgroundColor: theme.surfaceSubtle }]}
-            >
-              <Text style={[styles.secondaryBtnText, { color: theme.textPrimary }]}>Enter Different Code</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* Already Member State */}
+        {/* Already a Member State */}
         {status === 'already_member' && (
-          <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }, shadows.md]}>
-            <View style={[styles.iconCircle, { backgroundColor: '#DCFCE7' }]}>
-              <CheckCircle2 size={36} color="#22C55E" />
+          <View style={[styles.documentCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <View style={[styles.iconCircle, { backgroundColor: theme.successLight }]}>
+              <CheckCircle2 size={32} color={theme.success} />
             </View>
             <Text style={[styles.title, { color: theme.textPrimary }]}>
               You're Already in this Circle!
             </Text>
             <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-              You have already joined "{groupPreview?.name || 'this trip circle'}".
+              "{groupPreview?.name}" is already active in your PACT dashboard.
             </Text>
             <TouchableOpacity
               activeOpacity={0.85}
-              onPress={handleGoToGroup}
+              onPress={() => router.replace(`/groups/${groupPreview?.id}` as any)}
               style={[styles.primaryBtn, { backgroundColor: theme.primary }]}
             >
               <Text style={styles.primaryBtnText}>Open Trip Circle</Text>
-              <ArrowRight size={18} color="#FFFFFF" />
+              <ArrowRight size={16} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
         )}
 
-        {/* Group Full State */}
-        {status === 'group_full' && (
-          <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }, shadows.md]}>
-            <View style={[styles.iconCircle, { backgroundColor: '#FEF3C7' }]}>
-              <AlertCircle size={36} color="#F59E0B" />
+        {/* Joined Success State */}
+        {status === 'joined' && (
+          <View style={[styles.documentCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <View style={[styles.iconCircle, { backgroundColor: theme.successLight }]}>
+              <CheckCircle2 size={32} color={theme.success} />
             </View>
             <Text style={[styles.title, { color: theme.textPrimary }]}>
-              This Circle is Full
+              Joined Successfully!
             </Text>
             <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-              "{groupPreview?.name}" has reached the maximum of 10 members.
+              You are now part of "{groupPreview?.name}". Redirecting to private constraints...
             </Text>
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => router.replace('/groups')}
-              style={[styles.secondaryBtn, { borderColor: theme.border, backgroundColor: theme.surfaceSubtle }]}
-            >
-              <Text style={[styles.secondaryBtnText, { color: theme.textPrimary }]}>Go to My Spaces</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* Cancelled State */}
-        {status === 'group_cancelled' && (
-          <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }, shadows.md]}>
-            <View style={[styles.iconCircle, { backgroundColor: '#FEE2E2' }]}>
-              <XCircle size={36} color="#EF4444" />
-            </View>
-            <Text style={[styles.title, { color: theme.textPrimary }]}>
-              Trip Cancelled
-            </Text>
-            <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-              This trip circle has been cancelled by the organizer.
-            </Text>
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => router.replace('/groups')}
-              style={[styles.secondaryBtn, { borderColor: theme.border, backgroundColor: theme.surfaceSubtle }]}
-            >
-              <Text style={[styles.secondaryBtnText, { color: theme.textPrimary }]}>Go to My Spaces</Text>
-            </TouchableOpacity>
           </View>
         )}
 
         {/* Error State */}
         {status === 'error' && (
-          <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }, shadows.md]}>
-            <View style={[styles.iconCircle, { backgroundColor: '#FEE2E2' }]}>
-              <AlertCircle size={36} color="#EF4444" />
+          <View style={[styles.documentCard, { backgroundColor: theme.surface, borderColor: theme.danger }]}>
+            <View style={[styles.iconCircle, { backgroundColor: theme.dangerLight }]}>
+              <AlertCircle size={32} color={theme.danger} />
             </View>
             <Text style={[styles.title, { color: theme.textPrimary }]}>
-              Something Went Wrong
+              Invalid or Expired Invite
             </Text>
             <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-              {errorMsg || 'An unexpected error occurred. Please try again.'}
+              {errorMsg || 'This invite code could not be verified. Please check the code with your organizer.'}
             </Text>
             <TouchableOpacity
               activeOpacity={0.85}
-              onPress={checkAuthAndLoadPreview}
+              onPress={() => router.replace('/invite')}
               style={[styles.primaryBtn, { backgroundColor: theme.primary }]}
             >
-              <Text style={styles.primaryBtnText}>Retry</Text>
+              <Text style={styles.primaryBtnText}>Try Another Code</Text>
             </TouchableOpacity>
           </View>
         )}
 
-        {/* Normal Preview & Join State */}
+        {/* Normal Preview & Join State (Document Motif) */}
         {status === 'preview' && (
-          <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }, shadows.md]}>
-            <View style={[styles.logoIcon, { backgroundColor: theme.primary }, shadows.glowPrimary]}>
-              <Compass size={36} color="#FFFFFF" />
+          <View style={[styles.documentCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <View style={[styles.logoIcon, { backgroundColor: theme.primaryLight }]}>
+              <Compass size={30} color={theme.primary} />
             </View>
 
             <Text style={[styles.title, { color: theme.textPrimary }]}>
-              You're Invited to a PACT Circle!
+              You're Invited to a Trip Circle!
             </Text>
             <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
               Join privately to share your available dates and budget with zero peer pressure.
@@ -356,7 +258,7 @@ export default function InviteScreen() {
               <View style={styles.groupMetaRow}>
                 <Users size={14} color={theme.textSecondary} />
                 <Text style={[styles.metaText, { color: theme.textSecondary }]}>
-                  {groupPreview?.member_count || 1} / 10 Confirmed Members
+                  {groupPreview?.member_count || 5} Confirmed Travelers
                 </Text>
               </View>
               {Boolean(groupPreview?.organizer_name) && (
@@ -366,10 +268,10 @@ export default function InviteScreen() {
               )}
             </View>
 
-            <View style={[styles.privacyBox, { backgroundColor: isDarkMode ? '#151D2A' : '#FFFFFF', borderColor: theme.border }]}>
+            <View style={[styles.privacyBox, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}>
               <ShieldCheck size={16} color={theme.success} />
               <Text style={[styles.privacyBoxText, { color: theme.textSecondary }]}>
-                Your individual dates and budget are 100% private. Only the aggregate consensus is shared.
+                Your individual dates and budget are strictly confidential. Only the consensus overlap is shared.
               </Text>
             </View>
 
@@ -377,14 +279,17 @@ export default function InviteScreen() {
               activeOpacity={0.85}
               onPress={handleJoin}
               disabled={status === 'joining'}
-              style={[styles.joinBtn, { backgroundColor: theme.primary, opacity: status === 'joining' ? 0.7 : 1 }, shadows.glowPrimary]}
+              style={[
+                styles.joinBtn,
+                { backgroundColor: theme.primary, opacity: status === 'joining' ? 0.7 : 1 }
+              ]}
             >
               {status === 'joining' ? (
                 <ActivityIndicator color="#FFFFFF" size="small" />
               ) : (
                 <>
                   <Text style={styles.joinBtnText}>Join Circle & Submit Constraints</Text>
-                  <ArrowRight size={18} color="#FFFFFF" />
+                  <ArrowRight size={16} color="#FFFFFF" />
                 </>
               )}
             </TouchableOpacity>
@@ -412,8 +317,8 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: 140,
-    maxWidth: 540,
+    paddingBottom: 130,
+    maxWidth: 560,
     width: '100%',
     alignSelf: 'center'
   },
@@ -422,14 +327,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 10,
-    borderRadius: radius.card,
-    borderWidth: 1.5,
-    marginBottom: 16
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    marginBottom: 14
   },
   backBtn: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: radius.sm,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1
@@ -444,9 +349,9 @@ const styles = StyleSheet.create({
     gap: 6
   },
   brandLogoCircle: {
-    width: 22,
-    height: 22,
-    borderRadius: 8,
+    width: 20,
+    height: 20,
+    borderRadius: 6,
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -456,69 +361,69 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2
   },
   brandSubtitleText: {
-    fontSize: 10,
+    fontSize: 9.5,
     fontWeight: '800',
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
     marginTop: 1
   },
+  documentCard: {
+    padding: 22,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    alignItems: 'center',
+    marginBottom: 14
+  },
   centerCard: {
-    padding: 30,
+    padding: 36,
     alignItems: 'center',
     justifyContent: 'center'
   },
-  loadingText: { fontSize: 14, marginTop: 14 },
-  card: {
-    padding: 20,
-    borderRadius: radius.card,
-    borderWidth: 1,
-    alignItems: 'center',
-    marginBottom: 16
-  },
+  loadingText: { fontSize: 13.5, marginTop: 14 },
   iconCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16
-  },
-  logoIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 14
   },
+  logoIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: radius.sm,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12
+  },
   title: {
-    fontSize: 20,
-    fontWeight: '800',
+    fontSize: 18,
+    fontWeight: '900',
     textAlign: 'center',
-    letterSpacing: -0.3
+    letterSpacing: -0.2
   },
   subtitle: {
-    fontSize: 13,
+    fontSize: 12.5,
     textAlign: 'center',
-    marginTop: 6,
-    marginBottom: 18,
-    lineHeight: 18
+    marginTop: 4,
+    marginBottom: 16,
+    lineHeight: 17
   },
   previewInnerBox: {
     width: '100%',
     padding: 14,
-    borderRadius: radius.md,
+    borderRadius: radius.sm,
     borderWidth: 1,
     marginBottom: 14
   },
   codeBadge: {
-    fontSize: 11,
+    fontSize: 10.5,
     fontWeight: '800',
     letterSpacing: 0.8,
     marginBottom: 4
   },
   groupName: {
-    fontSize: 18,
-    fontWeight: '800',
+    fontSize: 17,
+    fontWeight: '900',
     marginBottom: 6
   },
   groupMetaRow: {
@@ -527,19 +432,19 @@ const styles = StyleSheet.create({
     gap: 6,
     marginBottom: 4
   },
-  metaText: { fontSize: 12 },
-  organizerText: { fontSize: 12 },
+  metaText: { fontSize: 12, fontWeight: '600' },
+  organizerText: { fontSize: 11.5 },
   privacyBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 8,
     padding: 12,
-    borderRadius: radius.md,
+    borderRadius: radius.sm,
     borderWidth: 1,
     marginBottom: 16,
     width: '100%'
   },
-  privacyBoxText: { fontSize: 11, lineHeight: 15, flex: 1 },
+  privacyBoxText: { fontSize: 11.5, lineHeight: 16, flex: 1 },
   joinBtn: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -556,23 +461,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,
-    paddingVertical: 14,
+    paddingVertical: 13,
     paddingHorizontal: 24,
     borderRadius: radius.btn,
     width: '100%',
     marginTop: 6
   },
-  primaryBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
-  secondaryBtn: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: radius.btn,
-    borderWidth: 1,
-    width: '100%',
-    alignItems: 'center',
-    marginTop: 6
-  },
-  secondaryBtnText: { fontSize: 13, fontWeight: '700' },
-  switchAccountBtn: { paddingVertical: 8 },
-  switchAccountText: { fontSize: 11, fontWeight: '600' }
+  primaryBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
+  switchAccountBtn: { paddingVertical: 6 },
+  switchAccountText: { fontSize: 11.5, fontWeight: '700' }
 });

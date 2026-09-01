@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   ScrollView,
+  TouchableOpacity,
   StyleSheet,
   SafeAreaView,
   Share,
@@ -13,14 +13,15 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
-import { ConfettiEffect } from '../../../src/components/ConfettiEffect';
 import { StepProgressBar } from '../../../src/components/StepProgressBar';
+import { ConfettiEffect } from '../../../src/components/ConfettiEffect';
+import { SealStamp } from '../../../src/components/SealStamp';
+import { SocialStoryModal } from '../../../src/components/SocialStoryModal';
 import { BottomTabBar } from '../../../src/components/BottomTabBar';
 import { ThemeToggle } from '../../../src/components/ThemeToggle';
-import { SocialStoryModal } from '../../../src/components/SocialStoryModal';
-import { downloadICSFile } from '../../../src/lib/export/icsGenerator';
 import { formatFriendlyDateRange } from '../../../src/lib/format/dateFormatter';
-import { colors, radius, shadows } from '../../../src/theme/colors';
+import { downloadICSFile } from '../../../src/lib/export/icsGenerator';
+import { colors, radius, shadows, spacing } from '../../../src/theme/colors';
 import {
   Sparkles,
   Compass,
@@ -34,7 +35,8 @@ import {
   ArrowLeft,
   CheckCircle2,
   Download,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Shield
 } from 'lucide-react-native';
 
 export default function TripBriefScreen() {
@@ -109,7 +111,7 @@ export default function TripBriefScreen() {
     : 'Maya Chen, Alex Rivera, Sarah Jenkins, Liam Patel, Chloe Vance';
   const vibesText = (option.tags || []).map((t) => `#${t}`).join(' ');
 
-  const briefText = `📋 OFFICIAL PACT TRIP BRIEF: ${currentGroup.name}\n\n🏖️ Finalized Destination: ${option.name}\n📅 Confirmed Dates: ${option.dateStart} to ${option.dateEnd}\n💰 Target Budget: $${option.budgetPerPerson} / person (100% group fit)\n👥 Confirmed Travelers: ${memberNames}\n🏷️ Matched Vibes: ${vibesText}\n\n(Generated with 100% consensus in PACT!)`;
+  const briefText = `📜 OFFICIAL PACT TRIP BRIEF: ${currentGroup.name}\n\n🏖️ Finalized Destination: ${option.name}\n📅 Confirmed Dates: ${option.dateStart} to ${option.dateEnd}\n💰 Target Budget: $${option.budgetPerPerson} / person (100% group fit)\n👥 Confirmed Travelers: ${memberNames}\n✨ Matched Vibes: ${vibesText}\n\n(Generated with 100% consensus in PACT!)`;
 
   const handleShare = async () => {
     triggerHaptic();
@@ -160,17 +162,17 @@ export default function TripBriefScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Top PACT Brand Header Frame Box */}
+        {/* Top PACT Brand Header Frame Box - Document Style */}
         <View
           style={[
             styles.brandHeaderBox,
-            { backgroundColor: theme.surface, borderColor: theme.border },
-            shadows.sm
+            { backgroundColor: theme.surface, borderColor: theme.border }
           ]}
         >
           <TouchableOpacity
             onPress={() => router.push(`/groups/${currentGroup.id}` as any)}
             style={[styles.backBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
+            accessibilityLabel="Back to Group Hub"
           >
             <ArrowLeft size={16} color={theme.textPrimary} />
           </TouchableOpacity>
@@ -178,50 +180,54 @@ export default function TripBriefScreen() {
           <View style={styles.brandTextCol}>
             <View style={styles.brandTitleRow}>
               <View style={[styles.brandLogoCircle, { backgroundColor: theme.primary }]}>
-                <Compass size={14} color="#FFFFFF" strokeWidth={2.5} />
+                <Compass size={13} color="#FFFFFF" strokeWidth={2.5} />
               </View>
               <Text style={[styles.brandTitleText, { color: theme.textPrimary }]}>
                 PACT
               </Text>
             </View>
             <Text style={[styles.brandSubtitleText, { color: theme.primary }]}>
-              Plan A Consensus Trip
+              PLAN A CONSENSUS TRIP
             </Text>
           </View>
 
           <ThemeToggle />
-          </View>
+        </View>
 
-        {/* Celebration Header Card */}
+        {/* Wax-Seal Stamp Animation Moment */}
+        <SealStamp
+          isDarkMode={isDarkMode}
+          sealedDate={currentGroup.name || 'CONSENSUS PACT'}
+        />
+
+        {/* Celebration Header Document Card */}
         <View
           style={[
             styles.celebrationCard,
-            { backgroundColor: theme.surface, borderColor: theme.border },
-            shadows.md
+            { backgroundColor: theme.surface, borderColor: theme.border }
           ]}
         >
-          <View style={[styles.celebrationIconBox, { backgroundColor: theme.primary }]}>
-            <Sparkles size={24} color="#FFFFFF" />
+          <View style={[styles.celebrationIconBox, { backgroundColor: theme.primaryLight }]}>
+            <Sparkles size={20} color={theme.primary} />
           </View>
           <Text style={[styles.celebrationTitle, { color: theme.textPrimary }]}>
-            Trip Decision Locked In!
+            Consensus Locked & Sealed
           </Text>
           <Text style={[styles.celebrationSubtitle, { color: theme.textSecondary }]}>
-            Consensus reached without group chat debates. Share the brief below!
+            Agreement reached without group chat debates. The official travel document is ready below.
           </Text>
         </View>
 
-        {/* Finalized Trip Summary Brief Card */}
+        {/* Finalized Trip Summary Brief (Document Motif: Flat, radius.sm, 24px padding, no shadow) */}
         <View
           style={[
-            styles.briefCard,
-            { backgroundColor: theme.surface, borderColor: theme.border },
-            shadows.md
+            styles.documentCard,
+            { backgroundColor: theme.surface, borderColor: theme.border }
           ]}
         >
           <View style={styles.briefHeaderRow}>
             <View style={[styles.briefTag, { backgroundColor: theme.primaryLight }]}>
-              <Text style={[styles.briefTagText, { color: theme.primary }]}>CONFIRMED DESTINATION</Text>
+              <Text style={[styles.briefTagText, { color: theme.primary }]}>OFFICIAL TRIP PACT</Text>
             </View>
             <Text style={[styles.briefCircleName, { color: theme.textSecondary }]}>
               {currentGroup.name}
@@ -237,7 +243,7 @@ export default function TripBriefScreen() {
             <View style={[styles.detailItem, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}>
               <Calendar size={16} color={theme.primary} />
               <View style={styles.detailTextCol}>
-                <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>TRAVEL DATES</Text>
+                <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>CONFIRMED DATES</Text>
                 <Text style={[styles.detailValue, { color: theme.textPrimary }]}>
                   {formatFriendlyDateRange(option.dateStart, option.dateEnd)}
                 </Text>
@@ -249,7 +255,7 @@ export default function TripBriefScreen() {
               <View style={styles.detailTextCol}>
                 <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>TARGET BUDGET</Text>
                 <Text style={[styles.detailValue, { color: theme.textPrimary }]}>
-                  ${option.budgetPerPerson} / person
+                  ${option.budgetPerPerson} / traveler (100% Group Fit)
                 </Text>
               </View>
             </View>
@@ -257,7 +263,7 @@ export default function TripBriefScreen() {
             <View style={[styles.detailItem, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}>
               <Users size={16} color={theme.secondary} />
               <View style={styles.detailTextCol}>
-                <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>CONFIRMED TRAVELERS</Text>
+                <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>CONFIRMED TRAVELERS ({members.length || 5})</Text>
                 <Text style={[styles.detailValue, { color: theme.textPrimary }]}>
                   {memberNames}
                 </Text>
@@ -269,7 +275,7 @@ export default function TripBriefScreen() {
               <View style={styles.detailTextCol}>
                 <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>MATCHED VIBES</Text>
                 <Text style={[styles.detailValue, { color: theme.textPrimary }]}>
-                  {vibesText || '#beach #coastal #getaway'}
+                  {vibesText || '#beach #coastal #relaxed'}
                 </Text>
               </View>
             </View>
@@ -281,7 +287,7 @@ export default function TripBriefScreen() {
           <TouchableOpacity
             activeOpacity={0.85}
             onPress={handleShare}
-            style={[styles.primaryShareBtn, { backgroundColor: theme.primary }, shadows.glowPrimary]}
+            style={[styles.primaryShareBtn, { backgroundColor: theme.primary }]}
           >
             <Share2 size={18} color="#FFFFFF" />
             <Text style={styles.primaryShareBtnText}>
@@ -297,7 +303,7 @@ export default function TripBriefScreen() {
             >
               <Download size={16} color={theme.textPrimary} />
               <Text style={[styles.secondaryActionBtnText, { color: theme.textPrimary }]}>
-                {icsDownloaded ? 'Added to Calendar!' : 'Add to Calendar (.ics)'}
+                {icsDownloaded ? 'Calendar File Ready!' : 'Add to Calendar (.ics)'}
               </Text>
             </TouchableOpacity>
 
@@ -341,8 +347,8 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: 140,
-    maxWidth: 640,
+    paddingBottom: 130,
+    maxWidth: 600,
     width: '100%',
     alignSelf: 'center'
   },
@@ -351,14 +357,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 10,
-    borderRadius: radius.card,
-    borderWidth: 1.5,
-    marginBottom: 14
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    marginBottom: 10
   },
   backBtn: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: radius.sm,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1
@@ -373,9 +379,9 @@ const styles = StyleSheet.create({
     gap: 6
   },
   brandLogoCircle: {
-    width: 22,
-    height: 22,
-    borderRadius: 8,
+    width: 20,
+    height: 20,
+    borderRadius: 6,
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -385,49 +391,40 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2
   },
   brandSubtitleText: {
-    fontSize: 10,
+    fontSize: 9.5,
     fontWeight: '800',
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
     marginTop: 1
-  },
-  stepBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: radius.pill
-  },
-  stepBadgeText: {
-    fontSize: 10,
-    fontWeight: '800'
   },
   celebrationCard: {
     alignItems: 'center',
-    padding: 20,
-    borderRadius: radius.card,
+    padding: 16,
+    borderRadius: radius.sm,
     borderWidth: 1,
     marginBottom: 14
   },
   celebrationIconBox: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 40,
+    height: 40,
+    borderRadius: radius.sm,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 10
+    marginBottom: 8
   },
   celebrationTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '900',
-    marginBottom: 4,
-    letterSpacing: -0.3
+    marginBottom: 3,
+    letterSpacing: -0.2
   },
   celebrationSubtitle: {
-    fontSize: 13,
+    fontSize: 12,
     textAlign: 'center',
-    lineHeight: 18
+    lineHeight: 17
   },
-  briefCard: {
-    padding: 18,
-    borderRadius: radius.card,
+  documentCard: {
+    padding: 22,
+    borderRadius: radius.sm,
     borderWidth: 1,
     marginBottom: 16
   },
@@ -440,49 +437,49 @@ const styles = StyleSheet.create({
   briefTag: {
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: radius.pill
+    borderRadius: radius.btn
   },
   briefTagText: {
-    fontSize: 10,
+    fontSize: 9.5,
     fontWeight: '800',
     letterSpacing: 0.5
   },
   briefCircleName: {
-    fontSize: 12,
+    fontSize: 11.5,
     fontWeight: '600'
   },
   destinationHeading: {
-    fontSize: 22,
+    fontSize: 21,
     fontWeight: '900',
     marginBottom: 14,
-    letterSpacing: -0.4
+    letterSpacing: -0.3
   },
   detailGrid: {
-    gap: 10
+    gap: 8
   },
   detailItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
     padding: 12,
-    borderRadius: radius.md,
+    borderRadius: radius.sm,
     borderWidth: 1
   },
   detailTextCol: {
     flex: 1
   },
   detailLabel: {
-    fontSize: 10,
+    fontSize: 9.5,
     fontWeight: '800',
     letterSpacing: 0.5,
     marginBottom: 2
   },
   detailValue: {
-    fontSize: 13,
+    fontSize: 12.5,
     fontWeight: '700'
   },
   actionSection: {
-    gap: 10,
+    gap: 8,
     marginBottom: 20
   },
   primaryShareBtn: {
@@ -495,12 +492,12 @@ const styles = StyleSheet.create({
   },
   primaryShareBtnText: {
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: 14.5,
     fontWeight: '800'
   },
   secondaryActionRow: {
     flexDirection: 'row',
-    gap: 10
+    gap: 8
   },
   secondaryActionBtn: {
     flex: 1,
@@ -513,7 +510,7 @@ const styles = StyleSheet.create({
     borderWidth: 1
   },
   secondaryActionBtnText: {
-    fontSize: 13,
+    fontSize: 12.5,
     fontWeight: '700'
   }
 });

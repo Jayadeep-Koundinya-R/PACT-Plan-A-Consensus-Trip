@@ -14,7 +14,7 @@ import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../../src/store/useGatherlyStore';
 import { BottomTabBar } from '../../src/components/BottomTabBar';
 import { ThemeToggle } from '../../src/components/ThemeToggle';
-import { colors, radius, shadows } from '../../src/theme/colors';
+import { colors, radius, shadows, spacing } from '../../src/theme/colors';
 import {
   Compass,
   ArrowRight,
@@ -51,17 +51,17 @@ export default function InviteIndexScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Top PACT Brand Header Frame Box */}
+        {/* Top PACT Brand Header Frame Box - Document Style */}
         <View
           style={[
             styles.brandHeaderBox,
-            { backgroundColor: theme.surface, borderColor: theme.border },
-            shadows.sm
+            { backgroundColor: theme.surface, borderColor: theme.border }
           ]}
         >
           <TouchableOpacity
             onPress={() => router.push('/')}
             style={[styles.backBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
+            accessibilityLabel="Back to Dashboard"
           >
             <ArrowLeft size={16} color={theme.textPrimary} />
           </TouchableOpacity>
@@ -69,30 +69,29 @@ export default function InviteIndexScreen() {
           <View style={styles.brandTextCol}>
             <View style={styles.brandTitleRow}>
               <View style={[styles.brandLogoCircle, { backgroundColor: theme.primary }]}>
-                <Compass size={14} color="#FFFFFF" strokeWidth={2.5} />
+                <Compass size={13} color="#FFFFFF" strokeWidth={2.5} />
               </View>
               <Text style={[styles.brandTitleText, { color: theme.textPrimary }]}>
                 PACT
               </Text>
             </View>
             <Text style={[styles.brandSubtitleText, { color: theme.primary }]}>
-              Plan A Consensus Trip
+              PLAN A CONSENSUS TRIP
             </Text>
           </View>
 
           <ThemeToggle />
         </View>
 
-        {/* Card */}
+        {/* Join Card (Document Motif) */}
         <View
           style={[
-            styles.card,
-            { backgroundColor: theme.surface, borderColor: theme.border },
-            shadows.md
+            styles.documentCard,
+            { backgroundColor: theme.surface, borderColor: theme.border }
           ]}
         >
-          <View style={[styles.logoIcon, { backgroundColor: theme.primary }, shadows.glowPrimary]}>
-            <KeyRound size={28} color="#FFFFFF" />
+          <View style={[styles.logoIcon, { backgroundColor: theme.primaryLight }]}>
+            <KeyRound size={24} color={theme.primary} />
           </View>
 
           <Text style={[styles.title, { color: theme.textPrimary }]}>
@@ -122,12 +121,11 @@ export default function InviteIndexScreen() {
             disabled={manualCode.trim().length < 4}
             style={[
               styles.submitBtn,
-              { backgroundColor: theme.primary, opacity: manualCode.trim().length < 4 ? 0.5 : 1 },
-              shadows.glowPrimary
+              { backgroundColor: theme.primary, opacity: manualCode.trim().length < 4 ? 0.5 : 1 }
             ]}
           >
             <Text style={styles.submitBtnText}>Join Circle</Text>
-            <ArrowRight size={18} color="#FFFFFF" />
+            <ArrowRight size={16} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
 
@@ -135,7 +133,7 @@ export default function InviteIndexScreen() {
         <View style={[styles.privacyBox, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <ShieldCheck size={16} color={theme.success} />
           <Text style={[styles.privacyText, { color: theme.textSecondary }]}>
-            Joining a circle allows you to submit your private dates and budget anonymously.
+            Joining a circle allows you to submit your private dates and budget anonymously with zero peer pressure.
           </Text>
         </View>
       </ScrollView>
@@ -153,8 +151,8 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: 140,
-    maxWidth: 640,
+    paddingBottom: 130,
+    maxWidth: 600,
     width: '100%',
     alignSelf: 'center'
   },
@@ -163,14 +161,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 10,
-    borderRadius: radius.card,
-    borderWidth: 1.5,
-    marginBottom: 16
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    marginBottom: 14
   },
   backBtn: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: radius.sm,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1
@@ -185,9 +183,9 @@ const styles = StyleSheet.create({
     gap: 6
   },
   brandLogoCircle: {
-    width: 22,
-    height: 22,
-    borderRadius: 8,
+    width: 20,
+    height: 20,
+    borderRadius: 6,
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -197,50 +195,50 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2
   },
   brandSubtitleText: {
-    fontSize: 10,
+    fontSize: 9.5,
     fontWeight: '800',
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
     marginTop: 1
   },
-  card: {
-    padding: 24,
-    borderRadius: radius.card,
+  documentCard: {
+    padding: 22,
+    borderRadius: radius.sm,
     borderWidth: 1,
     alignItems: 'center',
     marginBottom: 14
   },
   logoIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 18,
+    width: 48,
+    height: 48,
+    borderRadius: radius.sm,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 14
+    marginBottom: 12
   },
   title: {
-    fontSize: 20,
-    fontWeight: '800',
+    fontSize: 18,
+    fontWeight: '900',
     textAlign: 'center',
-    letterSpacing: -0.3
+    letterSpacing: -0.2
   },
   subtitle: {
-    fontSize: 13,
+    fontSize: 12.5,
     textAlign: 'center',
-    marginTop: 6,
-    marginBottom: 20,
-    lineHeight: 18
+    marginTop: 4,
+    marginBottom: 16,
+    lineHeight: 17
   },
   codeInput: {
     width: '100%',
-    borderRadius: radius.md,
-    paddingHorizontal: 20,
-    paddingVertical: 14,
+    borderRadius: radius.sm,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderWidth: 1,
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '800',
     textAlign: 'center',
     letterSpacing: 3,
-    marginBottom: 18
+    marginBottom: 14
   },
   submitBtn: {
     flexDirection: 'row',
@@ -248,26 +246,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     paddingVertical: 14,
-    paddingHorizontal: 32,
+    paddingHorizontal: 28,
     borderRadius: radius.btn,
     width: '100%'
   },
   submitBtnText: {
     color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '700'
+    fontSize: 14.5,
+    fontWeight: '800'
   },
   privacyBox: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     padding: 12,
-    borderRadius: radius.md,
+    borderRadius: radius.sm,
     borderWidth: 1
   },
   privacyText: {
-    fontSize: 11,
-    lineHeight: 15,
+    fontSize: 11.5,
+    lineHeight: 16,
     flex: 1
   }
 });

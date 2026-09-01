@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -16,7 +16,7 @@ import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../../src/store/useGatherlyStore';
 import { BottomTabBar } from '../../src/components/BottomTabBar';
 import { ThemeToggle } from '../../src/components/ThemeToggle';
-import { colors, radius, shadows } from '../../src/theme/colors';
+import { colors, radius, shadows, spacing } from '../../src/theme/colors';
 import {
   Users,
   Plus,
@@ -110,17 +110,17 @@ export default function GroupsScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Top PACT Brand Header Frame Box */}
+        {/* Top PACT Brand Header Frame Box - Document Style */}
         <View
           style={[
             styles.brandHeaderBox,
-            { backgroundColor: theme.surface, borderColor: theme.border },
-            shadows.sm
+            { backgroundColor: theme.surface, borderColor: theme.border }
           ]}
         >
           <TouchableOpacity
             onPress={() => router.push('/')}
             style={[styles.backBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
+            accessibilityLabel="Back to Dashboard"
           >
             <ArrowLeft size={16} color={theme.textPrimary} />
           </TouchableOpacity>
@@ -128,38 +128,37 @@ export default function GroupsScreen() {
           <View style={styles.brandTextCol}>
             <View style={styles.brandTitleRow}>
               <View style={[styles.brandLogoCircle, { backgroundColor: theme.primary }]}>
-                <Compass size={14} color="#FFFFFF" strokeWidth={2.5} />
+                <Compass size={13} color="#FFFFFF" strokeWidth={2.5} />
               </View>
               <Text style={[styles.brandTitleText, { color: theme.textPrimary }]}>
                 PACT
               </Text>
             </View>
             <Text style={[styles.brandSubtitleText, { color: theme.primary }]}>
-              Plan A Consensus Trip
+              PLAN A CONSENSUS TRIP
             </Text>
           </View>
 
           <ThemeToggle />
         </View>
 
-        {/* Join Circle with Code Card */}
+        {/* Join Circle with Code Card (Document Motif) */}
         <View
           style={[
             styles.joinCard,
-            { backgroundColor: theme.surface, borderColor: theme.border },
-            shadows.sm
+            { backgroundColor: theme.surface, borderColor: theme.border }
           ]}
         >
           <View style={styles.joinHeaderRow}>
-            <View style={[styles.joinIconBox, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
+            <View style={[styles.joinIconBox, { backgroundColor: theme.primaryLight }]}>
               <KeyRound size={18} color={theme.primary} />
             </View>
             <View style={styles.joinTextCol}>
               <Text style={[styles.joinTitle, { color: theme.textPrimary }]}>
-                Join with an Invite Code
+                Join with Invite Code
               </Text>
               <Text style={[styles.joinSub, { color: theme.textSecondary }]}>
-                Got a 6-character code from a friend?
+                Have a 6-digit trip code from a friend? Enter it below.
               </Text>
             </View>
           </View>
@@ -168,84 +167,120 @@ export default function GroupsScreen() {
             <TextInput
               style={[
                 styles.joinInput,
-                { backgroundColor: theme.surfaceSubtle, color: theme.textPrimary, borderColor: theme.border }
+                {
+                  backgroundColor: theme.surfaceSubtle,
+                  color: theme.textPrimary,
+                  borderColor: joinError ? theme.danger : theme.border
+                }
               ]}
               value={joinCode}
-              onChangeText={(t) => setJoinCode(t.toUpperCase())}
+              onChangeText={(txt) => {
+                setJoinCode(txt);
+                if (joinError) setJoinError('');
+              }}
               placeholder="e.g. GOA-2026"
               placeholderTextColor={theme.textMuted}
               autoCapitalize="characters"
               maxLength={12}
             />
+
             <TouchableOpacity
               activeOpacity={0.85}
               onPress={handleJoinGroup}
-              disabled={isSubmitting}
-              style={[styles.joinSubmitBtn, { backgroundColor: theme.primary }]}
+              disabled={isSubmitting || !joinCode.trim()}
+              style={[
+                styles.joinSubmitBtn,
+                {
+                  backgroundColor: theme.primary,
+                  opacity: isSubmitting || !joinCode.trim() ? 0.6 : 1
+                }
+              ]}
             >
-              <Text style={styles.joinSubmitBtnText}>Join</Text>
-              <ArrowRight size={16} color="#FFFFFF" />
+              <Text style={styles.joinSubmitBtnText}>
+                {isSubmitting ? 'Joining...' : 'Join'}
+              </Text>
+              <ArrowRight size={14} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
 
-          {Boolean(joinError) && (
+          {joinError ? (
             <Text style={styles.errorText}>{joinError}</Text>
-          )}
+          ) : null}
         </View>
 
-        {/* Section: Your Circles */}
+        {/* Circles List Header */}
         <View style={styles.sectionTitleRow}>
           <Text style={[styles.sectionHeading, { color: theme.textPrimary }]}>
-            Active Spaces ({groups.length})
+            All Trip Circles ({groups.length})
           </Text>
+
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => setCreateModalVisible(true)}
             style={[styles.createPillBtn, { backgroundColor: theme.primary }]}
           >
-            <Plus size={14} color="#FFFFFF" />
+            <Plus size={13} color="#FFFFFF" />
             <Text style={styles.createPillBtnText}>New Circle</Text>
           </TouchableOpacity>
         </View>
 
         {/* Circles List */}
         <View style={styles.circlesList}>
-          {groups.map((grp) => {
-            const isSelected = grp.id === activeGroupId;
-
-            return (
+          {groups.length === 0 ? (
+            <View style={[styles.emptyCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <Text style={[styles.emptyTitle, { color: theme.textPrimary }]}>No Circles Yet</Text>
+              <Text style={[styles.emptyDesc, { color: theme.textSecondary }]}>
+                Create your first circle to plan a consensus trip with your friends.
+              </Text>
               <TouchableOpacity
-                key={grp.id}
-                activeOpacity={0.85}
-                onPress={() => {
-                  triggerHaptic();
-                  setActiveGroup(grp.id);
-                  router.push(`/groups/${grp.id}`);
-                }}
-                style={[
-                  styles.circleCard,
-                  { backgroundColor: theme.surface, borderColor: isSelected ? theme.primary : theme.border },
-                  shadows.sm
-                ]}
+                onPress={() => setCreateModalVisible(true)}
+                style={[styles.createFirstBtn, { backgroundColor: theme.primary }]}
               >
-                <View style={styles.circleLeft}>
-                  <View style={[styles.circleIconCircle, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
-                    <Users size={20} color={theme.primary} />
-                  </View>
-                  <View style={styles.circleTextCol}>
-                    <Text style={[styles.circleName, { color: theme.textPrimary }]}>
-                      {grp.name}
-                    </Text>
-                    <Text style={[styles.circleMeta, { color: theme.textSecondary }]}>
-                      Code: {grp.inviteCode} • {grp.totalMembersCount || 5} members
-                    </Text>
-                  </View>
-                </View>
-
-                <ChevronRight size={18} color={theme.textMuted} />
+                <Plus size={15} color="#FFFFFF" />
+                <Text style={styles.createFirstBtnText}>Create a Circle</Text>
               </TouchableOpacity>
-            );
-          })}
+            </View>
+          ) : (
+            groups.map((grp) => {
+              const isSelected = grp.id === activeGroupId;
+
+              return (
+                <TouchableOpacity
+                  key={grp.id}
+                  activeOpacity={0.85}
+                  onPress={() => {
+                    triggerHaptic();
+                    setActiveGroup(grp.id);
+                    router.push(`/groups/${grp.id}`);
+                  }}
+                  style={[
+                    styles.circleCard,
+                    {
+                      backgroundColor: isSelected ? theme.surface : theme.surfaceSubtle,
+                      borderColor: isSelected ? theme.primary : theme.border,
+                      borderWidth: isSelected ? 1.5 : 1
+                    }
+                  ]}
+                >
+                  <View style={styles.circleLeft}>
+                    <View style={[styles.circleIconCircle, { backgroundColor: isSelected ? theme.primaryLight : theme.border }]}>
+                      <Users size={18} color={isSelected ? theme.primary : theme.textSecondary} />
+                    </View>
+                    <View style={styles.circleTextCol}>
+                      <Text style={[styles.circleName, { color: theme.textPrimary }]}>
+                        {grp.name}
+                      </Text>
+                      <Text style={[styles.circleMeta, { color: theme.textSecondary }]}>
+                        Code: {grp.inviteCode} • {grp.totalMembersCount || 5} members
+                      </Text>
+                    </View>
+                  </View>
+
+                  <ChevronRight size={18} color={isSelected ? theme.primary : theme.textSecondary} />
+                </TouchableOpacity>
+              );
+            })
+          )}
         </View>
       </ScrollView>
 
@@ -263,8 +298,7 @@ export default function GroupsScreen() {
           <View
             style={[
               styles.createModalCard,
-              { backgroundColor: theme.surface, borderColor: theme.border },
-              shadows.lg
+              { backgroundColor: theme.surface, borderColor: theme.border }
             ]}
           >
             <View style={styles.modalHeader}>
@@ -318,8 +352,8 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: 140,
-    maxWidth: 640,
+    paddingBottom: 130,
+    maxWidth: 600,
     width: '100%',
     alignSelf: 'center'
   },
@@ -328,14 +362,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 10,
-    borderRadius: radius.card,
-    borderWidth: 1.5,
+    borderRadius: radius.sm,
+    borderWidth: 1,
     marginBottom: 14
   },
   backBtn: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: radius.sm,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1
@@ -350,9 +384,9 @@ const styles = StyleSheet.create({
     gap: 6
   },
   brandLogoCircle: {
-    width: 22,
-    height: 22,
-    borderRadius: 8,
+    width: 20,
+    height: 20,
+    borderRadius: 6,
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -362,27 +396,27 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2
   },
   brandSubtitleText: {
-    fontSize: 10,
+    fontSize: 9.5,
     fontWeight: '800',
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
     marginTop: 1
   },
   joinCard: {
-    padding: 16,
-    borderRadius: radius.card,
+    padding: 14,
+    borderRadius: radius.sm,
     borderWidth: 1,
     marginBottom: 16
   },
   joinHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    marginBottom: 12
+    gap: 10,
+    marginBottom: 10
   },
   joinIconBox: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
+    width: 36,
+    height: 36,
+    borderRadius: radius.sm,
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -390,12 +424,12 @@ const styles = StyleSheet.create({
     flex: 1
   },
   joinTitle: {
-    fontSize: 14,
+    fontSize: 13.5,
     fontWeight: '800'
   },
   joinSub: {
-    fontSize: 12,
-    marginTop: 2
+    fontSize: 11.5,
+    marginTop: 1
   },
   joinInputRow: {
     flexDirection: 'row',
@@ -403,11 +437,11 @@ const styles = StyleSheet.create({
   },
   joinInput: {
     flex: 1,
-    borderRadius: radius.md,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    borderRadius: radius.sm,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
     borderWidth: 1,
-    fontSize: 14,
+    fontSize: 13.5,
     fontWeight: '700',
     letterSpacing: 1
   },
@@ -415,28 +449,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: radius.md
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: radius.btn
   },
   joinSubmitBtnText: {
     color: '#FFFFFF',
     fontSize: 13,
-    fontWeight: '700'
+    fontWeight: '800'
   },
   errorText: {
     color: '#EF4444',
-    fontSize: 12,
+    fontSize: 11.5,
     marginTop: 6
   },
   sectionTitleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10
+    marginBottom: 8
   },
   sectionHeading: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '800',
     letterSpacing: -0.2
   },
@@ -446,12 +480,12 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: radius.pill
+    borderRadius: radius.btn
   },
   createPillBtnText: {
     color: '#FFFFFF',
     fontSize: 11,
-    fontWeight: '700'
+    fontWeight: '800'
   },
   circlesList: {
     gap: 8,
@@ -461,20 +495,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 14,
-    borderRadius: radius.card,
-    borderWidth: 1
+    padding: 12,
+    borderRadius: radius.sm
   },
   circleLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
     flex: 1
   },
   circleIconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: radius.sm,
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -482,12 +515,41 @@ const styles = StyleSheet.create({
     flex: 1
   },
   circleName: {
-    fontSize: 14,
+    fontSize: 13.5,
     fontWeight: '800'
   },
   circleMeta: {
     fontSize: 11,
-    marginTop: 2
+    marginTop: 1
+  },
+  emptyCard: {
+    padding: 20,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    alignItems: 'center'
+  },
+  emptyTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    marginBottom: 4
+  },
+  emptyDesc: {
+    fontSize: 12,
+    textAlign: 'center',
+    marginBottom: 14
+  },
+  createFirstBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: radius.btn
+  },
+  createFirstBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800'
   },
   modalOverlay: {
     flex: 1,
@@ -499,7 +561,7 @@ const styles = StyleSheet.create({
   createModalCard: {
     width: '100%',
     maxWidth: 440,
-    borderRadius: radius.card,
+    borderRadius: radius.sm,
     padding: 20,
     borderWidth: 1
   },
@@ -510,31 +572,31 @@ const styles = StyleSheet.create({
     marginBottom: 16
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '800'
   },
   inputLabel: {
-    fontSize: 11,
+    fontSize: 10.5,
     fontWeight: '800',
     letterSpacing: 0.8,
     marginBottom: 6
   },
   modalInput: {
-    borderRadius: radius.md,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    borderRadius: radius.sm,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     borderWidth: 1,
-    fontSize: 15,
-    marginBottom: 18
+    fontSize: 14,
+    marginBottom: 16
   },
   createSubmitBtn: {
-    paddingVertical: 14,
+    paddingVertical: 13,
     borderRadius: radius.btn,
     alignItems: 'center'
   },
   createSubmitBtnText: {
     color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '700'
+    fontSize: 14,
+    fontWeight: '800'
   }
 });

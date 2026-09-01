@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -16,7 +16,7 @@ import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
 import { StepProgressBar } from '../../../src/components/StepProgressBar';
 import { BottomTabBar } from '../../../src/components/BottomTabBar';
 import { ThemeToggle } from '../../../src/components/ThemeToggle';
-import { colors, radius, shadows } from '../../../src/theme/colors';
+import { colors, radius, shadows, spacing } from '../../../src/theme/colors';
 import {
   ArrowLeft,
   Compass,
@@ -36,8 +36,8 @@ const AVAILABLE_TAGS = [
   { id: 'beach', label: 'Beach / Coastal', emoji: '🏖️' },
   { id: 'mountains', label: 'Mountains / Nature', emoji: '🏔️' },
   { id: 'city', label: 'City / Culture', emoji: '🏙️' },
-  { id: 'relaxed', label: 'Relaxed / Low-key', emoji: '🌴' },
-  { id: 'active', label: 'Active / Adventure', emoji: '🏃' },
+  { id: 'relaxed', label: 'Relaxed / Low-key', emoji: '☕' },
+  { id: 'active', label: 'Active / Adventure', emoji: '🏄' },
   { id: 'budget-conscious', label: 'Budget-conscious', emoji: '💰' }
 ];
 
@@ -76,6 +76,7 @@ export default function PreferencesScreen() {
     };
 
   const existingMember = members.find((m) => m?.userId === currentUserId);
+  const isEditing = Boolean(existingMember?.submittedAt);
 
   // Form State
   const [dateStart, setDateStart] = useState(
@@ -149,6 +150,9 @@ export default function PreferencesScreen() {
     }
   };
 
+  const isDateInvalid = Boolean(dateStart && dateEnd && new Date(dateStart) > new Date(dateEnd));
+  const isBudgetInvalid = Boolean(budgetMax < budgetMin);
+
   const validate = () => {
     if (!dateStart || !dateEnd) {
       setValidationError('Please select valid start and end dates.');
@@ -215,17 +219,17 @@ export default function PreferencesScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Top PACT Brand Header Frame Box */}
+        {/* Top PACT Brand Header Frame Box - Document Style */}
         <View
           style={[
             styles.brandHeaderBox,
-            { backgroundColor: theme.surface, borderColor: theme.border },
-            shadows.sm
+            { backgroundColor: theme.surface, borderColor: theme.border }
           ]}
         >
           <TouchableOpacity
             onPress={() => router.push(`/groups/${currentGroup.id}` as any)}
             style={[styles.backBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
+            accessibilityLabel="Back to Group Hub"
           >
             <ArrowLeft size={16} color={theme.textPrimary} />
           </TouchableOpacity>
@@ -233,79 +237,78 @@ export default function PreferencesScreen() {
           <View style={styles.brandTextCol}>
             <View style={styles.brandTitleRow}>
               <View style={[styles.brandLogoCircle, { backgroundColor: theme.primary }]}>
-                <Compass size={14} color="#FFFFFF" strokeWidth={2.5} />
+                <Compass size={13} color="#FFFFFF" strokeWidth={2.5} />
               </View>
               <Text style={[styles.brandTitleText, { color: theme.textPrimary }]}>
                 PACT
               </Text>
             </View>
             <Text style={[styles.brandSubtitleText, { color: theme.primary }]}>
-              Plan A Consensus Trip
+              PLAN A CONSENSUS TRIP
             </Text>
           </View>
 
           <ThemeToggle />
-          </View>
+        </View>
 
-        {/* Privacy Shield Banner */}
+        {/* Privacy Shield Banner (Document Style) */}
         <View
           style={[
             styles.privacyShieldBanner,
-            { backgroundColor: isDarkMode ? '#151D2A' : '#FFFFFF', borderColor: theme.border },
-            shadows.sm
+            { backgroundColor: theme.surface, borderColor: theme.border }
           ]}
         >
-          <View style={[styles.shieldIconCircle, { backgroundColor: theme.primaryLight }]}>
-            <ShieldCheck size={20} color={theme.primary} />
+          <View style={[styles.shieldIconCircle, { backgroundColor: theme.successLight }]}>
+            <ShieldCheck size={18} color={theme.success} />
           </View>
           <View style={styles.privacyTextCol}>
             <Text style={[styles.privacyTitle, { color: theme.textPrimary }]}>
-              Zero-Peer-Pressure Shield Active
+              {isEditing ? 'Editing Your Private Pact' : 'Zero Peer Pressure Guarantee'}
             </Text>
             <Text style={[styles.privacyDesc, { color: theme.textSecondary }]}>
-              Your exact budget and dates are 100% private. Friends only see the resulting overlap consensus.
+              {isEditing
+                ? 'Your edits will immediately update group consensus rankings without notifying others of your exact limits.'
+                : 'Your exact dates and numbers are encrypted. Friends only see the calculated group overlap.'}
             </Text>
           </View>
         </View>
 
-        {/* Toast / Validation Notice */}
-        {Boolean(toastMessage) && (
+        {toastMessage ? (
           <View style={[styles.toastBox, { backgroundColor: theme.success }]}>
             <CheckCircle2 size={16} color="#FFFFFF" />
             <Text style={styles.toastText}>{toastMessage}</Text>
           </View>
-        )}
+        ) : null}
 
-        {Boolean(validationError) && (
-          <View style={[styles.errorBox, { backgroundColor: isDarkMode ? '#2D1515' : '#FEE2E2' }]}>
+        {validationError ? (
+          <View style={[styles.errorBox, { backgroundColor: theme.dangerLight, borderColor: theme.danger }]}>
             <AlertCircle size={16} color={theme.danger} />
             <Text style={[styles.errorText, { color: theme.danger }]}>{validationError}</Text>
           </View>
-        )}
+        ) : null}
 
-        {/* Section 1: Availability Dates */}
+        {/* 1. Date Flexibility Document Card */}
         <View
           style={[
-            styles.card,
-            { backgroundColor: theme.surface, borderColor: theme.border },
-            shadows.sm
+            styles.documentCard,
+            { backgroundColor: theme.surface, borderColor: theme.border }
           ]}
         >
           <View style={styles.cardHeader}>
-            <View style={[styles.iconBox, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
+            <View style={[styles.iconBox, { backgroundColor: theme.primaryLight }]}>
               <Calendar size={18} color={theme.primary} />
             </View>
             <View style={styles.cardHeaderTextCol}>
               <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>
-                Your Travel Window
+                When can you travel?
               </Text>
               <Text style={[styles.cardSubtitle, { color: theme.textSecondary }]}>
-                Any dates you could possibly make work
+                Select the widest window you are open to
               </Text>
             </View>
           </View>
 
-          {/* Quick Date Chips */}
+          {/* Quick Date Presets */}
           <View style={styles.quickChipRow}>
             <TouchableOpacity
               onPress={() => handleQuickDateSelect('this')}
@@ -319,10 +322,10 @@ export default function PreferencesScreen() {
               <Text
                 style={[
                   styles.quickChipText,
-                  { color: dateQuickChip === 'this' ? '#FFFFFF' : theme.textSecondary }
+                  { color: dateQuickChip === 'this' ? '#FFFFFF' : theme.textPrimary }
                 ]}
               >
-                July 10–20
+                Mid July 2026
               </Text>
             </TouchableOpacity>
 
@@ -338,173 +341,184 @@ export default function PreferencesScreen() {
               <Text
                 style={[
                   styles.quickChipText,
-                  { color: dateQuickChip === 'next' ? '#FFFFFF' : theme.textSecondary }
+                  { color: dateQuickChip === 'next' ? '#FFFFFF' : theme.textPrimary }
                 ]}
               >
-                August 1–15
+                Early Aug 2026
               </Text>
             </TouchableOpacity>
           </View>
 
-          {/* Date Inputs */}
           <View style={styles.dateInputsRow}>
             <View style={styles.dateCol}>
-              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
-                EARLIEST DEPARTURE
-              </Text>
+              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>EARLIEST START</Text>
               <TextInput
                 style={[
                   styles.textInput,
                   {
                     backgroundColor: theme.surfaceSubtle,
                     color: theme.textPrimary,
-                    borderColor: theme.border
+                    borderColor: isDateInvalid ? theme.danger : theme.border
                   }
                 ]}
                 value={dateStart}
-                onChangeText={(t) => {
-                  setDateStart(t);
+                onChangeText={(val) => {
+                  setDateStart(val);
                   setDateQuickChip('custom');
+                  if (validationError) setValidationError(null);
                 }}
                 placeholder="YYYY-MM-DD"
                 placeholderTextColor={theme.textMuted}
               />
             </View>
-
             <View style={styles.dateCol}>
-              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
-                LATEST RETURN
-              </Text>
+              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>LATEST END</Text>
               <TextInput
                 style={[
                   styles.textInput,
                   {
                     backgroundColor: theme.surfaceSubtle,
                     color: theme.textPrimary,
-                    borderColor: theme.border
+                    borderColor: isDateInvalid ? theme.danger : theme.border
                   }
                 ]}
                 value={dateEnd}
-                onChangeText={(t) => {
-                  setDateEnd(t);
+                onChangeText={(val) => {
+                  setDateEnd(val);
                   setDateQuickChip('custom');
+                  if (validationError) setValidationError(null);
                 }}
                 placeholder="YYYY-MM-DD"
                 placeholderTextColor={theme.textMuted}
               />
             </View>
           </View>
+
+          {isDateInvalid && (
+            <Text style={[styles.inlineError, { color: theme.danger }]}>
+              Start date must be before end date.
+            </Text>
+          )}
         </View>
 
-        {/* Section 2: Budget Ceiling */}
+        {/* 2. Budget Range Document Card */}
         <View
           style={[
-            styles.card,
-            { backgroundColor: theme.surface, borderColor: theme.border },
-            shadows.sm
+            styles.documentCard,
+            { backgroundColor: theme.surface, borderColor: theme.border }
           ]}
         >
           <View style={styles.cardHeader}>
-            <View style={[styles.iconBox, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
+            <View style={[styles.iconBox, { backgroundColor: theme.primaryLight }]}>
               <DollarSign size={18} color={theme.primary} />
             </View>
             <View style={styles.cardHeaderTextCol}>
               <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>
-                Comfortable Budget Range
+                What is your target budget?
               </Text>
               <Text style={[styles.cardSubtitle, { color: theme.textSecondary }]}>
-                Per-person total for stay, food & transport
+                Strict ceiling per traveler (never shared directly)
               </Text>
             </View>
           </View>
 
-          {/* Budget Presets */}
-          <Text style={[styles.inputLabel, { color: theme.textSecondary, marginBottom: 6 }]}>
-            QUICK MAX CEILING PRESETS
-          </Text>
+          {/* Quick Presets */}
           <View style={styles.budgetPresetsRow}>
-            {BUDGET_PRESETS.map((preset) => (
-              <TouchableOpacity
-                key={preset}
-                onPress={() => handleSelectBudgetPreset(preset)}
-                style={[
-                  styles.budgetPresetChip,
-                  budgetMax === preset
-                    ? { backgroundColor: theme.primary, borderColor: theme.primary }
-                    : { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }
-                ]}
-              >
-                <Text
+            {BUDGET_PRESETS.map((p) => {
+              const isSelected = budgetMax === p;
+              return (
+                <TouchableOpacity
+                  key={p}
+                  onPress={() => handleSelectBudgetPreset(p)}
                   style={[
-                    styles.budgetPresetText,
-                    { color: budgetMax === preset ? '#FFFFFF' : theme.textPrimary }
+                    styles.budgetPresetChip,
+                    isSelected
+                      ? { backgroundColor: theme.primary, borderColor: theme.primary }
+                      : { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }
                   ]}
                 >
-                  ${preset}
-                </Text>
-              </TouchableOpacity>
-            ))}
+                  <Text
+                    style={[
+                      styles.budgetPresetText,
+                      { color: isSelected ? '#FFFFFF' : theme.textPrimary }
+                    ]}
+                  >
+                    ${p} Max
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
 
           <View style={styles.dateInputsRow}>
             <View style={styles.dateCol}>
-              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
-                MIN TARGET ($)
-              </Text>
+              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>MIN ($)</Text>
               <TextInput
                 style={[
                   styles.textInput,
                   {
                     backgroundColor: theme.surfaceSubtle,
                     color: theme.textPrimary,
-                    borderColor: theme.border
+                    borderColor: isBudgetInvalid ? theme.danger : theme.border
                   }
                 ]}
                 value={String(budgetMin)}
-                onChangeText={(t) => setBudgetMin(Number(t) || 0)}
+                onChangeText={(val) => {
+                  setBudgetMin(Number(val) || 0);
+                  if (validationError) setValidationError(null);
+                }}
                 keyboardType="numeric"
+                placeholder="400"
+                placeholderTextColor={theme.textMuted}
               />
             </View>
-
             <View style={styles.dateCol}>
-              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
-                HARD MAXIMUM ($)
-              </Text>
+              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>MAX CEILING ($)</Text>
               <TextInput
                 style={[
                   styles.textInput,
                   {
                     backgroundColor: theme.surfaceSubtle,
                     color: theme.textPrimary,
-                    borderColor: theme.border
+                    borderColor: isBudgetInvalid ? theme.danger : theme.border
                   }
                 ]}
                 value={String(budgetMax)}
-                onChangeText={(t) => setBudgetMax(Number(t) || 0)}
+                onChangeText={(val) => {
+                  setBudgetMax(Number(val) || 0);
+                  if (validationError) setValidationError(null);
+                }}
                 keyboardType="numeric"
+                placeholder="1200"
+                placeholderTextColor={theme.textMuted}
               />
             </View>
           </View>
+
+          {isBudgetInvalid && (
+            <Text style={[styles.inlineError, { color: theme.danger }]}>
+              Max budget must be greater than min budget.
+            </Text>
+          )}
         </View>
 
-        {/* Section 3: Vibe Preferences */}
+        {/* 3. Preferred Vibes Document Card */}
         <View
           style={[
-            styles.card,
-            { backgroundColor: theme.surface, borderColor: theme.border },
-            shadows.sm
+            styles.documentCard,
+            { backgroundColor: theme.surface, borderColor: theme.border }
           ]}
         >
           <View style={styles.cardHeader}>
-            <View style={[styles.iconBox, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
+            <View style={[styles.iconBox, { backgroundColor: theme.primaryLight }]}>
               <Tag size={18} color={theme.primary} />
             </View>
             <View style={styles.cardHeaderTextCol}>
               <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>
-                Trip Vibes ({selectedTags.length}/3)
+                What vibe do you want?
               </Text>
               <Text style={[styles.cardSubtitle, { color: theme.textSecondary }]}>
-                Select up to 3 preferred travel styles
+                Pick up to 3 ({selectedTags.length}/3 selected)
               </Text>
             </View>
           </View>
@@ -515,7 +529,6 @@ export default function PreferencesScreen() {
               return (
                 <TouchableOpacity
                   key={tag.id}
-                  activeOpacity={0.8}
                   onPress={() => toggleTag(tag.id)}
                   style={[
                     styles.tagChip,
@@ -539,21 +552,20 @@ export default function PreferencesScreen() {
           </View>
         </View>
 
-        {/* Section 4: Absolute Dealbreakers */}
+        {/* 4. Dealbreakers Document Card */}
         <View
           style={[
-            styles.card,
-            { backgroundColor: theme.surface, borderColor: theme.border },
-            shadows.sm
+            styles.documentCard,
+            { backgroundColor: theme.surface, borderColor: theme.border }
           ]}
         >
           <View style={styles.cardHeader}>
-            <View style={[styles.iconBox, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
+            <View style={[styles.iconBox, { backgroundColor: theme.dangerLight }]}>
               <Ban size={18} color={theme.danger} />
             </View>
             <View style={styles.cardHeaderTextCol}>
               <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>
-                Non-Negotiable Vetoes
+                Any Dealbreakers?
               </Text>
               <Text style={[styles.cardSubtitle, { color: theme.textSecondary }]}>
                 Strict hard-stops that would prevent you from joining
@@ -614,13 +626,16 @@ export default function PreferencesScreen() {
             disabled={isSubmitting}
             style={[
               styles.submitBtn,
-              { backgroundColor: theme.primary },
-              shadows.glowPrimary
+              { backgroundColor: theme.primary }
             ]}
           >
             <Sparkles size={18} color="#FFFFFF" />
             <Text style={styles.submitBtnText}>
-              {isSubmitting ? 'Calculating Consensus...' : 'Submit & View Rankings'}
+              {isSubmitting
+                ? 'Calculating Consensus...'
+                : isEditing
+                ? 'Update Constraints & Recalculate'
+                : 'Submit & View Rankings'}
             </Text>
             <ChevronRight size={18} color="#FFFFFF" />
           </TouchableOpacity>
@@ -654,8 +669,8 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: 140,
-    maxWidth: 640,
+    paddingBottom: 130,
+    maxWidth: 600,
     width: '100%',
     alignSelf: 'center'
   },
@@ -664,14 +679,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 10,
-    borderRadius: radius.card,
-    borderWidth: 1.5,
+    borderRadius: radius.sm,
+    borderWidth: 1,
     marginBottom: 14
   },
   backBtn: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: radius.sm,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1
@@ -686,9 +701,9 @@ const styles = StyleSheet.create({
     gap: 6
   },
   brandLogoCircle: {
-    width: 22,
-    height: 22,
-    borderRadius: 8,
+    width: 20,
+    height: 20,
+    borderRadius: 6,
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -698,33 +713,24 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2
   },
   brandSubtitleText: {
-    fontSize: 10,
+    fontSize: 9.5,
     fontWeight: '800',
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
     marginTop: 1
-  },
-  stepBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: radius.pill
-  },
-  stepBadgeText: {
-    fontSize: 10,
-    fontWeight: '800'
   },
   privacyShieldBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
     padding: 14,
-    borderRadius: radius.card,
+    borderRadius: radius.sm,
     borderWidth: 1,
     marginBottom: 14
   },
   shieldIconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 34,
+    height: 34,
+    borderRadius: radius.sm,
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -737,37 +743,38 @@ const styles = StyleSheet.create({
     marginBottom: 2
   },
   privacyDesc: {
-    fontSize: 11,
-    lineHeight: 15
+    fontSize: 11.5,
+    lineHeight: 16
   },
   toastBox: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     padding: 12,
-    borderRadius: radius.md,
+    borderRadius: radius.sm,
     marginBottom: 12
   },
   toastText: {
     color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '700'
+    fontSize: 12.5,
+    fontWeight: '800'
   },
   errorBox: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     padding: 12,
-    borderRadius: radius.md,
+    borderRadius: radius.sm,
+    borderWidth: 1,
     marginBottom: 12
   },
   errorText: {
-    fontSize: 13,
+    fontSize: 12.5,
     fontWeight: '700'
   },
-  card: {
-    padding: 16,
-    borderRadius: radius.card,
+  documentCard: {
+    padding: 18,
+    borderRadius: radius.sm,
     borderWidth: 1,
     marginBottom: 14
   },
@@ -778,9 +785,9 @@ const styles = StyleSheet.create({
     marginBottom: 14
   },
   iconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
+    width: 34,
+    height: 34,
+    borderRadius: radius.sm,
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -793,7 +800,7 @@ const styles = StyleSheet.create({
     marginBottom: 2
   },
   cardSubtitle: {
-    fontSize: 11
+    fontSize: 11.5
   },
   quickChipRow: {
     flexDirection: 'row',
@@ -803,12 +810,12 @@ const styles = StyleSheet.create({
   quickChip: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: radius.pill,
+    borderRadius: radius.btn,
     borderWidth: 1
   },
   quickChipText: {
-    fontSize: 12,
-    fontWeight: '700'
+    fontSize: 11.5,
+    fontWeight: '800'
   },
   dateInputsRow: {
     flexDirection: 'row',
@@ -824,12 +831,17 @@ const styles = StyleSheet.create({
     marginBottom: 6
   },
   textInput: {
-    borderRadius: radius.md,
+    borderRadius: radius.sm,
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderWidth: 1,
     fontSize: 13,
     fontWeight: '600'
+  },
+  inlineError: {
+    fontSize: 11,
+    fontWeight: '700',
+    marginTop: 6
   },
   budgetPresetsRow: {
     flexDirection: 'row',
@@ -840,12 +852,12 @@ const styles = StyleSheet.create({
   budgetPresetChip: {
     paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: radius.pill,
+    borderRadius: radius.btn,
     borderWidth: 1
   },
   budgetPresetText: {
     fontSize: 11,
-    fontWeight: '700'
+    fontWeight: '800'
   },
   tagsGrid: {
     flexDirection: 'row',
@@ -858,7 +870,7 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: radius.pill,
+    borderRadius: radius.btn,
     borderWidth: 1
   },
   tagEmoji: {
@@ -866,7 +878,7 @@ const styles = StyleSheet.create({
   },
   tagLabel: {
     fontSize: 12,
-    fontWeight: '700'
+    fontWeight: '800'
   },
   dealbreakerChipsRow: {
     flexDirection: 'row',
@@ -877,12 +889,12 @@ const styles = StyleSheet.create({
   dealbreakerChip: {
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: radius.pill,
+    borderRadius: radius.btn,
     borderWidth: 1
   },
   dealbreakerChipText: {
     fontSize: 11,
-    fontWeight: '700'
+    fontWeight: '800'
   },
   actionButtonsCol: {
     gap: 10,
@@ -899,7 +911,7 @@ const styles = StyleSheet.create({
   },
   submitBtnText: {
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: 14.5,
     fontWeight: '800'
   },
   draftBtn: {
