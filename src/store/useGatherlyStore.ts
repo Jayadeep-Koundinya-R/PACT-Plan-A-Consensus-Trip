@@ -1,3 +1,4 @@
+import { synthesizeAICompromise, CompromiseProposal } from '../lib/ai/compromiseEngine';
 import { create } from 'zustand';
 import {
   MemberPreference,
@@ -78,6 +79,9 @@ interface GatherlyState {
   savePreferenceDraft: (groupId: string, draft: Partial<MemberPreference>) => void;
   submitPreferences: (preference: MemberPreference) => Promise<void>;
   castVote: (optionId: string, approved: boolean) => Promise<void>;
+  addTripOption: (option: TripOption) => void;
+  generateAICompromise: (groupId?: string) => CompromiseProposal;
+  applyAICompromise: (proposal: CompromiseProposal) => void;
   getConsensusResults: () => ConsensusResult;
   getOptionApprovalCount: (optionId: string) => number;
   finalizeTrip: (callerUserId?: string) => TripBrief;
@@ -381,6 +385,29 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
       }
       return { members: updated };
     });
+  },
+
+  addTripOption: (option: TripOption) => {
+    set((state) => ({
+      tripOptions: [option, ...state.tripOptions.filter((o) => o.id !== option.id)]
+    }));
+  },
+
+  generateAICompromise: (groupId?: string) => {
+    const { activeGroupId, members, tripOptions } = get();
+    const targetGroupId = groupId || activeGroupId;
+    return synthesizeAICompromise(targetGroupId, members, tripOptions);
+  },
+
+  applyAICompromise: (proposal: CompromiseProposal) => {
+    const { currentUserId } = get();
+    set((state) => ({
+      tripOptions: [proposal.option, ...state.tripOptions.filter((o) => o.id !== proposal.option.id)],
+      votes: {
+        ...state.votes,
+        [`${proposal.option.id}_${currentUserId}`]: true
+      }
+    }));
   },
 
   castVote: async (optionId: string, approved: boolean) => {

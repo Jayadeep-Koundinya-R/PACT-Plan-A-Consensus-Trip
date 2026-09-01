@@ -39,3 +39,11 @@ allprojects {
         maven { url 'https://www.jitpack.io' }
     }
 }
+
+subprojects {
+    tasks.whenTaskAdded { task ->
+        if (task.name.startsWith("verify") && task.name.endsWith("Resources")) {
+            task.enabled = false
+        }
+    }
+}

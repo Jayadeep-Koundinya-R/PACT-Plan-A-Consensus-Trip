@@ -21,6 +21,7 @@ import { BottomTabBar } from '../../../src/components/BottomTabBar';
 import { ThemeToggle } from '../../../src/components/ThemeToggle';
 import { InviteQRModal } from '../../../src/components/InviteQRModal';
 import { NudgeModal } from '../../../src/components/NudgeModal';
+import { AICompromiseModal } from '../../../src/components/AICompromiseModal';
 import { colors, radius, shadows } from '../../../src/theme/colors';
 import {
   ArrowLeft,
@@ -57,6 +58,7 @@ export default function GroupDetailScreen() {
   const [copiedCode, setCopiedCode] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
   const [showNudgeModal, setShowNudgeModal] = useState(false);
+  const [showAIModal, setShowAIModal] = useState(false);
 
   const theme = isDarkMode ? colors.dark : colors.light;
 
@@ -402,7 +404,7 @@ export default function GroupDetailScreen() {
           <BottlenecksSection
             issues={bottleneckIssues}
             isDarkMode={isDarkMode}
-            onResolve={() => router.push(`/groups/${currentGroup.id}/options` as any)}
+            onResolve={() => setShowAIModal(true)}
           />
         )}
 
@@ -515,6 +517,15 @@ export default function GroupDetailScreen() {
         inviteCode={currentGroup.inviteCode}
         isDarkMode={isDarkMode}
         onClose={() => setShowQRModal(false)}
+      />
+
+      {/* AI Compromise Modal */}
+      <AICompromiseModal
+        visible={showAIModal}
+        groupId={currentGroup.id}
+        isDarkMode={isDarkMode}
+        onClose={() => setShowAIModal(false)}
+        onApplied={() => router.push(`/groups/${currentGroup.id}/options` as any)}
       />
 
       {/* Nudge Modal */}

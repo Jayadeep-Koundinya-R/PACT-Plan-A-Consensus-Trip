@@ -19,6 +19,7 @@ import { ConsensusMatrix } from '../../../src/components/ConsensusMatrix';
 import { BottlenecksSection } from '../../../src/components/BottlenecksSection';
 import { BottomTabBar } from '../../../src/components/BottomTabBar';
 import { ThemeToggle } from '../../../src/components/ThemeToggle';
+import { AICompromiseModal } from '../../../src/components/AICompromiseModal';
 import { colors, radius, shadows } from '../../../src/theme/colors';
 import {
   ArrowLeft,
@@ -47,6 +48,7 @@ export default function OptionsScreen() {
     getOptionApprovalCount
   } = useGatherlyStore();
 
+  const [showAICompromise, setShowAICompromise] = useState(false);
   const [activeFilter, setActiveFilter] = useState<'all' | 'high_agreement' | 'budget'>('all');
 
   const theme = isDarkMode ? colors.dark : colors.light;
@@ -385,6 +387,48 @@ const styles = StyleSheet.create({
   stepBadgeText: {
     fontSize: 10,
     fontWeight: '800'
+  },
+  aiEngineCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    borderRadius: radius.card,
+    borderWidth: 1.5,
+    marginBottom: 14,
+    gap: 12
+  },
+  aiIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  aiTextCol: {
+    flex: 1
+  },
+  aiTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 2
+  },
+  aiCardTitle: {
+    fontSize: 14,
+    fontWeight: '800'
+  },
+  aiPill: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: radius.pill
+  },
+  aiPillText: {
+    fontSize: 9,
+    fontWeight: '800'
+  },
+  aiCardSub: {
+    fontSize: 11,
+    lineHeight: 15
   },
   filterRow: {
     flexDirection: 'row',
