@@ -1,41 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   ScrollView,
+  TouchableOpacity,
   StyleSheet,
   SafeAreaView,
   Share,
-  Alert,
-  Platform
+  Platform,
+  Alert
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
+import * as Clipboard from 'expo-clipboard';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
 import { StepProgressBar } from '../../../src/components/StepProgressBar';
-import { BottomTabBar } from '../../../src/components/BottomTabBar';
 import { ConsensusMatrix } from '../../../src/components/ConsensusMatrix';
 import { BottlenecksSection } from '../../../src/components/BottlenecksSection';
-import { NudgeModal } from '../../../src/components/NudgeModal';
+import { BottomTabBar } from '../../../src/components/BottomTabBar';
 import { InviteQRModal } from '../../../src/components/InviteQRModal';
+import { NudgeModal } from '../../../src/components/NudgeModal';
 import { colors, radius, shadows } from '../../../src/theme/colors';
 import {
   ArrowLeft,
+  Share2,
+  QrCode,
   Copy,
   Check,
   Users,
-  Sparkles,
-  Vote,
-  Sliders,
-  ChevronRight,
-  QrCode,
-  Lock,
-  Share2,
   UserPlus,
+  Sliders,
+  Sparkles,
+  Lock,
   Trash2,
-  LogOut
+  LogOut,
+  ChevronRight,
+  Compass
 } from 'lucide-react-native';
 
 export default function GroupDetailScreen() {
@@ -43,19 +43,35 @@ export default function GroupDetailScreen() {
   const router = useRouter();
   const {
     isDarkMode,
-    groups,
-    members,
-    currentUserId,
+    groups = [],
+    activeGroupId,
+    setActiveGroup,
+    currentUserId = 'user-maya-001',
+    members = [],
     getConsensusResults,
     leaveGroup,
     deleteGroup
   } = useGatherlyStore();
 
+  const [copiedCode, setCopiedCode] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
+  const [showNudgeModal, setShowNudgeModal] = useState(false);
+
   const theme = isDarkMode ? colors.dark : colors.light;
+
+  useEffect(() => {
+    if (id && id !== activeGroupId) {
+      try {
+        setActiveGroup(id);
+      } catch (e) {}
+    }
+  }, [id, activeGroupId]);
+
   const currentGroup =
-    groups.find((g) => g.id === id) ||
+    groups.find((g) => g && g.id === id) ||
+    groups.find((g) => g && g.id === activeGroupId) ||
     groups[0] || {
-      id: id || 'demo',
+      id: id || 'circle-college-reunion-2026',
       name: 'College Reunion Trip',
       inviteCode: 'GOA-2026',
       organizerId: 'user-maya-001',
@@ -63,27 +79,41 @@ export default function GroupDetailScreen() {
       totalMembersCount: 5
     };
 
-  const consensus = getConsensusResults();
-  const [copiedCode, setCopiedCode] = useState(false);
-  const [showQRModal, setShowQRModal] = useState(false);
-  const [showNudgeModal, setShowNudgeModal] = useState(false);
+  let consensus;
+  try {
+    consensus = getConsensusResults();
+  } catch (e) {
+    consensus = {
+      groupId: currentGroup.id,
+      totalMembersCount: currentGroup.totalMembersCount || 5,
+      respondedMembersCount: members.length,
+      rankedOptions: [],
+      winningOption: undefined,
+      deadlockDiagnosis: { isDeadlocked: false, topOptionConsensus: 0, primaryCause: 'none' as const, diagnosisText: '', organizerSuggestions: [] },
+      consensusReached: false
+    };
+  }
 
   const isOrganizer = currentGroup.organizerId === currentUserId;
-  const userHasSubmitted = members.some((m) => m.userId === currentUserId && Boolean(m.submittedAt));
+  const topOption = consensus?.winningOption || consensus?.rankedOptions?.[0] || null;
 
-  const pendingMembers = members.filter((m) => !m.submittedAt);
-  const pendingNames = pendingMembers.map((m) => m.userName || (m as any).name || 'Traveler');
+  // Determine current step
+  const userHasSubmitted = (members || []).some(
+    (m) => m?.userId === currentUserId && Boolean(m?.submittedAt)
+  );
 
-  const currentStepNumber =
-    currentGroup.status === 'finalized'
-      ? 4
-      : currentGroup.status === 'voting'
-      ? 3
-      : consensus.rankedOptions.length > 0
-      ? 2
-      : 1;
+  let currentStepNumber: 1 | 2 | 3 | 4 = 1;
+  if (currentGroup.status === 'finalized') {
+    currentStepNumber = 4;
+  } else if (currentGroup.status === 'voting') {
+    currentStepNumber = 3;
+  } else if (userHasSubmitted) {
+    currentStepNumber = 2;
+  }
 
-  const topOption = consensus.winningOption || consensus.rankedOptions[0];
+  const pendingNames = (members || [])
+    .filter((m) => !m?.submittedAt)
+    .map((m) => m?.userName || (m as any)?.name || 'Friend');
 
   const triggerHaptic = () => {
     if (Platform.OS !== 'web') {
@@ -97,18 +127,30 @@ export default function GroupDetailScreen() {
     triggerHaptic();
     try {
       await Clipboard.setStringAsync(currentGroup.inviteCode);
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 2000);
     } catch (e) {}
-    setCopiedCode(true);
-    setTimeout(() => setCopiedCode(false), 2000);
   };
 
   const handleShareInvite = async () => {
     triggerHaptic();
-    const deepLink = `pact://invite/${currentGroup.inviteCode}`;
-    const shareText = `You're invited to join "${currentGroup.name}" on PACT!\n\nInvite Code: ${currentGroup.inviteCode}\nLink: ${deepLink}\n\nShare your dates and budget privately without peer pressure!`;
-    try {
-      await Share.share({ message: shareText, title: `Invite to ${currentGroup.name}` });
-    } catch (e) {}
+    const shareMessage = `Join our trip circle "${currentGroup.name}" on PACT!\nEnter invite code: ${currentGroup.inviteCode}\n\nDownload PACT to submit your private dates and budget: https://pact.app/invite/${currentGroup.inviteCode}`;
+
+    if (Platform.OS === 'web') {
+      try {
+        await navigator.clipboard.writeText(shareMessage);
+        Alert.alert('Invite Link Copied', 'Share this link with your friends in WhatsApp.');
+      } catch (e) {
+        Alert.alert('Invite Code', currentGroup.inviteCode);
+      }
+    } else {
+      try {
+        await Share.share({
+          message: shareMessage,
+          title: `Join ${currentGroup.name} on PACT`
+        });
+      } catch (e) {}
+    }
   };
 
   const handleLeaveOrDelete = () => {
@@ -150,7 +192,7 @@ export default function GroupDetailScreen() {
 
   // Bottleneck issues
   const bottleneckIssues = [];
-  if (consensus.deadlockDiagnosis && consensus.deadlockDiagnosis.isDeadlocked) {
+  if (consensus?.deadlockDiagnosis?.isDeadlocked) {
     bottleneckIssues.push({
       type: (consensus.deadlockDiagnosis.primaryCause === 'budget_gap'
         ? 'budget'
@@ -166,10 +208,9 @@ export default function GroupDetailScreen() {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
-      <View style={[styles.topBorderLine, { backgroundColor: theme.primary }]} />
       {/* 4-Step Consensus Journey Progress Bar */}
       <StepProgressBar
-        currentStep={currentStepNumber as 1 | 2 | 3 | 4}
+        currentStep={currentStepNumber}
         groupId={currentGroup.id}
         isDarkMode={isDarkMode}
       />
@@ -178,27 +219,43 @@ export default function GroupDetailScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Navigation Header */}
-        <View style={styles.navBar}>
+        {/* Top PACT Brand Header Frame Box */}
+        <View
+          style={[
+            styles.brandHeaderBox,
+            { backgroundColor: theme.surface, borderColor: theme.border },
+            shadows.sm
+          ]}
+        >
           <TouchableOpacity
             onPress={() => router.push('/')}
-            style={[styles.backBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
+            style={[styles.backBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
           >
-            <ArrowLeft size={18} color={theme.textPrimary} />
+            <ArrowLeft size={16} color={theme.textPrimary} />
           </TouchableOpacity>
 
-          <Text style={[styles.navTitle, { color: theme.textPrimary }]} numberOfLines={1}>
-            {currentGroup.name}
-          </Text>
+          <View style={styles.brandTextCol}>
+            <View style={styles.brandTitleRow}>
+              <View style={[styles.brandLogoCircle, { backgroundColor: theme.primary }]}>
+                <Compass size={14} color="#FFFFFF" strokeWidth={2.5} />
+              </View>
+              <Text style={[styles.brandTitleText, { color: theme.textPrimary }]} numberOfLines={1}>
+                {currentGroup.name}
+              </Text>
+            </View>
+            <Text style={[styles.brandSubtitleText, { color: theme.primary }]}>
+              Plan A Consensus Trip
+            </Text>
+          </View>
 
           <TouchableOpacity
             onPress={() => {
               triggerHaptic();
               setShowQRModal(true);
             }}
-            style={[styles.qrHeaderBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
+            style={[styles.qrHeaderBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
           >
-            <QrCode size={18} color={theme.primary} />
+            <QrCode size={16} color={theme.primary} />
           </TouchableOpacity>
         </View>
 
@@ -217,7 +274,7 @@ export default function GroupDetailScreen() {
               </View>
               <View style={styles.emptyTextCol}>
                 <Text style={[styles.emptyTitle, { color: theme.textPrimary }]}>
-                  You're the first one here! 🚀
+                  You're the first one here! 🎉
                 </Text>
                 <Text style={[styles.emptySub, { color: theme.textSecondary }]}>
                   Share your 6-digit code with friends so they can submit their private dates and budget.
@@ -238,7 +295,7 @@ export default function GroupDetailScreen() {
 
         {/* 1. Consensus Matrix Card */}
         <ConsensusMatrix
-          destinationTitle={topOption?.option.name || 'Trip Circle'}
+          destinationTitle={topOption?.option?.name || currentGroup.name || 'Trip Circle'}
           members={members}
           totalMembersCount={currentGroup.totalMembersCount || members.length}
           isOrganizer={isOrganizer}
@@ -341,7 +398,7 @@ export default function GroupDetailScreen() {
           <BottlenecksSection
             issues={bottleneckIssues}
             isDarkMode={isDarkMode}
-            onResolve={() => router.push(`/groups/${currentGroup.id}/options`)}
+            onResolve={() => router.push(`/groups/${currentGroup.id}/options` as any)}
           />
         )}
 
@@ -349,7 +406,7 @@ export default function GroupDetailScreen() {
         <View style={styles.actionCenter}>
           <TouchableOpacity
             activeOpacity={0.85}
-            onPress={() => router.push(`/groups/${currentGroup.id}/preferences`)}
+            onPress={() => router.push(`/groups/${currentGroup.id}/preferences` as any)}
             style={[
               styles.actionCard,
               { backgroundColor: theme.surface, borderColor: theme.border },
@@ -374,7 +431,7 @@ export default function GroupDetailScreen() {
 
           <TouchableOpacity
             activeOpacity={0.85}
-            onPress={() => router.push(`/groups/${currentGroup.id}/options`)}
+            onPress={() => router.push(`/groups/${currentGroup.id}/options` as any)}
             style={[
               styles.actionCard,
               { backgroundColor: theme.surface, borderColor: theme.border },
@@ -397,7 +454,7 @@ export default function GroupDetailScreen() {
 
           <TouchableOpacity
             activeOpacity={0.85}
-            onPress={() => router.push(`/groups/${currentGroup.id}/vote`)}
+            onPress={() => router.push(`/groups/${currentGroup.id}/vote` as any)}
             style={[
               styles.actionCard,
               { backgroundColor: theme.surface, borderColor: theme.border },
@@ -472,10 +529,6 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1
   },
-  topBorderLine: {
-    height: 3,
-    width: '100%'
-  },
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 12,
@@ -484,32 +537,55 @@ const styles = StyleSheet.create({
     width: '100%',
     alignSelf: 'center'
   },
-  navBar: {
+  brandHeaderBox: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    padding: 10,
+    borderRadius: radius.card,
+    borderWidth: 1.5,
     marginBottom: 14
   },
   backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1
   },
-  navTitle: {
-    fontSize: 16,
-    fontWeight: '800',
+  brandTextCol: {
+    alignItems: 'center',
     flex: 1,
-    textAlign: 'center',
-    marginHorizontal: 12,
+    paddingHorizontal: 8
+  },
+  brandTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6
+  },
+  brandLogoCircle: {
+    width: 22,
+    height: 22,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  brandTitleText: {
+    fontSize: 16,
+    fontWeight: '900',
     letterSpacing: -0.2
   },
+  brandSubtitleText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+    marginTop: 1
+  },
   qrHeaderBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1

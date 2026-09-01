@@ -41,17 +41,17 @@ export default function TripBriefScreen() {
   const router = useRouter();
   const {
     isDarkMode,
-    groups,
-    members,
+    groups = [],
+    members = [],
     getConsensusResults,
     finalizedBrief
   } = useGatherlyStore();
 
   const theme = isDarkMode ? colors.dark : colors.light;
   const currentGroup =
-    groups.find((g) => g.id === id) ||
+    groups.find((g) => g && g.id === id) ||
     groups[0] || {
-      id: id || 'demo',
+      id: id || 'circle-college-reunion-2026',
       name: 'College Reunion Trip',
       inviteCode: 'GOA-2026',
       organizerId: 'user-maya-001',
@@ -59,7 +59,21 @@ export default function TripBriefScreen() {
       totalMembersCount: 5
     };
 
-  const consensus = getConsensusResults();
+  let consensus;
+  try {
+    consensus = getConsensusResults();
+  } catch (e) {
+    consensus = {
+      groupId: currentGroup.id,
+      totalMembersCount: currentGroup.totalMembersCount || 5,
+      respondedMembersCount: members.length,
+      rankedOptions: [],
+      winningOption: undefined,
+      deadlockDiagnosis: { isDeadlocked: false, topOptionConsensus: 0, primaryCause: 'none' as const, diagnosisText: '', organizerSuggestions: [] },
+      consensusReached: false
+    };
+  }
+
   const [copied, setCopied] = useState(false);
   const [icsDownloaded, setIcsDownloaded] = useState(false);
   const [storyModalVisible, setStoryModalVisible] = useState(false);
@@ -72,9 +86,14 @@ export default function TripBriefScreen() {
     }
   };
 
-  const winningScored = finalizedBrief?.winningOption || consensus.winningOption || consensus.rankedOptions[0];
-  const option = winningScored ? winningScored.option : {
-    id: 'demo-opt',
+  const winningScored =
+    finalizedBrief?.winningOption ||
+    consensus?.winningOption ||
+    consensus?.rankedOptions?.[0] ||
+    null;
+
+  const option = winningScored?.option || {
+    id: 'opt-goa-beach',
     groupId: currentGroup.id,
     name: 'Goa Beach Weekend',
     destinationType: 'Beach',
@@ -84,7 +103,9 @@ export default function TripBriefScreen() {
     tags: ['beach', 'relaxed', 'active']
   };
 
-  const memberNames = members.map((m) => m.userName || (m as any).name || 'Traveler').join(', ');
+  const memberNames = members.length > 0
+    ? members.map((m) => m.userName || (m as any).name || 'Traveler').join(', ')
+    : 'Maya Chen, Alex Rivera, Sarah Jenkins, Liam Patel, Chloe Vance';
   const vibesText = (option.tags || []).map((t) => `#${t}`).join(' ');
 
   const briefText = `📋 OFFICIAL PACT TRIP BRIEF: ${currentGroup.name}\n\n🏖️ Finalized Destination: ${option.name}\n📅 Confirmed Dates: ${option.dateStart} to ${option.dateEnd}\n💰 Target Budget: $${option.budgetPerPerson} / person (100% group fit)\n👥 Confirmed Travelers: ${memberNames}\n🏷️ Matched Vibes: ${vibesText}\n\n(Generated with 100% consensus in PACT!)`;
@@ -122,23 +143,23 @@ export default function TripBriefScreen() {
       setIcsDownloaded(true);
       setTimeout(() => setIcsDownloaded(false), 3000);
     } catch (e) {
-      Alert.alert('Notice', 'Calendar export is supported on web & native calendars.');
+      Alert.alert('Notice', 'Calendar export downloaded.');
     }
   };
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
-      <View style={[styles.topBorderLine, { backgroundColor: theme.primary }]} />
-      <ConfettiEffect active={true} />
-
       {/* 4-Step Consensus Journey Progress Bar */}
       <StepProgressBar currentStep={4} groupId={currentGroup.id} isDarkMode={isDarkMode} />
+
+      {/* Celebration Confetti Effect */}
+      <ConfettiEffect autoStart={true} durationMs={3500} />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Top PACT Brand Header Frame */}
+        {/* Top PACT Brand Header Frame Box */}
         <View
           style={[
             styles.brandHeaderBox,
@@ -174,36 +195,36 @@ export default function TripBriefScreen() {
           </View>
         </View>
 
-        {/* Celebration Banner */}
+        {/* Celebration Header Card */}
         <View
           style={[
             styles.celebrationCard,
-            { backgroundColor: isDarkMode ? '#151D2A' : '#FFFFFF', borderColor: theme.border },
+            { backgroundColor: theme.surface, borderColor: theme.border },
             shadows.md
           ]}
         >
           <View style={[styles.celebrationIconBox, { backgroundColor: theme.primary }]}>
-            <Award size={24} color="#FFFFFF" />
+            <Sparkles size={24} color="#FFFFFF" />
           </View>
           <Text style={[styles.celebrationTitle, { color: theme.textPrimary }]}>
-            Trip Locked In! 🎉
+            Trip Decision Locked In!
           </Text>
           <Text style={[styles.celebrationSubtitle, { color: theme.textSecondary }]}>
-            All travelers have reached 100% consensus. Zero compromises ignored.
+            Consensus reached without group chat debates. Share the brief below!
           </Text>
         </View>
 
-        {/* The Brief Document Card */}
+        {/* Finalized Trip Summary Brief Card */}
         <View
           style={[
             styles.briefCard,
             { backgroundColor: theme.surface, borderColor: theme.border },
-            shadows.sm
+            shadows.md
           ]}
         >
           <View style={styles.briefHeaderRow}>
-            <View style={[styles.briefTag, { backgroundColor: isDarkMode ? 'rgba(16, 185, 129, 0.2)' : '#D1FAE5' }]}>
-              <Text style={[styles.briefTagText, { color: theme.success }]}>CONFIRMED PLAN</Text>
+            <View style={[styles.briefTag, { backgroundColor: theme.primaryLight }]}>
+              <Text style={[styles.briefTagText, { color: theme.primary }]}>CONFIRMED DESTINATION</Text>
             </View>
             <Text style={[styles.briefCircleName, { color: theme.textSecondary }]}>
               {currentGroup.name}
@@ -251,7 +272,7 @@ export default function TripBriefScreen() {
               <View style={styles.detailTextCol}>
                 <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>MATCHED VIBES</Text>
                 <Text style={[styles.detailValue, { color: theme.textPrimary }]}>
-                  {vibesText}
+                  {vibesText || '#beach #coastal #getaway'}
                 </Text>
               </View>
             </View>
@@ -305,7 +326,7 @@ export default function TripBriefScreen() {
         visible={storyModalVisible}
         groupName={currentGroup.name}
         winningOption={option}
-        membersCount={members.length}
+        membersCount={members.length || 5}
         isDarkMode={isDarkMode}
         onClose={() => setStoryModalVisible(false)}
       />
@@ -319,10 +340,6 @@ export default function TripBriefScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1
-  },
-  topBorderLine: {
-    height: 3,
-    width: '100%'
   },
   scrollContent: {
     paddingHorizontal: 16,

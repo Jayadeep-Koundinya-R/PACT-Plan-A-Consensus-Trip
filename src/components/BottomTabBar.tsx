@@ -37,13 +37,18 @@ export const BottomTabBar: React.FC = () => {
     }
   };
 
+  const isHomeActive =
+    pathname === '/' ||
+    pathname === '/groups' ||
+    (segments && segments.length === 2 && segments[0] === 'groups');
+
   const tabs = [
     {
       id: 'dashboard',
       label: 'Home',
       icon: Compass,
       route: '/',
-      isActive: pathname === '/' || pathname === '/groups'
+      isActive: isHomeActive
     },
     {
       id: 'preferences',

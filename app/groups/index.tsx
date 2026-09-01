@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
-  TouchableOpacity,
   ScrollView,
+  TouchableOpacity,
+  TextInput,
   StyleSheet,
   SafeAreaView,
   Modal,
@@ -18,16 +18,14 @@ import { BottomTabBar } from '../../src/components/BottomTabBar';
 import { ThemeToggle } from '../../src/components/ThemeToggle';
 import { colors, radius, shadows } from '../../src/theme/colors';
 import {
-  Plus,
-  Compass,
   Users,
-  ChevronRight,
-  Sparkles,
+  Plus,
   KeyRound,
-  X,
   ArrowRight,
-  Lock,
-  ArrowLeft
+  ChevronRight,
+  ArrowLeft,
+  X,
+  Compass
 } from 'lucide-react-native';
 
 export default function GroupsScreen() {
@@ -35,21 +33,22 @@ export default function GroupsScreen() {
   const {
     isDarkMode,
     groups = [],
+    activeGroupId,
+    setActiveGroup,
     createGroup,
     joinGroupByCode,
-    setActiveGroup,
-    activeGroupId,
-    currentUserId,
-    subscriptionPlan
+    subscriptionPlan,
+    currentUserId = 'user-maya-001'
   } = useGatherlyStore();
 
-  const theme = isDarkMode ? colors.dark : colors.light;
-  const isPro = subscriptionPlan !== 'free';
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [joinCode, setJoinCode] = useState('');
   const [joinError, setJoinError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const theme = isDarkMode ? colors.dark : colors.light;
+  const isPro = subscriptionPlan !== 'free';
 
   const triggerHaptic = () => {
     if (Platform.OS !== 'web') {
@@ -60,11 +59,7 @@ export default function GroupsScreen() {
   };
 
   const handleCreateGroup = async () => {
-    if (!newGroupName.trim()) {
-      Alert.alert('Notice', 'Please enter a circle name.');
-      return;
-    }
-
+    if (!newGroupName.trim()) return;
     if (!isPro && groups.length >= 1 && currentUserId.startsWith('user-')) {
       setCreateModalVisible(false);
       router.push('/paywall');
@@ -111,23 +106,38 @@ export default function GroupsScreen() {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
-      <View style={[styles.topBorderLine, { backgroundColor: theme.primary }]} />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Navigation Header */}
-        <View style={styles.navBar}>
+        {/* Top PACT Brand Header Frame Box */}
+        <View
+          style={[
+            styles.brandHeaderBox,
+            { backgroundColor: theme.surface, borderColor: theme.border },
+            shadows.sm
+          ]}
+        >
           <TouchableOpacity
             onPress={() => router.push('/')}
-            style={[styles.backBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
+            style={[styles.backBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
           >
-            <ArrowLeft size={18} color={theme.textPrimary} />
+            <ArrowLeft size={16} color={theme.textPrimary} />
           </TouchableOpacity>
 
-          <Text style={[styles.navTitle, { color: theme.textPrimary }]} numberOfLines={1}>
-            Your Trip Circles
-          </Text>
+          <View style={styles.brandTextCol}>
+            <View style={styles.brandTitleRow}>
+              <View style={[styles.brandLogoCircle, { backgroundColor: theme.primary }]}>
+                <Compass size={14} color="#FFFFFF" strokeWidth={2.5} />
+              </View>
+              <Text style={[styles.brandTitleText, { color: theme.textPrimary }]}>
+                PACT
+              </Text>
+            </View>
+            <Text style={[styles.brandSubtitleText, { color: theme.primary }]}>
+              Plan A Consensus Trip
+            </Text>
+          </View>
 
           <ThemeToggle />
         </View>
@@ -305,10 +315,6 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1
   },
-  topBorderLine: {
-    height: 3,
-    width: '100%'
-  },
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 12,
@@ -317,33 +323,55 @@ const styles = StyleSheet.create({
     width: '100%',
     alignSelf: 'center'
   },
-  navBar: {
+  brandHeaderBox: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16
+    padding: 10,
+    borderRadius: radius.card,
+    borderWidth: 1.5,
+    marginBottom: 14
   },
   backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1
   },
-  navTitle: {
+  brandTextCol: {
+    alignItems: 'center',
+    flex: 1
+  },
+  brandTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6
+  },
+  brandLogoCircle: {
+    width: 22,
+    height: 22,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  brandTitleText: {
     fontSize: 16,
-    fontWeight: '800',
-    flex: 1,
-    textAlign: 'center',
-    marginHorizontal: 12,
+    fontWeight: '900',
     letterSpacing: -0.2
+  },
+  brandSubtitleText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+    marginTop: 1
   },
   joinCard: {
     padding: 16,
     borderRadius: radius.card,
     borderWidth: 1,
-    marginBottom: 18
+    marginBottom: 16
   },
   joinHeaderRow: {
     flexDirection: 'row',
@@ -352,8 +380,8 @@ const styles = StyleSheet.create({
     marginBottom: 12
   },
   joinIconBox: {
-    width: 36,
-    height: 36,
+    width: 38,
+    height: 38,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center'
@@ -367,7 +395,7 @@ const styles = StyleSheet.create({
   },
   joinSub: {
     fontSize: 12,
-    marginTop: 1
+    marginTop: 2
   },
   joinInputRow: {
     flexDirection: 'row',
@@ -376,7 +404,7 @@ const styles = StyleSheet.create({
   joinInput: {
     flex: 1,
     borderRadius: radius.md,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     paddingVertical: 10,
     borderWidth: 1,
     fontSize: 14,
@@ -388,8 +416,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     paddingHorizontal: 16,
-    borderRadius: radius.md,
-    justifyContent: 'center'
+    paddingVertical: 10,
+    borderRadius: radius.md
   },
   joinSubmitBtnText: {
     color: '#FFFFFF',
@@ -399,8 +427,7 @@ const styles = StyleSheet.create({
   errorText: {
     color: '#EF4444',
     fontSize: 12,
-    fontWeight: '600',
-    marginTop: 8
+    marginTop: 6
   },
   sectionTitleRow: {
     flexDirection: 'row',
@@ -409,7 +436,7 @@ const styles = StyleSheet.create({
     marginBottom: 10
   },
   sectionHeading: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '800',
     letterSpacing: -0.2
   },
@@ -418,16 +445,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingVertical: 5,
     borderRadius: radius.pill
   },
   createPillBtnText: {
     color: '#FFFFFF',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700'
   },
   circlesList: {
-    gap: 8
+    gap: 8,
+    marginBottom: 20
   },
   circleCard: {
     flexDirection: 'row',
@@ -446,7 +474,7 @@ const styles = StyleSheet.create({
   circleIconCircle: {
     width: 40,
     height: 40,
-    borderRadius: 14,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -454,12 +482,12 @@ const styles = StyleSheet.create({
     flex: 1
   },
   circleName: {
-    fontSize: 15,
-    fontWeight: '800',
-    marginBottom: 2
+    fontSize: 14,
+    fontWeight: '800'
   },
   circleMeta: {
-    fontSize: 12
+    fontSize: 11,
+    marginTop: 2
   },
   modalOverlay: {
     flex: 1,

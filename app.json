@@ -9,7 +9,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#7C2D12"
+      "backgroundColor": "#FAF8F5"
     },
     "ios": {
       "supportsTablet": true,
@@ -19,7 +19,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#7C2D12"
+        "backgroundColor": "#FAF8F5"
       },
       "package": "com.pact.app",
       "versionCode": 2,

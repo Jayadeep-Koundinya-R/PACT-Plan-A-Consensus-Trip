@@ -12,6 +12,7 @@ import {
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../src/store/useGatherlyStore';
+import { BottomTabBar } from '../src/components/BottomTabBar';
 import { colors, radius, shadows } from '../src/theme/colors';
 import {
   X,
@@ -23,7 +24,8 @@ import {
   Infinity as InfinityIcon,
   Bot,
   Palette,
-  CheckCircle2
+  CheckCircle2,
+  Compass
 } from 'lucide-react-native';
 
 export default function PaywallScreen() {
@@ -74,23 +76,38 @@ export default function PaywallScreen() {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
-      <View style={[styles.topBorderLine, { backgroundColor: theme.primary }]} />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Top Navbar */}
-        <View style={styles.navBar}>
+        {/* Top PACT Brand Header Frame Box */}
+        <View
+          style={[
+            styles.brandHeaderBox,
+            { backgroundColor: theme.surface, borderColor: theme.border },
+            shadows.sm
+          ]}
+        >
           <TouchableOpacity
             onPress={() => router.back()}
-            style={[styles.closeBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
+            style={[styles.backBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
           >
-            <X size={18} color={theme.textPrimary} />
+            <X size={16} color={theme.textPrimary} />
           </TouchableOpacity>
 
-          <Text style={[styles.navTitle, { color: theme.textPrimary }]}>
-            PACT Pro
-          </Text>
+          <View style={styles.brandTextCol}>
+            <View style={styles.brandTitleRow}>
+              <View style={[styles.brandLogoCircle, { backgroundColor: theme.primary }]}>
+                <Crown size={14} color="#FFFFFF" strokeWidth={2.5} />
+              </View>
+              <Text style={[styles.brandTitleText, { color: theme.textPrimary }]}>
+                PACT Pro
+              </Text>
+            </View>
+            <Text style={[styles.brandSubtitleText, { color: theme.primary }]}>
+              Plan A Consensus Trip
+            </Text>
+          </View>
 
           <TouchableOpacity onPress={handleRestore}>
             <Text style={[styles.restoreText, { color: theme.primary }]}>
@@ -111,7 +128,7 @@ export default function PaywallScreen() {
         <View
           style={[
             styles.heroCard,
-            { backgroundColor: isDarkMode ? '#151D2A' : '#FFFFFF', borderColor: theme.border },
+            { backgroundColor: theme.surface, borderColor: theme.border },
             shadows.md
           ]}
         >
@@ -180,90 +197,98 @@ export default function PaywallScreen() {
             </View>
             <View style={styles.featureTextCol}>
               <Text style={[styles.featureTitle, { color: theme.textPrimary }]}>
-                Exportable Social Story Cards
+                Custom Circle Themes
               </Text>
               <Text style={[styles.featureDesc, { color: theme.textSecondary }]}>
-                Generate verified Instagram/WhatsApp story cards with official trip consensus stats.
+                Personalize your trip circles with custom colors and custom destination photos.
               </Text>
             </View>
           </View>
         </View>
 
-        {/* Billing Cycle Switcher */}
-        <View style={styles.planSection}>
-          <View style={styles.cycleToggleRow}>
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => {
-                triggerHaptic();
-                setBillingCycle('annual');
-              }}
-              style={[
-                styles.cycleCard,
-                billingCycle === 'annual'
-                  ? { backgroundColor: theme.surface, borderColor: theme.primary, borderWidth: 2 }
-                  : { backgroundColor: theme.surfaceSubtle, borderColor: theme.border, borderWidth: 1 }
-              ]}
-            >
-              <View style={[styles.discountBadge, { backgroundColor: theme.primary }]}>
-                <Text style={styles.discountBadgeText}>SAVE 33%</Text>
-              </View>
-              <Text style={[styles.cycleName, { color: theme.textPrimary }]}>Annual</Text>
-              <Text style={[styles.cyclePrice, { color: theme.primary }]}>$29.99<Text style={styles.cyclePer}>/year</Text></Text>
-              <Text style={[styles.cycleSub, { color: theme.textSecondary }]}>$2.50 / month</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => {
-                triggerHaptic();
-                setBillingCycle('monthly');
-              }}
-              style={[
-                styles.cycleCard,
-                billingCycle === 'monthly'
-                  ? { backgroundColor: theme.surface, borderColor: theme.primary, borderWidth: 2 }
-                  : { backgroundColor: theme.surfaceSubtle, borderColor: theme.border, borderWidth: 1 }
-              ]}
-            >
-              <Text style={[styles.cycleName, { color: theme.textPrimary }]}>Monthly</Text>
-              <Text style={[styles.cyclePrice, { color: theme.primary }]}>$3.99<Text style={styles.cyclePer}>/month</Text></Text>
-              <Text style={[styles.cycleSub, { color: theme.textSecondary }]}>Billed monthly</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Action CTA */}
+        {/* Pricing Plan Selector */}
+        <View style={styles.planSelectorRow}>
           <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={handleSubscribe}
-            style={[styles.subscribeBtn, { backgroundColor: theme.primary }, shadows.glowPrimary]}
+            activeOpacity={0.8}
+            onPress={() => {
+              triggerHaptic();
+              setBillingCycle('annual');
+            }}
+            style={[
+              styles.planCard,
+              billingCycle === 'annual'
+                ? { backgroundColor: theme.surface, borderColor: theme.primary, borderWidth: 2 }
+                : { backgroundColor: theme.surfaceSubtle, borderColor: theme.border, borderWidth: 1 }
+            ]}
           >
-            <Sparkles size={18} color="#FFFFFF" />
-            <Text style={styles.subscribeBtnText}>
-              {isCurrentPro ? 'Switch Plan' : 'Start 7-Day Free Trial'}
-            </Text>
-            <ArrowRight size={18} color="#FFFFFF" />
+            <View style={[styles.saveBadge, { backgroundColor: theme.primary }]}>
+              <Text style={styles.saveBadgeText}>SAVE 40%</Text>
+            </View>
+            <Text style={[styles.planPeriod, { color: theme.textPrimary }]}>Annual</Text>
+            <Text style={[styles.planPrice, { color: theme.primary }]}>$29.99</Text>
+            <Text style={[styles.planSub, { color: theme.textSecondary }]}>$2.50 / month</Text>
           </TouchableOpacity>
 
-          {isCurrentPro && (
-            <TouchableOpacity
-              onPress={handleCancelSubscription}
-              style={styles.cancelBtn}
-            >
-              <Text style={[styles.cancelBtnText, { color: theme.textSecondary }]}>
-                Revert to Free Tier
-              </Text>
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => {
+              triggerHaptic();
+              setBillingCycle('monthly');
+            }}
+            style={[
+              styles.planCard,
+              billingCycle === 'monthly'
+                ? { backgroundColor: theme.surface, borderColor: theme.primary, borderWidth: 2 }
+                : { backgroundColor: theme.surfaceSubtle, borderColor: theme.border, borderWidth: 1 }
+            ]}
+          >
+            <Text style={[styles.planPeriod, { color: theme.textPrimary }]}>Monthly</Text>
+            <Text style={[styles.planPrice, { color: theme.primary }]}>$4.99</Text>
+            <Text style={[styles.planSub, { color: theme.textSecondary }]}>Billed monthly</Text>
+          </TouchableOpacity>
+        </View>
 
-          <View style={styles.guaranteeRow}>
-            <ShieldCheck size={14} color={theme.success} />
-            <Text style={[styles.guaranteeText, { color: theme.textSecondary }]}>
-              Secured by RevenueCat • Cancel anytime in Google Play
+        {/* CTA Button */}
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={handleSubscribe}
+          style={[
+            styles.ctaBtn,
+            { backgroundColor: theme.primary },
+            shadows.glowPrimary
+          ]}
+        >
+          <Crown size={18} color="#FFFFFF" />
+          <Text style={styles.ctaBtnText}>
+            {isCurrentPro ? 'Switch Billing Cycle' : 'Upgrade to PACT Pro'}
+          </Text>
+          <ArrowRight size={18} color="#FFFFFF" />
+        </TouchableOpacity>
+
+        {/* Revert / Cancel Button if already pro */}
+        {isCurrentPro && (
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={handleCancelSubscription}
+            style={[styles.cancelBtn, { borderColor: theme.border }]}
+          >
+            <Text style={[styles.cancelBtnText, { color: theme.textSecondary }]}>
+              Revert to Free Plan
             </Text>
-          </View>
+          </TouchableOpacity>
+        )}
+
+        {/* Guarantee footer */}
+        <View style={styles.guaranteeRow}>
+          <ShieldCheck size={16} color={theme.success} />
+          <Text style={[styles.guaranteeText, { color: theme.textSecondary }]}>
+            Secured via Google Play. Cancel anytime in Store settings.
+          </Text>
         </View>
       </ScrollView>
+
+      {/* Floating Bottom Tab Bar */}
+      <BottomTabBar />
     </SafeAreaView>
   );
 }
@@ -272,35 +297,57 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1
   },
-  topBorderLine: {
-    height: 3,
-    width: '100%'
-  },
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: 40,
-    maxWidth: 600,
+    paddingBottom: 140,
+    maxWidth: 640,
     width: '100%',
     alignSelf: 'center'
   },
-  navBar: {
+  brandHeaderBox: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16
+    padding: 10,
+    borderRadius: radius.card,
+    borderWidth: 1.5,
+    marginBottom: 14
   },
-  closeBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+  backBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1
   },
-  navTitle: {
+  brandTextCol: {
+    alignItems: 'center',
+    flex: 1
+  },
+  brandTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6
+  },
+  brandLogoCircle: {
+    width: 22,
+    height: 22,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  brandTitleText: {
     fontSize: 16,
-    fontWeight: '800'
+    fontWeight: '900',
+    letterSpacing: -0.2
+  },
+  brandSubtitleText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+    marginTop: 1
   },
   restoreText: {
     fontSize: 13,
@@ -335,7 +382,7 @@ const styles = StyleSheet.create({
     marginBottom: 12
   },
   heroTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '900',
     textAlign: 'center',
     letterSpacing: -0.3,
@@ -347,8 +394,8 @@ const styles = StyleSheet.create({
     lineHeight: 18
   },
   featuresList: {
-    gap: 8,
-    marginBottom: 18
+    gap: 10,
+    marginBottom: 16
   },
   featureItem: {
     flexDirection: 'row',
@@ -374,71 +421,68 @@ const styles = StyleSheet.create({
     marginBottom: 2
   },
   featureDesc: {
-    fontSize: 12,
-    lineHeight: 16
+    fontSize: 11,
+    lineHeight: 15
   },
-  planSection: {
-    marginTop: 4
-  },
-  cycleToggleRow: {
+  planSelectorRow: {
     flexDirection: 'row',
-    gap: 10,
-    marginBottom: 16
+    gap: 12,
+    marginBottom: 18
   },
-  cycleCard: {
+  planCard: {
     flex: 1,
-    padding: 14,
+    padding: 16,
     borderRadius: radius.card,
     alignItems: 'center',
     position: 'relative'
   },
-  discountBadge: {
+  saveBadge: {
     position: 'absolute',
     top: -10,
     paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingVertical: 3,
     borderRadius: radius.pill
   },
-  discountBadgeText: {
+  saveBadgeText: {
     color: '#FFFFFF',
     fontSize: 9,
-    fontWeight: '800',
+    fontWeight: '900',
     letterSpacing: 0.5
   },
-  cycleName: {
-    fontSize: 13,
+  planPeriod: {
+    fontSize: 15,
     fontWeight: '800',
+    marginTop: 4,
     marginBottom: 4
   },
-  cyclePrice: {
-    fontSize: 18,
-    fontWeight: '900'
+  planPrice: {
+    fontSize: 22,
+    fontWeight: '900',
+    marginBottom: 2
   },
-  cyclePer: {
-    fontSize: 11,
-    fontWeight: '600'
+  planSub: {
+    fontSize: 11
   },
-  cycleSub: {
-    fontSize: 11,
-    marginTop: 2
-  },
-  subscribeBtn: {
+  ctaBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    paddingVertical: 14,
-    borderRadius: radius.btn
+    paddingVertical: 15,
+    borderRadius: radius.btn,
+    marginBottom: 10
   },
-  subscribeBtnText: {
+  ctaBtnText: {
     color: '#FFFFFF',
     fontSize: 15,
     fontWeight: '800'
   },
   cancelBtn: {
-    alignItems: 'center',
     paddingVertical: 10,
-    marginTop: 6
+    alignItems: 'center',
+    borderRadius: radius.btn,
+    borderWidth: 1,
+    marginBottom: 12
   },
   cancelBtnText: {
     fontSize: 12,
@@ -449,10 +493,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    marginTop: 12
+    marginBottom: 20
   },
   guaranteeText: {
-    fontSize: 11,
-    fontWeight: '500'
+    fontSize: 11
   }
 });
