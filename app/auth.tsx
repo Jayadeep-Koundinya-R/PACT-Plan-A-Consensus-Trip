@@ -6,48 +6,96 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
+  ScrollView,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   ActivityIndicator,
   Alert
 } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../src/store/useGatherlyStore';
-import { signInUser, signUpUser } from '../src/lib/supabase/client';
+import { ThemeToggle } from '../src/components/ThemeToggle';
+import { BottomTabBar } from '../src/components/BottomTabBar';
 import { colors, radius, shadows } from '../src/theme/colors';
 import {
   Compass,
-  ArrowRight,
   ShieldCheck,
-  Sparkles,
-  UserCheck,
-  AlertCircle,
   BrainCircuit,
   Lock,
   FileCheck2,
-  ChevronLeft
+  ArrowRight,
+  ArrowLeft,
+  Mail,
+  KeyRound,
+  User,
+  Sparkles,
+  AlertCircle,
+  Eye,
+  EyeOff,
+  UserCheck,
+  CheckCircle2,
+  Zap
 } from 'lucide-react-native';
+
+const VALUE_PILLARS = [
+  {
+    id: 'privacy',
+    title: 'Private Shield',
+    tagline: 'Zero peer pressure',
+    desc: 'Your real budget & available dates remain 100% private. Friends only see the resulting overlap.',
+    icon: ShieldCheck
+  },
+  {
+    id: 'ai',
+    title: 'AI Consensus',
+    tagline: 'Deterministic scoring',
+    desc: 'Algorithms instantly score hundreds of dates & budgets to pinpoint the exact compromise where everyone wins.',
+    icon: BrainCircuit
+  },
+  {
+    id: 'voting',
+    title: 'Silent Voting',
+    tagline: 'No group chat debates',
+    desc: 'Approve destinations privately. The organizer only sees total aggregate counts, never individual votes.',
+    icon: Lock
+  },
+  {
+    id: 'brief',
+    title: '1-Tap WhatsApp Brief',
+    tagline: 'Instant alignment',
+    desc: 'Generate a confirmed itinerary summary with calendar .ics download ready to share with friends.',
+    icon: FileCheck2
+  }
+];
 
 export default function AuthScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ redirect?: string; code?: string }>();
-  const { isDarkMode, setCurrentUser, members, setPendingInviteCode } = useGatherlyStore();
+  const {
+    isDarkMode,
+    login,
+    register,
+    members = [],
+    loginAsPersona,
+    activeGroupId,
+    groups = []
+  } = useGatherlyStore();
 
   const [isSignUp, setIsSignUp] = useState(true);
+  const [activePillar, setActivePillar] = useState(0);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   const theme = isDarkMode ? colors.dark : colors.light;
 
-  const triggerHaptic = () => {
+  const triggerHaptic = (style = Haptics.ImpactFeedbackStyle.Light) => {
     if (Platform.OS !== 'web') {
       try {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        Haptics.impactAsync(style);
       } catch (e) {}
     }
   };
@@ -55,61 +103,51 @@ export default function AuthScreen() {
   const handleAuthSubmit = async () => {
     setErrorMessage('');
     if (!email.trim() || !password.trim()) {
-      setErrorMessage('Please enter your email and password.');
+      setErrorMessage('Please fill in both email and password.');
       return;
     }
     if (isSignUp && !name.trim()) {
-      setErrorMessage('Please enter your name.');
+      setErrorMessage('Please enter your full name.');
+      return;
+    }
+    if (password.length < 6) {
+      setErrorMessage('Password must be at least 6 characters.');
       return;
     }
 
-    triggerHaptic();
+    triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
     setIsLoading(true);
 
     try {
       if (isSignUp) {
-        const { user } = await signUpUser(email.trim(), password.trim(), name.trim());
-        if (user) {
-          setCurrentUser(user.id, user.email || email, name.trim());
-          handlePostAuthRedirect();
-        }
+        await register(email.trim(), password, name.trim());
       } else {
-        const { user } = await signInUser(email.trim(), password.trim());
-        if (user) {
-          const displayName = user.user_metadata?.display_name || email.split('@')[0];
-          setCurrentUser(user.id, user.email || email, displayName);
-          handlePostAuthRedirect();
-        }
+        await login(email.trim(), password);
       }
+      router.replace('/');
     } catch (err: any) {
-      const msg = err?.message || 'Authentication failed. Please try again.';
-      setErrorMessage(msg);
+      setErrorMessage(err?.message || 'Authentication failed. Please check credentials.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handlePostAuthRedirect = () => {
-    if (params.redirect === 'invite' && params.code) {
-      setPendingInviteCode(params.code);
-      router.replace(`/invite/${params.code}`);
-    } else {
-      router.replace('/');
-    }
+  const handleSelectDemoPersona = (userId: string) => {
+    triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
+    loginAsPersona(userId);
+    router.replace('/');
   };
 
-  const handleSelectDemoPersona = (userId: string) => {
-    triggerHaptic();
-    const persona = members.find((m) => m.userId === userId);
-    if (persona) {
-      setCurrentUser(persona.userId, `${persona.name.toLowerCase()}@pact.demo`, persona.name);
-      handlePostAuthRedirect();
-    }
+  const handleInstantGuest = () => {
+    triggerHaptic(Haptics.ImpactFeedbackStyle.Light);
+    loginAsPersona('user-maya-001');
+    router.replace('/');
   };
+
+  const ActiveIcon = VALUE_PILLARS[activePillar].icon;
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
-      <View style={[styles.topBorderLine, { backgroundColor: theme.primary }]} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.keyboardContainer}
@@ -117,132 +155,137 @@ export default function AuthScreen() {
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
-          {/* Header Bar */}
-          <View style={styles.topBar}>
-            <TouchableOpacity
-              onPress={() => router.replace('/')}
-              style={[styles.backBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
-            >
-              <ChevronLeft size={20} color={theme.textPrimary} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Hero Header */}
-          <View style={styles.header}>
-            <View
-              style={[
-                styles.logoIcon,
-                { backgroundColor: theme.primary },
-                shadows.glowPrimary
-              ]}
-            >
-              <Compass size={32} color="#FFFFFF" strokeWidth={2.5} />
-            </View>
-            <Text style={[styles.title, { color: theme.textPrimary }]}>
-              PACT
-            </Text>
-            <Text style={[styles.brandDefinition, { color: theme.primary }]}>
-              Plan A Consensus Trip
-            </Text>
-            <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-              {isSignUp ? 'Turn "we should go somewhere" into confirmed trips.' : 'Welcome back to your travel spaces.'}
-            </Text>
-          </View>
-
-          {/* 4-Pillar Feature Showcase (Why PACT is Worth Using) */}
-          <View style={styles.featuresGrid}>
-            <View
-              style={[
-                styles.featureCard,
-                { backgroundColor: theme.surface, borderColor: theme.border },
-                shadows.sm
-              ]}
-            >
-              <View style={[styles.featureIconCircle, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
-                <ShieldCheck size={18} color={theme.primary} />
-              </View>
-              <View style={styles.featureTextCol}>
-                <Text style={[styles.featureTitle, { color: theme.textPrimary }]}>
-                  Private Constraint Shield
-                </Text>
-                <Text style={[styles.featureDesc, { color: theme.textSecondary }]}>
-                  Share your true budget & available dates privately with zero peer pressure.
-                </Text>
-              </View>
-            </View>
-
-            <View
-              style={[
-                styles.featureCard,
-                { backgroundColor: theme.surface, borderColor: theme.border },
-                shadows.sm
-              ]}
-            >
-              <View style={[styles.featureIconCircle, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
-                <BrainCircuit size={18} color={theme.primary} />
-              </View>
-              <View style={styles.featureTextCol}>
-                <Text style={[styles.featureTitle, { color: theme.textPrimary }]}>
-                  AI Consensus Scoring
-                </Text>
-                <Text style={[styles.featureDesc, { color: theme.textSecondary }]}>
-                  Instantly calculates the exact compromise where everyone is included.
-                </Text>
-              </View>
-            </View>
-
-            <View
-              style={[
-                styles.featureCard,
-                { backgroundColor: theme.surface, borderColor: theme.border },
-                shadows.sm
-              ]}
-            >
-              <View style={[styles.featureIconCircle, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
-                <Lock size={18} color={theme.primary} />
-              </View>
-              <View style={styles.featureTextCol}>
-                <Text style={[styles.featureTitle, { color: theme.textPrimary }]}>
-                  Silent Voting Ballots
-                </Text>
-                <Text style={[styles.featureDesc, { color: theme.textSecondary }]}>
-                  Vote without group chat blame or endless indecisive debates.
-                </Text>
-              </View>
-            </View>
-
-            <View
-              style={[
-                styles.featureCard,
-                { backgroundColor: theme.surface, borderColor: theme.border },
-                shadows.sm
-              ]}
-            >
-              <View style={[styles.featureIconCircle, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
-                <FileCheck2 size={18} color={theme.primary} />
-              </View>
-              <View style={styles.featureTextCol}>
-                <Text style={[styles.featureTitle, { color: theme.textPrimary }]}>
-                  1-Tap Confirmed Brief
-                </Text>
-                <Text style={[styles.featureDesc, { color: theme.textSecondary }]}>
-                  Generates an exportable itinerary summary ready to share in WhatsApp.
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Form Card */}
+          {/* Top PACT Brand Header Frame Box */}
           <View
             style={[
-              styles.card,
+              styles.brandHeaderBox,
+              { backgroundColor: theme.surface, borderColor: theme.border },
+              shadows.sm
+            ]}
+          >
+            <TouchableOpacity
+              onPress={() => router.push('/')}
+              style={[styles.backBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
+            >
+              <ArrowLeft size={16} color={theme.textPrimary} />
+            </TouchableOpacity>
+
+            <View style={styles.brandTextCol}>
+              <View style={styles.brandTitleRow}>
+                <View style={[styles.brandLogoCircle, { backgroundColor: theme.primary }]}>
+                  <Compass size={14} color="#FFFFFF" strokeWidth={2.5} />
+                </View>
+                <Text style={[styles.brandTitleText, { color: theme.textPrimary }]}>
+                  PACT
+                </Text>
+              </View>
+              <Text style={[styles.brandSubtitleText, { color: theme.primary }]}>
+                Plan A Consensus Trip
+              </Text>
+            </View>
+
+            <ThemeToggle />
+          </View>
+
+          {/* Hero Welcome Banner */}
+          <View
+            style={[
+              styles.heroBanner,
               { backgroundColor: theme.surface, borderColor: theme.border },
               shadows.md
             ]}
           >
-            {/* Tab Selector */}
-            <View style={[styles.tabRow, { borderBottomColor: theme.border }]}>
+            <View style={[styles.heroLogoCircle, { backgroundColor: theme.primary }, shadows.glowPrimary]}>
+              <Compass size={32} color="#FFFFFF" strokeWidth={2.5} />
+            </View>
+            <Text style={[styles.heroHeadline, { color: theme.textPrimary }]}>
+              {isSignUp ? 'Turn "We Should Go Somewhere" Into Confirmed Trips' : 'Welcome Back to Your Trip Spaces'}
+            </Text>
+            <Text style={[styles.heroSub, { color: theme.textSecondary }]}>
+              {isSignUp
+                ? 'PACT eliminates group chat indecision with private constraints and mathematical consensus.'
+                : 'Sign in to access your active circles, private inputs, and voting ballots.'}
+            </Text>
+          </View>
+
+          {/* Interactive 4-Pillar Value Showcase */}
+          <View style={styles.pillarsContainer}>
+            <Text style={[styles.sectionHeading, { color: theme.textPrimary }]}>
+              Why Groups Plan on PACT
+            </Text>
+
+            {/* Pillar Selector Tabs */}
+            <View style={styles.pillarTabsRow}>
+              {VALUE_PILLARS.map((pillar, idx) => {
+                const Icon = pillar.icon;
+                const isSelected = idx === activePillar;
+                return (
+                  <TouchableOpacity
+                    key={pillar.id}
+                    onPress={() => {
+                      triggerHaptic();
+                      setActivePillar(idx);
+                    }}
+                    style={[
+                      styles.pillarTabChip,
+                      isSelected
+                        ? { backgroundColor: theme.primary, borderColor: theme.primary }
+                        : { backgroundColor: theme.surface, borderColor: theme.border }
+                    ]}
+                  >
+                    <Icon size={14} color={isSelected ? '#FFFFFF' : theme.textSecondary} />
+                    <Text
+                      style={[
+                        styles.pillarTabChipText,
+                        { color: isSelected ? '#FFFFFF' : theme.textSecondary }
+                      ]}
+                    >
+                      {pillar.title}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {/* Active Pillar Card */}
+            <View
+              style={[
+                styles.pillarCard,
+                { backgroundColor: theme.surface, borderColor: theme.border },
+                shadows.sm
+              ]}
+            >
+              <View style={styles.pillarCardHeader}>
+                <View style={[styles.pillarIconBox, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
+                  <ActiveIcon size={20} color={theme.primary} />
+                </View>
+                <View style={styles.pillarTextCol}>
+                  <Text style={[styles.pillarTitle, { color: theme.textPrimary }]}>
+                    {VALUE_PILLARS[activePillar].title}
+                  </Text>
+                  <Text style={[styles.pillarTagline, { color: theme.primary }]}>
+                    {VALUE_PILLARS[activePillar].tagline}
+                  </Text>
+                </View>
+              </View>
+              <Text style={[styles.pillarDesc, { color: theme.textSecondary }]}>
+                {VALUE_PILLARS[activePillar].desc}
+              </Text>
+            </View>
+          </View>
+
+          {/* Authentication Card */}
+          <View
+            style={[
+              styles.authCard,
+              { backgroundColor: theme.surface, borderColor: theme.border },
+              shadows.md
+            ]}
+          >
+            {/* Tab Switcher */}
+            <View style={[styles.authTabSwitcher, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}>
               <TouchableOpacity
                 onPress={() => {
                   triggerHaptic();
@@ -250,14 +293,14 @@ export default function AuthScreen() {
                   setErrorMessage('');
                 }}
                 style={[
-                  styles.tabBtn,
-                  isSignUp && { borderBottomColor: theme.primary, borderBottomWidth: 2 }
+                  styles.authTabBtn,
+                  isSignUp && [styles.activeAuthTabBtn, { backgroundColor: theme.surface }]
                 ]}
               >
                 <Text
                   style={[
-                    styles.tabText,
-                    { color: isSignUp ? theme.primary : theme.textMuted }
+                    styles.authTabBtnText,
+                    { color: isSignUp ? theme.primary : theme.textSecondary }
                   ]}
                 >
                   Create Account
@@ -271,14 +314,14 @@ export default function AuthScreen() {
                   setErrorMessage('');
                 }}
                 style={[
-                  styles.tabBtn,
-                  !isSignUp && { borderBottomColor: theme.primary, borderBottomWidth: 2 }
+                  styles.authTabBtn,
+                  !isSignUp && [styles.activeAuthTabBtn, { backgroundColor: theme.surface }]
                 ]}
               >
                 <Text
                   style={[
-                    styles.tabText,
-                    { color: !isSignUp ? theme.primary : theme.textMuted }
+                    styles.authTabBtnText,
+                    { color: !isSignUp ? theme.primary : theme.textSecondary }
                   ]}
                 >
                   Sign In
@@ -286,7 +329,7 @@ export default function AuthScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Error Banner */}
+            {/* Error Notice Banner */}
             {Boolean(errorMessage) && (
               <View
                 style={[
@@ -303,142 +346,183 @@ export default function AuthScreen() {
 
             {/* Form Fields */}
             {isSignUp && (
-              <View style={styles.formGroup}>
-                <Text style={[styles.label, { color: theme.textSecondary }]}>Your Full Name</Text>
-                <TextInput
+              <View style={styles.inputGroup}>
+                <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
+                  YOUR FULL NAME
+                </Text>
+                <View
                   style={[
-                    styles.input,
-                    {
-                      backgroundColor: theme.surfaceSubtle,
-                      color: theme.textPrimary,
-                      borderColor: theme.border
-                    }
+                    styles.inputWrapper,
+                    { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }
                   ]}
-                  value={name}
-                  onChangeText={setName}
-                  placeholder="e.g. Maya Chen"
-                  placeholderTextColor={theme.textMuted}
-                  autoCapitalize="words"
-                />
+                >
+                  <User size={16} color={theme.textMuted} />
+                  <TextInput
+                    style={[styles.inputField, { color: theme.textPrimary }]}
+                    value={name}
+                    onChangeText={setName}
+                    placeholder="e.g. Maya Chen"
+                    placeholderTextColor={theme.textMuted}
+                    autoCapitalize="words"
+                  />
+                </View>
               </View>
             )}
 
-            <View style={styles.formGroup}>
-              <Text style={[styles.label, { color: theme.textSecondary }]}>Email Address</Text>
-              <TextInput
+            <View style={styles.inputGroup}>
+              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
+                EMAIL ADDRESS
+              </Text>
+              <View
                 style={[
-                  styles.input,
-                  {
-                    backgroundColor: theme.surfaceSubtle,
-                    color: theme.textPrimary,
-                    borderColor: theme.border
-                  }
+                  styles.inputWrapper,
+                  { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }
                 ]}
-                value={email}
-                onChangeText={setEmail}
-                placeholder="you@example.com"
-                placeholderTextColor={theme.textMuted}
-                autoCapitalize="none"
-                keyboardType="email-address"
-              />
+              >
+                <Mail size={16} color={theme.textMuted} />
+                <TextInput
+                  style={[styles.inputField, { color: theme.textPrimary }]}
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="you@example.com"
+                  placeholderTextColor={theme.textMuted}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                />
+              </View>
             </View>
 
-            <View style={styles.formGroup}>
-              <Text style={[styles.label, { color: theme.textSecondary }]}>Password</Text>
-              <TextInput
+            <View style={styles.inputGroup}>
+              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
+                PASSWORD
+              </Text>
+              <View
                 style={[
-                  styles.input,
-                  {
-                    backgroundColor: theme.surfaceSubtle,
-                    color: theme.textPrimary,
-                    borderColor: theme.border
-                  }
+                  styles.inputWrapper,
+                  { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }
                 ]}
-                value={password}
-                onChangeText={setPassword}
-                placeholder="••••••••••••"
-                placeholderTextColor={theme.textMuted}
-                secureTextEntry
-              />
+              >
+                <KeyRound size={16} color={theme.textMuted} />
+                <TextInput
+                  style={[styles.inputField, { color: theme.textPrimary }]}
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="••••••••••••"
+                  placeholderTextColor={theme.textMuted}
+                  secureTextEntry={!showPassword}
+                />
+                <TouchableOpacity
+                  onPress={() => setShowPassword(!showPassword)}
+                  style={styles.eyeBtn}
+                >
+                  {showPassword ? (
+                    <EyeOff size={16} color={theme.textSecondary} />
+                  ) : (
+                    <Eye size={16} color={theme.textSecondary} />
+                  )}
+                </TouchableOpacity>
+              </View>
             </View>
 
+            {/* Primary Action Button */}
             <TouchableOpacity
               activeOpacity={0.85}
               onPress={handleAuthSubmit}
               disabled={isLoading}
-              style={[styles.submitBtn, { backgroundColor: theme.primary, opacity: isLoading ? 0.7 : 1 }]}
+              style={[
+                styles.submitBtn,
+                { backgroundColor: theme.primary, opacity: isLoading ? 0.7 : 1 },
+                shadows.glowPrimary
+              ]}
             >
               {isLoading ? (
                 <ActivityIndicator color="#FFFFFF" size="small" />
               ) : (
                 <>
                   <Text style={styles.submitBtnText}>
-                    {isSignUp ? 'Create Account & Start' : 'Sign In'}
+                    {isSignUp ? 'Create Account & Start Planning' : 'Sign In to Your Spaces'}
                   </Text>
                   <ArrowRight size={18} color="#FFFFFF" />
                 </>
               )}
             </TouchableOpacity>
 
-            <View style={styles.privacyNote}>
+            {/* Instant Demo Guest Access Button */}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={handleInstantGuest}
+              style={[
+                styles.guestBtn,
+                { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }
+              ]}
+            >
+              <Zap size={16} color={theme.primary} />
+              <Text style={[styles.guestBtnText, { color: theme.textPrimary }]}>
+                Instant Access (Test as Demo Organizer)
+              </Text>
+            </TouchableOpacity>
+
+            {/* Privacy Shield Footnote */}
+            <View style={styles.privacyFootnote}>
               <ShieldCheck size={14} color={theme.success} />
-              <Text style={[styles.privacyText, { color: theme.textSecondary }]}>
-                End-to-end private constraints & silent voting ballots.
+              <Text style={[styles.privacyFootnoteText, { color: theme.textSecondary }]}>
+                Zero peer pressure. Exact dates and budgets are strictly private.
               </Text>
             </View>
           </View>
 
-          {/* Quick Demo Personas (Only in __DEV__ mode) */}
-          {__DEV__ && (
-            <View
-              style={[
-                styles.demoCard,
-                { backgroundColor: theme.surface, borderColor: theme.border },
-                shadows.sm
-              ]}
-            >
-              <View style={styles.demoHeader}>
-                <Sparkles size={16} color={theme.primary} />
-                <Text style={[styles.demoTitle, { color: theme.textPrimary }]}>
-                  DEV Quick-Test Personas
-                </Text>
-              </View>
-              <Text style={[styles.demoSub, { color: theme.textSecondary }]}>
-                Select a member to test local views instantly:
+          {/* Quick Demo Personas (Development & Testing) */}
+          <View
+            style={[
+              styles.demoCard,
+              { backgroundColor: theme.surface, borderColor: theme.border },
+              shadows.sm
+            ]}
+          >
+            <View style={styles.demoHeader}>
+              <Sparkles size={16} color={theme.primary} />
+              <Text style={[styles.demoTitle, { color: theme.textPrimary }]}>
+                Quick Persona Switcher (Test Views)
               </Text>
-
-              <View style={styles.personaGrid}>
-                {members.slice(0, 3).map((m) => (
-                  <TouchableOpacity
-                    key={m.userId}
-                    onPress={() => handleSelectDemoPersona(m.userId)}
-                    activeOpacity={0.7}
-                    style={[
-                      styles.personaBtn,
-                      { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }
-                    ]}
-                  >
-                    <View style={[styles.avatarCircle, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
-                      <Text style={[styles.avatarLetter, { color: theme.primary }]}>
-                        {m.name ? m.name.charAt(0) : 'U'}
-                      </Text>
-                    </View>
-                    <View style={styles.personaTextCol}>
-                      <Text style={[styles.personaName, { color: theme.textPrimary }]}>
-                        {m.name} {m.userId === 'user-maya-001' ? '(Organizer)' : ''}
-                      </Text>
-                      <Text style={[styles.personaBudget, { color: theme.textSecondary }]}>
-                        Budget: ${m.budgetMin}-${m.budgetMax}
-                      </Text>
-                    </View>
-                    <UserCheck size={16} color={theme.primary} />
-                  </TouchableOpacity>
-                ))}
-              </View>
             </View>
-          )}
+            <Text style={[styles.demoSub, { color: theme.textSecondary }]}>
+              Tap any traveler to test their private view in the reunion circle:
+            </Text>
+
+            <View style={styles.personaGrid}>
+              {members.slice(0, 3).map((m) => (
+                <TouchableOpacity
+                  key={m.userId}
+                  onPress={() => handleSelectDemoPersona(m.userId)}
+                  activeOpacity={0.75}
+                  style={[
+                    styles.personaBtn,
+                    { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }
+                  ]}
+                >
+                  <View style={[styles.avatarCircle, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
+                    <Text style={[styles.avatarLetter, { color: theme.primary }]}>
+                      {m.userName ? m.userName.charAt(0) : 'U'}
+                    </Text>
+                  </View>
+                  <View style={styles.personaTextCol}>
+                    <Text style={[styles.personaName, { color: theme.textPrimary }]}>
+                      {m.userName} {m.userId === 'user-maya-001' ? '👑 (Organizer)' : ''}
+                    </Text>
+                    <Text style={[styles.personaBudget, { color: theme.textSecondary }]}>
+                      Dates: July • Budget: ${m.budgetMin}–${m.budgetMax}
+                    </Text>
+                  </View>
+                  <UserCheck size={16} color={theme.primary} />
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Floating Bottom Tab Bar */}
+      <BottomTabBar />
     </SafeAreaView>
   );
 }
@@ -447,112 +531,179 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1
   },
-  topBorderLine: {
-    height: 3,
-    width: '100%'
-  },
   keyboardContainer: {
     flex: 1
   },
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: 40,
-    maxWidth: 540,
+    paddingBottom: 140,
+    maxWidth: 560,
     width: '100%',
     alignSelf: 'center'
   },
-  topBar: {
-    marginBottom: 8
-  },
-  backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 20
-  },
-  logoIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: '900',
-  },
-  brandDefinition: {
-    fontSize: 13,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-    marginTop: 2,
-    marginBottom: 4,
-    fontWeight: '900',
-    letterSpacing: -0.3
-  },
-  subtitle: {
-    fontSize: 13,
-    textAlign: 'center',
-    marginTop: 4,
-    lineHeight: 18
-  },
-  featuresGrid: {
-    gap: 8,
-    marginBottom: 20
-  },
-  featureCard: {
+  brandHeaderBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    padding: 12,
-    borderRadius: radius.md,
+    justifyContent: 'space-between',
+    padding: 10,
+    borderRadius: radius.card,
+    borderWidth: 1.5,
+    marginBottom: 14
+  },
+  backBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
     borderWidth: 1
   },
-  featureIconCircle: {
+  brandTextCol: {
+    alignItems: 'center',
+    flex: 1
+  },
+  brandTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6
+  },
+  brandLogoCircle: {
+    width: 22,
+    height: 22,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  brandTitleText: {
+    fontSize: 16,
+    fontWeight: '900',
+    letterSpacing: -0.2
+  },
+  brandSubtitleText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+    marginTop: 1
+  },
+  heroBanner: {
+    alignItems: 'center',
+    padding: 20,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    marginBottom: 16
+  },
+  heroLogoCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 14
+  },
+  heroHeadline: {
+    fontSize: 19,
+    fontWeight: '900',
+    textAlign: 'center',
+    letterSpacing: -0.3,
+    marginBottom: 6,
+    lineHeight: 25
+  },
+  heroSub: {
+    fontSize: 13,
+    textAlign: 'center',
+    lineHeight: 18
+  },
+  pillarsContainer: {
+    marginBottom: 16
+  },
+  sectionHeading: {
+    fontSize: 14,
+    fontWeight: '800',
+    letterSpacing: -0.2,
+    marginBottom: 10
+  },
+  pillarTabsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 10
+  },
+  pillarTabChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    borderWidth: 1
+  },
+  pillarTabChipText: {
+    fontSize: 11,
+    fontWeight: '700'
+  },
+  pillarCard: {
+    padding: 14,
+    borderRadius: radius.card,
+    borderWidth: 1
+  },
+  pillarCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 8
+  },
+  pillarIconBox: {
     width: 36,
     height: 36,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center'
   },
-  featureTextCol: {
+  pillarTextCol: {
     flex: 1
   },
-  featureTitle: {
-    fontSize: 13,
-    fontWeight: '800',
-    marginBottom: 2
+  pillarTitle: {
+    fontSize: 14,
+    fontWeight: '800'
   },
-  featureDesc: {
+  pillarTagline: {
     fontSize: 11,
-    lineHeight: 15
+    fontWeight: '700',
+    marginTop: 1
   },
-  card: {
-    borderRadius: radius.card,
+  pillarDesc: {
+    fontSize: 12,
+    lineHeight: 17
+  },
+  authCard: {
     padding: 18,
+    borderRadius: radius.card,
     borderWidth: 1,
     marginBottom: 16
   },
-  tabRow: {
+  authTabSwitcher: {
     flexDirection: 'row',
-    marginBottom: 18,
-    borderBottomWidth: 1
+    padding: 4,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    marginBottom: 16
   },
-  tabBtn: {
+  authTabBtn: {
     flex: 1,
-    paddingVertical: 10,
-    alignItems: 'center'
+    paddingVertical: 9,
+    alignItems: 'center',
+    borderRadius: radius.sm
   },
-  tabText: {
-    fontSize: 14,
+  activeAuthTabBtn: {
+    shadowColor: '#1C1917',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2
+  },
+  authTabBtnText: {
+    fontSize: 13,
     fontWeight: '700'
   },
   errorBox: {
@@ -569,21 +720,31 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     flex: 1
   },
-  formGroup: {
-    marginBottom: 14
+  inputGroup: {
+    marginBottom: 12
   },
-  label: {
-    fontSize: 11,
-    fontWeight: '700',
-    marginBottom: 6,
-    letterSpacing: 0.5
+  inputLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    marginBottom: 5
   },
-  input: {
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
     borderRadius: radius.md,
-    paddingHorizontal: 14,
-    paddingVertical: 11,
     borderWidth: 1,
-    fontSize: 14
+    height: 46,
+    gap: 8
+  },
+  inputField: {
+    flex: 1,
+    fontSize: 14,
+    height: '100%'
+  },
+  eyeBtn: {
+    padding: 4
   },
   submitBtn: {
     flexDirection: 'row',
@@ -592,28 +753,43 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 14,
     borderRadius: radius.btn,
-    marginTop: 6
+    marginTop: 6,
+    marginBottom: 10
   },
   submitBtnText: {
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: 14,
+    fontWeight: '800'
+  },
+  guestBtn: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    borderRadius: radius.btn,
+    borderWidth: 1,
+    marginBottom: 12
+  },
+  guestBtnText: {
+    fontSize: 13,
     fontWeight: '700'
   },
-  privacyNote: {
+  privacyFootnote: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    marginTop: 14
+    gap: 6
   },
-  privacyText: {
+  privacyFootnoteText: {
     fontSize: 11,
     fontWeight: '500'
   },
   demoCard: {
     borderRadius: radius.card,
     padding: 16,
-    borderWidth: 1
+    borderWidth: 1,
+    marginBottom: 20
   },
   demoHeader: {
     flexDirection: 'row',
@@ -641,14 +817,14 @@ const styles = StyleSheet.create({
     gap: 10
   },
   avatarCircle: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center'
   },
   avatarLetter: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '800'
   },
   personaTextCol: {
