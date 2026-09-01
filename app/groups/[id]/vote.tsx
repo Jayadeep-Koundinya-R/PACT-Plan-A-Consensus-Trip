@@ -17,6 +17,7 @@ import { ConsensusMeter } from '../../../src/components/ConsensusMeter';
 import { ConsensusMatrix } from '../../../src/components/ConsensusMatrix';
 import { StepProgressBar } from '../../../src/components/StepProgressBar';
 import { BottomTabBar } from '../../../src/components/BottomTabBar';
+import { ThemeToggle } from '../../../src/components/ThemeToggle';
 import { formatFriendlyDateRange } from '../../../src/lib/format/dateFormatter';
 import { colors, radius, shadows } from '../../../src/theme/colors';
 import {
@@ -172,12 +173,8 @@ export default function VoteScreen() {
             </Text>
           </View>
 
-          <View style={[styles.stepBadge, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
-            <Text style={[styles.stepBadgeText, { color: theme.primary }]}>
-              Step 3: Vote
-            </Text>
+          <ThemeToggle />
           </View>
-        </View>
 
         {/* 1. Consensus Matrix Card */}
         <ConsensusMatrix

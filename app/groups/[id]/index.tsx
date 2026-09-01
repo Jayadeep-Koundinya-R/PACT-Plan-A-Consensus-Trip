@@ -18,6 +18,7 @@ import { StepProgressBar } from '../../../src/components/StepProgressBar';
 import { ConsensusMatrix } from '../../../src/components/ConsensusMatrix';
 import { BottlenecksSection } from '../../../src/components/BottlenecksSection';
 import { BottomTabBar } from '../../../src/components/BottomTabBar';
+import { ThemeToggle } from '../../../src/components/ThemeToggle';
 import { InviteQRModal } from '../../../src/components/InviteQRModal';
 import { NudgeModal } from '../../../src/components/NudgeModal';
 import { colors, radius, shadows } from '../../../src/theme/colors';
@@ -248,15 +249,18 @@ export default function GroupDetailScreen() {
             </Text>
           </View>
 
-          <TouchableOpacity
-            onPress={() => {
-              triggerHaptic();
-              setShowQRModal(true);
-            }}
-            style={[styles.qrHeaderBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
-          >
-            <QrCode size={16} color={theme.primary} />
-          </TouchableOpacity>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <ThemeToggle />
+            <TouchableOpacity
+              onPress={() => {
+                triggerHaptic();
+                setShowQRModal(true);
+              }}
+              style={[styles.qrHeaderBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
+            >
+              <QrCode size={16} color={theme.primary} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Empty Group State Prompt (Solo Circle) */}

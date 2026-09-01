@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../../src/store/useGatherlyStore';
 import { BottomTabBar } from '../../src/components/BottomTabBar';
+import { ThemeToggle } from '../../src/components/ThemeToggle';
 import { colors, radius, shadows } from '../../src/theme/colors';
 import {
   Compass,
@@ -79,7 +80,7 @@ export default function InviteIndexScreen() {
             </Text>
           </View>
 
-          <View style={{ width: 32 }} />
+          <ThemeToggle />
         </View>
 
         {/* Card */}

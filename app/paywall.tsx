@@ -13,6 +13,7 @@ import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../src/store/useGatherlyStore';
 import { BottomTabBar } from '../src/components/BottomTabBar';
+import { ThemeToggle } from '../src/components/ThemeToggle';
 import { colors, radius, shadows } from '../src/theme/colors';
 import {
   X,
@@ -90,6 +91,8 @@ export default function PaywallScreen() {
         >
           <TouchableOpacity
             onPress={() => router.back()}
+            accessibilityRole="button"
+            accessibilityLabel="Close Paywall"
             style={[styles.backBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
           >
             <X size={16} color={theme.textPrimary} />
@@ -109,11 +112,14 @@ export default function PaywallScreen() {
             </Text>
           </View>
 
-          <TouchableOpacity onPress={handleRestore}>
-            <Text style={[styles.restoreText, { color: theme.primary }]}>
-              Restore
-            </Text>
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <ThemeToggle />
+            <TouchableOpacity onPress={handleRestore} style={{ paddingHorizontal: 4 }}>
+              <Text style={[styles.restoreText, { color: theme.primary }]}>
+                Restore
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Success Banner */}

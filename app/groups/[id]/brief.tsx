@@ -16,6 +16,7 @@ import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
 import { ConfettiEffect } from '../../../src/components/ConfettiEffect';
 import { StepProgressBar } from '../../../src/components/StepProgressBar';
 import { BottomTabBar } from '../../../src/components/BottomTabBar';
+import { ThemeToggle } from '../../../src/components/ThemeToggle';
 import { SocialStoryModal } from '../../../src/components/SocialStoryModal';
 import { downloadICSFile } from '../../../src/lib/export/icsGenerator';
 import { formatFriendlyDateRange } from '../../../src/lib/format/dateFormatter';
@@ -188,12 +189,8 @@ export default function TripBriefScreen() {
             </Text>
           </View>
 
-          <View style={[styles.stepBadge, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
-            <Text style={[styles.stepBadgeText, { color: theme.primary }]}>
-              Step 4: Brief
-            </Text>
+          <ThemeToggle />
           </View>
-        </View>
 
         {/* Celebration Header Card */}
         <View

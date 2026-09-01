@@ -14,9 +14,11 @@ import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
 import { StepProgressBar } from '../../../src/components/StepProgressBar';
 import { RankedOptionCard } from '../../../src/components/RankedOptionCard';
+import { SkeletonLoader } from '../../../src/components/SkeletonLoader';
 import { ConsensusMatrix } from '../../../src/components/ConsensusMatrix';
 import { BottlenecksSection } from '../../../src/components/BottlenecksSection';
 import { BottomTabBar } from '../../../src/components/BottomTabBar';
+import { ThemeToggle } from '../../../src/components/ThemeToggle';
 import { colors, radius, shadows } from '../../../src/theme/colors';
 import {
   ArrowLeft,
@@ -166,12 +168,8 @@ export default function OptionsScreen() {
             </Text>
           </View>
 
-          <View style={[styles.stepBadge, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
-            <Text style={[styles.stepBadgeText, { color: theme.primary }]}>
-              Step 2: Rankings
-            </Text>
+          <ThemeToggle />
           </View>
-        </View>
 
         {/* 1. Consensus Matrix */}
         <ConsensusMatrix

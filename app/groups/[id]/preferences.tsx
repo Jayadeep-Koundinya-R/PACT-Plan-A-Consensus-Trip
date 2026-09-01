@@ -15,6 +15,7 @@ import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
 import { StepProgressBar } from '../../../src/components/StepProgressBar';
 import { BottomTabBar } from '../../../src/components/BottomTabBar';
+import { ThemeToggle } from '../../../src/components/ThemeToggle';
 import { colors, radius, shadows } from '../../../src/theme/colors';
 import {
   ArrowLeft,
@@ -243,12 +244,8 @@ export default function PreferencesScreen() {
             </Text>
           </View>
 
-          <View style={[styles.stepBadge, { backgroundColor: isDarkMode ? '#1E293B' : '#FFEDD5' }]}>
-            <Text style={[styles.stepBadgeText, { color: theme.primary }]}>
-              Step 1: Input
-            </Text>
+          <ThemeToggle />
           </View>
-        </View>
 
         {/* Privacy Shield Banner */}
         <View
