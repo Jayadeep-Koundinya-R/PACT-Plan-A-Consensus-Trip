@@ -26,7 +26,7 @@ Eight sequential priority groups deliver the full overhaul: RevenueCat SDK wirin
     - Pure function, no side effects, no imports from the store
     - _Requirements: 1.4, 1.6_
 
-  - [ ]* 1.4 Write property test for `deriveSubscriptionPlan`
+  - [x]* 1.4 Write property test for `deriveSubscriptionPlan`
     - **Property 1: Subscription Plan Derivation from Entitlement**
     - **Validates: Requirements 1.4, 1.6, 1.9**
     - Use Node's built-in test runner (matches existing `package.json` `test` script pattern)
@@ -98,7 +98,7 @@ Eight sequential priority groups deliver the full overhaul: RevenueCat SDK wirin
     - All colors sourced from `colors.dark` / `colors.light` via `isDarkMode`; no raw hex values
     - _Requirements: 3.1, 3.3, 3.4_
 
-  - [ ]* 5.2 Write property test for `ScreenHeader` back-button rendering
+  - [x]* 5.2 Write property test for `ScreenHeader` back-button rendering
     - **Property 3: ScreenHeader Renders Back Button Iff onBack Provided**
     - **Validates: Requirements 3.3**
     - Test both cases: `onBack` provided → back button present; `onBack` undefined → spacer present, back button absent
@@ -133,7 +133,7 @@ Eight sequential priority groups deliver the full overhaul: RevenueCat SDK wirin
 - [x] 6. Checkpoint — P3 complete
   - Ensure all tests pass and navigation between screens works correctly, ask the user if questions arise.
 
-- [ ] 7. P4 — Animation Components
+- [x] 7. P4 — Animation Components
   - [x] 7.1 Create `src/components/MapDriftBackground.tsx`
     - Implement with `Svg` + `Path` from `react-native-svg` and `Animated` from `react-native`
     - Define `TOPO_PATHS`: array of ~8 closed SVG path strings representing concentric elevation contour lines spread across a `400×800` viewBox
@@ -143,7 +143,7 @@ Eight sequential priority groups deliver the full overhaul: RevenueCat SDK wirin
     - Wrap in `Animated.View` with `StyleSheet.absoluteFillObject` and `pointerEvents="none"`
     - _Requirements: 7.1, 7.3, 7.4, 7.5_
 
-  - [ ] 7.2 Write property test for `MapDriftBackground` path opacity
+  - [x] 7.2 Write property test for `MapDriftBackground` path opacity
     - **Property 5: MapDriftBackground Path Opacity Never Exceeds 0.08**
     - **Validates: Requirements 7.4**
     - Assert every path in `TOPO_PATHS` is rendered with `opacity` ≤ 0.08
@@ -155,7 +155,7 @@ Eight sequential priority groups deliver the full overhaul: RevenueCat SDK wirin
     - No other logic or style changes
     - _Requirements: 6.1, 6.3, 6.4_
 
-  - [ ] 7.4 Write property test for `SealStamp` animation guard
+  - [x] 7.4 Write property test for `SealStamp` animation guard
     - **Property 4: SealStamp Animation Fires Exactly Once Per Mount**
     - **Validates: Requirements 6.1, 6.4**
     - Mock `Animated.parallel` and assert it is called exactly once across multiple state-driven re-renders
@@ -175,7 +175,7 @@ Eight sequential priority groups deliver the full overhaul: RevenueCat SDK wirin
     - Remove `ImageBackground` hero image (incompatible with side-by-side stub layout — replace destination name area with a plain header row using the existing `scrimOverlay` color as a tinted background panel)
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6_
 
-  - [ ]* 9.2 Write property test for stub color threshold
+  - [x]* 9.2 Write property test for stub color threshold
     - **Property 2: Ticket Card Stub Color is Threshold-Gated**
     - **Validates: Requirements 4.4, 4.5**
     - For `consensusPercent` in [0, 69]: assert color === `theme.primary`; for [70, 100]: assert color === `theme.success`
@@ -280,18 +280,18 @@ Eight sequential priority groups deliver the full overhaul: RevenueCat SDK wirin
     - The updated `hasPlayed` guard (from task 7.3) guarantees it plays once per mount
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
 
-  - [ ]* 15.5 Write property test for screen background color token
+  - [x]* 15.5 Write property test for screen background color token
     - **Property 6: Screen Background Color Matches Theme Mode**
     - **Validates: Requirements 8.2, 8.3**
     - For dark mode: assert `SafeAreaView` background === `colors.dark.background` (`#12182B`)
     - For light mode: assert `SafeAreaView` background === `colors.light.background` (`#F6EFDE`)
 
-  - [ ]* 15.6 Write property test for primary action button token
+  - [x]* 15.6 Write property test for primary action button token
     - **Property 7: Primary Action Buttons Use Primary Color Token**
     - **Validates: Requirements 8.6**
     - For each screen's primary CTA: assert `backgroundColor` === `theme.primary`; no raw hex values permitted
 
-- [~] 16. Final Checkpoint — Full Overhaul Complete
+- [x] 16. Final Checkpoint — Full Overhaul Complete
   - Ensure all tests pass across all modified screens and components, ask the user if questions arise.
 
 ---

@@ -580,6 +580,11 @@
         "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
         "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
         "timestamp": 1788342776999
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788373533455
       }
     ],
     "3. P2 — Color Tokens and Font Loading": [
@@ -629,6 +634,77 @@
         "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
         "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
         "timestamp": 1788370952014
+      }
+    ],
+    "1.4 Write property test for `deriveSubscriptionPlan`": [
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788373557406
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788374432192
+      }
+    ],
+    "7.2 Write property test for `MapDriftBackground` path opacity": [
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788373558226
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788374432054
+      }
+    ],
+    "7.4 Write property test for `SealStamp` animation guard": [
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788373558973
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788374432258
+      }
+    ],
+    "7. P4 — Animation Components": [
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788374432343
+      }
+    ],
+    "9.2 Write property test for stub color threshold": [
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788374433078
+      }
+    ],
+    "15.5 Write property test for screen background color token": [
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788374433771
+      }
+    ],
+    "15.6 Write property test for primary action button token": [
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788374434457
+      }
+    ],
+    "5.2 Write property test for `ScreenHeader` back-button rendering": [
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788374435396
       }
     ]
   }
