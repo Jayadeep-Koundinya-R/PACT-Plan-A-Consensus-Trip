@@ -18,13 +18,13 @@ import { ConfettiEffect } from '../../../src/components/ConfettiEffect';
 import { SealStamp } from '../../../src/components/SealStamp';
 import { SocialStoryModal } from '../../../src/components/SocialStoryModal';
 import { BottomTabBar } from '../../../src/components/BottomTabBar';
-import { ThemeToggle } from '../../../src/components/ThemeToggle';
+import { ScreenHeader } from '../../../src/components/ScreenHeader';
 import { formatFriendlyDateRange } from '../../../src/lib/format/dateFormatter';
 import { downloadICSFile } from '../../../src/lib/export/icsGenerator';
 import { colors, radius, shadows, spacing } from '../../../src/theme/colors';
+import { fontDisplay } from '../../../src/theme/typography';
 import {
   Sparkles,
-  Compass,
   Calendar,
   DollarSign,
   Users,
@@ -32,7 +32,6 @@ import {
   Share2,
   Check,
   Award,
-  ArrowLeft,
   CheckCircle2,
   Download,
   Image as ImageIcon,
@@ -162,43 +161,21 @@ export default function TripBriefScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Top PACT Brand Header Frame Box - Document Style */}
-        <View
-          style={[
-            styles.brandHeaderBox,
-            { backgroundColor: theme.surface, borderColor: theme.border }
-          ]}
-        >
-          <TouchableOpacity
-            onPress={() => router.push(`/groups/${currentGroup.id}` as any)}
-            style={[styles.backBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
-            accessibilityLabel="Back to Group Hub"
-          >
-            <ArrowLeft size={16} color={theme.textPrimary} />
-          </TouchableOpacity>
-
-          <View style={styles.brandTextCol}>
-            <View style={styles.brandTitleRow}>
-              <View style={[styles.brandLogoCircle, { backgroundColor: theme.primary }]}>
-                <Compass size={13} color="#FFFFFF" strokeWidth={2.5} />
-              </View>
-              <Text style={[styles.brandTitleText, { color: theme.textPrimary }]}>
-                PACT
-              </Text>
-            </View>
-            <Text style={[styles.brandSubtitleText, { color: theme.primary }]}>
-              PLAN A CONSENSUS TRIP
-            </Text>
-          </View>
-
-          <ThemeToggle />
-        </View>
-
-        {/* Wax-Seal Stamp Animation Moment */}
-        <SealStamp
+        {/* Top PACT Brand Header */}
+        <ScreenHeader
+          title="PACT"
+          subtitle="PLAN A CONSENSUS TRIP"
+          onBack={() => router.push(`/groups/${currentGroup.id}` as any)}
           isDarkMode={isDarkMode}
-          sealedDate={currentGroup.name || 'CONSENSUS PACT'}
         />
+
+        {/* Wax-Seal Stamp Animation Moment — only shown when trip is finalized */}
+        {(finalizedBrief || currentGroup.status === 'finalized') && (
+          <SealStamp
+            isDarkMode={isDarkMode}
+            sealedDate={currentGroup.name || 'CONSENSUS PACT'}
+          />
+        )}
 
         {/* Celebration Header Document Card */}
         <View
@@ -345,56 +322,12 @@ const styles = StyleSheet.create({
     flex: 1
   },
   scrollContent: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingTop: 12,
-    paddingBottom: 130,
+    paddingBottom: 90,
     maxWidth: 600,
     width: '100%',
     alignSelf: 'center'
-  },
-  brandHeaderBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 10,
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    marginBottom: 10
-  },
-  backBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: radius.sm,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1
-  },
-  brandTextCol: {
-    alignItems: 'center',
-    flex: 1
-  },
-  brandTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6
-  },
-  brandLogoCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 6,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  brandTitleText: {
-    fontSize: 16,
-    fontWeight: '900',
-    letterSpacing: -0.2
-  },
-  brandSubtitleText: {
-    fontSize: 9.5,
-    fontWeight: '800',
-    letterSpacing: 0.8,
-    marginTop: 1
   },
   celebrationCard: {
     alignItems: 'center',
@@ -452,7 +385,8 @@ const styles = StyleSheet.create({
     fontSize: 21,
     fontWeight: '900',
     marginBottom: 14,
-    letterSpacing: -0.3
+    letterSpacing: -0.3,
+    fontFamily: fontDisplay
   },
   detailGrid: {
     gap: 8

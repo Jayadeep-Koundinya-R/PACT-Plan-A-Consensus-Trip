@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,9 +11,11 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import Purchases, { PurchasesError, PURCHASES_ERROR_CODE } from 'react-native-purchases';
 import { useGatherlyStore } from '../src/store/useGatherlyStore';
+import { deriveSubscriptionPlan } from '../src/lib/purchases/customerInfo';
+import { ScreenHeader } from '../src/components/ScreenHeader';
 import { BottomTabBar } from '../src/components/BottomTabBar';
-import { ThemeToggle } from '../src/components/ThemeToggle';
 import { colors, radius, shadows, spacing } from '../src/theme/colors';
 import {
   Crown,
@@ -21,13 +23,13 @@ import {
   Zap,
   ShieldCheck,
   ArrowRight,
-  X,
   Sparkles,
   Infinity as InfinityIcon,
   Bot,
   Palette,
   CheckCircle2,
-  Lock
+  Lock,
+  AlertCircle
 } from 'lucide-react-native';
 
 export default function PaywallScreen() {
@@ -35,12 +37,28 @@ export default function PaywallScreen() {
   const {
     isDarkMode,
     subscriptionPlan,
-    setSubscriptionPlan
+    setSubscriptionPlan,
+    setPurchaseError,
+    purchaseError,
+    isCheckingEntitlement
   } = useGatherlyStore();
 
   const theme = isDarkMode ? colors.dark : colors.light;
   const [billingCycle, setBillingCycle] = useState<'annual' | 'monthly'>('annual');
   const [successMessage, setSuccessMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const checkEntitlement = async () => {
+      try {
+        const info = await Purchases.getCustomerInfo();
+        setSubscriptionPlan(deriveSubscriptionPlan(info));
+      } catch (e) {
+        // Non-fatal: keep showing current cached plan
+      }
+    };
+    checkEntitlement();
+  }, []);
 
   const isCurrentPro = subscriptionPlan !== 'free';
 
@@ -52,29 +70,57 @@ export default function PaywallScreen() {
     }
   };
 
-  const handleSubscribe = () => {
+  const handleSubscribe = async () => {
     triggerHaptic();
-    const selectedPlan = billingCycle === 'annual' ? 'premium_annual' : 'premium_monthly';
-    setSubscriptionPlan(selectedPlan);
-    setSuccessMessage('🎉 Subscription activated! Welcome to PACT Pro.');
-    setTimeout(() => {
-      setSuccessMessage('');
-      router.back();
-    }, 1500);
+    setPurchaseError(null);
+    setIsLoading(true);
+    try {
+      const offerings = await Purchases.getOfferings();
+      const currentOffering = offerings.current;
+      if (!currentOffering) {
+        throw new Error('No offerings available. Please try again later.');
+      }
+      const pkg = billingCycle === 'annual'
+        ? currentOffering.annual
+        : currentOffering.monthly;
+      if (!pkg) {
+        throw new Error('Selected billing plan not available.');
+      }
+      const { customerInfo } = await Purchases.purchasePackage(pkg);
+      setSubscriptionPlan(deriveSubscriptionPlan(customerInfo));
+      setSuccessMessage('🎉 Subscription activated! Welcome to PACT Pro.');
+      setTimeout(() => {
+        setSuccessMessage('');
+        router.back();
+      }, 1500);
+    } catch (e: any) {
+      if (e?.code === PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR) {
+        // User cancelled — no error message
+      } else {
+        setPurchaseError(e?.message ?? 'Purchase failed. Please try again.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleRestore = () => {
+  const handleRestore = async () => {
     triggerHaptic();
-    setSuccessMessage('✓ Purchases restored successfully.');
-    setTimeout(() => setSuccessMessage(''), 2000);
+    setPurchaseError(null);
+    setIsLoading(true);
+    try {
+      const info = await Purchases.restorePurchases();
+      setSubscriptionPlan(deriveSubscriptionPlan(info));
+      setSuccessMessage('✓ Purchases restored successfully.');
+      setTimeout(() => setSuccessMessage(''), 2000);
+    } catch (e: any) {
+      setPurchaseError(e?.message ?? 'Restore failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleCancelSubscription = () => {
-    triggerHaptic();
-    setSubscriptionPlan('free');
-    setSuccessMessage('Subscription reverted to Free tier.');
-    setTimeout(() => setSuccessMessage(''), 1500);
-  };
+  // Note: subscription cancellation is managed through App Store / Google Play settings
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
@@ -82,51 +128,34 @@ export default function PaywallScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Top PACT Brand Header Frame Box - Document Style */}
-        <View
-          style={[
-            styles.brandHeaderBox,
-            { backgroundColor: theme.surface, borderColor: theme.border }
-          ]}
-        >
-          <TouchableOpacity
-            onPress={() => router.back()}
-            accessibilityRole="button"
-            accessibilityLabel="Close Paywall"
-            style={[styles.backBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
-          >
-            <X size={16} color={theme.textPrimary} />
-          </TouchableOpacity>
-
-          <View style={styles.brandTextCol}>
-            <View style={styles.brandTitleRow}>
-              <View style={[styles.brandLogoCircle, { backgroundColor: theme.primary }]}>
-                <Crown size={13} color="#FFFFFF" strokeWidth={2.5} />
-              </View>
-              <Text style={[styles.brandTitleText, { color: theme.textPrimary }]}>
-                PACT Pro
-              </Text>
-            </View>
-            <Text style={[styles.brandSubtitleText, { color: theme.primary }]}>
-              {isCurrentPro ? 'PRO ACTIVE' : 'UNLIMITED CONSENSUS'}
-            </Text>
-          </View>
-
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <ThemeToggle />
-            <TouchableOpacity onPress={handleRestore} style={{ paddingHorizontal: 4 }}>
+        {/* Top PACT Brand Header */}
+        <ScreenHeader
+          title="PACT Pro"
+          subtitle={isCurrentPro ? 'PRO ACTIVE' : 'UNLIMITED CONSENSUS'}
+          onBack={() => router.back()}
+          isDarkMode={isDarkMode}
+          rightSlot={
+            <TouchableOpacity onPress={handleRestore} disabled={isLoading} style={{ paddingHorizontal: 4 }}>
               <Text style={[styles.restoreText, { color: theme.primary }]}>
                 Restore
               </Text>
             </TouchableOpacity>
-          </View>
-        </View>
+          }
+        />
 
         {/* Success Banner */}
         {Boolean(successMessage) && (
           <View style={[styles.toastBox, { backgroundColor: theme.primary }]}>
             <CheckCircle2 size={16} color="#FFFFFF" />
             <Text style={styles.toastText}>{successMessage}</Text>
+          </View>
+        )}
+
+        {/* Error Banner */}
+        {Boolean(purchaseError) && (
+          <View style={[styles.toastBox, { backgroundColor: isDarkMode ? '#2D1515' : '#FEE2E2', borderColor: '#F87171', borderWidth: 1 }]}>
+            <AlertCircle size={16} color={theme.danger} />
+            <Text style={[styles.toastText, { color: theme.danger }]}>{purchaseError}</Text>
           </View>
         )}
 
@@ -263,9 +292,11 @@ export default function PaywallScreen() {
         <TouchableOpacity
           activeOpacity={0.85}
           onPress={handleSubscribe}
+          disabled={isLoading}
           style={[
             styles.ctaBtn,
-            { backgroundColor: theme.primary }
+            { backgroundColor: theme.primary },
+            isLoading && { opacity: 0.6 }
           ]}
         >
           <Crown size={18} color="#FFFFFF" />
@@ -274,19 +305,6 @@ export default function PaywallScreen() {
           </Text>
           <ArrowRight size={18} color="#FFFFFF" />
         </TouchableOpacity>
-
-        {/* Revert / Cancel Button if already pro */}
-        {isCurrentPro && (
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={handleCancelSubscription}
-            style={[styles.cancelBtn, { borderColor: theme.border, backgroundColor: theme.surface }]}
-          >
-            <Text style={[styles.cancelBtnText, { color: theme.textSecondary }]}>
-              Revert to Free Plan
-            </Text>
-          </TouchableOpacity>
-        )}
 
         {/* Guarantee footer */}
         <View style={styles.guaranteeRow}>
@@ -308,56 +326,12 @@ const styles = StyleSheet.create({
     flex: 1
   },
   scrollContent: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingTop: 12,
-    paddingBottom: 130,
+    paddingBottom: 90,
     maxWidth: 600,
     width: '100%',
     alignSelf: 'center'
-  },
-  brandHeaderBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 10,
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    marginBottom: 14
-  },
-  backBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: radius.sm,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1
-  },
-  brandTextCol: {
-    alignItems: 'center',
-    flex: 1
-  },
-  brandTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6
-  },
-  brandLogoCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 6,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  brandTitleText: {
-    fontSize: 16,
-    fontWeight: '900',
-    letterSpacing: -0.2
-  },
-  brandSubtitleText: {
-    fontSize: 9.5,
-    fontWeight: '800',
-    letterSpacing: 0.8,
-    marginTop: 1
   },
   restoreText: {
     fontSize: 12.5,

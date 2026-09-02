@@ -1,0 +1,635 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1 Install `react-native-purchases` as a pinned production dependency": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342753657
+      },
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342790705
+      },
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788343372184
+      }
+    ],
+    "1.2 Create `src/lib/purchases/config.ts` — SDK init helper": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342754706
+      },
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788343378641
+      },
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788351415392
+      }
+    ],
+    "1.3 Create `src/lib/purchases/customerInfo.ts` — entitlement derivation": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342755092
+      },
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788343379490
+      },
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788351416095
+      }
+    ],
+    "1.5 Extend `useGatherlyStore` with RevenueCat state slice": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342755786
+      },
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788351430039
+      },
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788351862179
+      }
+    ],
+    "1.6 Wire `initPurchases()` into `app/_layout.tsx`": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342756085
+      },
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788351931408
+      }
+    ],
+    "1.7 Rewrite `app/paywall.tsx` purchase logic with RevenueCat SDK calls": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342756827
+      },
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788351936932
+      },
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788363239061
+      }
+    ],
+    "2. Checkpoint — P1 complete": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342757050
+      },
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788363272611
+      }
+    ],
+    "3.1 Rewrite `src/theme/colors.ts` with corrected Ink/Parchment/Brass/Petrol/Seal/Moss tokens": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342757367
+      },
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788343380494
+      },
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788351342462
+      }
+    ],
+    "3.2 Create `src/theme/typography.ts` font constant helper": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342757839
+      },
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342791674
+      },
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788343372814
+      }
+    ],
+    "3.3 Wire `useFonts` + `SplashScreen` in `app/_layout.tsx`": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342758084
+      },
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788351430616
+      },
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788351861449
+      }
+    ],
+    "4. Checkpoint — P2 complete": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342758363
+      },
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788363322650
+      }
+    ],
+    "5.1 Create `src/components/ScreenHeader.tsx`": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342758673
+      },
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788363332048
+      },
+      {
+        "executionId": "2e3a323a-43b2-4b53-90ce-24a647e21947",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788364326995
+      }
+    ],
+    "5.3 Create `src/components/OverflowMenu.tsx`": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342758962
+      },
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788363332701
+      },
+      {
+        "executionId": "2e3a323a-43b2-4b53-90ce-24a647e21947",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788364585771
+      }
+    ],
+    "5.4 Replace inline headers with `ScreenHeader` in all ten screens": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342759501
+      },
+      {
+        "executionId": "2e3a323a-43b2-4b53-90ce-24a647e21947",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788364599314
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788368656891
+      }
+    ],
+    "5.5 Move \"Delete Trip Circle\" and \"Leave Circle\" into `OverflowMenu` in Group Hub screen": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342760024
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788368862739
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788368967346
+      }
+    ],
+    "5.6 Standardize `ScrollView` `contentContainerStyle` across all ten screens": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342760330
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788368863727
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788368968336
+      }
+    ],
+    "6. Checkpoint — P3 complete": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342761334
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788368973769
+      }
+    ],
+    "7.1 Create `src/components/MapDriftBackground.tsx`": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342762215
+      },
+      {
+        "executionId": "2e3a323a-43b2-4b53-90ce-24a647e21947",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788364600270
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788368655348
+      }
+    ],
+    "7.3 Update `src/components/SealStamp.tsx` — add `hasPlayed` guard and use `seal` token": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342762507
+      },
+      {
+        "executionId": "2e3a323a-43b2-4b53-90ce-24a647e21947",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788364600998
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788368655863
+      }
+    ],
+    "8. Checkpoint — P4 complete": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342762759
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788368974590
+      }
+    ],
+    "9.1 Refactor `src/components/RankedOptionCard.tsx` to Ticket Card motif": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342762923
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788368983485
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788369520541
+      }
+    ],
+    "9.3 Apply `RankedOptionCard` Ticket motif to the Dashboard consensus lead card": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342763449
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788369527964
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788370204886
+      }
+    ],
+    "10. Checkpoint — P5 complete": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342764606
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788370210885
+      }
+    ],
+    "11.1 Apply Document Card to all form sections in Preferences screen": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342765209
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788369529055
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788370200855
+      }
+    ],
+    "11.2 Apply Document Card to Trip Brief screen": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342765507
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788369529829
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788370201638
+      }
+    ],
+    "11.3 Apply Document Card to Paywall screen": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342766445
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788370202332
+      }
+    ],
+    "11.4 Apply Document Card to Group Hub screen": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342766749
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788370203080
+      }
+    ],
+    "11.5 Apply Document Card to Auth screen": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342768934
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788370203701
+      }
+    ],
+    "12. Checkpoint — P6 complete": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342771351
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788370211414
+      }
+    ],
+    "13.1 Restyle Dashboard screen with corrected tokens": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342771631
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788370218080
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788370856168
+      }
+    ],
+    "13.2 Restyle Ranked Options screen": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342771809
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788370218907
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788370854842
+      }
+    ],
+    "13.3 Restyle Silent Vote screen": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342771970
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788370219480
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788370855343
+      }
+    ],
+    "14. Checkpoint — P7 complete": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342772284
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788370869803
+      }
+    ],
+    "15.1 Add loading skeleton to Auth screen while session is being checked": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342773300
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788370220459
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788370858173
+      }
+    ],
+    "15.2 Move \"X of Y travelers responded\" tracker to top of Group Hub scroll content": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342775402
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788370870679
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788370951861
+      }
+    ],
+    "15.3 Render `MapDriftBackground` on Auth screen and only on Auth screen": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342775980
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788370221757
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788370857188
+      }
+    ],
+    "15.4 Trigger `SealStamp` animation on Trip Brief finalization": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342776769
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788370871401
+      },
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788370951329
+      }
+    ],
+    "16. Final Checkpoint — Full Overhaul Complete": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788342776999
+      }
+    ],
+    "3. P2 — Color Tokens and Font Loading": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788351861928
+      }
+    ],
+    "1. P1 — RevenueCat SDK Integration": [
+      {
+        "executionId": "4c9aefda-3ee1-484f-90d5-12a5f5e6d01c",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788363239608
+      }
+    ],
+    "5. P3 — Shared ScreenHeader, OverflowMenu, Scroll Padding": [
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788368968442
+      }
+    ],
+    "11. P6 — Document Card Motif (Preferences, Trip Brief, Paywall, Group Hub, Auth)": [
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788370203814
+      }
+    ],
+    "9. P5 — RankedOptionCard Ticket Card Motif": [
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788370205008
+      }
+    ],
+    "13. P7 — Restyle Dashboard, Ranked Options, and Silent Vote Screens": [
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788370856333
+      }
+    ],
+    "15. P8 — Auth Skeleton and Group Hub Tracker Prominence": [
+      {
+        "executionId": "8e83cb39-dce1-443e-88b6-c9e20604ab82",
+        "chatSessionId": "sess_a3d3cbac-38bb-429b-9ef8-e0858d109bb3",
+        "timestamp": 1788370952014
+      }
+    ]
+  }
+}

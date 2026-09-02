@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,17 +15,17 @@ import {
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../src/store/useGatherlyStore';
-import { ThemeToggle } from '../src/components/ThemeToggle';
+import { ScreenHeader } from '../src/components/ScreenHeader';
 import { BottomTabBar } from '../src/components/BottomTabBar';
+import { MapDriftBackground } from '../src/components/MapDriftBackground';
+import { SkeletonLoader } from '../src/components/SkeletonLoader';
 import { colors, radius, shadows } from '../src/theme/colors';
 import {
-  Compass,
   ShieldCheck,
   BrainCircuit,
   Lock,
   FileCheck2,
   ArrowRight,
-  ArrowLeft,
   Mail,
   KeyRound,
   User,
@@ -78,7 +78,8 @@ export default function AuthScreen() {
     members = [],
     loginAsPersona,
     activeGroupId,
-    groups = []
+    groups = [],
+    initAuthSession
   } = useGatherlyStore();
 
   const [isSignUp, setIsSignUp] = useState(true);
@@ -89,6 +90,17 @@ export default function AuthScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
+
+  useEffect(() => {
+    const check = async () => {
+      try {
+        await initAuthSession();
+      } catch (e) {}
+      setIsCheckingSession(false);
+    };
+    check();
+  }, []);
 
   const theme = isDarkMode ? colors.dark : colors.light;
 
@@ -148,6 +160,7 @@ export default function AuthScreen() {
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      <MapDriftBackground isDarkMode={isDarkMode} />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.keyboardContainer}
@@ -157,47 +170,33 @@ export default function AuthScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Top PACT Brand Header Frame Box */}
-          <View
-            style={[
-              styles.brandHeaderBox,
-              { backgroundColor: theme.surface, borderColor: theme.border },
-              shadows.sm
-            ]}
-          >
-            <TouchableOpacity
-              onPress={() => router.push('/')}
-              style={[styles.backBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
-            >
-              <ArrowLeft size={16} color={theme.textPrimary} />
-            </TouchableOpacity>
+          {/* Top PACT Brand Header */}
+          <ScreenHeader
+            title="PACT"
+            subtitle="PLAN A CONSENSUS TRIP"
+            onBack={() => router.push('/')}
+            isDarkMode={isDarkMode}
+          />
 
-            <View style={styles.brandTextCol}>
-              <View style={styles.brandTitleRow}>
-                <View style={[styles.brandLogoCircle, { backgroundColor: theme.primary }]}>
-                  <Compass size={14} color="#FFFFFF" strokeWidth={2.5} />
-                </View>
-                <Text style={[styles.brandTitleText, { color: theme.textPrimary }]}>
-                  PACT
-                </Text>
-              </View>
-              <Text style={[styles.brandSubtitleText, { color: theme.primary }]}>
-                Plan A Consensus Trip
-              </Text>
+          {/* Session check skeleton */}
+          {isCheckingSession && (
+            <View style={{ gap: 12, marginBottom: 16 }}>
+              <SkeletonLoader width="100%" height={100} borderRadius={8} isDarkMode={isDarkMode} />
+              <SkeletonLoader width="100%" height={180} borderRadius={8} isDarkMode={isDarkMode} />
+              <SkeletonLoader width="100%" height={240} borderRadius={8} isDarkMode={isDarkMode} />
             </View>
+          )}
 
-            <ThemeToggle />
-          </View>
-
+          {!isCheckingSession && (
+            <>
           {/* Hero Welcome Banner */}
           <View
             style={[
               styles.heroBanner,
-              { backgroundColor: theme.surface, borderColor: theme.border },
-              shadows.md
+              { backgroundColor: theme.surface, borderColor: theme.border }
             ]}
           >
-            <View style={[styles.heroLogoCircle, { backgroundColor: theme.primary }, shadows.glowPrimary]}>
+            <View style={[styles.heroLogoCircle, { backgroundColor: theme.primary }]}>
               <Compass size={32} color="#FFFFFF" strokeWidth={2.5} />
             </View>
             <Text style={[styles.heroHeadline, { color: theme.textPrimary }]}>
@@ -253,8 +252,7 @@ export default function AuthScreen() {
             <View
               style={[
                 styles.pillarCard,
-                { backgroundColor: theme.surface, borderColor: theme.border },
-                shadows.sm
+                { backgroundColor: theme.surface, borderColor: theme.border }
               ]}
             >
               <View style={styles.pillarCardHeader}>
@@ -280,8 +278,7 @@ export default function AuthScreen() {
           <View
             style={[
               styles.authCard,
-              { backgroundColor: theme.surface, borderColor: theme.border },
-              shadows.md
+              { backgroundColor: theme.surface, borderColor: theme.border }
             ]}
           >
             {/* Tab Switcher */}
@@ -475,8 +472,7 @@ export default function AuthScreen() {
           <View
             style={[
               styles.demoCard,
-              { backgroundColor: theme.surface, borderColor: theme.border },
-              shadows.sm
+              { backgroundColor: theme.surface, borderColor: theme.border }
             ]}
           >
             <View style={styles.demoHeader}>
@@ -518,6 +514,8 @@ export default function AuthScreen() {
               ))}
             </View>
           </View>
+            </>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -535,56 +533,12 @@ const styles = StyleSheet.create({
     flex: 1
   },
   scrollContent: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingTop: 12,
-    paddingBottom: 140,
-    maxWidth: 560,
+    paddingBottom: 90,
+    maxWidth: 600,
     width: '100%',
     alignSelf: 'center'
-  },
-  brandHeaderBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 10,
-    borderRadius: radius.card,
-    borderWidth: 1.5,
-    marginBottom: 14
-  },
-  backBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1
-  },
-  brandTextCol: {
-    alignItems: 'center',
-    flex: 1
-  },
-  brandTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6
-  },
-  brandLogoCircle: {
-    width: 22,
-    height: 22,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  brandTitleText: {
-    fontSize: 16,
-    fontWeight: '900',
-    letterSpacing: -0.2
-  },
-  brandSubtitleText: {
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-    marginTop: 1
   },
   heroBanner: {
     alignItems: 'center',

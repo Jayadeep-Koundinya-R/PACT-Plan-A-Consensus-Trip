@@ -1,10 +1,25 @@
-import React, { Component, ReactNode } from 'react';
+import React, { Component, ReactNode, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as SplashScreen from 'expo-splash-screen';
+import {
+  useFonts,
+  Fraunces_400Regular,
+  Fraunces_700Bold
+} from '@expo-google-fonts/fraunces';
+import {
+  Manrope_400Regular,
+  Manrope_700Bold,
+  Manrope_800ExtraBold
+} from '@expo-google-fonts/manrope';
 import { useGatherlyStore } from '../src/store/useGatherlyStore';
 import { colors, radius, shadows } from '../src/theme/colors';
+import { initPurchases } from '../src/lib/purchases/config';
 import { Compass, RefreshCw, AlertTriangle } from 'lucide-react-native';
+
+// Keep splash visible until fonts are loaded
+SplashScreen.preventAutoHideAsync();
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -76,6 +91,24 @@ class RootErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState
 
 export default function RootLayout() {
   const isDarkMode = useGatherlyStore((state) => state.isDarkMode);
+
+  const [fontsLoaded] = useFonts({
+    Fraunces_400Regular,
+    Fraunces_700Bold,
+    Manrope_400Regular,
+    Manrope_700Bold,
+    Manrope_800ExtraBold
+  });
+
+  useEffect(() => {
+    if (fontsLoaded) {
+      SplashScreen.hideAsync();
+      initPurchases();
+    }
+  }, [fontsLoaded]);
+
+  // Return null while fonts load — splash screen stays visible
+  if (!fontsLoaded) return null;
 
   return (
     <RootErrorBoundary isDarkMode={isDarkMode}>

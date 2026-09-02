@@ -1,61 +1,61 @@
 export const colors = {
   dark: {
-    // Primary aesthetic: Obsidian Slate & Sunset Coral Flame
-    background: '#0B0F17',         // Deep Obsidian Slate Canvas
-    surface: '#151D2A',            // Clean Slate Card
-    surfaceElevated: '#1E293B',    // Elevated Slate Box
-    surfaceSubtle: '#111827',      // Subtle Slate Tint
-    primary: '#EA580C',            // Sunset Coral / Terracotta Flame
-    primaryDark: '#C2410C',
-    primaryLight: 'rgba(234, 88, 12, 0.18)',
-    secondary: '#F97316',          // Bright Amber Flame
-    secondaryDark: '#EA580C',
-    secondaryLight: 'rgba(249, 115, 22, 0.18)',
-    accentPeach: '#1E293B',
-    accentTerracotta: '#EA580C',
-    success: '#10B981',            // Emerald Glow
-    successLight: 'rgba(16, 185, 129, 0.18)',
-    warning: '#F59E0B',            // Radiant Amber
-    warningLight: 'rgba(245, 158, 11, 0.18)',
-    danger: '#EF4444',             // Coral Red
-    dangerLight: 'rgba(239, 68, 68, 0.18)',
-    textPrimary: '#F8FAFC',        // Crisp White-Slate
-    textSecondary: '#94A3B8',      // Slate Muted
-    textMuted: '#64748B',          // Dark Slate Placeholder
-    border: 'rgba(248, 250, 252, 0.08)',
-    glassBorder: 'rgba(248, 250, 252, 0.12)',
-    card: '#151D2A',
-    meterTrack: '#1E293B',
-    navBg: 'rgba(15, 23, 42, 0.96)'
+    background:      '#12182B',
+    surface:         '#1A2138',
+    surfaceElevated: '#1E293B',
+    surfaceSubtle:   '#161D33',
+    primary:         '#C99A5B',
+    primaryDark:     '#A97C3D',
+    primaryLight:    'rgba(201, 154, 91, 0.18)',
+    secondary:       '#2D7A75',
+    secondaryDark:   '#1E5C58',
+    secondaryLight:  'rgba(45, 122, 117, 0.18)',
+    accentPeach:     '#1E293B',
+    accentTerracotta:'#C99A5B',
+    success:         '#5E9A64',
+    successLight:    'rgba(94, 154, 100, 0.18)',
+    warning:         '#F59E0B',
+    warningLight:    'rgba(245, 158, 11, 0.18)',
+    danger:          '#C1503F',
+    dangerLight:     'rgba(193, 80, 63, 0.18)',
+    seal:            '#C1503F',
+    textPrimary:     '#F3EEE2',
+    textSecondary:   '#A9A08C',
+    textMuted:       '#64748B',
+    border:          'rgba(243, 238, 226, 0.10)',
+    glassBorder:     'rgba(243, 238, 226, 0.12)',
+    card:            '#1A2138',
+    meterTrack:      '#1E293B',
+    navBg:           'rgba(22, 29, 51, 0.96)'
   },
   light: {
-    // Primary aesthetic: Luxury Warm Cream Canvas & Vibrant Sunset Coral
-    background: '#FAF8F5',         // Plain Soft Luxury Cream Canvas
-    surface: '#FFFFFF',            // Pure White Card
-    surfaceElevated: '#F5F2EC',    // Warm Elevated Cream Tint
-    surfaceSubtle: '#F6F3EE',      // Neutral Soft Cream Background
-    primary: '#EA580C',            // Energetic Sunset Coral / Terracotta
-    primaryDark: '#C2410C',
-    primaryLight: 'rgba(234, 88, 12, 0.10)',
-    secondary: '#F97316',          // Vivid Amber Flame
-    secondaryDark: '#C2410C',
-    secondaryLight: 'rgba(249, 115, 22, 0.10)',
-    accentPeach: '#FFEDD5',        // Soft Apricot Pill
-    accentTerracotta: '#EA580C',
-    success: '#10B981',            // Emerald Green
-    successLight: 'rgba(16, 185, 129, 0.10)',
-    warning: '#F59E0B',            // Amber Warning
-    warningLight: 'rgba(245, 158, 11, 0.10)',
-    danger: '#EF4444',             // Coral Red
-    dangerLight: 'rgba(239, 68, 68, 0.10)',
-    textPrimary: '#1C1917',        // Deep Charcoal Black
-    textSecondary: '#57534E',      // Warm Slate Grey
-    textMuted: '#A8A29E',          // Soft Muted Warm Grey
-    border: '#E7E2D9',             // Ultra-Fine Crisp Warm Border
-    glassBorder: 'rgba(28, 25, 23, 0.06)',
-    card: '#FFFFFF',
-    meterTrack: '#E7E2D9',
-    navBg: 'rgba(250, 248, 245, 0.96)'
+    background:      '#F6EFDE',
+    surface:         '#FFFFFF',
+    surfaceElevated: '#F5F2EC',
+    surfaceSubtle:   '#EFE7D4',
+    primary:         '#A97C3D',
+    primaryDark:     '#8A6230',
+    primaryLight:    'rgba(169, 124, 61, 0.10)',
+    secondary:       '#1E5C58',
+    secondaryDark:   '#164845',
+    secondaryLight:  'rgba(30, 92, 88, 0.10)',
+    accentPeach:     '#FFEDD5',
+    accentTerracotta:'#A97C3D',
+    success:         '#4B7A51',
+    successLight:    'rgba(75, 122, 81, 0.10)',
+    warning:         '#F59E0B',
+    warningLight:    'rgba(245, 158, 11, 0.10)',
+    danger:          '#A63D2F',
+    dangerLight:     'rgba(166, 61, 47, 0.10)',
+    seal:            '#A63D2F',
+    textPrimary:     '#1E1A14',
+    textSecondary:   '#5C5445',
+    textMuted:       '#A8A29E',
+    border:          '#E3D9C2',
+    glassBorder:     'rgba(28, 25, 23, 0.06)',
+    card:            '#FFFFFF',
+    meterTrack:      '#E3D9C2',
+    navBg:           'rgba(246, 239, 222, 0.96)'
   }
 } as const;
 
@@ -78,42 +78,42 @@ export const radius = {
 
 export const shadows = {
   sm: {
-    shadowColor: '#1C1917',
+    shadowColor: '#1E1A14',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
     shadowRadius: 3,
     elevation: 1
   },
   md: {
-    shadowColor: '#1C1917',
+    shadowColor: '#1E1A14',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.06,
     shadowRadius: 10,
     elevation: 2
   },
   lg: {
-    shadowColor: '#1C1917',
+    shadowColor: '#1E1A14',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.08,
     shadowRadius: 20,
     elevation: 4
   },
   glowPrimary: {
-    shadowColor: '#EA580C',
+    shadowColor: '#C99A5B',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 10,
     elevation: 3
   },
   glowSuccess: {
-    shadowColor: '#10B981',
+    shadowColor: '#5E9A64',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.25,
     shadowRadius: 12,
     elevation: 3
   },
   glowSecondary: {
-    shadowColor: '#F97316',
+    shadowColor: '#2D7A75',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.25,
     shadowRadius: 12,

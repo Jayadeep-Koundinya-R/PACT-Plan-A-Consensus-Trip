@@ -18,13 +18,14 @@ import { StepProgressBar } from '../../../src/components/StepProgressBar';
 import { ConsensusMatrix } from '../../../src/components/ConsensusMatrix';
 import { BottlenecksSection } from '../../../src/components/BottlenecksSection';
 import { BottomTabBar } from '../../../src/components/BottomTabBar';
-import { ThemeToggle } from '../../../src/components/ThemeToggle';
+import { ScreenHeader } from '../../../src/components/ScreenHeader';
+import { OverflowMenu } from '../../../src/components/OverflowMenu';
 import { InviteQRModal } from '../../../src/components/InviteQRModal';
 import { NudgeModal } from '../../../src/components/NudgeModal';
 import { AICompromiseModal } from '../../../src/components/AICompromiseModal';
 import { colors, radius, shadows, spacing } from '../../../src/theme/colors';
+import { fontUIExtraBold } from '../../../src/theme/typography';
 import {
-  ArrowLeft,
   Share2,
   QrCode,
   Copy,
@@ -37,7 +38,6 @@ import {
   Trash2,
   LogOut,
   ChevronRight,
-  Compass,
   CheckCircle2,
   Clock
 } from 'lucide-react-native';
@@ -227,46 +227,42 @@ export default function GroupDetailScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Top PACT Brand Header Frame Box - Document Style */}
-        <View
-          style={[
-            styles.brandHeaderBox,
-            { backgroundColor: theme.surface, borderColor: theme.border }
-          ]}
-        >
-          <TouchableOpacity
-            onPress={() => router.push('/')}
-            style={[styles.backBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
-            accessibilityLabel="Back to Dashboard"
-          >
-            <ArrowLeft size={16} color={theme.textPrimary} />
-          </TouchableOpacity>
-
-          <View style={styles.brandTextCol}>
-            <View style={styles.brandTitleRow}>
-              <View style={[styles.brandLogoCircle, { backgroundColor: theme.primary }]}>
-                <Compass size={13} color="#FFFFFF" strokeWidth={2.5} />
-              </View>
-              <Text style={[styles.brandTitleText, { color: theme.textPrimary }]} numberOfLines={1}>
-                {currentGroup.name}
-              </Text>
+        {/* Top PACT Brand Header with OverflowMenu for destructive actions */}
+        <ScreenHeader
+          title={currentGroup.name}
+          subtitle="PLAN A CONSENSUS TRIP"
+          onBack={() => router.push('/')}
+          isDarkMode={isDarkMode}
+          rightSlot={
+            <View style={styles.headerActions}>
+              <TouchableOpacity
+                onPress={() => setShowQRModal(true)}
+                style={[styles.qrHeaderBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
+                accessibilityLabel="Show QR Code"
+              >
+                <QrCode size={15} color={theme.textPrimary} />
+              </TouchableOpacity>
+              <OverflowMenu
+                isDarkMode={isDarkMode}
+                actions={[
+                  isOrganizer
+                    ? {
+                        label: 'Delete Trip Circle',
+                        isDestructive: true,
+                        icon: <Trash2 size={16} color={theme.danger} />,
+                        onPress: handleLeaveOrDelete
+                      }
+                    : {
+                        label: 'Leave Circle',
+                        isDestructive: true,
+                        icon: <LogOut size={16} color={theme.danger} />,
+                        onPress: handleLeaveOrDelete
+                      }
+                ]}
+              />
             </View>
-            <Text style={[styles.brandSubtitleText, { color: theme.primary }]}>
-              PLAN A CONSENSUS TRIP
-            </Text>
-          </View>
-
-          <View style={styles.headerActions}>
-            <ThemeToggle />
-            <TouchableOpacity
-              onPress={() => setShowQRModal(true)}
-              style={[styles.qrHeaderBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
-              accessibilityLabel="Show QR Code"
-            >
-              <QrCode size={15} color={theme.textPrimary} />
-            </TouchableOpacity>
-          </View>
-        </View>
+          }
+        />
 
         {/* 1. Responded Tracker Banner (Always Visible near top) */}
         <View
@@ -446,29 +442,6 @@ export default function GroupDetailScreen() {
             <ChevronRight size={18} color={theme.textSecondary} />
           </TouchableOpacity>
 
-          {/* Leave or Delete Group Button */}
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={handleLeaveOrDelete}
-            style={[
-              styles.leaveBtn,
-              { borderColor: theme.border, backgroundColor: theme.surface }
-            ]}
-          >
-            {isOrganizer ? (
-              <Trash2 size={14} color="#EF4444" />
-            ) : (
-              <LogOut size={14} color={theme.textSecondary} />
-            )}
-            <Text
-              style={[
-                styles.leaveBtnText,
-                { color: isOrganizer ? '#EF4444' : theme.textSecondary }
-              ]}
-            >
-              {isOrganizer ? 'Delete Trip Circle' : 'Leave Circle'}
-            </Text>
-          </TouchableOpacity>
         </View>
       </ScrollView>
 
@@ -510,70 +483,12 @@ const styles = StyleSheet.create({
     flex: 1
   },
   scrollContent: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingTop: 12,
-    paddingBottom: 130,
+    paddingBottom: 90,
     maxWidth: 600,
     width: '100%',
     alignSelf: 'center'
-  },
-  brandHeaderBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 10,
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    marginBottom: 14
-  },
-  backBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: radius.sm,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1
-  },
-  brandTextCol: {
-    alignItems: 'center',
-    flex: 1,
-    paddingHorizontal: 8
-  },
-  brandTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6
-  },
-  brandLogoCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 6,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  brandTitleText: {
-    fontSize: 16,
-    fontWeight: '900',
-    letterSpacing: -0.2
-  },
-  brandSubtitleText: {
-    fontSize: 9.5,
-    fontWeight: '800',
-    letterSpacing: 0.8,
-    marginTop: 1
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6
-  },
-  qrHeaderBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: radius.sm,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1
   },
   respondedTrackerCard: {
     flexDirection: 'row',
@@ -601,8 +516,9 @@ const styles = StyleSheet.create({
     flex: 1
   },
   respondedTitle: {
-    fontSize: 13,
-    fontWeight: '800'
+    fontSize: 15,
+    fontWeight: '800',
+    fontFamily: fontUIExtraBold
   },
   respondedSub: {
     fontSize: 11,
@@ -711,19 +627,17 @@ const styles = StyleSheet.create({
   actionCardSub: {
     fontSize: 11.5
   },
-  leaveBtn: {
+  headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 11,
-    borderRadius: radius.btn,
-    borderWidth: 1,
-    marginTop: 6,
-    marginBottom: 20
+    gap: 6
   },
-  leaveBtnText: {
-    fontSize: 12.5,
-    fontWeight: '700'
+  qrHeaderBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: radius.sm,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1
   }
 });

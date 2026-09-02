@@ -1,4 +1,5 @@
 import { synthesizeAICompromise, CompromiseProposal } from '../lib/ai/compromiseEngine';
+import { SubscriptionPlan } from '../lib/purchases/customerInfo';
 import { create } from 'zustand';
 import {
   MemberPreference,
@@ -49,7 +50,9 @@ interface GatherlyState {
   userEmail: string | null;
   userName: string | null;
   isDarkMode: boolean;
-  subscriptionPlan: 'free' | 'premium_monthly' | 'premium_annual';
+  subscriptionPlan: SubscriptionPlan;
+  isCheckingEntitlement: boolean;
+  purchaseError: string | null;
 
   // Group & Preferences
   groups: Group[];
@@ -68,6 +71,8 @@ interface GatherlyState {
   setCurrentUser: (userId: string, email?: string, name?: string) => void;
   initAuthSession: () => Promise<void>;
   logout: () => Promise<void>;
+  setIsCheckingEntitlement: (v: boolean) => void;
+  setPurchaseError: (msg: string | null) => void;
   setSubscriptionPlan: (plan: 'free' | 'premium_monthly' | 'premium_annual') => void;
   createGroup: (name: string) => Promise<Group>;
   leaveGroup: (groupId: string) => Promise<void>;
@@ -107,6 +112,8 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   userName: null,
   isDarkMode: false,
   subscriptionPlan: 'free',
+  isCheckingEntitlement: false,
+  purchaseError: null,
 
   groups: [initialGroup],
   activeGroupId: DEMO_GROUP_ID,
@@ -174,6 +181,8 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   },
 
   setSubscriptionPlan: (plan) => set({ subscriptionPlan: plan }),
+  setIsCheckingEntitlement: (v: boolean) => set({ isCheckingEntitlement: v }),
+  setPurchaseError: (msg: string | null) => set({ purchaseError: msg }),
 
   setActiveGroup: (groupId: string) => {
     set({ activeGroupId: groupId });

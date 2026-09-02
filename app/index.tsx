@@ -19,25 +19,21 @@ import { RankedOptionCard } from '../src/components/RankedOptionCard';
 import { ConsensusMatrix } from '../src/components/ConsensusMatrix';
 import { BottlenecksSection } from '../src/components/BottlenecksSection';
 import { TripBriefModal } from '../src/components/TripBriefModal';
+import { ScreenHeader } from '../src/components/ScreenHeader';
 import { BottomTabBar } from '../src/components/BottomTabBar';
 import { ThemeToggle } from '../src/components/ThemeToggle';
 import { colors, radius, shadows, spacing } from '../src/theme/colors';
 import {
-  Compass,
   Users,
   ChevronRight,
   Plus,
   Lock,
-  LogOut,
   X,
-  Sparkles,
-  ShieldCheck,
   CheckCircle2,
   Clock,
   ArrowRight,
   Vote,
-  Calendar,
-  FileText
+  Compass
 } from 'lucide-react-native';
 
 const FALLBACK_GROUP = {
@@ -203,41 +199,24 @@ export default function DashboardScreen() {
           />
         }
       >
-        {/* Top PACT Brand Header Frame Box - Document Style */}
-        <View
-          style={[
-            styles.brandHeaderBox,
-            { backgroundColor: theme.surface, borderColor: theme.border }
-          ]}
-        >
-          <View style={styles.brandRow}>
-            <View
-              style={[
-                styles.logoIcon,
-                { backgroundColor: theme.primary }
-              ]}
-            >
-              <Compass size={20} color="#FFFFFF" strokeWidth={2.5} />
+        {/* Top PACT Brand Header */}
+        <ScreenHeader
+          title="PACT"
+          subtitle="PLAN A CONSENSUS TRIP"
+          isDarkMode={isDarkMode}
+          rightSlot={
+            <View style={styles.navActions}>
+              <ThemeToggle />
+              <TouchableOpacity
+                onPress={() => router.push('/auth')}
+                style={[styles.iconButton, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
+                accessibilityLabel="Switch Account"
+              >
+                <Users size={16} color={theme.textPrimary} />
+              </TouchableOpacity>
             </View>
-            <View>
-              <Text style={[styles.brandTitle, { color: theme.textPrimary }]}>PACT</Text>
-              <Text style={[styles.brandSubtitle, { color: theme.primary }]}>
-                PLAN A CONSENSUS TRIP
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.navActions}>
-            <ThemeToggle />
-            <TouchableOpacity
-              onPress={() => router.push('/auth')}
-              style={[styles.iconButton, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
-              accessibilityLabel="Switch Account"
-            >
-              <Users size={16} color={theme.textPrimary} />
-            </TouchableOpacity>
-          </View>
-        </View>
+          }
+        />
 
         {/* 1. Circles Selection Section */}
         <View style={styles.circlesSection}>
@@ -351,7 +330,7 @@ export default function DashboardScreen() {
         <View style={styles.cardsList}>
           {topOption ? (
             <RankedOptionCard
-              item={topOption}
+              scoredOption={topOption}
               index={0}
               isDarkMode={isDarkMode}
               isApprovedByUser={votes[`${topOption.option.id}_${currentUserId}`] === true}
@@ -471,45 +450,12 @@ const styles = StyleSheet.create({
     width: '100%'
   },
   scrollContent: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingTop: 14,
-    paddingBottom: 130,
+    paddingBottom: 90,
     maxWidth: 600,
     width: '100%',
     alignSelf: 'center'
-  },
-  brandHeaderBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 12,
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    marginBottom: 16
-  },
-  brandRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10
-  },
-  logoIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: radius.sm,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  brandTitle: {
-    fontSize: 17,
-    fontWeight: '900',
-    letterSpacing: -0.2,
-    lineHeight: 19
-  },
-  brandSubtitle: {
-    fontSize: 9.5,
-    fontWeight: '800',
-    letterSpacing: 0.8,
-    marginTop: 1
   },
   navActions: {
     flexDirection: 'row',

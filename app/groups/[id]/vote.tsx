@@ -17,11 +17,10 @@ import { StepProgressBar } from '../../../src/components/StepProgressBar';
 import { ConsensusMatrix } from '../../../src/components/ConsensusMatrix';
 import { ConsensusMeter } from '../../../src/components/ConsensusMeter';
 import { BottomTabBar } from '../../../src/components/BottomTabBar';
-import { ThemeToggle } from '../../../src/components/ThemeToggle';
+import { ScreenHeader } from '../../../src/components/ScreenHeader';
 import { formatFriendlyDateRange } from '../../../src/lib/format/dateFormatter';
 import { colors, radius, shadows, spacing } from '../../../src/theme/colors';
 import {
-  ArrowLeft,
   Calendar,
   DollarSign,
   Heart,
@@ -146,44 +145,20 @@ export default function VoteScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Top PACT Brand Header Frame Box - Document Style */}
-        <View
-          style={[
-            styles.brandHeaderBox,
-            { backgroundColor: theme.surface, borderColor: theme.border }
-          ]}
-        >
-          <TouchableOpacity
-            onPress={() => router.push(`/groups/${currentGroup.id}` as any)}
-            style={[styles.backBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
-            accessibilityLabel="Back to Group Hub"
-          >
-            <ArrowLeft size={16} color={theme.textPrimary} />
-          </TouchableOpacity>
-
-          <View style={styles.brandTextCol}>
-            <View style={styles.brandTitleRow}>
-              <View style={[styles.brandLogoCircle, { backgroundColor: theme.primary }]}>
-                <Compass size={13} color="#FFFFFF" strokeWidth={2.5} />
-              </View>
-              <Text style={[styles.brandTitleText, { color: theme.textPrimary }]}>
-                PACT
-              </Text>
-            </View>
-            <Text style={[styles.brandSubtitleText, { color: theme.primary }]}>
-              PLAN A CONSENSUS TRIP
-            </Text>
-          </View>
-
-          <ThemeToggle />
-        </View>
+        {/* Top PACT Brand Header */}
+        <ScreenHeader
+          title="PACT"
+          subtitle="PLAN A CONSENSUS TRIP"
+          onBack={() => router.push(`/groups/${currentGroup.id}` as any)}
+          isDarkMode={isDarkMode}
+        />
 
         {/* Silent Vote Confirmation Banner (When Voted) */}
         {hasUserVoted && (
           <View
             style={[
               styles.votedConfirmationCard,
-              { backgroundColor: theme.surface, borderColor: theme.success }
+              { backgroundColor: theme.successLight, borderColor: theme.success }
             ]}
           >
             <CheckCircle2 size={18} color={theme.success} />
@@ -407,56 +382,12 @@ const styles = StyleSheet.create({
     flex: 1
   },
   scrollContent: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingTop: 12,
-    paddingBottom: 130,
+    paddingBottom: 90,
     maxWidth: 600,
     width: '100%',
     alignSelf: 'center'
-  },
-  brandHeaderBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 10,
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    marginBottom: 14
-  },
-  backBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: radius.sm,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1
-  },
-  brandTextCol: {
-    alignItems: 'center',
-    flex: 1
-  },
-  brandTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6
-  },
-  brandLogoCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 6,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  brandTitleText: {
-    fontSize: 16,
-    fontWeight: '900',
-    letterSpacing: -0.2
-  },
-  brandSubtitleText: {
-    fontSize: 9.5,
-    fontWeight: '800',
-    letterSpacing: 0.8,
-    marginTop: 1
   },
   votedConfirmationCard: {
     flexDirection: 'row',
@@ -465,8 +396,9 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: radius.sm,
     borderWidth: 1,
-    borderLeftWidth: 3.5,
-    marginBottom: 12
+    borderLeftWidth: 3,
+    marginBottom: 12,
+    overflow: 'hidden'
   },
   votedTextCol: {
     flex: 1

@@ -11,13 +11,17 @@ interface SealStampProps {
 
 export function SealStamp({ isDarkMode = false, onAnimationComplete, sealedDate = 'CONSENSUS PACT' }: SealStampProps) {
   const theme = isDarkMode ? colors.dark : colors.light;
-  const sealColor = theme.danger; // Dual meaning: danger & seal color
+  const sealColor = (theme as any).seal ?? theme.danger; // Use explicit seal token
 
   const scaleAnim = useRef(new Animated.Value(2.0)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
   const rotateAnim = useRef(new Animated.Value(-20)).current;
+  const hasPlayed = useRef(false);
 
   useEffect(() => {
+    if (hasPlayed.current) return;
+    hasPlayed.current = true;
+
     Animated.parallel([
       Animated.timing(opacityAnim, {
         toValue: 1,
