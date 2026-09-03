@@ -1,532 +1,500 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import React, { useState } from 'react';
 import {
   View,
   Text,
-  ScrollView,
   TouchableOpacity,
+  ScrollView,
   StyleSheet,
   SafeAreaView,
   Platform,
   Alert
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import Svg, { Path, Circle } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
-import { useGatherlyStore } from '../src/store/useGatherlyStore';
-import { deriveSubscriptionPlan } from '../src/lib/purchases/customerInfo';
-import { ScreenHeader } from '../src/components/ScreenHeader';
-import { BottomTabBar } from '../src/components/BottomTabBar';
-import { colors, radius, shadows, spacing } from '../src/theme/colors';
-import {
-  Crown,
-  Check,
-  Zap,
-  ShieldCheck,
-  ArrowRight,
-  Sparkles,
-  Infinity as InfinityIcon,
-  Bot,
-  Palette,
-  CheckCircle2,
-  Lock,
-  AlertCircle
-} from 'lucide-react-native';
+import { colors, radius } from '../src/theme/colors';
+import { fontDisplay, fontUI, fontUIBold } from '../src/theme/typography';
+import { X, Sparkles, Check, Star } from 'lucide-react-native';
 
-// Lazily load react-native-purchases only on native platforms
-// (the package has no web implementation and will crash Metro on web)
-function getPurchases() {
-  if (Platform.OS === 'web') return null;
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    return require('react-native-purchases').default;
-  } catch {
-    return null;
-  }
-}
-
-function getPurchasesErrorCode() {
-  if (Platform.OS === 'web') return null;
-  try {
-    return require('react-native-purchases').PURCHASES_ERROR_CODE;
-  } catch {
-    return null;
-  }
-}
-
-export default function PaywallScreen() {
+export default function PactPaywall() {
   const router = useRouter();
-  const {
-    isDarkMode,
-    subscriptionPlan,
-    setSubscriptionPlan,
-    setPurchaseError,
-    purchaseError,
-    isCheckingEntitlement
-  } = useGatherlyStore();
+  const [plan, setPlan] = useState<'annual' | 'single'>('annual');
+  const [isPurchasing, setIsPurchasing] = useState(false);
 
-  const theme = isDarkMode ? colors.dark : colors.light;
-  const [billingCycle, setBillingCycle] = useState<'annual' | 'monthly'>('annual');
-  const [successMessage, setSuccessMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    if (Platform.OS === 'web') return;
-    const checkEntitlement = async () => {
-      try {
-        const RC = getPurchases();
-        if (!RC) return;
-        const info = await RC.getCustomerInfo();
-        setSubscriptionPlan(deriveSubscriptionPlan(info));
-      } catch (e) {
-        // Non-fatal: keep showing current cached plan
-      }
-    };
-    checkEntitlement();
-  }, []);
-
-  const isCurrentPro = subscriptionPlan !== 'free';
+  const features = [
+    {
+      title: 'AI Compromise Whisperer',
+      desc: 'Automatically resolves budget & date deadlocks.'
+    },
+    {
+      title: 'Unlimited trip circles',
+      desc: 'Organize multiple group trips simultaneously.'
+    },
+    {
+      title: 'Integrated group expense sync',
+      desc: 'Convert trip brief into split payment tracking.'
+    },
+    {
+      title: 'Custom dealbreaker tags',
+      desc: 'Add hyper-specific veto rules for your circle.'
+    }
+  ];
 
   const triggerHaptic = () => {
     if (Platform.OS !== 'web') {
       try {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       } catch (e) {}
     }
   };
 
-  const handleSubscribe = async () => {
+  const handleSubscribe = () => {
     triggerHaptic();
-    setPurchaseError(null);
-    if (Platform.OS === 'web') {
-      // Demo mode for web: simulate activation
-      setSubscriptionPlan('premium_annual');
-      setSuccessMessage('🎉 Subscription activated! Welcome to PACT Pro.');
-      setTimeout(() => { setSuccessMessage(''); router.back(); }, 1500);
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const RC = getPurchases();
-      if (!RC) throw new Error('Purchases not available.');
-      const offerings = await RC.getOfferings();
-      const currentOffering = offerings.current;
-      if (!currentOffering) throw new Error('No offerings available. Please try again later.');
-      const pkg = billingCycle === 'annual' ? currentOffering.annual : currentOffering.monthly;
-      if (!pkg) throw new Error('Selected billing plan not available.');
-      const { customerInfo } = await RC.purchasePackage(pkg);
-      setSubscriptionPlan(deriveSubscriptionPlan(customerInfo));
-      setSuccessMessage('🎉 Subscription activated! Welcome to PACT Pro.');
-      setTimeout(() => { setSuccessMessage(''); router.back(); }, 1500);
-    } catch (e: any) {
-      const ERRORS = getPurchasesErrorCode();
-      if (ERRORS && e?.code === ERRORS.PURCHASE_CANCELLED_ERROR) {
-        // User cancelled — no error message
-      } else {
-        setPurchaseError(e?.message ?? 'Purchase failed. Please try again.');
-      }
-    } finally {
-      setIsLoading(false);
-    }
+    setIsPurchasing(true);
+    setTimeout(() => {
+      setIsPurchasing(false);
+      Alert.alert('PACT Pro Activated', 'Your 7-day free trial has started! All circles are unlocked.');
+      router.back();
+    }, 1200);
   };
-
-  const handleRestore = async () => {
-    triggerHaptic();
-    setPurchaseError(null);
-    if (Platform.OS === 'web') {
-      setSuccessMessage('✓ Restore not available on web.');
-      setTimeout(() => setSuccessMessage(''), 2000);
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const RC = getPurchases();
-      if (!RC) throw new Error('Purchases not available.');
-      const info = await RC.restorePurchases();
-      setSubscriptionPlan(deriveSubscriptionPlan(info));
-      setSuccessMessage('✓ Purchases restored successfully.');
-      setTimeout(() => setSuccessMessage(''), 2000);
-    } catch (e: any) {
-      setPurchaseError(e?.message ?? 'Restore failed. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Note: subscription cancellation is managed through App Store / Google Play settings
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Top PACT Brand Header */}
-        <ScreenHeader
-          title="PACT Pro"
-          subtitle={isCurrentPro ? 'PRO ACTIVE' : 'UNLIMITED CONSENSUS'}
-          onBack={() => router.back()}
-          isDarkMode={isDarkMode}
-          rightSlot={
-            <TouchableOpacity onPress={handleRestore} disabled={isLoading} style={{ paddingHorizontal: 4 }}>
-              <Text style={[styles.restoreText, { color: theme.primary }]}>
-                Restore
-              </Text>
+    <SafeAreaView style={styles.outerContainer}>
+      <View style={styles.phoneFrame}>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          {/* Header Row */}
+          <View style={styles.headerRow}>
+            <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7} style={styles.closeBtn}>
+              <X size={20} color="#8B8D98" />
             </TouchableOpacity>
-          }
-        />
-
-        {/* Success Banner */}
-        {Boolean(successMessage) && (
-          <View style={[styles.toastBox, { backgroundColor: theme.primary }]}>
-            <CheckCircle2 size={16} color="#FFFFFF" />
-            <Text style={styles.toastText}>{successMessage}</Text>
+            <View style={styles.proPillBadge}>
+              <Text style={styles.proPillText}>PACT PRO</Text>
+            </View>
           </View>
-        )}
 
-        {/* Error Banner */}
-        {Boolean(purchaseError) && (
-          <View style={[styles.toastBox, { backgroundColor: isDarkMode ? '#2D1515' : '#FEE2E2', borderColor: '#F87171', borderWidth: 1 }]}>
-            <AlertCircle size={16} color={theme.danger} />
-            <Text style={[styles.toastText, { color: theme.danger }]}>{purchaseError}</Text>
-          </View>
-        )}
-
-        {/* Hero Document Card */}
-        <View
-          style={[
-            styles.heroCard,
-            { backgroundColor: theme.surface, borderColor: theme.border }
-          ]}
-        >
-          <View style={[styles.crownBox, { backgroundColor: theme.primaryLight }]}>
-            <Crown size={24} color={theme.primary} />
-          </View>
-          <Text style={[styles.heroTitle, { color: theme.textPrimary }]}>
-            Unlimited Circles & AI Compromise Engine
-          </Text>
-          <Text style={[styles.heroSub, { color: theme.textSecondary }]}>
-            Power up your group trips with automatic bottleneck negotiation and unlimited shared travel pacts.
-          </Text>
-
-          {isCurrentPro && (
-            <View style={[styles.proActiveBadge, { backgroundColor: theme.successLight, borderColor: theme.success }]}>
-              <CheckCircle2 size={13} color={theme.success} />
-              <Text style={[styles.proActiveBadgeText, { color: theme.success }]}>
-                PRO ENTITLEMENT ACTIVE ({subscriptionPlan.toUpperCase()})
+          {/* Pro Hero Card */}
+          <View style={styles.heroCard}>
+            <View style={styles.heroTop}>
+              <Text style={styles.heroTitle}>Unlock PACT Pro</Text>
+              <Text style={styles.heroSub}>
+                Only <Text style={{ color: '#D4AF37', fontWeight: '700' }}>one</Text> person needs Pro. Your entire trip circle gets all Pro benefits for free.
               </Text>
             </View>
-          )}
-        </View>
 
-        {/* Feature Highlights Grid (Document Motif) */}
-        <View style={styles.featuresList}>
-          <View
-            style={[
-              styles.featureItem,
-              { backgroundColor: theme.surface, borderColor: theme.border }
-            ]}
-          >
-            <View style={[styles.featureIconBox, { backgroundColor: theme.surfaceSubtle }]}>
-              <InfinityIcon size={18} color={theme.primary} />
+            {/* Perforation */}
+            <View style={styles.perforationWrapper}>
+              <View style={styles.notchLeft} />
+              <View style={styles.notchRight} />
+              <View style={styles.dashedLine} />
             </View>
-            <View style={styles.featureTextCol}>
-              <Text style={[styles.featureTitle, { color: theme.textPrimary }]}>
-                Unlimited Trip Circles
-              </Text>
-              <Text style={[styles.featureDesc, { color: theme.textSecondary }]}>
-                Organize as many trip groups as you want with unlimited friends and collaborators.
+
+            <View style={styles.heroBottom}>
+              <Text style={styles.heroPassLabel}>
+                ONE PASS  •  WHOLE CIRCLE COVERED
               </Text>
             </View>
           </View>
 
-          <View
-            style={[
-              styles.featureItem,
-              { backgroundColor: theme.surface, borderColor: theme.border }
-            ]}
-          >
-            <View style={[styles.featureIconBox, { backgroundColor: theme.surfaceSubtle }]}>
-              <Bot size={18} color={theme.secondary} />
-            </View>
-            <View style={styles.featureTextCol}>
-              <Text style={[styles.featureTitle, { color: theme.textPrimary }]}>
-                AI Compromise Whisperer
-              </Text>
-              <Text style={[styles.featureDesc, { color: theme.textSecondary }]}>
-                Auto-negotiate shoulder season dates and budget ceilings for 100% group fit.
-              </Text>
-            </View>
+          {/* Features List */}
+          <View style={styles.featuresList}>
+            {features.map((f) => (
+              <View key={f.title} style={styles.featureRow}>
+                <View style={styles.starIconBox}>
+                  <Svg width="14" height="14" viewBox="0 0 14 14">
+                    <Path
+                      d="M7 1.3l1.6 3.9 4.1.4-3.1 2.8.9 4.1L7 10.4l-3.5 2.1.9-4.1-3.1-2.8 4.1-.4z"
+                      fill="none"
+                      stroke="#D4AF37"
+                      strokeWidth="1"
+                      strokeLinejoin="round"
+                    />
+                  </Svg>
+                </View>
+                <View style={styles.featureTextCol}>
+                  <Text style={styles.featureTitle}>{f.title}</Text>
+                  <Text style={styles.featureDesc}>{f.desc}</Text>
+                </View>
+              </View>
+            ))}
           </View>
 
-          <View
-            style={[
-              styles.featureItem,
-              { backgroundColor: theme.surface, borderColor: theme.border }
-            ]}
-          >
-            <View style={[styles.featureIconBox, { backgroundColor: theme.surfaceSubtle }]}>
-              <Palette size={18} color={theme.primary} />
-            </View>
-            <View style={styles.featureTextCol}>
-              <Text style={[styles.featureTitle, { color: theme.textPrimary }]}>
-                Custom Circle Themes & Brief Export
-              </Text>
-              <Text style={[styles.featureDesc, { color: theme.textSecondary }]}>
-                Export sealed travel documents with .ics calendar syncing and shareable social story cards.
-              </Text>
-            </View>
-          </View>
-        </View>
+          {/* Plan Options Selector */}
+          <View style={styles.plansContainer}>
+            {/* Annual Plan Card */}
+            <TouchableOpacity
+              activeOpacity={0.88}
+              onPress={() => {
+                triggerHaptic();
+                setPlan('annual');
+              }}
+              style={[
+                styles.planCard,
+                plan === 'annual' ? styles.planCardActive : styles.planCardInactive
+              ]}
+            >
+              <View style={styles.popularTag}>
+                <Text style={styles.popularTagText}>MOST POPULAR — SAVE 50%</Text>
+              </View>
 
-        {/* Pricing Plan Selector */}
-        <View style={styles.planSelectorRow}>
+              <View style={styles.planCardContent}>
+                <View style={styles.planLeft}>
+                  <View
+                    style={[
+                      styles.radioOuter,
+                      plan === 'annual' && { borderColor: '#FF5A5F', borderWidth: 5 }
+                    ]}
+                  />
+                  <Text style={styles.planNameText}>Annual organizer pass</Text>
+                </View>
+
+                <View style={styles.planRight}>
+                  <Text style={styles.planPriceText}>$29.99</Text>
+                  <Text style={styles.planMonthlyRate}>$2.50/mo</Text>
+                </View>
+              </View>
+              <Text style={styles.trialNote}>Includes 7-day free trial</Text>
+            </TouchableOpacity>
+
+            {/* Single Trip Pass Card */}
+            <TouchableOpacity
+              activeOpacity={0.88}
+              onPress={() => {
+                triggerHaptic();
+                setPlan('single');
+              }}
+              style={[
+                styles.planCard,
+                plan === 'single' ? styles.planCardActive : styles.planCardInactive
+              ]}
+            >
+              <View style={styles.planCardContent}>
+                <View style={styles.planLeft}>
+                  <View
+                    style={[
+                      styles.radioOuter,
+                      plan === 'single' && { borderColor: '#FF5A5F', borderWidth: 5 }
+                    ]}
+                  />
+                  <Text style={styles.planNameText}>Single trip pass</Text>
+                </View>
+                <Text style={styles.planPriceText}>$3.99</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+
+          {/* Testimonial Card */}
+          <View style={styles.testimonialCard}>
+            <View style={styles.starsRow}>
+              {[0, 1, 2, 3, 4].map((i) => (
+                <Star key={i} size={13} fill="#D4AF37" color="#D4AF37" style={{ marginRight: 2 }} />
+              ))}
+            </View>
+            <Text style={styles.testimonialQuote}>
+              "PACT saved our 6-person group from giving up on our annual beach trip."
+            </Text>
+            <Text style={styles.testimonialAuthor}>— Sarah T.</Text>
+          </View>
+        </ScrollView>
+
+        {/* Bottom Sticky Action Bar */}
+        <View style={styles.bottomBar}>
           <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => {
-              triggerHaptic();
-              setBillingCycle('annual');
-            }}
-            style={[
-              styles.planCard,
-              billingCycle === 'annual'
-                ? { backgroundColor: theme.surface, borderColor: theme.primary, borderWidth: 2 }
-                : { backgroundColor: theme.surfaceSubtle, borderColor: theme.border, borderWidth: 1 }
-            ]}
+            activeOpacity={0.88}
+            onPress={handleSubscribe}
+            disabled={isPurchasing}
+            style={styles.proUnlockBtn}
           >
-            <View style={[styles.saveBadge, { backgroundColor: theme.primary }]}>
-              <Text style={styles.saveBadgeText}>SAVE 40%</Text>
-            </View>
-            <Text style={[styles.planPeriod, { color: theme.textPrimary }]}>Annual</Text>
-            <Text style={[styles.planPrice, { color: theme.primary }]}>$29.99</Text>
-            <Text style={[styles.planSub, { color: theme.textSecondary }]}>$2.50 / month</Text>
+            <Text style={styles.proUnlockBtnText}>
+              {isPurchasing ? 'Unlocking PACT Pro...' : 'Start 7-day free trial & unlock circle'}
+            </Text>
           </TouchableOpacity>
-
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => {
-              triggerHaptic();
-              setBillingCycle('monthly');
-            }}
-            style={[
-              styles.planCard,
-              billingCycle === 'monthly'
-                ? { backgroundColor: theme.surface, borderColor: theme.primary, borderWidth: 2 }
-                : { backgroundColor: theme.surfaceSubtle, borderColor: theme.border, borderWidth: 1 }
-            ]}
-          >
-            <Text style={[styles.planPeriod, { color: theme.textPrimary }]}>Monthly</Text>
-            <Text style={[styles.planPrice, { color: theme.primary }]}>$4.99</Text>
-            <Text style={[styles.planSub, { color: theme.textSecondary }]}>Billed monthly</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* CTA Button */}
-        <TouchableOpacity
-          activeOpacity={0.85}
-          onPress={handleSubscribe}
-          disabled={isLoading}
-          style={[
-            styles.ctaBtn,
-            { backgroundColor: theme.primary },
-            isLoading && { opacity: 0.6 }
-          ]}
-        >
-          <Crown size={18} color="#FFFFFF" />
-          <Text style={styles.ctaBtnText}>
-            {isCurrentPro ? 'Switch Billing Plan' : 'Upgrade to PACT Pro'}
-          </Text>
-          <ArrowRight size={18} color="#FFFFFF" />
-        </TouchableOpacity>
-
-        {/* Guarantee footer */}
-        <View style={styles.guaranteeRow}>
-          <ShieldCheck size={15} color={theme.success} />
-          <Text style={[styles.guaranteeText, { color: theme.textSecondary }]}>
-            Secured via Google Play & App Store. Cancel anytime in Store settings.
+          <Text style={styles.billingFooterText}>
+            Recurring billing. Cancel anytime in App Store settings.
           </Text>
         </View>
-      </ScrollView>
-
-      {/* Floating Bottom Tab Bar */}
-      <BottomTabBar />
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1
+  outerContainer: {
+    flex: 1,
+    backgroundColor: '#050608',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  phoneFrame: {
+    width: '100%',
+    maxWidth: 420,
+    flex: 1,
+    backgroundColor: '#090A0F',
+    borderWidth: Platform.OS === 'web' ? 1 : 0,
+    borderColor: 'rgba(255,255,255,0.06)',
+    borderRadius: Platform.OS === 'web' ? 40 : 0,
+    overflow: 'hidden',
+    position: 'relative'
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 90,
-    maxWidth: 600,
-    width: '100%',
-    alignSelf: 'center'
+    paddingTop: 22,
+    paddingBottom: 24
   },
-  restoreText: {
-    fontSize: 12.5,
-    fontWeight: '800'
-  },
-  toastBox: {
+  headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    padding: 12,
-    borderRadius: radius.sm,
-    marginBottom: 12
+    justifyContent: 'space-between',
+    marginBottom: 18
   },
-  toastText: {
-    color: '#FFFFFF',
-    fontSize: 12.5,
-    fontWeight: '800'
+  closeBtn: {
+    padding: 4
   },
-  heroCard: {
-    alignItems: 'center',
-    padding: 18,
-    borderRadius: radius.sm,
+  proPillBadge: {
     borderWidth: 1,
-    marginBottom: 14
+    borderColor: 'rgba(212,175,55,0.35)',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 5
   },
-  crownBox: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.sm,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 10
-  },
-  heroTitle: {
-    fontSize: 18,
-    fontWeight: '900',
-    textAlign: 'center',
-    letterSpacing: -0.2,
-    marginBottom: 6,
-    lineHeight: 23
-  },
-  heroSub: {
-    fontSize: 12.5,
-    textAlign: 'center',
-    lineHeight: 17
-  },
-  proActiveBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: radius.btn,
-    borderWidth: 1,
-    marginTop: 10
-  },
-  proActiveBadgeText: {
-    fontSize: 10.5,
-    fontWeight: '800',
+  proPillText: {
+    fontFamily: fontUIBold,
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: '#D4AF37',
     letterSpacing: 0.5
   },
-  featuresList: {
-    gap: 8,
-    marginBottom: 14
+  heroCard: {
+    backgroundColor: '#13151E',
+    borderWidth: 1,
+    borderColor: 'rgba(212,175,55,0.3)',
+    borderRadius: 18,
+    overflow: 'hidden',
+    marginBottom: 20
   },
-  featureItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    padding: 12,
-    borderRadius: radius.sm,
-    borderWidth: 1
-  },
-  featureIconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: radius.sm,
-    justifyContent: 'center',
+  heroTop: {
+    paddingHorizontal: 20,
+    paddingTop: 22,
+    paddingBottom: 18,
     alignItems: 'center'
+  },
+  heroTitle: {
+    fontFamily: fontDisplay,
+    fontSize: 25,
+    fontWeight: '700',
+    color: '#F4F3F0',
+    marginBottom: 10
+  },
+  heroSub: {
+    fontFamily: fontUI,
+    fontSize: 12.5,
+    color: '#B4B6C0',
+    lineHeight: 19,
+    textAlign: 'center'
+  },
+  perforationWrapper: {
+    position: 'relative',
+    height: 1,
+    justifyContent: 'center'
+  },
+  notchLeft: {
+    position: 'absolute',
+    left: -10,
+    top: -10,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#090A0F'
+  },
+  notchRight: {
+    position: 'absolute',
+    right: -10,
+    top: -10,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#090A0F'
+  },
+  dashedLine: {
+    borderTopWidth: 1.5,
+    borderStyle: 'dashed',
+    borderTopColor: 'rgba(212,175,55,0.3)',
+    marginHorizontal: 22
+  },
+  heroBottom: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    alignItems: 'center'
+  },
+  heroPassLabel: {
+    fontFamily: fontUIBold,
+    fontSize: 10,
+    color: '#8A7433',
+    letterSpacing: 0.8
+  },
+  featuresList: {
+    gap: 14,
+    marginBottom: 22
+  },
+  featureRow: {
+    flexDirection: 'row',
+    gap: 12
+  },
+  starIconBox: {
+    width: 30,
+    height: 30,
+    borderRadius: 9,
+    backgroundColor: 'rgba(212,175,55,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   featureTextCol: {
     flex: 1
   },
   featureTitle: {
+    fontFamily: fontUIBold,
     fontSize: 13.5,
-    fontWeight: '800',
-    marginBottom: 1
+    fontWeight: '600',
+    color: '#F4F3F0'
   },
   featureDesc: {
-    fontSize: 11.5,
-    lineHeight: 15
+    fontFamily: fontUI,
+    fontSize: 12,
+    color: '#6C6F7A',
+    lineHeight: 18,
+    marginTop: 3
   },
-  planSelectorRow: {
-    flexDirection: 'row',
+  plansContainer: {
     gap: 10,
-    marginBottom: 14
+    marginBottom: 18
   },
   planCard: {
-    flex: 1,
-    padding: 14,
-    borderRadius: radius.sm,
-    alignItems: 'center',
+    backgroundColor: '#13151E',
+    borderRadius: 16,
+    padding: 16,
     position: 'relative'
   },
-  saveBadge: {
-    position: 'absolute',
-    top: -9,
-    paddingHorizontal: 8,
-    paddingVertical: 2.5,
-    borderRadius: radius.btn
+  planCardActive: {
+    borderWidth: 1.5,
+    borderColor: '#FF5A5F'
   },
-  saveBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 8.5,
-    fontWeight: '900',
-    letterSpacing: 0.5
-  },
-  planPeriod: {
-    fontSize: 14,
-    fontWeight: '800',
-    marginTop: 2,
-    marginBottom: 2
-  },
-  planPrice: {
-    fontSize: 20,
-    fontWeight: '900',
-    marginBottom: 1
-  },
-  planSub: {
-    fontSize: 11
-  },
-  ctaBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: radius.btn,
-    marginBottom: 8
-  },
-  ctaBtnText: {
-    color: '#FFFFFF',
-    fontSize: 14.5,
-    fontWeight: '800'
-  },
-  cancelBtn: {
-    paddingVertical: 10,
-    alignItems: 'center',
-    borderRadius: radius.btn,
+  planCardInactive: {
     borderWidth: 1,
-    marginBottom: 12
+    borderColor: 'rgba(255,255,255,0.1)'
   },
-  cancelBtnText: {
-    fontSize: 12,
-    fontWeight: '700'
+  popularTag: {
+    position: 'absolute',
+    top: -10,
+    left: 16,
+    backgroundColor: '#FF5A5F',
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 3
   },
-  guaranteeRow: {
+  popularTagText: {
+    fontFamily: fontUIBold,
+    fontSize: 9.5,
+    fontWeight: '700',
+    color: '#2E0805',
+    letterSpacing: 0.3
+  },
+  planCardContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
+    justifyContent: 'space-between',
+    marginTop: 4
+  },
+  planLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10
+  },
+  radioOuter: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.25)'
+  },
+  planNameText: {
+    fontFamily: fontUIBold,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#F4F3F0'
+  },
+  planRight: {
+    alignItems: 'flex-end'
+  },
+  planPriceText: {
+    fontFamily: fontUIBold,
+    fontSize: 14.5,
+    fontWeight: '700',
+    color: '#F4F3F0'
+  },
+  planMonthlyRate: {
+    fontFamily: fontUI,
+    fontSize: 10.5,
+    color: '#6C6F7A'
+  },
+  trialNote: {
+    fontFamily: fontUIBold,
+    fontSize: 11.5,
+    color: '#3DE0A0',
+    marginTop: 10,
+    marginLeft: 28
+  },
+  testimonialCard: {
+    backgroundColor: '#13151E',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 16,
+    padding: 16,
     marginBottom: 20
   },
-  guaranteeText: {
-    fontSize: 11
+  starsRow: {
+    flexDirection: 'row',
+    marginBottom: 8
+  },
+  testimonialQuote: {
+    fontFamily: fontUI,
+    fontSize: 13,
+    color: '#D4D5DA',
+    lineHeight: 20,
+    fontStyle: 'italic',
+    marginBottom: 8
+  },
+  testimonialAuthor: {
+    fontFamily: fontUI,
+    fontSize: 12,
+    color: '#6C6F7A'
+  },
+  bottomBar: {
+    paddingHorizontal: 20,
+    paddingTop: 14,
+    paddingBottom: 22,
+    backgroundColor: '#090A0F',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.06)'
+  },
+  proUnlockBtn: {
+    width: '100%',
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#FF5A5F',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8
+  },
+  proUnlockBtnText: {
+    fontFamily: fontUIBold,
+    fontSize: 14.5,
+    fontWeight: '700',
+    color: '#2E0805'
+  },
+  billingFooterText: {
+    fontFamily: fontUI,
+    fontSize: 10.5,
+    color: '#454857',
+    textAlign: 'center',
+    lineHeight: 15
   }
 });

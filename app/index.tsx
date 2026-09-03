@@ -1,88 +1,66 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
-  ScrollView,
   TouchableOpacity,
+  ScrollView,
   StyleSheet,
   SafeAreaView,
-  Modal,
-  TextInput,
-  Platform,
-  Alert,
-  RefreshControl
+  Animated,
+  Easing,
+  Platform
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import Svg, { Circle, Path, Rect, G, Text as SvgText } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
-import { useGatherlyStore } from '../src/store/useGatherlyStore';
-import { RankedOptionCard } from '../src/components/RankedOptionCard';
-import { ConsensusMatrix } from '../src/components/ConsensusMatrix';
-import { BottlenecksSection } from '../src/components/BottlenecksSection';
-import { TripBriefModal } from '../src/components/TripBriefModal';
-import { ScreenHeader } from '../src/components/ScreenHeader';
-import { BottomTabBar } from '../src/components/BottomTabBar';
-import { ThemeToggle } from '../src/components/ThemeToggle';
-import { colors, radius, shadows, spacing } from '../src/theme/colors';
-import {
-  Users,
-  ChevronRight,
-  Plus,
-  Lock,
-  X,
-  CheckCircle2,
-  Clock,
-  ArrowRight,
-  Vote,
-  Compass
-} from 'lucide-react-native';
+import { colors, radius } from '../src/theme/colors';
+import { fontDisplay, fontUI, fontUIBold } from '../src/theme/typography';
 
-const FALLBACK_GROUP = {
-  id: 'circle-college-reunion-2026',
-  name: 'College Reunion Trip',
-  inviteCode: 'GOA-2026',
-  organizerId: 'user-maya-001',
-  status: 'voting' as const,
-  totalMembersCount: 5
-};
-
-export default function DashboardScreen() {
+export default function PactLandingScreen() {
   const router = useRouter();
-  const {
-    isDarkMode,
-    currentUserId = 'user-maya-001',
-    userEmail,
-    userName,
-    initAuthSession,
-    logout,
-    groups = [],
-    activeGroupId,
-    setActiveGroup,
-    members = [],
-    createGroup,
-    getConsensusResults,
-    votes = {},
-    castVote,
-    getOptionApprovalCount,
-    finalizeTrip,
-    finalizedBrief,
-    subscriptionPlan
-  } = useGatherlyStore();
 
-  const [briefModalVisible, setBriefModalVisible] = useState(false);
-  const [createModalVisible, setCreateModalVisible] = useState(false);
-  const [newGroupName, setNewGroupName] = useState('');
-  const [isCreating, setIsCreating] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
+  // Animation values for the 2.6s consensus loop
+  const animProgress = useRef(new Animated.Value(0)).current;
+  const chevronAnim = useRef(new Animated.Value(0)).current;
+  const [showHowItWorks, setShowHowItWorks] = useState(false);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   useEffect(() => {
-    try {
-      initAuthSession();
-    } catch (e) {
-      console.warn('Auth init failed:', e);
-    }
-  }, []);
+    // 2.6s converging nodes + stamp cycle
+    const loop = Animated.loop(
+      Animated.timing(animProgress, {
+        toValue: 1,
+        duration: 2600,
+        easing: Easing.bezier(0.4, 0, 0.2, 1),
+        useNativeDriver: true
+      })
+    );
+    loop.start();
 
-  const theme = isDarkMode ? colors.dark : colors.light;
+    // Subtle breathing chevron animation
+    const chevronLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(chevronAnim, {
+          toValue: 1,
+          duration: 800,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true
+        }),
+        Animated.timing(chevronAnim, {
+          toValue: 0,
+          duration: 800,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true
+        })
+      ])
+    );
+    chevronLoop.start();
+
+    return () => {
+      loop.stop();
+      chevronLoop.stop();
+    };
+  }, []);
 
   const triggerHaptic = () => {
     if (Platform.OS !== 'web') {
@@ -92,555 +70,524 @@ export default function DashboardScreen() {
     }
   };
 
-  const onRefresh = React.useCallback(() => {
-    setRefreshing(true);
+  const handleContinue = (method: 'apple' | 'google' | 'email') => {
     triggerHaptic();
-    try {
-      initAuthSession();
-    } catch (e) {}
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 600);
-  }, []);
-
-  // Resolve safe groups list
-  const safeGroups = Array.isArray(groups) && groups.length > 0 ? groups : [FALLBACK_GROUP];
-  const currentGroup = safeGroups.find((g) => g && g.id === activeGroupId) || safeGroups[0];
-
-  // Resolve consensus
-  let consensus;
-  try {
-    consensus = getConsensusResults();
-  } catch (e) {
-    consensus = {
-      groupId: currentGroup.id,
-      totalMembersCount: 5,
-      respondedMembersCount: 5,
-      rankedOptions: [],
-      winningOption: undefined,
-      deadlockDiagnosis: { isDeadlocked: false, topOptionConsensus: 0, primaryCause: 'none' as const, diagnosisText: '', organizerSuggestions: [] },
-      consensusReached: false
-    };
-  }
-
-  const isOrganizer = currentGroup ? currentGroup.organizerId === currentUserId : false;
-  const isPro = subscriptionPlan !== 'free';
-  const topOption = consensus?.winningOption || consensus?.rankedOptions?.[0] || null;
-
-  // Check if current user submitted constraints
-  const currentUserSubmitted = (members || []).some(
-    (m) => m?.userId === currentUserId && Boolean(m?.submittedAt)
-  );
-
-  const handleToggleVote = (optionId: string) => {
-    triggerHaptic();
-    const isApproved = votes[`${optionId}_${currentUserId}`] === true;
-    castVote(optionId, !isApproved);
+    router.push('/create-circle' as any);
   };
 
-  const handleGoToVoting = () => {
+  const scrollToSteps = () => {
     triggerHaptic();
-    router.push(`/groups/${currentGroup.id}/vote` as any);
+    scrollViewRef.current?.scrollTo({ y: 340, animated: true });
   };
 
-  const handleCreateGroup = async () => {
-    if (!newGroupName.trim()) return;
-    triggerHaptic();
-    if (!isPro && safeGroups.length >= 1 && currentUserId.startsWith('user-')) {
-      setCreateModalVisible(false);
-      router.push('/paywall');
-      return;
-    }
-    setIsCreating(true);
-    try {
-      const group = await createGroup(newGroupName.trim());
-      setNewGroupName('');
-      setCreateModalVisible(false);
-      router.push(`/groups/${group.id}`);
-    } catch (err: any) {
-      Alert.alert('Error', err?.message || 'Error creating group');
-    } finally {
-      setIsCreating(false);
-    }
-  };
+  // Node 1: (-58, -34) -> (0, 0)
+  const node1TranslateX = animProgress.interpolate({
+    inputRange: [0, 0.7, 1],
+    outputRange: [-58, 0, 0]
+  });
+  const node1TranslateY = animProgress.interpolate({
+    inputRange: [0, 0.7, 1],
+    outputRange: [-34, 0, 0]
+  });
+  const node1Scale = animProgress.interpolate({
+    inputRange: [0, 0.7, 1],
+    outputRange: [1, 0.4, 0.3]
+  });
+  const node1Opacity = animProgress.interpolate({
+    inputRange: [0, 0.7, 0.9, 1],
+    outputRange: [1, 0.6, 0, 0]
+  });
 
-  // Bottlenecks list
-  const bottleneckIssues = [];
-  if (consensus?.deadlockDiagnosis?.isDeadlocked) {
-    const dType = consensus.deadlockDiagnosis.primaryCause === 'budget_gap' ? 'budget' : consensus.deadlockDiagnosis.primaryCause === 'date_conflict' ? 'dates' : 'dealbreaker';
-    bottleneckIssues.push({
-      type: dType as 'budget' | 'dates' | 'dealbreaker',
-      title: dType === 'budget' ? 'Budget Gap Detected' : dType === 'dates' ? 'Date Conflict Detected' : 'Dealbreaker Flagged',
-      description: consensus.deadlockDiagnosis.diagnosisText
-    });
-  } else if (consensus?.rankedOptions?.some((o) => o.budgetGapFlag)) {
-    const affected = (members || []).filter((m) => m.budgetMax < 700).map((m) => m.userName || (m as any).name);
-    bottleneckIssues.push({
-      type: 'budget' as const,
-      title: 'Budget Gap Detected',
-      description: `${affected.join(' and ') || 'Some travelers'} prefer $650, while the rest are okay with $900.`
-    });
-  }
+  // Node 2: (58, -30) -> (0, 0)
+  const node2TranslateX = animProgress.interpolate({
+    inputRange: [0, 0.1, 0.75, 1],
+    outputRange: [58, 58, 0, 0]
+  });
+  const node2TranslateY = animProgress.interpolate({
+    inputRange: [0, 0.1, 0.75, 1],
+    outputRange: [-30, -30, 0, 0]
+  });
+  const node2Scale = animProgress.interpolate({
+    inputRange: [0, 0.1, 0.75, 1],
+    outputRange: [1, 1, 0.4, 0.3]
+  });
+  const node2Opacity = animProgress.interpolate({
+    inputRange: [0, 0.1, 0.75, 0.9, 1],
+    outputRange: [1, 1, 0.6, 0, 0]
+  });
+
+  // Node 3: (0, 50) -> (0, 0)
+  const node3TranslateY = animProgress.interpolate({
+    inputRange: [0, 0.15, 0.8, 1],
+    outputRange: [50, 50, 0, 0]
+  });
+  const node3Scale = animProgress.interpolate({
+    inputRange: [0, 0.15, 0.8, 1],
+    outputRange: [1, 1, 0.4, 0.3]
+  });
+  const node3Opacity = animProgress.interpolate({
+    inputRange: [0, 0.15, 0.8, 0.95, 1],
+    outputRange: [1, 1, 0.6, 0, 0]
+  });
+
+  // Stamp: pops in at 0.55 -> 0.72 -> 0.85 -> 1.0
+  const stampScale = animProgress.interpolate({
+    inputRange: [0, 0.55, 0.72, 0.85, 1],
+    outputRange: [0.6, 0.6, 1.08, 1, 1]
+  });
+  const stampOpacity = animProgress.interpolate({
+    inputRange: [0, 0.55, 0.72, 1],
+    outputRange: [0, 0, 1, 1]
+  });
+
+  const chevronTranslateY = chevronAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 5]
+  });
+  const chevronOpacity = chevronAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.5, 1]
+  });
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
-      {/* Top Accent Line & Gap */}
-      <View style={[styles.topBorderLine, { backgroundColor: theme.primary }]} />
-
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={theme.primary}
-            colors={[theme.primary]}
-          />
-        }
-      >
-        {/* Top PACT Brand Header */}
-        <ScreenHeader
-          title="PACT"
-          subtitle="PLAN A CONSENSUS TRIP"
-          isDarkMode={isDarkMode}
-          rightSlot={
-            <View style={styles.navActions}>
-              <ThemeToggle />
-              <TouchableOpacity
-                onPress={() => router.push('/auth')}
-                style={[styles.iconButton, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
-                accessibilityLabel="Switch Account"
-              >
-                <Users size={16} color={theme.textPrimary} />
-              </TouchableOpacity>
-            </View>
-          }
-        />
-
-        {/* 1. Circles Selection Section */}
-        <View style={styles.circlesSection}>
-          <View style={styles.sectionTitleRow}>
-            <Text style={[styles.sectionTitle, { color: theme.textPrimary }]}>
-              Your Travel Circles
-            </Text>
+    <SafeAreaView style={styles.outerContainer}>
+      <View style={styles.phoneFrame}>
+        <ScrollView
+          ref={scrollViewRef}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Header Row */}
+          <View style={styles.headerRow}>
+            <Text style={styles.brandTitle}>PACT</Text>
             <TouchableOpacity
-              onPress={() => setCreateModalVisible(true)}
-              style={[styles.plusCircleBtn, { backgroundColor: theme.primary }]}
-              accessibilityLabel="Create Circle"
+              onPress={scrollToSteps}
+              activeOpacity={0.7}
+              style={styles.howItWorksPill}
             >
-              <Plus size={16} color="#FFFFFF" />
+              <Text style={styles.howItWorksText}>How it works</Text>
             </TouchableOpacity>
           </View>
 
-          {safeGroups.map((g) => {
-            const isSelected = g.id === currentGroup.id;
-            return (
-              <TouchableOpacity
-                key={g.id}
-                onPress={() => {
-                  triggerHaptic();
-                  setActiveGroup(g.id);
-                }}
-                activeOpacity={0.8}
+          {/* Hero Card with Animated Consensus Canvas */}
+          <View style={styles.heroCard}>
+            <View style={styles.canvasWrapper}>
+              {/* Converging Node 1 */}
+              <Animated.View
                 style={[
-                  styles.circleCard,
+                  styles.nodeLayer,
                   {
-                    backgroundColor: isSelected ? theme.surface : theme.surfaceSubtle,
-                    borderColor: isSelected ? theme.primary : theme.border,
-                    borderWidth: isSelected ? 1.5 : 1
+                    opacity: node1Opacity,
+                    transform: [
+                      { translateX: node1TranslateX },
+                      { translateY: node1TranslateY },
+                      { scale: node1Scale }
+                    ]
                   }
                 ]}
               >
-                <View style={styles.circleLeft}>
-                  <View
-                    style={[
-                      styles.circleAvatarBox,
-                      { backgroundColor: isSelected ? theme.primaryLight : theme.border }
-                    ]}
+                <Svg width="24" height="24" viewBox="0 0 24 24">
+                  <Circle cx="12" cy="12" r="10" fill="#2A2D3A" stroke="#454857" strokeWidth="1" />
+                  <Path d="M8 10v-3a4 4 0 0 1 8 0v3" fill="none" stroke="#8B8D98" strokeWidth="1.2" />
+                  <Rect x="7" y="9.5" width="10" height="7" rx="1.5" fill="#8B8D98" />
+                </Svg>
+              </Animated.View>
+
+              {/* Converging Node 2 */}
+              <Animated.View
+                style={[
+                  styles.nodeLayer,
+                  {
+                    opacity: node2Opacity,
+                    transform: [
+                      { translateX: node2TranslateX },
+                      { translateY: node2TranslateY },
+                      { scale: node2Scale }
+                    ]
+                  }
+                ]}
+              >
+                <Svg width="24" height="24" viewBox="0 0 24 24">
+                  <Circle cx="12" cy="12" r="10" fill="#2A2D3A" stroke="#454857" strokeWidth="1" />
+                  <Path d="M8 10v-3a4 4 0 0 1 8 0v3" fill="none" stroke="#8B8D98" strokeWidth="1.2" />
+                  <Rect x="7" y="9.5" width="10" height="7" rx="1.5" fill="#8B8D98" />
+                </Svg>
+              </Animated.View>
+
+              {/* Converging Node 3 */}
+              <Animated.View
+                style={[
+                  styles.nodeLayer,
+                  {
+                    opacity: node3Opacity,
+                    transform: [
+                      { translateY: node3TranslateY },
+                      { scale: node3Scale }
+                    ]
+                  }
+                ]}
+              >
+                <Svg width="24" height="24" viewBox="0 0 24 24">
+                  <Circle cx="12" cy="12" r="10" fill="#2A2D3A" stroke="#454857" strokeWidth="1" />
+                  <Path d="M8 10v-3a4 4 0 0 1 8 0v3" fill="none" stroke="#8B8D98" strokeWidth="1.2" />
+                  <Rect x="7" y="9.5" width="10" height="7" rx="1.5" fill="#8B8D98" />
+                </Svg>
+              </Animated.View>
+
+              {/* Animated 100% Match Stamp */}
+              <Animated.View
+                style={[
+                  styles.stampLayer,
+                  {
+                    opacity: stampOpacity,
+                    transform: [
+                      { scale: stampScale },
+                      { rotate: '-8deg' }
+                    ]
+                  }
+                ]}
+              >
+                <Svg width="140" height="140" viewBox="0 0 140 140">
+                  <Circle
+                    cx="70"
+                    cy="60"
+                    r="32"
+                    fill="#0D2A20"
+                    fillOpacity="0.8"
+                    stroke="#22C58B"
+                    strokeWidth="2.5"
+                    strokeDasharray="4 3"
+                  />
+                  <Path
+                    d="M57 60l9 9 17-19"
+                    fill="none"
+                    stroke="#3DE0A0"
+                    strokeWidth="3.4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <SvgText
+                    x="70"
+                    y="108"
+                    textAnchor="middle"
+                    fontSize="11"
+                    fontWeight="700"
+                    fill="#3DE0A0"
+                    letterSpacing="0.5"
                   >
-                    <Compass size={18} color={isSelected ? theme.primary : theme.textSecondary} />
-                  </View>
-                  <View style={styles.circleTextCol}>
-                    <Text style={[styles.circleName, { color: theme.textPrimary }]}>
-                      {g.name}
-                    </Text>
-                    <Text style={[styles.circleMeta, { color: theme.textSecondary }]}>
-                      Invite: {g.inviteCode || 'PACT-TRIP'} • {g.totalMembersCount || members.length || 5} travelers
-                    </Text>
-                  </View>
-                </View>
-                <ChevronRight size={18} color={isSelected ? theme.primary : theme.textSecondary} />
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        {/* Private Preferences Banner Card (Document Motif) */}
-        <TouchableOpacity
-          onPress={() => {
-            triggerHaptic();
-            router.push(`/groups/${currentGroup.id}/preferences` as any);
-          }}
-          activeOpacity={0.85}
-          style={[
-            styles.constraintStatusCard,
-            {
-              backgroundColor: currentUserSubmitted ? theme.surfaceSubtle : theme.surface,
-              borderColor: currentUserSubmitted ? theme.success : theme.primary,
-              borderLeftWidth: 4,
-              borderLeftColor: currentUserSubmitted ? theme.success : theme.primary
-            }
-          ]}
-        >
-          <View style={styles.constraintStatusLeft}>
-            {currentUserSubmitted ? (
-              <CheckCircle2 size={20} color={theme.success} />
-            ) : (
-              <Clock size={20} color={theme.primary} />
-            )}
-            <View style={styles.constraintTextCol}>
-              <Text style={[styles.constraintTitle, { color: theme.textPrimary }]}>
-                {currentUserSubmitted ? 'Your Travel Pact Sealed' : 'Submit Private Constraints'}
-              </Text>
-              <Text style={[styles.constraintSub, { color: theme.textSecondary }]}>
-                {currentUserSubmitted
-                  ? 'Your dates, budget, and vibes are securely factored into the consensus.'
-                  : 'Tap here to enter your hidden budget & dates without peer pressure.'}
-              </Text>
+                    100% match
+                  </SvgText>
+                </Svg>
+              </Animated.View>
             </View>
+
+            <Text style={styles.heroHeading}>
+              Group travel, minus the deadlock.
+            </Text>
+            <Text style={styles.heroSubheading}>
+              Set private constraints. Vote anonymously. Lock in the plan.
+            </Text>
           </View>
-          <ArrowRight size={16} color={currentUserSubmitted ? theme.success : theme.primary} />
-        </TouchableOpacity>
 
-        {/* 2. Top Ranked Destination / Consensus Section */}
-        <View style={styles.sectionHeaderRow}>
-          <Text style={[styles.sectionHeading, { color: theme.textPrimary }]}>
-            Current Consensus Lead
-          </Text>
-          <TouchableOpacity
-            onPress={() => router.push(`/groups/${currentGroup.id}/options` as any)}
-          >
-            <Text style={[styles.viewAllText, { color: theme.primary }]}>
-              View All Options ({consensus?.rankedOptions?.length || 3}) →
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.cardsList}>
-          {topOption ? (
-            <RankedOptionCard
-              scoredOption={topOption}
-              index={0}
-              isDarkMode={isDarkMode}
-              isApprovedByUser={votes[`${topOption.option.id}_${currentUserId}`] === true}
-              approvalCount={getOptionApprovalCount(topOption.option.id)}
-              onToggleVote={handleToggleVote}
-            />
-          ) : (
-            <View style={[styles.emptyCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
-                Waiting for members to submit their dates and budgets.
-              </Text>
-            </View>
-          )}
-        </View>
-
-        {/* 3. Bottlenecks Section */}
-        {bottleneckIssues.length > 0 && (
-          <BottlenecksSection
-            issues={bottleneckIssues}
-            isDarkMode={isDarkMode}
-            onResolve={() => router.push(`/groups/${currentGroup.id}/options` as any)}
-          />
-        )}
-
-        {/* 4. Action CTA ("Lock It In" / "Go to Silent Voting") */}
-        <TouchableOpacity
-          activeOpacity={0.85}
-          onPress={handleGoToVoting}
-          style={[
-            styles.finalizeBtn,
-            { backgroundColor: theme.primary }
-          ]}
-        >
-          <Vote size={18} color="#FFFFFF" />
-          <Text style={styles.finalizeBtnText}>
-            {isOrganizer ? 'Lock It In & Silent Voting' : 'Cast Silent Vote'}
-          </Text>
-          <Lock size={16} color="#FFFFFF" />
-        </TouchableOpacity>
-      </ScrollView>
-
-      {/* Floating Bottom Tab Bar */}
-      <BottomTabBar />
-
-      {/* Trip Brief Modal */}
-      <TripBriefModal
-        visible={briefModalVisible}
-        finalizedBrief={finalizedBrief}
-        isDarkMode={isDarkMode}
-        onClose={() => setBriefModalVisible(false)}
-      />
-
-      {/* Create Group Modal */}
-      <Modal
-        visible={createModalVisible}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setCreateModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View
-            style={[
-              styles.createModalCard,
-              { backgroundColor: theme.surface, borderColor: theme.border }
-            ]}
-          >
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: theme.textPrimary }]}>
-                Create Trip Circle
-              </Text>
-              <TouchableOpacity onPress={() => setCreateModalVisible(false)}>
-                <X size={20} color={theme.textSecondary} />
-              </TouchableOpacity>
-            </View>
-
-            <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
-              CIRCLE NAME
-            </Text>
-            <TextInput
-              style={[
-                styles.modalInput,
-                { backgroundColor: theme.surfaceSubtle, color: theme.textPrimary, borderColor: theme.border }
-              ]}
-              value={newGroupName}
-              onChangeText={setNewGroupName}
-              placeholder="e.g. Goa Reunion 2026"
-              placeholderTextColor={theme.textMuted}
-              autoFocus
-            />
-
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={handleCreateGroup}
-              disabled={isCreating || !newGroupName.trim()}
-              style={[
-                styles.createSubmitBtn,
-                { backgroundColor: theme.primary, opacity: isCreating || !newGroupName.trim() ? 0.6 : 1 }
-              ]}
+          {/* Scroll Down Chevron */}
+          <TouchableOpacity onPress={scrollToSteps} activeOpacity={0.7} style={styles.scrollDownWrapper}>
+            <Animated.View
+              style={{
+                transform: [{ translateY: chevronTranslateY }],
+                opacity: chevronOpacity
+              }}
             >
-              <Text style={styles.createSubmitBtnText}>
-                {isCreating ? 'Creating...' : 'Create Circle'}
-              </Text>
-            </TouchableOpacity>
+              <Svg width="18" height="10" viewBox="0 0 18 10">
+                <Path
+                  d="M1 1l8 7 8-7"
+                  fill="none"
+                  stroke="#454857"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </Svg>
+            </Animated.View>
+          </TouchableOpacity>
+
+          {/* How PACT Works 3-Step Breakdown */}
+          <View style={styles.stepsSection}>
+            <Text style={styles.stepsSectionTitle}>How PACT works</Text>
+
+            {[
+              {
+                n: '1',
+                t: 'Set your constraints, privately',
+                d: 'Budget, dates, and vibe — only you see what you enter.'
+              },
+              {
+                n: '2',
+                t: 'Vote without the group watching',
+                d: 'Everyone reacts to AI-picked options anonymously, no pressure.'
+              },
+              {
+                n: '3',
+                t: 'Lock the plan the moment you match',
+                d: 'AI books the stay and splits the cost the second consensus lands.'
+              }
+            ].map((step, idx) => (
+              <View
+                key={step.n}
+                style={[
+                  styles.stepRow,
+                  idx === 0 && { borderTopWidth: 0 }
+                ]}
+              >
+                <Text style={styles.stepNumber}>{step.n}</Text>
+                <View style={styles.stepTextCol}>
+                  <Text style={styles.stepTitle}>{step.t}</Text>
+                  <Text style={styles.stepDesc}>{step.d}</Text>
+                </View>
+              </View>
+            ))}
           </View>
+        </ScrollView>
+
+        {/* Bottom CTA Actions */}
+        <View style={styles.bottomCtaBar}>
+          <TouchableOpacity
+            activeOpacity={0.88}
+            onPress={() => handleContinue('apple')}
+            style={styles.appleBtn}
+          >
+            <Text style={styles.appleBtnText}>Continue with Apple</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => handleContinue('google')}
+            style={styles.googleBtn}
+          >
+            <Text style={styles.googleBtnText}>Continue with Google</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => handleContinue('email')}
+            style={styles.emailBtn}
+          >
+            <Text style={styles.emailBtnText}>Continue with email</Text>
+          </TouchableOpacity>
+
+          <Text style={styles.termsFooterText}>
+            By continuing you agree to PACT's Terms and Privacy Policy.
+          </Text>
         </View>
-      </Modal>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1
+  outerContainer: {
+    flex: 1,
+    backgroundColor: '#050608',
+    justifyContent: 'center',
+    alignItems: 'center'
   },
-  topBorderLine: {
-    height: 3,
-    width: '100%'
+  phoneFrame: {
+    width: '100%',
+    maxWidth: 420,
+    flex: 1,
+    backgroundColor: '#090A0F',
+    borderWidth: Platform.OS === 'web' ? 1 : 0,
+    borderColor: 'rgba(255,255,255,0.06)',
+    borderRadius: Platform.OS === 'web' ? 40 : 0,
+    overflow: 'hidden',
+    position: 'relative'
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 14,
-    paddingBottom: 90,
-    maxWidth: 600,
-    width: '100%',
-    alignSelf: 'center'
+    paddingHorizontal: 24,
+    paddingTop: 22,
+    paddingBottom: 24
   },
-  navActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8
-  },
-  iconButton: {
-    width: 34,
-    height: 34,
-    borderRadius: radius.sm,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1
-  },
-  circlesSection: {
-    marginBottom: 16
-  },
-  sectionTitleRow: {
+  headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8
+    marginBottom: 22
   },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: '800',
-    letterSpacing: -0.2
+  brandTitle: {
+    fontFamily: fontDisplay,
+    fontWeight: '700',
+    fontSize: 22,
+    letterSpacing: 0.3,
+    color: '#FF5A5F'
   },
-  plusCircleBtn: {
-    width: 26,
-    height: 26,
-    borderRadius: radius.sm,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  circleCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 12,
-    borderRadius: radius.sm,
-    marginBottom: 8
-  },
-  circleLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    flex: 1
-  },
-  circleAvatarBox: {
-    width: 34,
-    height: 34,
-    borderRadius: radius.sm,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  circleTextCol: {
-    flex: 1
-  },
-  circleName: {
-    fontSize: 13.5,
-    fontWeight: '800'
-  },
-  circleMeta: {
-    fontSize: 11,
-    marginTop: 1
-  },
-  constraintStatusCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 14,
-    borderRadius: radius.sm,
+  howItWorksPill: {
     borderWidth: 1,
-    marginBottom: 16
-  },
-  constraintStatusLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    flex: 1
-  },
-  constraintTextCol: {
-    flex: 1
-  },
-  constraintTitle: {
-    fontSize: 13,
-    fontWeight: '800'
-  },
-  constraintSub: {
-    fontSize: 11,
-    marginTop: 2,
-    lineHeight: 15
-  },
-  sectionHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 4,
-    marginBottom: 10
-  },
-  sectionHeading: {
-    fontSize: 14,
-    fontWeight: '800',
-    letterSpacing: -0.2
-  },
-  viewAllText: {
-    fontSize: 11.5,
-    fontWeight: '700'
-  },
-  cardsList: {
-    gap: 10,
-    marginBottom: 14
-  },
-  emptyCard: {
-    padding: 18,
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    alignItems: 'center'
-  },
-  emptyText: {
-    fontSize: 12,
-    textAlign: 'center'
-  },
-  finalizeBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: radius.btn,
-    marginTop: 4,
-    marginBottom: 20
-  },
-  finalizeBtnText: {
-    color: '#FFFFFF',
-    fontSize: 14.5,
-    fontWeight: '800'
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20
-  },
-  createModalCard: {
-    width: '100%',
-    maxWidth: 440,
-    borderRadius: radius.sm,
-    padding: 20,
-    borderWidth: 1
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16
-  },
-  modalTitle: {
-    fontSize: 17,
-    fontWeight: '800'
-  },
-  inputLabel: {
-    fontSize: 10.5,
-    fontWeight: '800',
-    letterSpacing: 0.8,
-    marginBottom: 6
-  },
-  modalInput: {
-    borderRadius: radius.sm,
+    borderColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 20,
     paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderWidth: 1,
-    fontSize: 14,
-    marginBottom: 16
+    paddingVertical: 5
   },
-  createSubmitBtn: {
-    paddingVertical: 13,
-    borderRadius: radius.btn,
+  howItWorksText: {
+    fontFamily: fontUI,
+    fontSize: 12,
+    color: '#6C6F7A'
+  },
+  heroCard: {
+    backgroundColor: '#13151E',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.07)',
+    borderRadius: 20,
+    paddingVertical: 26,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    marginBottom: 24
+  },
+  canvasWrapper: {
+    width: 180,
+    height: 140,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative'
+  },
+  nodeLayer: {
+    position: 'absolute',
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
     alignItems: 'center'
   },
-  createSubmitBtnText: {
-    color: '#FFFFFF',
+  stampLayer: {
+    position: 'absolute',
+    width: 140,
+    height: 140,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  heroHeading: {
+    fontFamily: fontDisplay,
+    fontWeight: '700',
+    fontSize: 24,
+    lineHeight: 30,
+    color: '#F4F3F0',
+    textAlign: 'center',
+    marginTop: 14,
+    marginBottom: 8
+  },
+  heroSubheading: {
+    fontFamily: fontUI,
+    fontSize: 13.5,
+    lineHeight: 20,
+    color: '#8B8D98',
+    textAlign: 'center',
+    maxWidth: 270
+  },
+  scrollDownWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 18,
+    paddingVertical: 4
+  },
+  stepsSection: {
+    paddingBottom: 20
+  },
+  stepsSectionTitle: {
+    fontFamily: fontUIBold,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#6C6F7A',
+    letterSpacing: 0.5,
+    marginBottom: 12
+  },
+  stepRow: {
+    flexDirection: 'row',
+    gap: 14,
+    paddingVertical: 14,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.06)'
+  },
+  stepNumber: {
+    fontFamily: fontDisplay,
+    fontSize: 19,
+    color: '#FF5A5F',
+    minWidth: 20
+  },
+  stepTextCol: {
+    flex: 1
+  },
+  stepTitle: {
+    fontFamily: fontUIBold,
     fontSize: 14,
-    fontWeight: '800'
+    fontWeight: '600',
+    color: '#F4F3F0',
+    marginBottom: 3
+  },
+  stepDesc: {
+    fontFamily: fontUI,
+    fontSize: 12.5,
+    color: '#6C6F7A',
+    lineHeight: 18
+  },
+  bottomCtaBar: {
+    paddingHorizontal: 24,
+    paddingTop: 14,
+    paddingBottom: 22,
+    backgroundColor: '#090A0F',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.06)'
+  },
+  appleBtn: {
+    width: '100%',
+    paddingVertical: 13,
+    marginBottom: 10,
+    borderRadius: 12,
+    backgroundColor: '#F4F3F0',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  appleBtnText: {
+    fontFamily: fontUIBold,
+    fontSize: 14.5,
+    fontWeight: '600',
+    color: '#090A0F'
+  },
+  googleBtn: {
+    width: '100%',
+    paddingVertical: 13,
+    marginBottom: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: '#13151E',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  googleBtnText: {
+    fontFamily: fontUIBold,
+    fontSize: 14.5,
+    fontWeight: '600',
+    color: '#F4F3F0'
+  },
+  emailBtn: {
+    width: '100%',
+    paddingVertical: 13,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  emailBtnText: {
+    fontFamily: fontUIBold,
+    fontSize: 14.5,
+    fontWeight: '600',
+    color: '#F4F3F0'
+  },
+  termsFooterText: {
+    fontFamily: fontUI,
+    fontSize: 10.5,
+    color: '#454857',
+    textAlign: 'center',
+    marginTop: 12,
+    lineHeight: 15
   }
 });
