@@ -11,7 +11,6 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import Purchases, { PurchasesError, PURCHASES_ERROR_CODE } from 'react-native-purchases';
 import { useGatherlyStore } from '../src/store/useGatherlyStore';
 import { deriveSubscriptionPlan } from '../src/lib/purchases/customerInfo';
 import { ScreenHeader } from '../src/components/ScreenHeader';
@@ -32,6 +31,27 @@ import {
   AlertCircle
 } from 'lucide-react-native';
 
+// Lazily load react-native-purchases only on native platforms
+// (the package has no web implementation and will crash Metro on web)
+function getPurchases() {
+  if (Platform.OS === 'web') return null;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    return require('react-native-purchases').default;
+  } catch {
+    return null;
+  }
+}
+
+function getPurchasesErrorCode() {
+  if (Platform.OS === 'web') return null;
+  try {
+    return require('react-native-purchases').PURCHASES_ERROR_CODE;
+  } catch {
+    return null;
+  }
+}
+
 export default function PaywallScreen() {
   const router = useRouter();
   const {
@@ -49,9 +69,12 @@ export default function PaywallScreen() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
+    if (Platform.OS === 'web') return;
     const checkEntitlement = async () => {
       try {
-        const info = await Purchases.getCustomerInfo();
+        const RC = getPurchases();
+        if (!RC) return;
+        const info = await RC.getCustomerInfo();
         setSubscriptionPlan(deriveSubscriptionPlan(info));
       } catch (e) {
         // Non-fatal: keep showing current cached plan
@@ -73,28 +96,29 @@ export default function PaywallScreen() {
   const handleSubscribe = async () => {
     triggerHaptic();
     setPurchaseError(null);
+    if (Platform.OS === 'web') {
+      // Demo mode for web: simulate activation
+      setSubscriptionPlan('premium_annual');
+      setSuccessMessage('🎉 Subscription activated! Welcome to PACT Pro.');
+      setTimeout(() => { setSuccessMessage(''); router.back(); }, 1500);
+      return;
+    }
     setIsLoading(true);
     try {
-      const offerings = await Purchases.getOfferings();
+      const RC = getPurchases();
+      if (!RC) throw new Error('Purchases not available.');
+      const offerings = await RC.getOfferings();
       const currentOffering = offerings.current;
-      if (!currentOffering) {
-        throw new Error('No offerings available. Please try again later.');
-      }
-      const pkg = billingCycle === 'annual'
-        ? currentOffering.annual
-        : currentOffering.monthly;
-      if (!pkg) {
-        throw new Error('Selected billing plan not available.');
-      }
-      const { customerInfo } = await Purchases.purchasePackage(pkg);
+      if (!currentOffering) throw new Error('No offerings available. Please try again later.');
+      const pkg = billingCycle === 'annual' ? currentOffering.annual : currentOffering.monthly;
+      if (!pkg) throw new Error('Selected billing plan not available.');
+      const { customerInfo } = await RC.purchasePackage(pkg);
       setSubscriptionPlan(deriveSubscriptionPlan(customerInfo));
       setSuccessMessage('🎉 Subscription activated! Welcome to PACT Pro.');
-      setTimeout(() => {
-        setSuccessMessage('');
-        router.back();
-      }, 1500);
+      setTimeout(() => { setSuccessMessage(''); router.back(); }, 1500);
     } catch (e: any) {
-      if (e?.code === PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR) {
+      const ERRORS = getPurchasesErrorCode();
+      if (ERRORS && e?.code === ERRORS.PURCHASE_CANCELLED_ERROR) {
         // User cancelled — no error message
       } else {
         setPurchaseError(e?.message ?? 'Purchase failed. Please try again.');
@@ -107,9 +131,16 @@ export default function PaywallScreen() {
   const handleRestore = async () => {
     triggerHaptic();
     setPurchaseError(null);
+    if (Platform.OS === 'web') {
+      setSuccessMessage('✓ Restore not available on web.');
+      setTimeout(() => setSuccessMessage(''), 2000);
+      return;
+    }
     setIsLoading(true);
     try {
-      const info = await Purchases.restorePurchases();
+      const RC = getPurchases();
+      if (!RC) throw new Error('Purchases not available.');
+      const info = await RC.restorePurchases();
       setSubscriptionPlan(deriveSubscriptionPlan(info));
       setSuccessMessage('✓ Purchases restored successfully.');
       setTimeout(() => setSuccessMessage(''), 2000);
