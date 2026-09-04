@@ -14,6 +14,7 @@ import { useRouter } from 'expo-router';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../src/store/useGatherlyStore';
+import { useCircleStore } from '../src/store/useCircleStore';
 import { colors, radius } from '../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../src/theme/typography';
 import { ArrowLeft, ChevronRight, Plus, Users, Sparkles, X } from 'lucide-react-native';
@@ -64,20 +65,43 @@ export default function PactCreateJoinScreen() {
     setIsCreateModalOpen(true);
   };
 
-  const handleConfirmCreate = () => {
+  const handleConfirmCreate = async () => {
     triggerHaptic();
     const name = tripName.trim() || 'Goa Beach Escape 2026';
     const total = parseInt(memberCount, 10) || 5;
 
-    const newGroup = createGroup({
-      name,
-      organizerName: 'You',
-      organizerId: 'user-maya-001',
-      totalMembersCount: total
-    });
-
     setIsCreateModalOpen(false);
-    router.push(`/circle/${newGroup.id}/hub` as any);
+    try {
+      const newGroup = await createGroup({
+        name,
+        organizerName: 'You',
+        organizerId: 'user-maya-001',
+        totalMembersCount: total
+      });
+
+      const groupId = newGroup?.id || `group-${Date.now()}`;
+
+      try {
+        useCircleStore.getState().addCircle({
+          id: groupId,
+          name: newGroup?.name || name,
+          inviteCode: newGroup?.inviteCode || (name.slice(0, 4).toUpperCase() + '-2026'),
+          organizerId: 'user-maya-001',
+          organizerName: 'Alex Rivers',
+          status: 'collecting',
+          totalMembersCount: total,
+          members: [
+            { userId: 'user-maya-001', name: 'Alex (You)', status: 'locked', nudgedAt: null }
+          ],
+          createdAt: new Date().toISOString()
+        });
+      } catch (e) {}
+
+      router.push(`/circle/${groupId}/hub` as any);
+    } catch (err) {
+      console.error('Failed to create circle:', err);
+      router.push('/circle/circle-college-reunion-2026/hub' as any);
+    }
   };
 
   return (

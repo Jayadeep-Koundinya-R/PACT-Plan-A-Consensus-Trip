@@ -1,6 +1,8 @@
 ﻿import React, { useState } from 'react';
 import {
   View,
+  Modal,
+  Image,
   Text,
   TouchableOpacity,
   ScrollView,
@@ -29,13 +31,14 @@ export default function PactTripVault() {
   const currentGroup =
     groups.find((g) => g && g.id === id) ||
     groups[0] || {
-      id: id || 'circle-college-reunion-2026',
+      id: (id && id !== 'undefined') ? id : (groups[0]?.id || 'circle-college-reunion-2026'),
       name: 'Goa',
       inviteCode: 'GOA-4F82'
     };
 
   const [copied, setCopied] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [selectedDoc, setSelectedDoc] = useState<any | null>(null);
 
   const handleSyncVault = () => {
     haptics.tap();
@@ -46,20 +49,20 @@ export default function PactTripVault() {
     }, 1200);
   };
 
-  // Demo docs â€” in production, this would come from Supabase storage
+  // Demo docs — in production, this would come from Supabase storage
   const [documents] = useState([
     { section: 'FLIGHTS & TRANSPORT', items: [
-      { name: 'IndiGo_Flight_All5.pdf', meta: 'Uploaded by Alex  Â·  1.2 MB', type: 'flight' },
+      { name: 'IndiGo_Flight_All5.pdf', meta: 'Uploaded by Alex  ·  1.2 MB', type: 'flight' },
       { name: 'Airport_Transfer_Receipt.pdf', meta: 'Uploaded by Sam', type: 'transfer' }
     ]},
     { section: 'ACCOMMODATION BOOKINGS', items: [
-      { name: 'South_Goa_Villa_Confirmation.pdf', meta: 'Uploaded by You  Â·  Code #PACT-9921', type: 'villa' }
+      { name: 'South_Goa_Villa_Confirmation.pdf', meta: 'Uploaded by You  ·  Code #PACT-9921', type: 'villa' }
     ]}
   ]);
 
   const hasDocuments = finalizedBrief !== null || documents.length > 0;
 
-  const aiText = 'âœˆï¸ Goa trip update: flights & villa confirmed! All PDF vouchers are ready in the vault.';
+  const aiText = '✈️ Goa trip update: flights & villa confirmed! All PDF vouchers are ready in the vault.';
 
   const handleCopy = async () => {
     haptics.success();
@@ -77,11 +80,13 @@ export default function PactTripVault() {
     icon,
     name,
     meta,
+    type = 'flight',
     chips = true
   }: {
     icon: React.ReactNode;
     name: string;
     meta: React.ReactNode;
+    type?: string;
     chips?: boolean;
   }) => (
     <View style={styles.docCard}>
@@ -96,8 +101,19 @@ export default function PactTripVault() {
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={() => {
-                haptics.tap();
-                Alert.alert('View Document', `Opening ${name}...`);
+                haptics.action();
+                setSelectedDoc({
+                  name,
+                  meta,
+                  type,
+                  code: '#PACT-9921',
+                  passengers: ['Alex (Organizer)', 'You', 'Sam', 'Jordan', 'Maya'],
+                  details: type === 'flight'
+                    ? 'IndiGo 6E-241 • BOM → GOI • Confirmed Seats 12A-12E'
+                    : type === 'villa'
+                    ? 'Heritage 5BHK Pool Villa • South Goa • Check-in Oct 14'
+                    : 'Airport Private Van • Dabolim Airport Pickup'
+                });
               }}
               style={styles.docChip}
             >
@@ -161,10 +177,10 @@ export default function PactTripVault() {
           {/* Header Row */}
           <View style={styles.headerRow}>
             <View style={styles.headerLeft}>
-              <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7} style={styles.backBtn}>
-                <ArrowLeft size={18} color="#8B8D98" />
-              </TouchableOpacity>
-              <Text style={styles.headerTitle}>{currentGroup.name || 'Goa'} trip vault</Text>
+              
+              <Text style={styles.headerTitle}>
+                {currentGroup.name ? (currentGroup.name.toLowerCase().includes('vault') ? currentGroup.name : currentGroup.name.replace(/\s*trip$/i, '') + ' Vault') : 'Goa Beach Escape Vault'}
+              </Text>
             </View>
 
             <TouchableOpacity
@@ -185,7 +201,7 @@ export default function PactTripVault() {
           </View>
 
           {!hasDocuments ? (
-            /* Empty State â€” No documents yet */
+            /* Empty State — No documents yet */
             <EmptyState
               icon="folder"
               title="No documents yet"
@@ -207,6 +223,7 @@ export default function PactTripVault() {
                         icon={getDocIcon(doc.type)}
                         name={doc.name}
                         meta={doc.meta}
+                        type={doc.type}
                       />
                     ))}
                   </View>
@@ -216,7 +233,7 @@ export default function PactTripVault() {
               {/* AI Copy Assistant Card */}
               <View style={styles.aiCopyCard}>
                 <View style={styles.aiCopyHeader}>
-                  <Text style={{ fontSize: 13 }}>âœ¨</Text>
+                  <Text style={{ fontSize: 13 }}>✨</Text>
                   <Text style={styles.aiCopyTitle}>AI copy assistant</Text>
                 </View>
 
@@ -261,6 +278,92 @@ export default function PactTripVault() {
           </TouchableOpacity>
         </View>
       </View>
+    
+      {/* Interactive Vault Voucher / Ticket Preview Modal */}
+      <Modal
+        visible={selectedDoc !== null}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setSelectedDoc(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContentCard}>
+            {/* Modal Header */}
+            <View style={styles.modalHeaderRow}>
+              <View style={styles.modalBadge}>
+                <Shield size={12} color="#3DE0A0" />
+                <Text style={styles.modalBadgeText}>SEALED CONSENSUS VOUCHER</Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => {
+                  haptics.tap();
+                  setSelectedDoc(null);
+                }}
+                style={styles.modalCloseBtn}
+              >
+                <Text style={styles.modalCloseBtnText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Document Title & Reference */}
+            <Text style={styles.modalDocTitle}>{selectedDoc?.name}</Text>
+            <Text style={styles.modalRefCode}>BOOKING REF: {selectedDoc?.code}</Text>
+
+            {/* Perforation Divider */}
+            <View style={styles.modalDividerRow}>
+              <View style={styles.modalNotchLeft} />
+              <View style={styles.modalDashedLine} />
+              <View style={styles.modalNotchRight} />
+            </View>
+
+            {/* Ticket Details */}
+            <View style={styles.modalDetailsBox}>
+              <Text style={styles.modalDetailLabel}>DETAILS & BOOKING SUMMARY</Text>
+              <Text style={styles.modalDetailValue}>{selectedDoc?.details}</Text>
+
+              <Text style={[styles.modalDetailLabel, { marginTop: 12 }]}>CONFIRMED ATTENDEES (5)</Text>
+              <View style={styles.passengerChipsRow}>
+                {selectedDoc?.passengers?.map((p: string, idx: number) => (
+                  <View key={idx} style={styles.passengerChip}>
+                    <Text style={styles.passengerChipText}>{p}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+
+            {/* Simulated QR Code Area */}
+            <View style={styles.qrCodeCard}>
+              <View style={styles.simulatedBarcode}>
+                <View style={[styles.bar, { width: 3 }]} />
+                <View style={[styles.bar, { width: 1 }]} />
+                <View style={[styles.bar, { width: 4 }]} />
+                <View style={[styles.bar, { width: 2 }]} />
+                <View style={[styles.bar, { width: 1 }]} />
+                <View style={[styles.bar, { width: 5 }]} />
+                <View style={[styles.bar, { width: 2 }]} />
+                <View style={[styles.bar, { width: 4 }]} />
+                <View style={[styles.bar, { width: 1 }]} />
+                <View style={[styles.bar, { width: 3 }]} />
+                <View style={[styles.bar, { width: 2 }]} />
+                <View style={[styles.bar, { width: 5 }]} />
+              </View>
+              <Text style={styles.qrCodeSub}>SCAN AT CHECK-IN • BACKED BY CIRCLE CONSENSUS</Text>
+            </View>
+
+            {/* Close Button */}
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => {
+                haptics.tap();
+                setSelectedDoc(null);
+              }}
+              style={styles.modalDoneBtn}
+            >
+              <Text style={styles.modalDoneBtnText}>Done</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -286,7 +389,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 22,
-    paddingBottom: 24
+    paddingBottom: 120
   },
   headerRow: {
     flexDirection: 'row',
@@ -474,5 +577,189 @@ const styles = StyleSheet.create({
     fontSize: 14.5,
     fontWeight: '700',
     color: '#2E0805'
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(5, 6, 8, 0.88)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20
+  },
+  modalContentCard: {
+    width: '100%',
+    maxWidth: 420,
+    backgroundColor: '#13151E',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#2D3144',
+    padding: 22,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+    elevation: 20
+  },
+  modalHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12
+  },
+  modalBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(61, 224, 160, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.3)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8
+  },
+  modalBadgeText: {
+    fontFamily: fontUIBold,
+    fontSize: 9.5,
+    color: '#3DE0A0',
+    letterSpacing: 0.5
+  },
+  modalCloseBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#1F2232',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  modalCloseBtnText: {
+    color: '#8B8D98',
+    fontSize: 12,
+    fontWeight: '700'
+  },
+  modalDocTitle: {
+    fontFamily: fontDisplay,
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#F4F3F0',
+    marginBottom: 4
+  },
+  modalRefCode: {
+    fontFamily: fontUIBold,
+    fontSize: 11.5,
+    color: '#FF5A5F',
+    letterSpacing: 0.8,
+    marginBottom: 16
+  },
+  modalDividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: -22,
+    marginBottom: 16
+  },
+  modalNotchLeft: {
+    width: 14,
+    height: 20,
+    borderTopRightRadius: 10,
+    borderBottomRightRadius: 10,
+    backgroundColor: '#050608',
+    borderWidth: 1,
+    borderColor: '#2D3144',
+    borderLeftWidth: 0
+  },
+  modalDashedLine: {
+    flex: 1,
+    height: 1,
+    borderWidth: 1,
+    borderColor: '#2D3144',
+    borderStyle: 'dashed'
+  },
+  modalNotchRight: {
+    width: 14,
+    height: 20,
+    borderTopLeftRadius: 10,
+    borderBottomLeftRadius: 10,
+    backgroundColor: '#050608',
+    borderWidth: 1,
+    borderColor: '#2D3144',
+    borderRightWidth: 0
+  },
+  modalDetailsBox: {
+    backgroundColor: '#0D0E15',
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#1F2232'
+  },
+  modalDetailLabel: {
+    fontFamily: fontUIBold,
+    fontSize: 9.5,
+    color: '#8B8D98',
+    letterSpacing: 0.5,
+    marginBottom: 4
+  },
+  modalDetailValue: {
+    fontFamily: fontUI,
+    fontSize: 12.5,
+    color: '#F4F3F0',
+    lineHeight: 18
+  },
+  passengerChipsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 6
+  },
+  passengerChip: {
+    backgroundColor: '#181A26',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#25293A'
+  },
+  passengerChipText: {
+    fontFamily: fontUI,
+    fontSize: 10.5,
+    color: '#3DE0A0'
+  },
+  qrCodeCard: {
+    alignItems: 'center',
+    backgroundColor: '#0D0E15',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#1F2232'
+  },
+  simulatedBarcode: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    height: 28,
+    marginBottom: 6
+  },
+  bar: {
+    height: '100%',
+    backgroundColor: '#F4F3F0',
+    borderRadius: 1
+  },
+  qrCodeSub: {
+    fontFamily: fontUI,
+    fontSize: 8.5,
+    color: '#8B8D98',
+    letterSpacing: 0.5
+  },
+  modalDoneBtn: {
+    backgroundColor: '#FF5A5F',
+    paddingVertical: 13,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  modalDoneBtnText: {
+    fontFamily: fontUIBold,
+    fontSize: 14.5,
+    fontWeight: '800',
+    color: '#050608'
   }
 });

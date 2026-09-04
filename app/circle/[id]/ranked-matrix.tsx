@@ -1,6 +1,7 @@
 ﻿import React, { useState } from 'react';
 import {
   View,
+  Image,
   Text,
   TouchableOpacity,
   ScrollView,
@@ -38,12 +39,12 @@ export default function PactConsensusResults() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const haptics = usePactHaptics();
-  const { groups = [], getConsensusResults, members = [] } = useGatherlyStore();
+  const { groups = [], getConsensusResults, members = [], activeDemoScenario = "early_bird" } = useGatherlyStore();
 
   const currentGroup =
     groups.find((g) => g && g.id === id) ||
     groups[0] || {
-      id: id || 'circle-college-reunion-2026',
+      id: (id && id !== 'undefined') ? id : (groups[0]?.id || 'circle-college-reunion-2026'),
       name: 'Goa trip',
       inviteCode: 'GOA-4F82',
       totalMembersCount: 5
@@ -54,7 +55,15 @@ export default function PactConsensusResults() {
   const [showFlexibleSplitModal, setShowFlexibleSplitModal] = useState(false);
 
   // Deadlock state management
-  const [deadlockMode, setDeadlockMode] = useState(false);
+  const [deadlockModeLocal, setDeadlockModeLocal] = useState<boolean | null>(null);
+  const deadlockMode = deadlockModeLocal !== null ? deadlockModeLocal : (activeDemoScenario === 'deadlock');
+  const setDeadlockMode = (val: boolean | ((prev: boolean) => boolean)) => {
+    if (typeof val === 'function') {
+      setDeadlockModeLocal((prev) => val(prev !== null ? prev : (activeDemoScenario === 'deadlock')));
+    } else {
+      setDeadlockModeLocal(val);
+    }
+  };
   const [softOverrideActive, setSoftOverrideActive] = useState(false);
   const [privateNudgeSent, setPrivateNudgeSent] = useState(false);
 
@@ -107,9 +116,7 @@ export default function PactConsensusResults() {
           {/* Header Row */}
           <View style={styles.headerRow}>
             <View style={styles.headerLeft}>
-              <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7} style={styles.backBtn}>
-                <ArrowLeft size={18} color="#8B8D98" />
-              </TouchableOpacity>
+              
               <Text style={styles.headerTitle}>Consensus results</Text>
             </View>
 
@@ -221,7 +228,13 @@ export default function PactConsensusResults() {
 
               {/* #1 Top Compromise Ticket Card */}
               <View style={styles.topTicketCard}>
-                <View style={styles.topTicketInner}>
+                <View style={styles.topCardCoverBox}>
+                  <Image
+                    source={{ uri: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=800' }}
+                    style={StyleSheet.absoluteFillObject}
+                    resizeMode="cover"
+                  />
+                  <View style={styles.topCardCoverOverlay} />
                   <View style={styles.topBadgeRow}>
                     <View style={styles.topPickBadge}>
                       <Text style={styles.topPickBadgeText}>
@@ -234,53 +247,8 @@ export default function PactConsensusResults() {
                       </View>
                     )}
                   </View>
-
-                  <View style={styles.destMatchRow}>
-                    <View style={{ flex: 1, paddingRight: 12 }}>
-                      <Text style={styles.destTitleText}>Goa, India</Text>
-                      <Text style={{ fontFamily: fontUI, fontSize: 12, color: '#3DE0A0', marginTop: 2 }}>
-                        96% Consensus match across all 5 members
-                      </Text>
-                    </View>
-                    <ConsensusGauge
-                      value={96}
-                      size={74}
-                      strokeColor="#3DE0A0"
-                      centerText="96%"
-                      centerSubtext="match"
-                      animated={true}
-                    />
-                  </View>
-
-                  {/* Progress Bar */}
-                  <View style={styles.matchProgressBarBg}>
-                    <View style={[styles.matchProgressBarFill, { width: '96%' }]} />
-                  </View>
-
-                  {/* Meta Tags Row */}
-                  <View style={styles.metaTagsRow}>
-                    <View style={styles.metaItem}>
-                      <Svg width="13" height="13" viewBox="0 0 13 13">
-                        <Rect x="1.5" y="2.5" width="10" height="9" rx="1.3" fill="none" stroke="#8B8D98" strokeWidth="1.1" />
-                        <Path d="M1.5 5h10M4 1.3v2M9 1.3v2" stroke="#8B8D98" strokeWidth="1.1" strokeLinecap="round" />
-                      </Svg>
-                      <Text style={styles.metaItemText}>Oct 14 - Oct 19</Text>
-                    </View>
-
-                    <View style={styles.metaItem}>
-                      <Svg width="13" height="13" viewBox="0 0 13 13">
-                        <Path
-                          d="M1.5 6.5L6.5 1.5h5v5l-5 5z"
-                          fill="none"
-                          stroke="#8B8D98"
-                          strokeWidth="1.1"
-                          strokeLinejoin="round"
-                        />
-                        <Circle cx="9" cy="4" r="0.9" fill="#8B8D98" />
-                      </Svg>
-                      <Text style={styles.metaItemText}>$540 / person</Text>
-                    </View>
-                  </View>
+                </View>
+                <View style={styles.topTicketInner}>
 
                   {/* Checklist Breakdown */}
                   <View style={styles.checklistContainer}>
@@ -299,7 +267,8 @@ export default function PactConsensusResults() {
               {/* #2 Ranked Destination Card */}
               <TouchableOpacity
                 activeOpacity={0.8}
-                onPress={() =>
+                onPress={() => {
+                  haptics.tap();
                   setSelectedDetails({
                     name: 'Puducherry, India',
                     dates: 'Oct 12 - Oct 17, 2026',
@@ -310,11 +279,16 @@ export default function PactConsensusResults() {
                       'Budget fits comfortably at $480/traveler',
                       'French colonial heritage and coastal cafes'
                     ]
-                  })
-                }
+                  });
+                }}
                 style={styles.subOptionCard}
               >
-                <View>
+                <Image
+                  source={{ uri: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=300' }}
+                  style={styles.subOptionThumb}
+                  resizeMode="cover"
+                />
+                <View style={{ flex: 1 }}>
                   <Text style={styles.subOptionName}>Puducherry, India</Text>
                   <Text style={styles.subOptionMeta}>Oct 12 - Oct 17  |  $480 / person</Text>
                 </View>
@@ -324,7 +298,8 @@ export default function PactConsensusResults() {
               {/* #3 Ranked Destination Card */}
               <TouchableOpacity
                 activeOpacity={0.8}
-                onPress={() =>
+                onPress={() => {
+                  haptics.tap();
                   setSelectedDetails({
                     name: 'Manali, Himachal Pradesh',
                     dates: 'Oct 15 - Oct 20, 2026',
@@ -335,11 +310,16 @@ export default function PactConsensusResults() {
                       'Flights + mountain cab transfers fit 4 of 5 members',
                       'Snow valley views and high-altitude cafes'
                     ]
-                  })
-                }
+                  });
+                }}
                 style={styles.subOptionCard}
               >
-                <View>
+                <Image
+                  source={{ uri: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=300' }}
+                  style={styles.subOptionThumb}
+                  resizeMode="cover"
+                />
+                <View style={{ flex: 1 }}>
                   <Text style={styles.subOptionName}>Manali, Himachal Pradesh</Text>
                   <Text style={styles.subOptionMeta}>Oct 15 - Oct 20  |  $620 / person</Text>
                 </View>
@@ -487,7 +467,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: 90
+    paddingBottom: 120
   },
   headerRow: {
     flexDirection: 'row',
@@ -913,5 +893,26 @@ const styles = StyleSheet.create({
     fontFamily: fontUI,
     fontSize: 12,
     color: '#D1D5DB'
-  }
+  },
+
+  topCardCoverBox: {
+    height: 120,
+    width: '100%',
+    position: 'relative',
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    overflow: 'hidden',
+    padding: 14,
+    justifyContent: 'flex-start'
+  },
+  topCardCoverOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(9, 10, 15, 0.45)'
+  },
+  subOptionThumb: {
+    width: 48,
+    height: 48,
+    borderRadius: 10,
+    marginRight: 12
+  },
 });

@@ -63,7 +63,7 @@ interface VoteState {
   getBallotEntries: (circleId: string) => BallotEntry[];
 }
 
-const DEFAULT_DRAFT: ConstraintDraft = {
+export const DEFAULT_DRAFT: ConstraintDraft = Object.freeze({
   dateWindows: [
     { label: 'Oct 12 – Oct 18', start: '2026-10-12', end: '2026-10-18', active: true },
     { label: 'Nov 02 – Nov 08', start: '2026-11-02', end: '2026-11-08', active: false }
@@ -83,7 +83,7 @@ const DEFAULT_DRAFT: ConstraintDraft = {
     'Flight time > 5 hrs': true,
     'Shared bathrooms': true
   }
-};
+});
 
 /** Maps budget band to a numeric max for the consensus engine */
 export function bandToMax(band: BudgetBand, custom: number): number {
@@ -112,7 +112,7 @@ export const useVoteStore = create<VoteState>((set, get) => ({
   lockedBallotCircleIds: [],
 
   getDraft: (circleId) => {
-    return get().drafts[circleId] || { ...DEFAULT_DRAFT };
+    return get().drafts[circleId] || DEFAULT_DRAFT;
   },
 
   updateDraft: (circleId, partial) =>

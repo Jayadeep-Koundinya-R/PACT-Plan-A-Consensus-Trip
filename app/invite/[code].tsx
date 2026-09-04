@@ -13,7 +13,6 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../../src/store/useGatherlyStore';
-import { BottomTabBar } from '../../src/components/BottomTabBar';
 import { ThemeToggle } from '../../src/components/ThemeToggle';
 import { colors, radius, shadows, spacing } from '../../src/theme/colors';
 import {
@@ -114,7 +113,7 @@ export default function InviteCodeScreen() {
       if (res.success && res.group) {
         setStatus('joined');
         setTimeout(() => {
-          router.replace(`/groups/${res.group.id}`);
+          router.replace(`/circle/${res.group.id}/hub`);
         }, 1200);
       } else {
         setStatus('error');
@@ -140,7 +139,7 @@ export default function InviteCodeScreen() {
           ]}
         >
           <TouchableOpacity
-            onPress={() => router.push('/groups')}
+            onPress={() => router.push('/(tabs)/home')}
             style={[styles.backBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
             accessibilityLabel="Back to Circles"
           >
@@ -188,7 +187,7 @@ export default function InviteCodeScreen() {
             </Text>
             <TouchableOpacity
               activeOpacity={0.85}
-              onPress={() => router.replace(`/groups/${groupPreview?.id}` as any)}
+              onPress={() => router.replace(`/circle/${groupPreview?.id}/hub` as any)}
               style={[styles.primaryBtn, { backgroundColor: theme.primary }]}
             >
               <Text style={styles.primaryBtnText}>Open Trip Circle</Text>
@@ -306,8 +305,7 @@ export default function InviteCodeScreen() {
         )}
       </ScrollView>
 
-      {/* Floating Bottom Tab Bar */}
-      <BottomTabBar />
+      
     </SafeAreaView>
   );
 }

@@ -89,7 +89,7 @@ interface GatherlyState {
   setIsCheckingEntitlement: (v: boolean) => void;
   setPurchaseError: (msg: string | null) => void;
   setSubscriptionPlan: (plan: 'free' | 'premium_monthly' | 'premium_annual') => void;
-  createGroup: (name: string) => Promise<Group>;
+  createGroup: (name: string | { name?: string; organizerName?: string; organizerId?: string; totalMembersCount?: number }) => Promise<Group>;
   leaveGroup: (groupId: string) => Promise<void>;
   deleteGroup: (groupId: string) => Promise<void>;
   joinGroupByCode: (code: string) => Promise<{ success: boolean; message: string; group?: Group }>;
@@ -107,15 +107,16 @@ interface GatherlyState {
   finalizeTrip: (callerUserId?: string) => TripBrief;
   reopenVoting: (groupId: string, callerUserId?: string) => void;
 
-  setDemoScenario: (scenario: 'consensus_winner' | 'budget_deadlock' | 'dealbreaker_deadlock') => void;
+  activeDemoScenario: string;
+  setDemoScenario: (scenario: 'early_bird' | 'budget_gap' | 'deadlock' | 'consensus' | 'consensus_winner' | 'budget_deadlock' | 'dealbreaker_deadlock') => void;
   setPendingInviteCode: (code: string | null) => void;
   resetDemoState: () => void;
 }
 
 const initialGroup: Group = {
   id: DEMO_GROUP_ID,
-  name: 'College Reunion Trip',
-  inviteCode: 'GOA-2026',
+  name: 'Goa Beach Escape 2026',
+  inviteCode: 'GOA-4F82',
   organizerId: 'user-maya-001',
   status: 'voting',
   totalMembersCount: 5
@@ -151,6 +152,7 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     'opt-bangalore-03_user-maya-001': true
   },
   finalizedBrief: null,
+  activeDemoScenario: 'early_bird',
 
   vaultDocuments: {
     'circle-college-reunion-2026': [
@@ -334,43 +336,50 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
       activeGroupId: state.groups.find((g) => g.id !== groupId)?.id || ''
     }));
   },
-  createGroup: async (name: string) => {
+  createGroup: async (name: string | { name?: string; organizerName?: string; organizerId?: string; totalMembersCount?: number }) => {
     const { currentUserId, groups } = get();
-    const cleanName = name.trim() || 'New Trip Circle';
+    const rawName = typeof name === 'object' && name !== null ? name.name : name;
+    const cleanName = (typeof rawName === 'string' ? rawName.trim() : '') || 'New Trip Circle';
+    const totalCount = (typeof name === 'object' && name !== null && name.totalMembersCount)
+      ? Number(name.totalMembersCount)
+      : 5;
+    const organizer = (typeof name === 'object' && name !== null && name.organizerId)
+      ? name.organizerId
+      : (currentUserId || 'user-maya-001');
 
     let newGroup: Group;
-    if (currentUserId && !currentUserId.startsWith('user-')) {
+    if (organizer && !organizer.startsWith('user-')) {
       try {
-        const cloudGroup = await createSupabaseGroup(cleanName, currentUserId);
+        const cloudGroup = await createSupabaseGroup(cleanName, organizer);
         newGroup = {
           id: cloudGroup.id,
           name: cloudGroup.name,
           inviteCode: cloudGroup.invite_code,
           organizerId: cloudGroup.organizer_id,
           status: cloudGroup.status,
-          totalMembersCount: 1
+          totalMembersCount: totalCount
         };
       } catch (e) {
         console.warn('Supabase createGroup failed, falling back to local:', e);
-        const code = cleanName.slice(0, 4).toUpperCase() + '-' + Math.floor(1000 + Math.random() * 9000);
+        const code = cleanName.slice(0, 4).replace(/[^A-Z0-9]/gi, 'X').toUpperCase() + '-' + Math.floor(1000 + Math.random() * 9000);
         newGroup = {
           id: `group-${Date.now()}`,
           name: cleanName,
           inviteCode: code,
-          organizerId: currentUserId,
+          organizerId: organizer,
           status: 'collecting',
-          totalMembersCount: 1
+          totalMembersCount: totalCount
         };
       }
     } else {
-      const code = cleanName.slice(0, 4).toUpperCase() + '-' + Math.floor(1000 + Math.random() * 9000);
+      const code = cleanName.slice(0, 4).replace(/[^A-Z0-9]/gi, 'X').toUpperCase() + '-' + Math.floor(1000 + Math.random() * 9000);
       newGroup = {
         id: `group-${Date.now()}`,
         name: cleanName,
         inviteCode: code,
-        organizerId: currentUserId,
+        organizerId: organizer,
         status: 'collecting',
-        totalMembersCount: 1
+        totalMembersCount: totalCount
       };
     }
 
@@ -378,6 +387,23 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
       groups: [newGroup, ...groups],
       activeGroupId: newGroup.id
     });
+
+    try {
+      const { useCircleStore } = require('./useCircleStore');
+      useCircleStore.getState().addCircle({
+        id: newGroup.id,
+        name: newGroup.name,
+        inviteCode: newGroup.inviteCode,
+        organizerId: newGroup.organizerId,
+        organizerName: 'Alex Rivers',
+        status: 'collecting',
+        totalMembersCount: newGroup.totalMembersCount,
+        members: [
+          { userId: organizer, name: 'Alex (You)', status: 'locked', nudgedAt: null }
+        ],
+        createdAt: new Date().toISOString()
+      });
+    } catch (e) {}
 
     return newGroup;
   },
@@ -644,34 +670,74 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
 
   setPendingInviteCode: (code: string | null) => set({ pendingInviteCode: code }),
 
-  setDemoScenario: (scenario: 'consensus_winner' | 'budget_deadlock' | 'dealbreaker_deadlock') => {
+  setDemoScenario: (scenario: string) => {
     const freshOptions: TripOption[] = JSON.parse(JSON.stringify(DEMO_TRIP_OPTIONS));
     const freshMembers: MemberPreference[] = JSON.parse(JSON.stringify(DEMO_MEMBERS));
 
-    if (scenario === 'consensus_winner') {
+    if (scenario === 'early_bird') {
+      // Only 1 or 2 members locked in, rest awaiting
+      const earlyMembers = freshMembers.map((m, idx) => ({
+        ...m,
+        status: idx === 0 ? 'locked' : 'waiting'
+      }));
       set({
+        activeDemoScenario: 'early_bird',
         tripOptions: freshOptions,
-        members: freshMembers,
+        members: earlyMembers,
         finalizedBrief: null
       });
-    } else if (scenario === 'budget_deadlock') {
-      // Elevate trip budgets to $2800-$3500 to trigger extreme budget gaps for low-budget members
+    } else if (scenario === 'budget_gap' || scenario === 'budget_deadlock') {
+      // Wide budget gap: $700 cap vs $2500 cap
+      const budgetGapMembers = freshMembers.map((m, idx) => {
+        if (idx === 0) return { ...m, budgetMin: 2000, budgetMax: 2500, status: 'locked' };
+        if (idx === 1) return { ...m, budgetMin: 500, budgetMax: 700, status: 'locked' };
+        return { ...m, status: 'locked' };
+      });
       set({
+        activeDemoScenario: 'budget_gap',
         tripOptions: freshOptions.map((opt) => ({
           ...opt,
-          budgetPerPerson: 2900
+          budgetPerPerson: 1100
         })),
-        members: freshMembers,
+        members: budgetGapMembers,
         finalizedBrief: null
       });
-    } else if (scenario === 'dealbreaker_deadlock') {
-      // Add dealbreaker tags to all destinations to test the 0% score override and deadlock alert
+    } else if (scenario === 'deadlock' || scenario === 'dealbreaker_deadlock') {
+      // Conflicting dealbreakers across all members -> 0% match / deadlock
+      const deadlockMembers = freshMembers.map((m) => ({
+        ...m,
+        dealbreakers: ['beach', 'nightlife', 'warm', 'cold', 'city', 'hiking'],
+        status: 'locked'
+      }));
       set({
+        activeDemoScenario: 'deadlock',
         tripOptions: freshOptions.map((opt) => ({
           ...opt,
           tags: Array.from(new Set([...opt.tags, 'hiking', 'cold', 'city']))
         })),
-        members: freshMembers,
+        members: deadlockMembers,
+        finalizedBrief: null
+      });
+    } else if (scenario === 'consensus' || scenario === 'consensus_winner') {
+      // Perfect consensus: 5/5 agreed on Goa Beach Escape
+      const consensusMembers = freshMembers.map((m) => ({
+        ...m,
+        budgetMin: 400,
+        budgetMax: 1500,
+        dealbreakers: [],
+        status: 'locked'
+      }));
+      set({
+        activeDemoScenario: 'consensus',
+        tripOptions: freshOptions,
+        members: consensusMembers,
+        votes: {
+          'opt-goa-01_user-maya-001': true,
+          'opt-goa-01_user-jake-002': true,
+          'opt-goa-01_user-priya-003': true,
+          'opt-goa-01_user-alex-004': true,
+          'opt-goa-01_user-sam-005': true
+        },
         finalizedBrief: null
       });
     }

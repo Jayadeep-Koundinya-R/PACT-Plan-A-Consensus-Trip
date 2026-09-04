@@ -2,26 +2,29 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { colors, radius } from '../theme/colors';
+import { colors } from '../theme/colors';
 import { Check } from 'lucide-react-native';
 
+export type StepRoute = 'hub' | 'preferences' | 'ranked-matrix' | 'silent-ballot' | 'brief';
+
 interface StepProgressBarProps {
-  currentStep: 1 | 2 | 3 | 4;
+  currentStep: 1 | 2 | 3 | 4 | 5 | number;
   groupId: string;
   isDarkMode?: boolean;
 }
 
 const STEPS = [
-  { step: 1, label: 'Constraints', route: 'preferences' },
-  { step: 2, label: 'Rankings', route: 'options' },
-  { step: 3, label: 'Silent Vote', route: 'vote' },
-  { step: 4, label: 'Trip Brief', route: 'brief' }
+  { step: 1, label: 'Hub', route: 'hub' },
+  { step: 2, label: 'Constraints', route: 'preferences' },
+  { step: 3, label: 'Matrix', route: 'ranked-matrix' },
+  { step: 4, label: 'Vote', route: 'silent-ballot' },
+  { step: 5, label: 'Brief', route: 'brief' }
 ] as const;
 
 export const StepProgressBar: React.FC<StepProgressBarProps> = ({
   currentStep,
   groupId,
-  isDarkMode = false
+  isDarkMode = true
 }) => {
   const router = useRouter();
   const theme = isDarkMode ? colors.dark : colors.light;
@@ -36,7 +39,7 @@ export const StepProgressBar: React.FC<StepProgressBarProps> = ({
 
   const handleStepPress = (route: string) => {
     triggerHaptic();
-    router.push(`/groups/${groupId}/${route}` as any);
+    router.push(`/circle/${groupId}/${route}` as any);
   };
 
   return (
@@ -44,16 +47,16 @@ export const StepProgressBar: React.FC<StepProgressBarProps> = ({
       style={[
         styles.container,
         {
-          backgroundColor: theme.surface,
-          borderBottomColor: theme.border,
-          borderTopWidth: 2,
-          borderTopColor: theme.primary
+          backgroundColor: '#0D0E15',
+          borderBottomColor: '#1F2232',
+          borderTopWidth: 1,
+          borderTopColor: '#1F2232'
         }
       ]}
     >
       <View style={styles.stepsRow}>
         {STEPS.map((s, idx) => {
-          const isCompleted = s.step < currentStep || currentStep === 4;
+          const isCompleted = s.step < currentStep || currentStep === 5;
           const isCurrent = s.step === currentStep;
 
           return (
@@ -63,31 +66,32 @@ export const StepProgressBar: React.FC<StepProgressBarProps> = ({
                 activeOpacity={0.7}
                 onPress={() => handleStepPress(s.route)}
                 style={styles.stepItem}
+                accessibilityLabel={`Go to step ${s.step}: ${s.label}`}
               >
                 <View
                   style={[
                     styles.circle,
                     isCurrent && {
-                      backgroundColor: theme.primary,
-                      borderColor: theme.primary,
-                      shadowColor: theme.primary,
+                      backgroundColor: '#FF5A5F',
+                      borderColor: '#FF5A5F',
+                      shadowColor: '#FF5A5F',
                       shadowOffset: { width: 0, height: 0 },
-                      shadowOpacity: 0.35,
+                      shadowOpacity: 0.45,
                       shadowRadius: 6,
                       elevation: 3
                     },
                     isCompleted && !isCurrent && {
-                      backgroundColor: theme.success,
-                      borderColor: theme.success
+                      backgroundColor: '#3DE0A0',
+                      borderColor: '#3DE0A0'
                     },
                     !isCompleted && !isCurrent && {
-                      backgroundColor: theme.surfaceElevated,
-                      borderColor: theme.border
+                      backgroundColor: '#181A26',
+                      borderColor: '#2D3144'
                     }
                   ]}
                 >
                   {isCompleted && !isCurrent ? (
-                    <Check size={12} color="#FFFFFF" strokeWidth={3} />
+                    <Check size={10} color="#052E20" strokeWidth={3} />
                   ) : (
                     <Text
                       style={[
@@ -96,8 +100,8 @@ export const StepProgressBar: React.FC<StepProgressBarProps> = ({
                           color: isCurrent
                             ? '#FFFFFF'
                             : isCompleted
-                            ? '#FFFFFF'
-                            : theme.textMuted
+                            ? '#052E20'
+                            : '#8B8D98'
                         }
                       ]}
                     >
@@ -111,10 +115,10 @@ export const StepProgressBar: React.FC<StepProgressBarProps> = ({
                     styles.label,
                     {
                       color: isCurrent
-                        ? theme.textPrimary
+                        ? '#F4F3F0'
                         : isCompleted
-                        ? theme.textSecondary
-                        : theme.textMuted,
+                        ? '#3DE0A0'
+                        : '#8B8D98',
                       fontWeight: isCurrent ? '800' : '600'
                     }
                   ]}
@@ -131,8 +135,8 @@ export const StepProgressBar: React.FC<StepProgressBarProps> = ({
                     {
                       backgroundColor:
                         s.step < currentStep
-                          ? theme.success
-                          : theme.border
+                          ? '#3DE0A0'
+                          : '#1F2232'
                     }
                   ]}
                 />
@@ -147,8 +151,8 @@ export const StepProgressBar: React.FC<StepProgressBarProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    height: 56,
-    paddingHorizontal: 16,
+    height: 52,
+    paddingHorizontal: 12,
     justifyContent: 'center',
     borderBottomWidth: 1,
     width: '100%'
@@ -164,30 +168,30 @@ const styles = StyleSheet.create({
   stepItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingVertical: 6,
-    paddingHorizontal: 4
+    gap: 5,
+    paddingVertical: 4,
+    paddingHorizontal: 2
   },
   circle: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center'
   },
   stepNumber: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '800'
   },
   label: {
-    fontSize: 11,
+    fontSize: 10,
     letterSpacing: -0.2
   },
   connectingLine: {
     flex: 1,
     height: 2,
-    marginHorizontal: 6,
+    marginHorizontal: 4,
     borderRadius: 1
   }
 });

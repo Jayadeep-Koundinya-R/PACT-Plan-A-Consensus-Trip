@@ -20,7 +20,7 @@ import Animated, {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Svg, { Rect, Path } from 'react-native-svg';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
-import { useVoteStore, bandToMax, bandToMin } from '../../../src/store/useVoteStore';
+import { useVoteStore, DEFAULT_DRAFT, bandToMax, bandToMin } from '../../../src/store/useVoteStore';
 import { usePactHaptics } from '../../../src/hooks/usePactHaptics';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
 import { colors, radius } from '../../../src/theme/colors';
@@ -84,8 +84,8 @@ export default function PactConstraintsForm() {
     submitPreferences
   } = useGatherlyStore();
 
-  const circleId = id || 'circle-college-reunion-2026';
-  const draft = useVoteStore((s) => s.getDraft(circleId));
+  const circleId = (id && id !== 'undefined') ? id : (groups[0]?.id || 'circle-college-reunion-2026');
+  const draft = useVoteStore((s) => s.drafts[circleId]) || DEFAULT_DRAFT;
   const toggleDateWindow = useVoteStore((s) => s.toggleDateWindow);
   const addDateWindow = useVoteStore((s) => s.addDateWindow);
   const setBudgetBand = useVoteStore((s) => s.setBudgetBand);
@@ -98,7 +98,7 @@ export default function PactConstraintsForm() {
   const currentGroup =
     groups.find((g) => g && g.id === id) ||
     groups[0] || {
-      id: circleId,
+      id: (circleId && circleId !== 'undefined') ? circleId : 'circle-college-reunion-2026',
       name: 'Goa trip',
       inviteCode: 'GOA-4F82',
       organizerId: currentUserId,
@@ -217,11 +217,8 @@ export default function PactConstraintsForm() {
           {/* Header */}
           <View style={styles.headerRow}>
             <View style={styles.headerLeft}>
-              <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7} style={styles.backBtn}>
-                <ArrowLeft size={18} color="#8B8D98" />
-              </TouchableOpacity>
               <Text style={styles.headerTitle} numberOfLines={1}>
-                {currentGroup.name || 'Goa'} trip constraints
+                {currentGroup.name || 'Goa Beach Escape 2026'} constraints
               </Text>
             </View>
             <View style={styles.stepBadge}>
@@ -603,7 +600,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 22,
-    paddingBottom: 24
+    paddingBottom: 120
   },
   headerRow: {
     flexDirection: 'row',

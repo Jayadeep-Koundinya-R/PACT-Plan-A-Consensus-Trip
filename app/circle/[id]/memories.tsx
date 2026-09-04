@@ -1,6 +1,7 @@
 ﻿import React, { useState } from 'react';
 import {
   View,
+  Image,
   Text,
   TouchableOpacity,
   ScrollView,
@@ -29,7 +30,7 @@ export default function PactMemoryLibrary() {
   const currentGroup =
     groups.find((g) => g && g.id === id) ||
     groups[0] || {
-      id: id || 'circle-college-reunion-2026',
+      id: (id && id !== 'undefined') ? id : (groups[0]?.id || 'circle-college-reunion-2026'),
       name: 'Goa',
       inviteCode: 'GOA-4F82'
     };
@@ -48,12 +49,37 @@ export default function PactMemoryLibrary() {
 
   // Seeded photos from central store — never blank in offline or preview mode
   const storePhotos = memoryPhotos[currentGroup.id] || memoryPhotos['circle-college-reunion-2026'] || [];
-  const photos = storePhotos.length > 0 ? storePhotos : [
-    { id: 'p1', bg: '#3A1F1F', by: 'Alex', caption: 'Sunset at Palolem beach' },
-    { id: 'p2', bg: '#2A2416', by: 'Maya', caption: 'Old Goa cathedral walk' },
-    { id: 'p3', bg: '#16241F', by: 'Sam', caption: 'Scooter convoy morning' },
-    { id: 'p4', bg: '#1E1A2A', by: 'Jordan', caption: 'Seafood feast dinner' }
+  const curatedPhotos = [
+    {
+      id: 'p1',
+      uri: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=800',
+      by: 'Alex',
+      caption: 'Goa Sunset Beach',
+      bg: '#1A1820'
+    },
+    {
+      id: 'p2',
+      uri: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=800',
+      by: 'Maya',
+      caption: 'Luxury South Goa Villa',
+      bg: '#181E24'
+    },
+    {
+      id: 'p3',
+      uri: 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=800',
+      by: 'Sam',
+      caption: 'Coastal Scooter Ride',
+      bg: '#16241E'
+    },
+    {
+      id: 'p4',
+      uri: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800',
+      by: 'Jordan',
+      caption: 'Beachside Dinner',
+      bg: '#251C1C'
+    }
   ];
+  const photos = curatedPhotos;
 
   const hasMemories = finalizedBrief !== null || photos.length > 0;
 
@@ -78,11 +104,9 @@ export default function PactMemoryLibrary() {
           {/* Header Row */}
           <View style={styles.headerRow}>
             <View style={styles.headerLeft}>
-              <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7} style={styles.backBtn}>
-                <ArrowLeft size={18} color="#8B8D98" />
-              </TouchableOpacity>
+              
               <Text style={styles.headerTitle} numberOfLines={1}>
-                {currentGroup.name || 'Goa'} trip memories
+                {currentGroup.name ? (currentGroup.name.toLowerCase().includes('memories') ? currentGroup.name : currentGroup.name.replace(/\s*trip$/i, '') + ' Memories') : 'Goa Beach Escape Memories'}
               </Text>
             </View>
 
@@ -119,7 +143,7 @@ export default function PactMemoryLibrary() {
               <MemoryPhotoSkeleton count={4} />
             </View>
           ) : !hasMemories ? (
-            /* Empty State â€” No memories yet */
+            /* Empty State — No memories yet */
             <EmptyState
               icon="camera"
               title="No memories yet"
@@ -133,23 +157,37 @@ export default function PactMemoryLibrary() {
               {/* Memories Count Bar */}
               <View style={styles.countCard}>
                 <Text style={styles.countText}>
-                  <Text style={styles.countBold}>{photos.length > 0 ? '128 shared memories' : '0 memories'}</Text>  Â·  {currentGroup.name || 'Goa beach escape 2026'}
+                  <Text style={styles.countBold}>{photos.length > 0 ? '128 shared memories' : '0 memories'}</Text>  ·  {currentGroup.name || 'Goa beach escape 2026'}
                 </Text>
               </View>
 
               {/* 2x2 Photo Grid */}
               <View style={styles.photoGrid}>
                 {photos.map((p) => (
-                  <View key={p.by} style={[styles.photoTile, { backgroundColor: p.bg }]}>
-                    <Svg width="26" height="26" viewBox="0 0 26 26" style={styles.photoCenterIcon}>
-                      <Rect x="2" y="5" width="22" height="17" rx="2.5" fill="none" stroke="#F4F3F0" strokeWidth="1.3" />
-                      <Circle cx="9" cy="11" r="2.3" fill="none" stroke="#F4F3F0" strokeWidth="1.3" />
-                      <Path d="M2 19l6-5 4 3.5 5-5 7 6.5" fill="none" stroke="#F4F3F0" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-                    </Svg>
+                  <TouchableOpacity
+                    key={p.id || p.by}
+                    activeOpacity={0.88}
+                    onPress={() => {
+                      haptics.tap();
+                      Alert.alert(p.caption || 'Shared Memory', `Captured by ${p.by} during the trip.`);
+                    }}
+                    style={[styles.photoTile, { backgroundColor: p.bg || '#13151E' }]}
+                  >
+                    {p.uri ? (
+                      <Image
+                        source={{ uri: p.uri }}
+                        style={StyleSheet.absoluteFillObject}
+                        resizeMode="cover"
+                      />
+                    ) : null}
+                    <View style={styles.photoOverlayGradient} />
                     <View style={styles.photoTag}>
                       <Text style={styles.photoTagText}>By {p.by}</Text>
                     </View>
-                  </View>
+                    <View style={styles.captionPill}>
+                      <Text style={styles.captionText} numberOfLines={1}>{p.caption}</Text>
+                    </View>
+                  </TouchableOpacity>
                 ))}
               </View>
 
@@ -169,7 +207,7 @@ export default function PactMemoryLibrary() {
               <View style={styles.aiDigestOuter}>
                 <View style={styles.aiDigestInner}>
                   <View style={styles.aiDigestHeader}>
-                    <Text style={{ fontSize: 13 }}>âœ¨</Text>
+                    <Text style={{ fontSize: 13 }}>✨</Text>
                     <Text style={styles.aiDigestTitle}>AI trip digest</Text>
                     <View style={styles.aiGoldTag}>
                       <Text style={styles.aiGoldTagText}>PRO</Text>
@@ -242,7 +280,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 22,
-    paddingBottom: 24
+    paddingBottom: 120
   },
   headerRow: {
     flexDirection: 'row',
@@ -303,6 +341,26 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 10,
     marginBottom: 14
+  },
+  photoOverlayGradient: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(9, 10, 15, 0.25)'
+  },
+  captionPill: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    right: 8,
+    backgroundColor: 'rgba(9, 10, 15, 0.65)',
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 8
+  },
+  captionText: {
+    fontFamily: fontUI,
+    fontSize: 9.5,
+    fontWeight: '600',
+    color: '#F4F3F0'
   },
   photoTile: {
     width: '48%',

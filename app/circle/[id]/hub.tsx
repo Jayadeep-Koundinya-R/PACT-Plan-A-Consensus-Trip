@@ -39,13 +39,14 @@ export default function PactCirclesHub() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const haptics = usePactHaptics();
-  const { groups = [], members = [], activeGroupId, setActiveGroup } = useGatherlyStore();
+  const { groups = [], members = [], activeGroupId, setActiveGroup, activeDemoScenario = "early_bird" } = useGatherlyStore();
 
+  const rawId = (id && id !== 'undefined') ? id : undefined;
   const currentGroup =
-    groups.find((g) => g && g.id === id) ||
-    groups.find((g) => g && g.id === activeGroupId) ||
+    (rawId ? groups.find((g) => g && g.id === rawId) : undefined) ||
+    (activeGroupId && activeGroupId !== 'undefined' ? groups.find((g) => g && g.id === activeGroupId) : undefined) ||
     groups[0] || {
-      id: id || 'circle-college-reunion-2026',
+      id: 'circle-college-reunion-2026',
       name: 'Goa Beach Escape 2026',
       inviteCode: 'GOA-4F82',
       organizerId: 'user-maya-001',
@@ -79,14 +80,20 @@ export default function PactCirclesHub() {
     return () => pulseLoop.stop();
   }, []);
 
-  // Demo members: default to 2 locked (Early Bird State) so safety net is immediately visible
-  const [demoMembers, setDemoMembers] = useState([
+  // Demo members dynamically synchronized with activeDemoScenario
+  const demoMembers = activeDemoScenario === 'early_bird' ? [
     { name: 'You', status: 'locked' as const },
-    { name: 'Alex', status: 'locked' as const },
+    { name: 'Alex', status: 'waiting' as const },
     { name: 'Sam', status: 'waiting' as const },
     { name: 'Jordan', status: 'waiting' as const },
     { name: 'Maya', status: 'waiting' as const }
-  ]);
+  ] : [
+    { name: 'You', status: 'locked' as const },
+    { name: 'Alex', status: 'locked' as const },
+    { name: 'Sam', status: 'locked' as const },
+    { name: 'Jordan', status: 'locked' as const },
+    { name: 'Maya', status: 'locked' as const }
+  ];
 
   const lockedCount = demoMembers.filter((m) => m.status === 'locked').length;
   const totalCount = demoMembers.length;
@@ -202,13 +209,7 @@ export default function PactCirclesHub() {
           {/* Header Row */}
           <View style={styles.headerRow}>
             <View style={styles.headerLeft}>
-              <TouchableOpacity
-                onPress={() => router.push('/settings' as any)}
-                activeOpacity={0.7}
-                style={styles.backBtn}
-              >
-                <ArrowLeft size={18} color="#8B8D98" />
-              </TouchableOpacity>
+              
               <Text style={styles.tripTitle} numberOfLines={1}>
                 {currentGroup.name || 'Goa Beach Escape 2026'}
               </Text>
@@ -220,7 +221,7 @@ export default function PactCirclesHub() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={() => router.push('/settings' as any)}
+                onPress={() => router.push('/(tabs)/settings' as any)}
                 activeOpacity={0.7}
                 style={styles.settingsBtn}
               >

@@ -16,7 +16,7 @@ import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../src/store/useGatherlyStore';
 import { ScreenHeader } from '../src/components/ScreenHeader';
-import { BottomTabBar } from '../src/components/BottomTabBar';
+import { useUserStore } from '../src/store/useUserStore';
 import { MapDriftBackground } from '../src/components/MapDriftBackground';
 import { SkeletonLoader } from '../src/components/SkeletonLoader';
 import { colors, radius, shadows } from '../src/theme/colors';
@@ -136,7 +136,8 @@ export default function AuthScreen() {
       } else {
         await login(email.trim(), password);
       }
-      router.replace('/');
+      useUserStore.getState().setAuthenticated(true);
+      router.replace('/(tabs)/home');
     } catch (err: any) {
       setErrorMessage(err?.message || 'Authentication failed. Please check credentials.');
     } finally {
@@ -147,13 +148,15 @@ export default function AuthScreen() {
   const handleSelectDemoPersona = (userId: string) => {
     triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
     loginAsPersona(userId);
-    router.replace('/');
+    useUserStore.getState().setAuthenticated(true);
+    router.replace('/(tabs)/home');
   };
 
   const handleInstantGuest = () => {
     triggerHaptic(Haptics.ImpactFeedbackStyle.Light);
     loginAsPersona('user-maya-001');
-    router.replace('/');
+    useUserStore.getState().setAuthenticated(true);
+    router.replace('/(tabs)/home');
   };
 
   const ActiveIcon = VALUE_PILLARS[activePillar].icon;
@@ -519,8 +522,7 @@ export default function AuthScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* Floating Bottom Tab Bar */}
-      <BottomTabBar />
+      
     </SafeAreaView>
   );
 }

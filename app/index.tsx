@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -11,10 +11,13 @@ import {
   Platform
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import Svg, { Circle, Path, Rect, G, Text as SvgText } from 'react-native-svg';
+import Svg, { Circle, Path, Rect, Text as SvgText } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
+import { useUserStore } from '../src/store/useUserStore';
+import { supabase } from '../src/lib/supabase/client';
 import { colors, radius } from '../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../src/theme/typography';
+import { ArrowRight, Sparkles, ShieldCheck } from 'lucide-react-native';
 
 export default function PactLandingScreen() {
   const router = useRouter();
@@ -22,11 +25,35 @@ export default function PactLandingScreen() {
   // Animation values for the 2.6s consensus loop
   const animProgress = useRef(new Animated.Value(0)).current;
   const chevronAnim = useRef(new Animated.Value(0)).current;
-  const [showHowItWorks, setShowHowItWorks] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
-    // 2.6s converging nodes + stamp cycle
+    // 1. Auth Gate Verification
+    const checkAuth = async () => {
+      try {
+        const { isAuthenticated, profile } = useUserStore.getState();
+        if (isAuthenticated && profile?.userId) {
+          router.replace('/(tabs)/home');
+          return;
+        }
+
+        const { data } = await supabase.auth.getSession();
+        if (data?.session?.user) {
+          useUserStore.getState().setAuthenticated(true);
+          router.replace('/(tabs)/home');
+          return;
+        }
+      } catch (e) {
+        // Fall through to display landing hero
+      } finally {
+        setIsCheckingAuth(false);
+      }
+    };
+
+    checkAuth();
+
+    // 2. 2.6s converging nodes + stamp cycle
     const loop = Animated.loop(
       Animated.timing(animProgress, {
         toValue: 1,
@@ -70,9 +97,15 @@ export default function PactLandingScreen() {
     }
   };
 
-  const handleContinue = (method: 'apple' | 'google' | 'email') => {
+  const handleGetStarted = () => {
     triggerHaptic();
-    router.push('/create-circle' as any);
+    router.push('/auth' as any);
+  };
+
+  const handleInstantDemo = () => {
+    triggerHaptic();
+    useUserStore.getState().setAuthenticated(true);
+    router.replace('/(tabs)/home');
   };
 
   const scrollToSteps = () => {
@@ -148,6 +181,16 @@ export default function PactLandingScreen() {
     inputRange: [0, 1],
     outputRange: [0.5, 1]
   });
+
+  if (isCheckingAuth) {
+    return (
+      <View style={[styles.outerContainer, { backgroundColor: '#050608' }]}>
+        <View style={styles.loadingLogoBadge}>
+          <Text style={styles.loadingBrandText}>PACT</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.outerContainer}>
@@ -318,7 +361,7 @@ export default function PactLandingScreen() {
               {
                 n: '1',
                 t: 'Set your constraints, privately',
-                d: 'Budget, dates, and vibe — only you see what you enter.'
+                d: 'Budget, dates, and vibe - only you see what you enter.'
               },
               {
                 n: '2',
@@ -328,7 +371,7 @@ export default function PactLandingScreen() {
               {
                 n: '3',
                 t: 'Lock the plan the moment you match',
-                d: 'AI books the stay and splits the cost the second consensus lands.'
+                d: 'Consensus engine finalizes itinerary the second agreement lands.'
               }
             ].map((step, idx) => (
               <View
@@ -350,28 +393,24 @@ export default function PactLandingScreen() {
 
         {/* Bottom CTA Actions */}
         <View style={styles.bottomCtaBar}>
+          {/* Primary High-Converting CTA */}
           <TouchableOpacity
             activeOpacity={0.88}
-            onPress={() => handleContinue('apple')}
-            style={styles.appleBtn}
+            onPress={handleGetStarted}
+            style={styles.primaryCtaBtn}
           >
-            <Text style={styles.appleBtnText}>Continue with Apple</Text>
+            <Text style={styles.primaryCtaBtnText}>Get Started / Log In</Text>
+            <ArrowRight size={18} color="#050608" strokeWidth={2.5} />
           </TouchableOpacity>
 
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={() => handleContinue('google')}
-            style={styles.googleBtn}
-          >
-            <Text style={styles.googleBtnText}>Continue with Google</Text>
-          </TouchableOpacity>
-
+          {/* Secondary Demo Mode CTA */}
           <TouchableOpacity
             activeOpacity={0.8}
-            onPress={() => handleContinue('email')}
-            style={styles.emailBtn}
+            onPress={handleInstantDemo}
+            style={styles.demoCtaBtn}
           >
-            <Text style={styles.emailBtnText}>Continue with email</Text>
+            <Sparkles size={15} color="#F4F3F0" />
+            <Text style={styles.demoCtaBtnText}>Explore Demo Mode (5 Members)</Text>
           </TouchableOpacity>
 
           <Text style={styles.termsFooterText}>
@@ -389,6 +428,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#050608',
     justifyContent: 'center',
     alignItems: 'center'
+  },
+  loadingLogoBadge: {
+    width: 72,
+    height: 72,
+    borderRadius: 20,
+    backgroundColor: '#0D0E15',
+    borderWidth: 1,
+    borderColor: '#1F2232',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  loadingBrandText: {
+    fontFamily: fontDisplay,
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#FF5A5F',
+    letterSpacing: 1
   },
   phoneFrame: {
     width: '100%',
@@ -420,174 +476,153 @@ const styles = StyleSheet.create({
     color: '#FF5A5F'
   },
   howItWorksPill: {
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 20,
     paddingHorizontal: 12,
-    paddingVertical: 5
+    paddingVertical: 5,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#1F2232',
+    backgroundColor: '#13151E'
   },
   howItWorksText: {
-    fontFamily: fontUI,
     fontSize: 12,
-    color: '#6C6F7A'
+    color: '#8B8D98',
+    fontWeight: '600'
   },
   heroCard: {
     backgroundColor: '#13151E',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.07)',
+    borderColor: '#1F2232',
     borderRadius: 20,
-    paddingVertical: 26,
-    paddingHorizontal: 20,
+    padding: 24,
     alignItems: 'center',
-    marginBottom: 24
+    marginBottom: 16
   },
   canvasWrapper: {
-    width: 180,
+    width: 200,
     height: 140,
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative'
+    position: 'relative',
+    marginBottom: 12
   },
   nodeLayer: {
-    position: 'absolute',
-    width: 24,
-    height: 24,
-    justifyContent: 'center',
-    alignItems: 'center'
+    position: 'absolute'
   },
   stampLayer: {
     position: 'absolute',
-    width: 140,
-    height: 140,
     justifyContent: 'center',
     alignItems: 'center'
   },
   heroHeading: {
     fontFamily: fontDisplay,
     fontWeight: '700',
-    fontSize: 24,
-    lineHeight: 30,
+    fontSize: 21,
     color: '#F4F3F0',
     textAlign: 'center',
-    marginTop: 14,
+    lineHeight: 27,
+    letterSpacing: -0.3,
     marginBottom: 8
   },
   heroSubheading: {
-    fontFamily: fontUI,
-    fontSize: 13.5,
-    lineHeight: 20,
+    fontSize: 13,
     color: '#8B8D98',
     textAlign: 'center',
-    maxWidth: 270
+    lineHeight: 18
   },
   scrollDownWrapper: {
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 18,
-    paddingVertical: 4
+    paddingVertical: 10,
+    marginBottom: 10
   },
   stepsSection: {
-    paddingBottom: 20
+    backgroundColor: '#13151E',
+    borderWidth: 1,
+    borderColor: '#1F2232',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 16
   },
   stepsSectionTitle: {
-    fontFamily: fontUIBold,
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#6C6F7A',
-    letterSpacing: 0.5,
-    marginBottom: 12
+    fontFamily: fontDisplay,
+    fontWeight: '700',
+    fontSize: 15,
+    color: '#F4F3F0',
+    marginBottom: 14
   },
   stepRow: {
     flexDirection: 'row',
-    gap: 14,
-    paddingVertical: 14,
+    alignItems: 'flex-start',
+    gap: 12,
+    paddingVertical: 12,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.06)'
+    borderTopColor: '#1F2232'
   },
   stepNumber: {
     fontFamily: fontDisplay,
-    fontSize: 19,
+    fontSize: 15,
+    fontWeight: '700',
     color: '#FF5A5F',
-    minWidth: 20
+    width: 18,
+    marginTop: 1
   },
   stepTextCol: {
     flex: 1
   },
   stepTitle: {
-    fontFamily: fontUIBold,
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 13,
+    fontWeight: '700',
     color: '#F4F3F0',
     marginBottom: 3
   },
   stepDesc: {
-    fontFamily: fontUI,
-    fontSize: 12.5,
-    color: '#6C6F7A',
-    lineHeight: 18
+    fontSize: 12,
+    color: '#8B8D98',
+    lineHeight: 16
   },
   bottomCtaBar: {
-    paddingHorizontal: 24,
-    paddingTop: 14,
-    paddingBottom: 22,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: Platform.OS === 'ios' ? 24 : 16,
     backgroundColor: '#090A0F',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.06)'
+    borderTopColor: '#1F2232',
+    gap: 8
   },
-  appleBtn: {
-    width: '100%',
-    paddingVertical: 13,
-    marginBottom: 10,
-    borderRadius: 12,
-    backgroundColor: '#F4F3F0',
+  primaryCtaBtn: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    gap: 10,
+    backgroundColor: '#FF5A5F',
+    paddingVertical: 14,
+    borderRadius: 14
   },
-  appleBtnText: {
-    fontFamily: fontUIBold,
-    fontSize: 14.5,
-    fontWeight: '600',
-    color: '#090A0F'
+  primaryCtaBtnText: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#050608',
+    letterSpacing: -0.2
   },
-  googleBtn: {
-    width: '100%',
-    paddingVertical: 13,
-    marginBottom: 10,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+  demoCtaBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
     backgroundColor: '#13151E',
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  googleBtnText: {
-    fontFamily: fontUIBold,
-    fontSize: 14.5,
-    fontWeight: '600',
-    color: '#F4F3F0'
-  },
-  emailBtn: {
-    width: '100%',
-    paddingVertical: 13,
-    borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
-    backgroundColor: 'transparent',
-    alignItems: 'center',
-    justifyContent: 'center'
+    borderColor: '#1F2232',
+    paddingVertical: 12,
+    borderRadius: 14
   },
-  emailBtnText: {
-    fontFamily: fontUIBold,
-    fontSize: 14.5,
+  demoCtaBtnText: {
+    fontSize: 13,
     fontWeight: '600',
     color: '#F4F3F0'
   },
   termsFooterText: {
-    fontFamily: fontUI,
-    fontSize: 10.5,
-    color: '#454857',
+    fontSize: 10,
+    color: '#555866',
     textAlign: 'center',
-    marginTop: 12,
-    lineHeight: 15
+    marginTop: 4
   }
 });

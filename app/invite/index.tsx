@@ -12,7 +12,6 @@ import {
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../../src/store/useGatherlyStore';
-import { BottomTabBar } from '../../src/components/BottomTabBar';
 import { ThemeToggle } from '../../src/components/ThemeToggle';
 import { colors, radius, shadows, spacing } from '../../src/theme/colors';
 import {
@@ -138,8 +137,7 @@ export default function InviteIndexScreen() {
         </View>
       </ScrollView>
 
-      {/* Floating Bottom Tab Bar */}
-      <BottomTabBar />
+      
     </SafeAreaView>
   );
 }

@@ -28,7 +28,7 @@ export default function PactTripBrief() {
   const currentGroup =
     groups.find((g) => g && g.id === id) ||
     groups[0] || {
-      id: id || 'circle-college-reunion-2026',
+      id: (id && id !== 'undefined') ? id : (groups[0]?.id || 'circle-college-reunion-2026'),
       name: 'Goa Beach Escape 2026',
       inviteCode: 'GOA-4F82'
     };
@@ -84,9 +84,7 @@ export default function PactTripBrief() {
           {/* Header Row */}
           <View style={styles.headerRow}>
             <View style={styles.headerLeft}>
-              <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7} style={styles.backBtn}>
-                <ArrowLeft size={18} color="#8B8D98" />
-              </TouchableOpacity>
+              
               <Text style={styles.briefCodeTitle} numberOfLines={1}>
                 Trip brief #PACT-8821
               </Text>
@@ -277,7 +275,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 22,
-    paddingBottom: 24
+    paddingBottom: 120
   },
   headerRow: {
     flexDirection: 'row',
