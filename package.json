@@ -6,7 +6,7 @@
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
-    "web": "expo start --web",
+    "web": "expo start --web -c",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "test": "node --test src/lib/consensus/__tests__/*.test.mjs src/lib/security/__tests__/*.test.mjs src/lib/purchases/__tests__/*.test.mjs src/components/__tests__/*.test.mjs src/theme/__tests__/*.test.mjs",

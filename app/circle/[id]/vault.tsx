@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -24,7 +24,7 @@ export default function PactTripVault() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const haptics = usePactHaptics();
-  const { groups = [], finalizedBrief } = useGatherlyStore();
+  const { groups = [], finalizedBrief, vaultDocuments = {} } = useGatherlyStore();
 
   const currentGroup =
     groups.find((g) => g && g.id === id) ||
@@ -46,20 +46,20 @@ export default function PactTripVault() {
     }, 1200);
   };
 
-  // Demo docs — in production, this would come from Supabase storage
+  // Demo docs â€” in production, this would come from Supabase storage
   const [documents] = useState([
     { section: 'FLIGHTS & TRANSPORT', items: [
-      { name: 'IndiGo_Flight_All5.pdf', meta: 'Uploaded by Alex  ·  1.2 MB', type: 'flight' },
+      { name: 'IndiGo_Flight_All5.pdf', meta: 'Uploaded by Alex  Â·  1.2 MB', type: 'flight' },
       { name: 'Airport_Transfer_Receipt.pdf', meta: 'Uploaded by Sam', type: 'transfer' }
     ]},
     { section: 'ACCOMMODATION BOOKINGS', items: [
-      { name: 'South_Goa_Villa_Confirmation.pdf', meta: 'Uploaded by You  ·  Code #PACT-9921', type: 'villa' }
+      { name: 'South_Goa_Villa_Confirmation.pdf', meta: 'Uploaded by You  Â·  Code #PACT-9921', type: 'villa' }
     ]}
   ]);
 
   const hasDocuments = finalizedBrief !== null || documents.length > 0;
 
-  const aiText = '✈️ Goa trip update: flights & villa confirmed! All PDF vouchers are ready in the vault.';
+  const aiText = 'âœˆï¸ Goa trip update: flights & villa confirmed! All PDF vouchers are ready in the vault.';
 
   const handleCopy = async () => {
     haptics.success();
@@ -185,7 +185,7 @@ export default function PactTripVault() {
           </View>
 
           {!hasDocuments ? (
-            /* Empty State — No documents yet */
+            /* Empty State â€” No documents yet */
             <EmptyState
               icon="folder"
               title="No documents yet"
@@ -216,7 +216,7 @@ export default function PactTripVault() {
               {/* AI Copy Assistant Card */}
               <View style={styles.aiCopyCard}>
                 <View style={styles.aiCopyHeader}>
-                  <Text style={{ fontSize: 13 }}>✨</Text>
+                  <Text style={{ fontSize: 13 }}>âœ¨</Text>
                   <Text style={styles.aiCopyTitle}>AI copy assistant</Text>
                 </View>
 

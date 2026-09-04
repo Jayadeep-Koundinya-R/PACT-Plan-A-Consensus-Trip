@@ -9,20 +9,36 @@ import {
   Platform,
   Share,
   Alert,
-  Animated
+  Animated,
+  Linking
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import Svg, { Circle, Path } from 'react-native-svg';
+import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 import * as Clipboard from 'expo-clipboard';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
 import { colors, radius } from '../../../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
-import { ArrowLeft, Check, Copy, Share2, Sparkles, SlidersHorizontal, ChevronRight, Settings } from 'lucide-react-native';
+import { usePactHaptics } from '../../../src/hooks/usePactHaptics';
+import { PactButton } from '../../../src/components/common';
+import {
+  ArrowLeft,
+  Check,
+  Copy,
+  Share2,
+  Sparkles,
+  SlidersHorizontal,
+  ChevronRight,
+  Settings,
+  Zap,
+  Send,
+  Users
+} from 'lucide-react-native';
 
 export default function PactCirclesHub() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const haptics = usePactHaptics();
   const { groups = [], members = [], activeGroupId, setActiveGroup } = useGatherlyStore();
 
   const currentGroup =
@@ -38,6 +54,7 @@ export default function PactCirclesHub() {
     };
 
   const [nudged, setNudged] = useState<Record<string, boolean>>({});
+  const [bulkNudged, setBulkNudged] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
 
   // Pulse animation for awaiting dot
@@ -62,41 +79,72 @@ export default function PactCirclesHub() {
     return () => pulseLoop.stop();
   }, []);
 
-  const demoMembers = [
-    { name: 'Alex', status: 'locked' as const },
+  // Demo members: default to 2 locked (Early Bird State) so safety net is immediately visible
+  const [demoMembers, setDemoMembers] = useState([
     { name: 'You', status: 'locked' as const },
-    { name: 'Sam', status: 'locked' as const },
+    { name: 'Alex', status: 'locked' as const },
+    { name: 'Sam', status: 'waiting' as const },
     { name: 'Jordan', status: 'waiting' as const },
     { name: 'Maya', status: 'waiting' as const }
-  ];
+  ]);
 
   const lockedCount = demoMembers.filter((m) => m.status === 'locked').length;
   const totalCount = demoMembers.length;
+  const isEarlyBird = lockedCount <= 2;
   const pct = lockedCount / totalCount;
   const r = 34;
   const circumference = 2 * Math.PI * r;
-  const waitingNames = demoMembers.filter((m) => m.status === 'waiting').map((m) => m.name);
+  const waitingMembers = demoMembers.filter((m) => m.status === 'waiting');
 
   const initials = (name: string) => name.slice(0, 2).toUpperCase();
 
   const triggerHaptic = () => {
-    if (Platform.OS !== 'web') {
-      try {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      } catch (e) {}
-    }
+    haptics.tap();
   };
 
   const handleNudge = (name: string) => {
-    triggerHaptic();
+    haptics.action();
     setNudged((prev) => ({ ...prev, [name]: true }));
     if (Platform.OS !== 'web') {
-      Alert.alert('Nudge Sent', `Sent a reminder notification to ${name}!`);
+      Alert.alert('Nudge Sent', `Sent a private reminder notification to ${name}!`);
+    }
+  };
+
+  const handleBulkWhatsAppNudge = async () => {
+    haptics.action();
+    setBulkNudged(true);
+    const code = currentGroup.inviteCode || 'GOA-4F82';
+    const needed = Math.max(1, 3 - lockedCount);
+    const message = `Hey team! ✈️ ${lockedCount} of us locked in our trip preferences on PACT. We need ${needed} more to reveal the consensus match!\n\nLock in your dates & budget here (100% private):\npact://join/${code}\nInvite code: ${code}`;
+
+    const waUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+
+    if (Platform.OS === 'web') {
+      try {
+        await Clipboard.setStringAsync(message);
+        window.open(waUrl, '_blank');
+      } catch (e) {
+        Alert.alert('WhatsApp Reminder', message);
+      }
+    } else {
+      try {
+        const canOpen = await Linking.canOpenURL(waUrl);
+        if (canOpen) {
+          await Linking.openURL(waUrl);
+        } else {
+          await Share.share({
+            message,
+            title: `Nudge: ${currentGroup.name} on PACT`
+          });
+        }
+      } catch (e) {
+        Alert.alert('Nudge Copied', message);
+      }
     }
   };
 
   const handleCopyCode = async () => {
-    triggerHaptic();
+    haptics.tap();
     const code = currentGroup.inviteCode || 'GOA-4F82';
     try {
       await Clipboard.setStringAsync(code);
@@ -109,9 +157,9 @@ export default function PactCirclesHub() {
   };
 
   const handleShareWhatsApp = async () => {
-    triggerHaptic();
+    haptics.action();
     const code = currentGroup.inviteCode || 'GOA-4F82';
-    const message = `🏖️ Join our private trip poll on PACT: "${currentGroup.name}"!\n\nEnter code: ${code}\nYour dates and budget stay 100% confidential.`;
+    const message = `✨ Join our private trip poll on PACT: "${currentGroup.name}"!\n\nEnter code: ${code}\nYour dates and budget stay 100% confidential.`;
 
     if (Platform.OS === 'web') {
       try {
@@ -131,8 +179,20 @@ export default function PactCirclesHub() {
   };
 
   const handleProceedToPreferences = () => {
-    triggerHaptic();
+    haptics.tap();
     router.push(`/circle/${currentGroup.id}/preferences` as any);
+  };
+
+  // Helper toggle for demo tester to simulate 3rd member locking in
+  const toggleDemoSimulation = () => {
+    haptics.tap();
+    setDemoMembers((prev) => {
+      if (prev.filter((m) => m.status === 'locked').length <= 2) {
+        return prev.map((m, idx) => (idx === 2 ? { ...m, status: 'locked' as const } : m));
+      } else {
+        return prev.map((m, idx) => (idx >= 2 ? { ...m, status: 'waiting' as const } : m));
+      }
+    });
   };
 
   return (
@@ -169,49 +229,87 @@ export default function PactCirclesHub() {
             </View>
           </View>
 
-          {/* Group Consensus Status Ring Card */}
-          <View style={styles.statusCard}>
-            <View style={styles.svgWrapper}>
-              <Svg width="84" height="84" viewBox="0 0 84 84">
-                <Circle
-                  cx="42"
-                  cy="42"
-                  r={r}
-                  fill="none"
-                  stroke="rgba(255,255,255,0.08)"
-                  strokeWidth="7"
-                />
-                <Circle
-                  cx="42"
-                  cy="42"
-                  r={r}
-                  fill="none"
-                  stroke="#3DE0A0"
-                  strokeWidth="7"
-                  strokeLinecap="round"
-                  strokeDasharray={`${circumference}`}
-                  strokeDashoffset={`${circumference * (1 - pct)}`}
-                  transform="rotate(-90 42 42)"
-                />
-              </Svg>
-              <View style={styles.svgCenterText}>
-                <Text style={styles.progressFractionText}>
-                  {lockedCount}/{totalCount}
-                </Text>
-                <Text style={styles.progressSubLabel}>responded</Text>
+          {/* Early Bird State Banner (when <= 2 responded) OR Standard Ring Meter (when > 2 responded) */}
+          {isEarlyBird ? (
+            <View style={styles.earlyBirdCard}>
+              <View style={styles.earlyBirdBadgeRow}>
+                <View style={styles.earlyBirdTag}>
+                  <Zap size={13} color="#3DE0A0" fill="#3DE0A0" />
+                  <Text style={styles.earlyBirdTagText}>EARLY BIRD ACTIVATED</Text>
+                </View>
+                <TouchableOpacity onPress={toggleDemoSimulation} activeOpacity={0.7}>
+                  <Text style={styles.earlyBirdCountText}>{lockedCount}/{totalCount} LOCKED IN</Text>
+                </TouchableOpacity>
+              </View>
+
+              <Text style={styles.earlyBirdTitle}>You're leading the charge! ⚡</Text>
+              <Text style={styles.earlyBirdDesc}>
+                Consensus calculations unlock once 3 members lock in. Nudge remaining friends to reveal your group's match!
+              </Text>
+
+              {/* Progress bar towards consensus unlock */}
+              <View style={styles.earlyBirdProgressTrack}>
+                <View style={[styles.earlyBirdProgressFill, { width: `${(lockedCount / totalCount) * 100}%` }]} />
+                <View style={styles.unlockThresholdMarker}>
+                  <View style={styles.thresholdDot} />
+                  <Text style={styles.thresholdText}>3 unlocks match</Text>
+                </View>
               </View>
             </View>
+          ) : (
+            <View style={styles.statusCard}>
+              <View style={styles.svgWrapper}>
+                <Svg width="84" height="84" viewBox="0 0 84 84">
+                  <Circle
+                    cx="42"
+                    cy="42"
+                    r={r}
+                    fill="none"
+                    stroke="rgba(255,255,255,0.08)"
+                    strokeWidth="7"
+                  />
+                  <Circle
+                    cx="42"
+                    cy="42"
+                    r={r}
+                    fill="none"
+                    stroke="#3DE0A0"
+                    strokeWidth="7"
+                    strokeLinecap="round"
+                    strokeDasharray={`${circumference}`}
+                    strokeDashoffset={`${circumference * (1 - pct)}`}
+                    transform="rotate(-90 42 42)"
+                  />
+                </Svg>
+                <View style={styles.svgCenterText}>
+                  <Text style={styles.progressFractionText}>
+                    {lockedCount}/{totalCount}
+                  </Text>
+                  <Text style={styles.progressSubLabel}>responded</Text>
+                </View>
+              </View>
 
-            <View style={styles.statusTextCol}>
-              <Text style={styles.statusHeaderLabel}>GROUP CONSENSUS STATUS</Text>
-              <Text style={styles.statusSubtext}>
-                Once everyone's in, PACT reveals the match.
-              </Text>
+              <View style={styles.statusTextCol}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Text style={styles.statusHeaderLabel}>GROUP CONSENSUS STATUS</Text>
+                  <TouchableOpacity onPress={toggleDemoSimulation} activeOpacity={0.7}>
+                    <Text style={{ fontFamily: fontUI, fontSize: 10, color: '#6C6F7A' }}>toggle</Text>
+                  </TouchableOpacity>
+                </View>
+                <Text style={styles.statusSubtext}>
+                  3+ members locked in! Consensus algorithms active.
+                </Text>
+              </View>
             </View>
-          </View>
+          )}
 
           {/* Members Response List */}
           <View style={styles.membersCard}>
+            <View style={styles.membersCardHeader}>
+              <Text style={styles.membersCardTitle}>MEMBER RESPONSES</Text>
+              <Text style={styles.membersCardSubtitle}>{totalCount - lockedCount} pending</Text>
+            </View>
+
             {demoMembers.map((m, i) => (
               <View
                 key={m.name}
@@ -254,7 +352,8 @@ export default function PactCirclesHub() {
                   )}
                 </View>
 
-                {m.status === 'waiting' && (
+                {/* Individual nudge buttons: only shown if NOT early bird mode */}
+                {!isEarlyBird && m.status === 'waiting' && (
                   <TouchableOpacity
                     onPress={() => handleNudge(m.name)}
                     activeOpacity={0.7}
@@ -275,6 +374,22 @@ export default function PactCirclesHub() {
                 )}
               </View>
             ))}
+
+            {/* In Early Bird state: Replace individual nudge buttons with a single primary bulk action */}
+            {isEarlyBird && (
+              <View style={styles.bulkNudgeContainer}>
+                <PactButton
+                  variant="gradient"
+                  onPress={handleBulkWhatsAppNudge}
+                  icon={<Send size={14} color="#050608" />}
+                >
+                  {bulkNudged ? 'WhatsApp Nudge Sent ✓' : 'Nudge Everyone on WhatsApp'}
+                </PactButton>
+                <Text style={styles.bulkNudgeSubtext}>
+                  Sends a single private group reminder with your invite link to all {waitingMembers.length} remaining friends.
+                </Text>
+              </View>
+            )}
           </View>
 
           {/* Dashed Ticket Perforation Card for Circle Invite */}
@@ -358,42 +473,37 @@ const styles = StyleSheet.create({
   phoneFrame: {
     width: '100%',
     maxWidth: 420,
-    flex: 1,
-    backgroundColor: '#090A0F',
-    borderWidth: Platform.OS === 'web' ? 1 : 0,
-    borderColor: 'rgba(255,255,255,0.06)',
-    borderRadius: Platform.OS === 'web' ? 40 : 0,
-    overflow: 'hidden',
-    position: 'relative'
+    height: '100%',
+    backgroundColor: '#050608'
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 22,
-    paddingBottom: 24
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 90
   },
   headerRow: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 22
+    alignItems: 'center',
+    marginBottom: 16
   },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    flex: 1,
-    marginRight: 8
+    gap: 10,
+    flex: 1
   },
   backBtn: {
     width: 32,
     height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.05)',
     justifyContent: 'center',
     alignItems: 'center'
   },
   tripTitle: {
     fontFamily: fontDisplay,
-    fontWeight: '700',
-    fontSize: 16,
+    fontSize: 20,
     color: '#F4F3F0',
     flex: 1
   },
@@ -403,45 +513,128 @@ const styles = StyleSheet.create({
     gap: 8
   },
   inviteCodeBadge: {
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 5
+    borderColor: 'rgba(255,255,255,0.1)'
   },
   inviteCodeText: {
     fontFamily: fontUIBold,
-    fontSize: 11.5,
-    fontWeight: '600',
-    color: '#8B8D98',
-    letterSpacing: 0.5
+    fontSize: 11,
+    color: '#C9924A'
   },
   settingsBtn: {
     width: 32,
     height: 32,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    alignItems: 'center',
-    justifyContent: 'center'
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    justifyContent: 'center',
+    alignItems: 'center'
   },
+  // Early Bird Encouraging Banner Styles
+  earlyBirdCard: {
+    backgroundColor: '#13151E',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.3)',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#3DE0A0',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 10
+  },
+  earlyBirdBadgeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10
+  },
+  earlyBirdTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(61, 224, 160, 0.12)',
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 12
+  },
+  earlyBirdTagText: {
+    fontFamily: fontUIBold,
+    fontSize: 10.5,
+    color: '#3DE0A0',
+    letterSpacing: 0.5
+  },
+  earlyBirdCountText: {
+    fontFamily: fontUIBold,
+    fontSize: 11,
+    color: '#8B8D98',
+    letterSpacing: 0.5
+  },
+  earlyBirdTitle: {
+    fontFamily: fontDisplay,
+    fontSize: 18,
+    color: '#F4F3F0',
+    marginBottom: 6
+  },
+  earlyBirdDesc: {
+    fontFamily: fontUI,
+    fontSize: 12.5,
+    color: '#8B8D98',
+    lineHeight: 18,
+    marginBottom: 14
+  },
+  earlyBirdProgressTrack: {
+    height: 6,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 3,
+    position: 'relative',
+    marginBottom: 8
+  },
+  earlyBirdProgressFill: {
+    height: '100%',
+    backgroundColor: '#3DE0A0',
+    borderRadius: 3
+  },
+  unlockThresholdMarker: {
+    position: 'absolute',
+    left: '60%',
+    top: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4
+  },
+  thresholdDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: '#3DE0A0'
+  },
+  thresholdText: {
+    fontFamily: fontUI,
+    fontSize: 9.5,
+    color: '#3DE0A0'
+  },
+  // Standard Status Card Styles
   statusCard: {
     backgroundColor: '#13151E',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 18,
-    padding: 20,
-    marginBottom: 16,
+    borderRadius: 16,
+    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 18
+    gap: 16,
+    marginBottom: 16
   },
   svgWrapper: {
+    position: 'relative',
     width: 84,
     height: 84,
     justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative'
+    alignItems: 'center'
   },
   svgCenterText: {
     position: 'absolute',
@@ -458,54 +651,69 @@ const styles = StyleSheet.create({
     fontFamily: fontUI,
     fontSize: 8.5,
     color: '#6C6F7A',
-    marginTop: -1
+    textTransform: 'lowercase'
   },
   statusTextCol: {
     flex: 1
   },
   statusHeaderLabel: {
     fontFamily: fontUIBold,
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#6C6F7A',
-    letterSpacing: 0.6,
+    fontSize: 10,
+    color: '#8B8D98',
+    letterSpacing: 0.8,
     marginBottom: 4
   },
   statusSubtext: {
     fontFamily: fontUI,
-    fontSize: 13.5,
-    color: '#8B8D98',
-    lineHeight: 19
+    fontSize: 13,
+    color: '#F4F3F0',
+    lineHeight: 18
   },
+  // Members List Styles
   membersCard: {
     backgroundColor: '#13151E',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 18,
-    paddingHorizontal: 18,
-    paddingVertical: 6,
+    borderRadius: 16,
+    padding: 16,
     marginBottom: 16
+  },
+  membersCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12
+  },
+  membersCardTitle: {
+    fontFamily: fontUIBold,
+    fontSize: 11,
+    color: '#8B8D98',
+    letterSpacing: 0.8
+  },
+  membersCardSubtitle: {
+    fontFamily: fontUI,
+    fontSize: 11,
+    color: '#6C6F7A'
   },
   memberRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingVertical: 14,
+    paddingVertical: 10,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.06)'
+    borderTopColor: 'rgba(255,255,255,0.05)'
   },
   avatarCircle: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: '#2A2D3A',
-    alignItems: 'center',
-    justifyContent: 'center'
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   avatarInitials: {
     fontFamily: fontUIBold,
-    fontSize: 12.5,
-    fontWeight: '600',
+    fontSize: 12,
     color: '#B4B6C0'
   },
   memberInfoCol: {
@@ -514,9 +722,8 @@ const styles = StyleSheet.create({
   memberName: {
     fontFamily: fontUIBold,
     fontSize: 14,
-    fontWeight: '600',
     color: '#F4F3F0',
-    marginBottom: 2
+    marginBottom: 3
   },
   statusBadgeRow: {
     flexDirection: 'row',
@@ -529,10 +736,10 @@ const styles = StyleSheet.create({
     color: '#3DE0A0'
   },
   pulseDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
-    backgroundColor: '#FFA600'
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#C9924A'
   },
   awaitingStatusText: {
     fontFamily: fontUI,
@@ -549,148 +756,154 @@ const styles = StyleSheet.create({
   nudgeButtonText: {
     fontFamily: fontUIBold,
     fontSize: 11.5,
-    fontWeight: '600',
     color: '#F4F3F0'
   },
+  bulkNudgeContainer: {
+    marginTop: 14,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.06)',
+    gap: 8
+  },
+  bulkNudgeSubtext: {
+    fontFamily: fontUI,
+    fontSize: 11,
+    color: '#6C6F7A',
+    textAlign: 'center',
+    lineHeight: 15
+  },
+  // Ticket Card Styles
   ticketCardContainer: {
-    position: 'relative',
-    marginBottom: 14
+    marginBottom: 16
   },
   ticketCard: {
     backgroundColor: '#13151E',
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 18,
     overflow: 'hidden'
   },
   ticketTopSection: {
-    paddingVertical: 18,
-    paddingHorizontal: 20,
+    padding: 16,
     alignItems: 'center'
   },
   ticketCodeLabel: {
     fontFamily: fontUIBold,
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#6C6F7A',
+    fontSize: 10.5,
+    color: '#8B8D98',
     letterSpacing: 0.8,
-    marginBottom: 6
+    marginBottom: 4
   },
   ticketCodeHeading: {
     fontFamily: fontDisplay,
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#FF5A5F',
-    letterSpacing: 1.5
+    fontSize: 26,
+    color: '#F4F3F0',
+    letterSpacing: 2
   },
   perforationWrapper: {
-    position: 'relative',
-    height: 1,
-    justifyContent: 'center'
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 20,
+    position: 'relative'
   },
   notchLeft: {
-    position: 'absolute',
-    left: -10,
-    top: -10,
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#090A0F',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)'
+    backgroundColor: '#050608',
+    marginLeft: -10
   },
   notchRight: {
-    position: 'absolute',
-    right: -10,
-    top: -10,
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#090A0F',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)'
+    backgroundColor: '#050608',
+    marginRight: -10,
+    marginLeft: 'auto'
   },
   dashedLine: {
-    borderTopWidth: 1.5,
-    borderStyle: 'dashed',
-    borderTopColor: 'rgba(255,255,255,0.16)',
-    marginHorizontal: 22
+    flex: 1,
+    height: 1,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+    borderStyle: 'dashed'
   },
   ticketBottomSection: {
     padding: 16
   },
   whatsAppButton: {
-    width: '100%',
-    paddingVertical: 12,
+    backgroundColor: '#3DE0A0',
     borderRadius: 12,
-    backgroundColor: '#25D366',
+    paddingVertical: 13,
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
     gap: 8
   },
   whatsAppButtonText: {
     fontFamily: fontUIBold,
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 13.5,
     color: '#0B3B22'
   },
+  // Matrix Quick Card Styles
   matrixQuickCard: {
     backgroundColor: '#13151E',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: 'rgba(255,255,255,0.08)',
     borderRadius: 14,
     padding: 14,
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 20
+    alignItems: 'center',
+    marginBottom: 16
   },
   matrixQuickLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10
+    gap: 12
   },
   matrixIconBox: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: 'rgba(61,224,160,0.12)',
-    alignItems: 'center',
-    justifyContent: 'center'
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: 'rgba(61, 224, 160, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   matrixQuickTitle: {
     fontFamily: fontUIBold,
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#F4F3F0'
+    fontSize: 14,
+    color: '#F4F3F0',
+    marginBottom: 2
   },
   matrixQuickSub: {
     fontFamily: fontUI,
-    fontSize: 11,
-    color: '#6C6F7A',
-    marginTop: 1
+    fontSize: 11.5,
+    color: '#8B8D98'
   },
+  // Bottom Sticky Bar
   bottomBar: {
-    paddingHorizontal: 20,
-    paddingTop: 14,
-    paddingBottom: 22,
-    backgroundColor: '#090A0F',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    backgroundColor: 'rgba(5, 6, 8, 0.95)',
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,255,255,0.06)'
   },
   primaryActionButton: {
-    width: '100%',
-    paddingVertical: 14,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
     borderRadius: 12,
-    backgroundColor: '#FF5A5F',
-    alignItems: 'center',
-    justifyContent: 'center'
+    paddingVertical: 13,
+    alignItems: 'center'
   },
   primaryActionButtonText: {
     fontFamily: fontUIBold,
-    fontSize: 14.5,
-    fontWeight: '700',
-    color: '#0D0A0A'
+    fontSize: 13.5,
+    color: '#F4F3F0'
   }
 });

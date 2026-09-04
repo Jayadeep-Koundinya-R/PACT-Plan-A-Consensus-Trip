@@ -1,13 +1,5 @@
-﻿import React, { useEffect, ReactNode } from 'react';
-import { View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
-  withSequence,
-  withTiming,
-  Easing
-} from 'react-native-reanimated';
+﻿import React, { useEffect, useRef, ReactNode } from 'react';
+import { View, StyleSheet, StyleProp, ViewStyle, Animated, Easing } from 'react-native';
 import { colors, radius } from '../theme/colors';
 
 export interface ShimmerViewProps {
@@ -19,8 +11,9 @@ export interface ShimmerViewProps {
 }
 
 /**
- * ShimmerView - Lightweight Reanimated 3 opacity shimmer
- * Uses withRepeat(withSequence(withTiming(0.4), withTiming(0.8))) running strictly on UI thread.
+ * ShimmerView - Cross-platform opacity shimmer
+ * Uses React Native Animated API running with native driver on mobile and CSS transitions on web.
+ * Completely SSR-safe and works seamlessly across Web, iOS, and Android.
  */
 export const ShimmerView: React.FC<ShimmerViewProps> = ({
   children,
@@ -29,33 +22,35 @@ export const ShimmerView: React.FC<ShimmerViewProps> = ({
   maxOpacity = 0.8,
   durationMs = 750
 }) => {
-  const opacity = useSharedValue(minOpacity);
+  const opacity = useRef(new Animated.Value(minOpacity)).current;
 
   useEffect(() => {
-    opacity.value = withRepeat(
-      withSequence(
-        withTiming(maxOpacity, {
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, {
+          toValue: maxOpacity,
           duration: durationMs,
-          easing: Easing.inOut(Easing.ease)
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true
         }),
-        withTiming(minOpacity, {
+        Animated.timing(opacity, {
+          toValue: minOpacity,
           duration: durationMs,
-          easing: Easing.inOut(Easing.ease)
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true
         })
-      ),
-      -1,
-      true
+      ])
     );
+
+    animation.start();
+
+    return () => {
+      animation.stop();
+    };
   }, [minOpacity, maxOpacity, durationMs]);
 
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      opacity: opacity.value
-    };
-  });
-
   return (
-    <Animated.View style={[style, animatedStyle]}>
+    <Animated.View style={[style, { opacity }]}>
       {children}
     </Animated.View>
   );

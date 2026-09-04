@@ -1,4 +1,4 @@
-import { synthesizeAICompromise, CompromiseProposal } from '../lib/ai/compromiseEngine';
+﻿import { synthesizeAICompromise, CompromiseProposal } from '../lib/ai/compromiseEngine';
 import { SubscriptionPlan } from '../lib/purchases/customerInfo';
 import { create } from 'zustand';
 import {
@@ -33,6 +33,21 @@ export interface Group {
   organizerId: string;
   status: 'collecting' | 'voting' | 'finalized' | 'cancelled';
   totalMembersCount: number;
+}
+
+export interface VaultItem {
+  id: string;
+  name: string;
+  meta: string;
+  type: 'flight' | 'transfer' | 'villa' | 'ticket' | 'other';
+  section: string;
+}
+
+export interface MemoryPhotoItem {
+  id: string;
+  bg: string;
+  by: string;
+  caption?: string;
 }
 
 export interface TripBrief {
@@ -136,6 +151,63 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     'opt-bangalore-03_user-maya-001': true
   },
   finalizedBrief: null,
+
+  vaultDocuments: {
+    'circle-college-reunion-2026': [
+      {
+        section: 'FLIGHTS & TRANSPORT',
+        items: [
+          { id: 'v1', name: 'IndiGo_Flight_All5.pdf', meta: 'Uploaded by Alex  •  1.2 MB', type: 'flight', section: 'FLIGHTS & TRANSPORT' },
+          { id: 'v2', name: 'Airport_Transfer_Receipt.pdf', meta: 'Uploaded by Sam  •  450 KB', type: 'transfer', section: 'FLIGHTS & TRANSPORT' }
+        ]
+      },
+      {
+        section: 'ACCOMMODATION BOOKINGS',
+        items: [
+          { id: 'v3', name: 'South_Goa_Villa_Confirmation.pdf', meta: 'Uploaded by You  •  Code #PACT-9921', type: 'villa', section: 'ACCOMMODATION BOOKINGS' }
+        ]
+      }
+    ]
+  },
+  memoryPhotos: {
+    'circle-college-reunion-2026': [
+      { id: 'p1', bg: '#3A1F1F', by: 'Alex', caption: 'Sunset at Palolem beach' },
+      { id: 'p2', bg: '#2A2416', by: 'Maya', caption: 'Old Goa cathedral walk' },
+      { id: 'p3', bg: '#16241F', by: 'Sam', caption: 'Scooter convoy morning' },
+      { id: 'p4', bg: '#1E1A2A', by: 'Jordan', caption: 'Seafood feast dinner' }
+    ]
+  },
+
+  addVaultDocument: (groupId: string, doc: Omit<VaultItem, 'id'>) => {
+    const id = 'v_' + Date.now();
+    const newItem: VaultItem = { ...doc, id };
+    set((state) => {
+      const existingSections = state.vaultDocuments[groupId] || [];
+      const sectionIdx = existingSections.findIndex((s) => s.section === doc.section);
+      let updatedSections;
+      if (sectionIdx >= 0) {
+        updatedSections = existingSections.map((s, idx) =>
+          idx === sectionIdx ? { ...s, items: [...s.items, newItem] } : s
+        );
+      } else {
+        updatedSections = [...existingSections, { section: doc.section, items: [newItem] }];
+      }
+      return {
+        vaultDocuments: { ...state.vaultDocuments, [groupId]: updatedSections }
+      };
+    });
+  },
+
+  addMemoryPhoto: (groupId: string, photo: Omit<MemoryPhotoItem, 'id'>) => {
+    const id = 'p_' + Date.now();
+    const newPhoto: MemoryPhotoItem = { ...photo, id };
+    set((state) => ({
+      memoryPhotos: {
+        ...state.memoryPhotos,
+        [groupId]: [...(state.memoryPhotos[groupId] || []), newPhoto]
+      }
+    }));
+  },
 
   toggleDarkMode: () => set((state) => ({ isDarkMode: !state.isDarkMode })),
 
@@ -506,6 +578,63 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
 
     set((state) => ({
       finalizedBrief: null,
+
+  vaultDocuments: {
+    'circle-college-reunion-2026': [
+      {
+        section: 'FLIGHTS & TRANSPORT',
+        items: [
+          { id: 'v1', name: 'IndiGo_Flight_All5.pdf', meta: 'Uploaded by Alex  •  1.2 MB', type: 'flight', section: 'FLIGHTS & TRANSPORT' },
+          { id: 'v2', name: 'Airport_Transfer_Receipt.pdf', meta: 'Uploaded by Sam  •  450 KB', type: 'transfer', section: 'FLIGHTS & TRANSPORT' }
+        ]
+      },
+      {
+        section: 'ACCOMMODATION BOOKINGS',
+        items: [
+          { id: 'v3', name: 'South_Goa_Villa_Confirmation.pdf', meta: 'Uploaded by You  •  Code #PACT-9921', type: 'villa', section: 'ACCOMMODATION BOOKINGS' }
+        ]
+      }
+    ]
+  },
+  memoryPhotos: {
+    'circle-college-reunion-2026': [
+      { id: 'p1', bg: '#3A1F1F', by: 'Alex', caption: 'Sunset at Palolem beach' },
+      { id: 'p2', bg: '#2A2416', by: 'Maya', caption: 'Old Goa cathedral walk' },
+      { id: 'p3', bg: '#16241F', by: 'Sam', caption: 'Scooter convoy morning' },
+      { id: 'p4', bg: '#1E1A2A', by: 'Jordan', caption: 'Seafood feast dinner' }
+    ]
+  },
+
+  addVaultDocument: (groupId: string, doc: Omit<VaultItem, 'id'>) => {
+    const id = 'v_' + Date.now();
+    const newItem: VaultItem = { ...doc, id };
+    set((state) => {
+      const existingSections = state.vaultDocuments[groupId] || [];
+      const sectionIdx = existingSections.findIndex((s) => s.section === doc.section);
+      let updatedSections;
+      if (sectionIdx >= 0) {
+        updatedSections = existingSections.map((s, idx) =>
+          idx === sectionIdx ? { ...s, items: [...s.items, newItem] } : s
+        );
+      } else {
+        updatedSections = [...existingSections, { section: doc.section, items: [newItem] }];
+      }
+      return {
+        vaultDocuments: { ...state.vaultDocuments, [groupId]: updatedSections }
+      };
+    });
+  },
+
+  addMemoryPhoto: (groupId: string, photo: Omit<MemoryPhotoItem, 'id'>) => {
+    const id = 'p_' + Date.now();
+    const newPhoto: MemoryPhotoItem = { ...photo, id };
+    set((state) => ({
+      memoryPhotos: {
+        ...state.memoryPhotos,
+        [groupId]: [...(state.memoryPhotos[groupId] || []), newPhoto]
+      }
+    }));
+  },
       groups: state.groups.map((g) =>
         g.id === groupId ? { ...g, status: 'voting' } : g
       )
@@ -570,6 +699,63 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
         'opt-manali-02_user-alex-004': true
       },
       finalizedBrief: null,
+
+  vaultDocuments: {
+    'circle-college-reunion-2026': [
+      {
+        section: 'FLIGHTS & TRANSPORT',
+        items: [
+          { id: 'v1', name: 'IndiGo_Flight_All5.pdf', meta: 'Uploaded by Alex  •  1.2 MB', type: 'flight', section: 'FLIGHTS & TRANSPORT' },
+          { id: 'v2', name: 'Airport_Transfer_Receipt.pdf', meta: 'Uploaded by Sam  •  450 KB', type: 'transfer', section: 'FLIGHTS & TRANSPORT' }
+        ]
+      },
+      {
+        section: 'ACCOMMODATION BOOKINGS',
+        items: [
+          { id: 'v3', name: 'South_Goa_Villa_Confirmation.pdf', meta: 'Uploaded by You  •  Code #PACT-9921', type: 'villa', section: 'ACCOMMODATION BOOKINGS' }
+        ]
+      }
+    ]
+  },
+  memoryPhotos: {
+    'circle-college-reunion-2026': [
+      { id: 'p1', bg: '#3A1F1F', by: 'Alex', caption: 'Sunset at Palolem beach' },
+      { id: 'p2', bg: '#2A2416', by: 'Maya', caption: 'Old Goa cathedral walk' },
+      { id: 'p3', bg: '#16241F', by: 'Sam', caption: 'Scooter convoy morning' },
+      { id: 'p4', bg: '#1E1A2A', by: 'Jordan', caption: 'Seafood feast dinner' }
+    ]
+  },
+
+  addVaultDocument: (groupId: string, doc: Omit<VaultItem, 'id'>) => {
+    const id = 'v_' + Date.now();
+    const newItem: VaultItem = { ...doc, id };
+    set((state) => {
+      const existingSections = state.vaultDocuments[groupId] || [];
+      const sectionIdx = existingSections.findIndex((s) => s.section === doc.section);
+      let updatedSections;
+      if (sectionIdx >= 0) {
+        updatedSections = existingSections.map((s, idx) =>
+          idx === sectionIdx ? { ...s, items: [...s.items, newItem] } : s
+        );
+      } else {
+        updatedSections = [...existingSections, { section: doc.section, items: [newItem] }];
+      }
+      return {
+        vaultDocuments: { ...state.vaultDocuments, [groupId]: updatedSections }
+      };
+    });
+  },
+
+  addMemoryPhoto: (groupId: string, photo: Omit<MemoryPhotoItem, 'id'>) => {
+    const id = 'p_' + Date.now();
+    const newPhoto: MemoryPhotoItem = { ...photo, id };
+    set((state) => ({
+      memoryPhotos: {
+        ...state.memoryPhotos,
+        [groupId]: [...(state.memoryPhotos[groupId] || []), newPhoto]
+      }
+    }));
+  },
       subscriptionPlan: 'free'
     });
   }

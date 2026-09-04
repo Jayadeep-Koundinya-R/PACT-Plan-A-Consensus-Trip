@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -24,7 +24,7 @@ export default function PactMemoryLibrary() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const haptics = usePactHaptics();
-  const { groups = [], finalizedBrief } = useGatherlyStore();
+  const { groups = [], finalizedBrief, memoryPhotos = {} } = useGatherlyStore();
 
   const currentGroup =
     groups.find((g) => g && g.id === id) ||
@@ -46,13 +46,14 @@ export default function PactMemoryLibrary() {
     }, 1200);
   };
 
-  // In production, photos would come from cloud storage
-  const [photos] = useState([
-    { bg: '#3A1F1F', by: 'Alex' },
-    { bg: '#2A2416', by: 'Maya' },
-    { bg: '#16241F', by: 'Sam' },
-    { bg: '#1E1A2A', by: 'Jordan' }
-  ]);
+  // Seeded photos from central store — never blank in offline or preview mode
+  const storePhotos = memoryPhotos[currentGroup.id] || memoryPhotos['circle-college-reunion-2026'] || [];
+  const photos = storePhotos.length > 0 ? storePhotos : [
+    { id: 'p1', bg: '#3A1F1F', by: 'Alex', caption: 'Sunset at Palolem beach' },
+    { id: 'p2', bg: '#2A2416', by: 'Maya', caption: 'Old Goa cathedral walk' },
+    { id: 'p3', bg: '#16241F', by: 'Sam', caption: 'Scooter convoy morning' },
+    { id: 'p4', bg: '#1E1A2A', by: 'Jordan', caption: 'Seafood feast dinner' }
+  ];
 
   const hasMemories = finalizedBrief !== null || photos.length > 0;
 
@@ -118,7 +119,7 @@ export default function PactMemoryLibrary() {
               <MemoryPhotoSkeleton count={4} />
             </View>
           ) : !hasMemories ? (
-            /* Empty State — No memories yet */
+            /* Empty State â€” No memories yet */
             <EmptyState
               icon="camera"
               title="No memories yet"
@@ -132,7 +133,7 @@ export default function PactMemoryLibrary() {
               {/* Memories Count Bar */}
               <View style={styles.countCard}>
                 <Text style={styles.countText}>
-                  <Text style={styles.countBold}>{photos.length > 0 ? '128 shared memories' : '0 memories'}</Text>  ·  {currentGroup.name || 'Goa beach escape 2026'}
+                  <Text style={styles.countBold}>{photos.length > 0 ? '128 shared memories' : '0 memories'}</Text>  Â·  {currentGroup.name || 'Goa beach escape 2026'}
                 </Text>
               </View>
 
@@ -168,7 +169,7 @@ export default function PactMemoryLibrary() {
               <View style={styles.aiDigestOuter}>
                 <View style={styles.aiDigestInner}>
                   <View style={styles.aiDigestHeader}>
-                    <Text style={{ fontSize: 13 }}>✨</Text>
+                    <Text style={{ fontSize: 13 }}>âœ¨</Text>
                     <Text style={styles.aiDigestTitle}>AI trip digest</Text>
                     <View style={styles.aiGoldTag}>
                       <Text style={styles.aiGoldTagText}>PRO</Text>

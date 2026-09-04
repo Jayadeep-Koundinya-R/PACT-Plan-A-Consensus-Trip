@@ -1,4 +1,4 @@
-import React, { Component, ReactNode, useEffect } from 'react';
+﻿import React, { Component, ReactNode, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -16,6 +16,7 @@ import {
 import { useGatherlyStore } from '../src/store/useGatherlyStore';
 import { colors, radius, shadows } from '../src/theme/colors';
 import { initPurchases } from '../src/lib/purchases/config';
+import { SyncBadge } from '../src/components/common';
 import { Compass, RefreshCw, AlertTriangle } from 'lucide-react-native';
 
 // Keep splash visible until fonts are loaded
@@ -113,6 +114,7 @@ export default function RootLayout() {
   return (
     <RootErrorBoundary isDarkMode={isDarkMode}>
       <StatusBar style={isDarkMode ? 'light' : 'dark'} />
+      <SyncBadge />
       <Stack
         screenOptions={{
           headerShown: false,
