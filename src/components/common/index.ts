@@ -3,3 +3,4 @@ export * from './PactTicketCard';
 export * from './PactButton';
 export * from './PactChip';
 export * from './ConsensusGauge';
+export * from './ParticleBurst';

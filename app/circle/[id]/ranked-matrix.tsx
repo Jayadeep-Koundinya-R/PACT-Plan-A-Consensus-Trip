@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,8 @@ import {
   Alert,
   Modal
 } from 'react-native';
+import { ConsensusGauge, ParticleBurst } from '../../../src/components/common';
+import { usePactHaptics } from '../../../src/hooks/usePactHaptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Svg, { Rect, Path, Circle } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
@@ -33,6 +35,8 @@ export default function PactConsensusResults() {
     };
 
   const [selectedDetails, setSelectedDetails] = useState<any | null>(null);
+  const [showBurst, setShowBurst] = useState(false);
+  const haptics = usePactHaptics();
 
   const triggerHaptic = () => {
     if (Platform.OS !== 'web') {
@@ -57,6 +61,7 @@ export default function PactConsensusResults() {
     <SafeAreaView style={styles.outerContainer}>
       <View style={styles.phoneFrame}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          {showBurst && <ParticleBurst active={true} durationMs={1400} />}
           {/* Header Row */}
           <View style={styles.headerRow}>
             <View style={styles.headerLeft}>
@@ -115,10 +120,20 @@ export default function PactConsensusResults() {
               </View>
 
               <View style={styles.destMatchRow}>
-                <Text style={styles.destTitleText}>Goa, India</Text>
-                <Text style={styles.destMatchPercentText}>
-                  96% <Text style={styles.destMatchLabel}>MATCH</Text>
-                </Text>
+                <View style={{ flex: 1, paddingRight: 12 }}>
+                  <Text style={styles.destTitleText}>Goa, India</Text>
+                  <Text style={{ fontFamily: fontUI, fontSize: 12, color: '#3DE0A0', marginTop: 2 }}>
+                    96% Consensus match across all 5 members
+                  </Text>
+                </View>
+                <ConsensusGauge
+                  value={96}
+                  size={74}
+                  strokeColor="#3DE0A0"
+                  centerText="96%"
+                  centerSubtext="match"
+                  animated={true}
+                />
               </View>
 
               {/* Progress Bar */}

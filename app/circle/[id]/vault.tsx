@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -17,7 +17,8 @@ import { usePactHaptics } from '../../../src/hooks/usePactHaptics';
 import { EmptyState } from '../../../src/components/EmptyState';
 import { colors, radius } from '../../../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
-import { ArrowLeft, FileText, Home, Shield, Copy, Check, Plus } from 'lucide-react-native';
+import { ArrowLeft, FileText, Home, Shield, Copy, Check, Plus, RefreshCw } from 'lucide-react-native';
+import { VaultDocSkeleton } from '../../../src/components/SkeletonLoader';
 
 export default function PactTripVault() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -34,6 +35,16 @@ export default function PactTripVault() {
     };
 
   const [copied, setCopied] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const handleSyncVault = () => {
+    haptics.tap();
+    setIsSyncing(true);
+    setTimeout(() => {
+      setIsSyncing(false);
+      haptics.success();
+    }, 1200);
+  };
 
   // Demo docs — in production, this would come from Supabase storage
   const [documents] = useState([

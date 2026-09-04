@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,8 @@ import {
   Share,
   Alert
 } from 'react-native';
+import { ConsensusGauge, ParticleBurst } from '../../../src/components/common';
+import { usePactHaptics } from '../../../src/hooks/usePactHaptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Svg, { Rect, Path, Circle } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
@@ -30,6 +32,13 @@ export default function PactTripBrief() {
       name: 'Goa Beach Escape 2026',
       inviteCode: 'GOA-4F82'
     };
+
+  const haptics = usePactHaptics();
+
+  useEffect(() => {
+    // Celebration haptic on consensus brief reveal
+    haptics.success();
+  }, []);
 
   const details = [
     { label: 'DATES', value: 'Oct 14 - Oct 19, 2026' },
@@ -94,15 +103,19 @@ export default function PactTripBrief() {
             </TouchableOpacity>
           </View>
 
-          {/* Consensus Reached Banner */}
+          {/* Reanimated 3 Particle Burst */}
+          <ParticleBurst active={true} durationMs={1600} />
+
+          {/* Consensus Reached Banner with Animated ConsensusGauge */}
           <View style={styles.consensusBanner}>
-            <Svg width="14" height="10" style={styles.confettiSvg} viewBox="0 0 14 10">
-              <Circle cx="1" cy="2" r="1" fill="#3DE0A0" />
-              <Circle cx="7" cy="1" r="1.3" fill="#FF5A5F" />
-              <Circle cx="12" cy="4" r="1" fill="#3DE0A0" />
-              <Circle cx="4" cy="7" r="1" fill="#FF5A5F" />
-              <Circle cx="10" cy="8" r="1.2" fill="#3DE0A0" />
-            </Svg>
+            <ConsensusGauge
+              value={100}
+              size={84}
+              strokeColor="#3DE0A0"
+              centerText="100%"
+              centerSubtext="locked"
+              style={{ marginBottom: 12 }}
+            />
             <Text style={styles.consensusTitle}>Consensus reached!</Text>
             <Text style={styles.consensusSub}>All 5 members approved this plan.</Text>
           </View>

@@ -6,9 +6,17 @@ import {
   ScrollView,
   StyleSheet,
   SafeAreaView,
-  Platform,
-  Animated
+  Platform
 } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withSequence,
+  withTiming,
+  interpolateColor,
+  runOnJS
+} from 'react-native-reanimated';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Svg, { Rect, Path } from 'react-native-svg';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
@@ -116,14 +124,61 @@ export default function PactConstraintsForm() {
     });
   };
 
+  // Reanimated 3 constraint lock-in bounce values
+  const cardScale = useSharedValue(1);
+  const borderFlash = useSharedValue(0);
+  const checkmarkProgress = useSharedValue(0);
+
+  const triggerPeakHaptic = () => {
+    haptics.success();
+  };
+
+  const animatedCardStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: cardScale.value }],
+      borderColor: interpolateColor(
+        borderFlash.value,
+        [0, 1],
+        ['transparent', '#3DE0A0']
+      )
+    };
+  });
+
+  const animatedCheckmarkStyle = useAnimatedStyle(() => {
+    return {
+      opacity: checkmarkProgress.value,
+      transform: [{ scale: checkmarkProgress.value }]
+    };
+  });
+
   const handleBudgetAdjust = (delta: number) => {
     haptics.slider();
     setBudgetCustom(circleId, draft.budgetCustom + delta);
   };
 
   const handleSubmit = async () => {
-    haptics.success();
+    if (isSubmitting) return;
     setIsSubmitting(true);
+
+    // 1. Reanimated 3 spring animation: scale 1 -> 0.96 -> 1 withSpring
+    // Fire haptics.success() exactly at the peak of the spring bounce (at compression finished)
+    cardScale.value = withSequence(
+      withSpring(0.96, { damping: 10, stiffness: 280 }, (finished) => {
+        if (finished) {
+          runOnJS(triggerPeakHaptic)();
+        }
+      }),
+      withSpring(1, { damping: 12, stiffness: 200 })
+    );
+
+    // 2. Flash card border to Emerald (#3DE0A0)
+    borderFlash.value = withSequence(
+      withTiming(1, { duration: 180 }),
+      withTiming(0, { duration: 500 })
+    );
+
+    // 3. Morph in checkmark
+    checkmarkProgress.value = withSpring(1, { damping: 10, stiffness: 200 });
 
     const activeDates = draft.dateWindows
       .filter((w) => w.active)
@@ -174,6 +229,16 @@ export default function PactConstraintsForm() {
             </View>
           </View>
 
+          {/* Morphed-in Sealed Checkmark Banner */}
+          <Animated.View style={[styles.successCheckmarkBanner, animatedCheckmarkStyle]} pointerEvents="none">
+            <View style={styles.successCheckmarkCircle}>
+              <Check size={16} color="#0B3B22" />
+            </View>
+            <Text style={styles.successCheckmarkText}>Constraints Locked & Sealed Privately</Text>
+          </Animated.View>
+
+          {/* Animated Main Cards Container */}
+          <Animated.View style={[styles.mainCardWrapper, animatedCardStyle]}>
           {/* Privacy Guarantee Banner */}
           <View style={styles.privacyBanner}>
             <Svg width="15" height="15" viewBox="0 0 15 15">
@@ -492,6 +557,7 @@ export default function PactConstraintsForm() {
               })}
             </View>
           </View>
+          </Animated.View>
         </ScrollView>
 
         {/* Sticky Lock in Constraints Button */}

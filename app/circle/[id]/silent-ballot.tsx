@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -11,16 +11,185 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Svg, { Rect, Path } from 'react-native-svg';
-import * as Haptics from 'expo-haptics';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withSequence,
+  withTiming,
+  interpolateColor,
+  runOnJS
+} from 'react-native-reanimated';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
+import { usePactHaptics } from '../../../src/hooks/usePactHaptics';
 import { colors, radius } from '../../../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
 import { ArrowLeft, Check, X, Shield, Lock } from 'lucide-react-native';
+import { PactButton } from '../../../src/components/common';
+
+
+interface StampBallotCardProps {
+  opt: {
+    key: string;
+    name: string;
+    match: number;
+    dates: string;
+    price: string;
+  };
+  vote: 'approve' | 'reject' | null;
+  rank: number | undefined;
+  onVote: (key: string, decision: 'approve' | 'reject') => void;
+  onRank: (key: string, rank: number) => void;
+  haptics: ReturnType<typeof usePactHaptics>;
+}
+
+const StampBallotCard: React.FC<StampBallotCardProps> = ({
+  opt,
+  vote,
+  rank,
+  onVote,
+  onRank,
+  haptics
+}) => {
+  const cardScale = useSharedValue(1);
+  const glowPulse = useSharedValue(0);
+  const glowColor = useSharedValue('#3DE0A0');
+
+  const triggerImpactHaptic = (decision: 'approve' | 'reject') => {
+    if (decision === 'approve') {
+      haptics.success();
+    } else {
+      haptics.action();
+    }
+  };
+
+  const handleDecision = (decision: 'approve' | 'reject') => {
+    const isApprove = decision === 'approve';
+    glowColor.value = isApprove ? '#3DE0A0' : '#EF4444';
+
+    // Fast stamp-down: scale down to 0.9 and spring back rapidly with high tension
+    cardScale.value = withSequence(
+      withTiming(0.9, { duration: 65 }, (finished) => {
+        if (finished) {
+          runOnJS(triggerImpactHaptic)(decision);
+        }
+      }),
+      withSpring(1, { damping: 7, stiffness: 380 })
+    );
+
+    // Pulse a subtle shadow/glow pulse on the card
+    glowPulse.value = withSequence(
+      withTiming(1, { duration: 80 }),
+      withTiming(0, { duration: 400 })
+    );
+
+    onVote(opt.key, decision);
+  };
+
+  const animatedCardStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: cardScale.value }],
+      shadowColor: glowColor.value,
+      shadowOpacity: glowPulse.value * 0.45,
+      shadowRadius: glowPulse.value * 16,
+      elevation: glowPulse.value * 4,
+      borderColor: interpolateColor(
+        glowPulse.value,
+        [0, 1],
+        ['rgba(255, 255, 255, 0.08)', glowColor.value]
+      )
+    };
+  });
+
+  return (
+    <Animated.View style={[styles.ballotCard, animatedCardStyle]}>
+      <View style={styles.cardHeaderRow}>
+        <Text style={styles.destName}>{opt.name}</Text>
+        <Text style={styles.matchScore}>{opt.match}%</Text>
+      </View>
+
+      <Text style={styles.destMeta}>
+        {opt.dates}     Est. {opt.price}
+      </Text>
+
+      {/* Voting Action Buttons */}
+      <View style={[styles.voteButtonsRow, vote === 'approve' && { marginBottom: 14 }]}>
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={() => handleDecision('approve')}
+          style={[
+            styles.approveBtn,
+            vote === 'approve' && styles.approveBtnActive
+          ]}
+        >
+          <Check size={16} color={vote === 'approve' ? '#052E20' : '#8B8D98'} />
+          <Text
+            style={[
+              styles.approveBtnText,
+              vote === 'approve' && { color: '#052E20' }
+            ]}
+          >
+            Approve
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={() => handleDecision('reject')}
+          style={[
+            styles.rejectBtn,
+            vote === 'reject' && styles.rejectBtnActive
+          ]}
+        >
+          <X size={16} color={vote === 'reject' ? '#3A0A0A' : '#8B8D98'} />
+          <Text
+            style={[
+              styles.rejectBtnText,
+              vote === 'reject' && { color: '#3A0A0A' }
+            ]}
+          >
+            Reject / veto
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Rank Selection Chips if Approved */}
+      {vote === 'approve' && (
+        <View style={styles.rankChipsRow}>
+          {[1, 2].map((r) => (
+            <TouchableOpacity
+              key={r}
+              activeOpacity={0.8}
+              onPress={() => {
+                haptics.tap();
+                onRank(opt.key, r);
+              }}
+              style={[
+                styles.rankChip,
+                rank === r && styles.rankChipActive
+              ]}
+            >
+              <Text
+                style={[
+                  styles.rankChipText,
+                  rank === r && { color: '#2E0805', fontWeight: '700' }
+                ]}
+              >
+                Rank as #{r} choice
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+    </Animated.View>
+  );
+};
 
 export default function PactSilentBallot() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { groups = [], castVote, currentUserId = 'user-maya-001' } = useGatherlyStore();
+  const haptics = usePactHaptics();
 
   const currentGroup =
     groups.find((g) => g && g.id === id) ||

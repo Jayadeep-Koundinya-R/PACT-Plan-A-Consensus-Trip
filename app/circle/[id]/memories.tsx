@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -17,7 +17,8 @@ import { usePactHaptics } from '../../../src/hooks/usePactHaptics';
 import { EmptyState } from '../../../src/components/EmptyState';
 import { colors, radius } from '../../../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
-import { ArrowLeft, Share2, Plus, Download, Sparkles, Image as ImageIcon, Check, Copy } from 'lucide-react-native';
+import { ArrowLeft, Share2, Plus, Download, Sparkles, Image as ImageIcon, Check, Copy, RefreshCw } from 'lucide-react-native';
+import { MemoryPhotoSkeleton } from '../../../src/components/SkeletonLoader';
 
 export default function PactMemoryLibrary() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -34,6 +35,16 @@ export default function PactMemoryLibrary() {
     };
 
   const [copied, setCopied] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const handleSyncMemories = () => {
+    haptics.tap();
+    setIsSyncing(true);
+    setTimeout(() => {
+      setIsSyncing(false);
+      haptics.success();
+    }, 1200);
+  };
 
   // In production, photos would come from cloud storage
   const [photos] = useState([
@@ -74,21 +85,39 @@ export default function PactMemoryLibrary() {
               </Text>
             </View>
 
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={() => Alert.alert('Share Album', 'Shared private album link created.')}
-              style={styles.shareBtn}
-            >
-              <Svg width="14" height="14" viewBox="0 0 14 14">
-                <Circle cx="10.5" cy="3" r="1.8" fill="none" stroke="#8B8D98" strokeWidth="1.1" />
-                <Circle cx="3" cy="7" r="1.8" fill="none" stroke="#8B8D98" strokeWidth="1.1" />
-                <Circle cx="10.5" cy="11" r="1.8" fill="none" stroke="#8B8D98" strokeWidth="1.1" />
-                <Path d="M4.6 6.1l4.3-2.2M4.6 7.9l4.3 2.2" stroke="#8B8D98" strokeWidth="1.1" />
-              </Svg>
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={handleSyncMemories}
+                style={[styles.shareBtn, { paddingHorizontal: 10, width: 'auto', gap: 5, flexDirection: 'row' }]}
+              >
+                <RefreshCw size={12} color="#8B8D98" />
+                <Text style={{ fontFamily: fontUI, fontSize: 11, color: '#8B8D98' }}>Sync</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => Alert.alert('Share Album', 'Shared private album link created.')}
+                style={styles.shareBtn}
+              >
+                <Svg width="14" height="14" viewBox="0 0 14 14">
+                  <Circle cx="10.5" cy="3" r="1.8" fill="none" stroke="#8B8D98" strokeWidth="1.1" />
+                  <Circle cx="3" cy="7" r="1.8" fill="none" stroke="#8B8D98" strokeWidth="1.1" />
+                  <Circle cx="10.5" cy="11" r="1.8" fill="none" stroke="#8B8D98" strokeWidth="1.1" />
+                  <Path d="M4.6 6.1l4.3-2.2M4.6 7.9l4.3 2.2" stroke="#8B8D98" strokeWidth="1.1" />
+                </Svg>
+              </TouchableOpacity>
+            </View>
           </View>
 
-          {!hasMemories ? (
+          {isSyncing ? (
+            <View style={{ marginBottom: 20 }}>
+              <View style={styles.countCard}>
+                <Text style={styles.countText}>SYNCING SHARED ALBUM & CLOUD MEMORIES...</Text>
+              </View>
+              <MemoryPhotoSkeleton count={4} />
+            </View>
+          ) : !hasMemories ? (
             /* Empty State — No memories yet */
             <EmptyState
               icon="camera"

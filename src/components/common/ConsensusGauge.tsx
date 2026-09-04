@@ -1,4 +1,4 @@
-﻿import React, { ReactNode } from 'react';
+﻿import React, { ReactNode, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,15 @@ import {
   TextStyle
 } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
+import Animated, {
+  useSharedValue,
+  useAnimatedProps,
+  withTiming,
+  Easing
+} from 'react-native-reanimated';
 import { fontDisplay, fontUIBold } from '../../theme/typography';
+
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 export interface ConsensusGaugeProps {
   /** Value as a percentage 0-100 */
@@ -25,6 +33,10 @@ export interface ConsensusGaugeProps {
   trackColor?: string;
   /** Animatable or explicit strokeDashoffset prop */
   strokeDashoffset?: number;
+  /** Whether to animate on mount (default true) */
+  animated?: boolean;
+  /** Animation duration in ms (default 800) */
+  animationDuration?: number;
   /** Main center text (e.g. "4/5" or "96%") */
   centerText?: string;
   /** Small subtext below main text (e.g. "responded" or "consensus") */
@@ -39,7 +51,7 @@ export interface ConsensusGaugeProps {
 
 /**
  * ConsensusGauge - SVG consensus donut component with animatable strokeDashoffset prop.
- * Displays real-time agreement percentage or response counts with smooth stroke geometry.
+ * Animates strokeDashoffset from full circumference down to target value over 800ms using withTiming.
  */
 export const ConsensusGauge: React.FC<ConsensusGaugeProps> = ({
   value,
@@ -49,6 +61,8 @@ export const ConsensusGauge: React.FC<ConsensusGaugeProps> = ({
   strokeColor = '#3DE0A0',
   trackColor = 'rgba(255, 255, 255, 0.08)',
   strokeDashoffset: explicitDashOffset,
+  animated = true,
+  animationDuration = 800,
   centerText,
   centerSubtext,
   children,
@@ -61,17 +75,37 @@ export const ConsensusGauge: React.FC<ConsensusGaugeProps> = ({
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
 
-  const pct =
+  const targetPct =
     progress !== undefined
       ? Math.min(Math.max(progress, 0), 1)
       : value !== undefined
       ? Math.min(Math.max(value / 100, 0), 1)
       : 0;
 
-  const dashOffset =
-    explicitDashOffset !== undefined
-      ? explicitDashOffset
-      : circumference * (1 - pct);
+  const animatedProgress = useSharedValue(animated ? 0 : targetPct);
+
+  useEffect(() => {
+    if (animated) {
+      animatedProgress.value = 0;
+      animatedProgress.value = withTiming(targetPct, {
+        duration: animationDuration,
+        easing: Easing.out(Easing.cubic)
+      });
+    } else {
+      animatedProgress.value = targetPct;
+    }
+  }, [targetPct, animated, animationDuration]);
+
+  const animatedProps = useAnimatedProps(() => {
+    const currentPct = animated ? animatedProgress.value : targetPct;
+    const dashOffset =
+      explicitDashOffset !== undefined
+        ? explicitDashOffset
+        : circumference * (1 - currentPct);
+    return {
+      strokeDashoffset: dashOffset
+    };
+  });
 
   return (
     <View
@@ -89,7 +123,7 @@ export const ConsensusGauge: React.FC<ConsensusGaugeProps> = ({
           strokeWidth={strokeWidth}
         />
         {/* Active Progress Donut */}
-        <Circle
+        <AnimatedCircle
           cx={center}
           cy={center}
           r={radius}
@@ -98,7 +132,7 @@ export const ConsensusGauge: React.FC<ConsensusGaugeProps> = ({
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeDasharray={`${circumference}`}
-          strokeDashoffset={dashOffset}
+          animatedProps={animatedProps}
           transform={`rotate(-90 ${center} ${center})`}
         />
       </Svg>
