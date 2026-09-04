@@ -1,5 +1,5 @@
 ﻿/**
- * useUserStore — user profile, auth state, Pro/subscription status
+ * useUserStore - user profile, auth state, Pro/subscription status
  *
  * Extracted from useGatherlyStore for clean separation of concerns.
  * The original monolithic store is preserved for backward compatibility;
@@ -34,6 +34,7 @@ interface UserState {
   // Actions
   setProfile: (partial: Partial<UserProfile>) => void;
   setAuthenticated: (v: boolean) => void;
+  ensureGuestSession: (suggestedName?: string) => UserProfile;
   setSubscriptionPlan: (plan: SubscriptionPlan) => void;
   setCheckingEntitlement: (v: boolean) => void;
   setPurchaseError: (msg: string | null) => void;
@@ -43,7 +44,7 @@ interface UserState {
   logout: () => void;
 }
 
-export const useUserStore = create<UserState>((set) => ({
+export const useUserStore = create<UserState>((set, get) => ({
   profile: {
     userId: 'user-maya-001',
     email: 'alex@pact.travel',
@@ -63,6 +64,23 @@ export const useUserStore = create<UserState>((set) => ({
     set((s) => ({ profile: { ...s.profile, ...partial } })),
 
   setAuthenticated: (v) => set({ isAuthenticated: v }),
+
+  ensureGuestSession: (suggestedName?: string) => {
+    const current = get().profile;
+    if (current.userId && current.userId.length > 0) {
+      return current;
+    }
+    const guestId = 'guest-' + Math.random().toString(36).substring(2, 8);
+    const guestProfile: UserProfile = {
+      userId: guestId,
+      email: null,
+      displayName: suggestedName || 'Guest Explorer',
+      avatarUrl: null,
+      createdAt: new Date().toISOString()
+    };
+    set({ profile: guestProfile, isAuthenticated: false });
+    return guestProfile;
+  },
 
   setSubscriptionPlan: (plan) => set({ subscriptionPlan: plan }),
   setCheckingEntitlement: (v) => set({ isCheckingEntitlement: v }),

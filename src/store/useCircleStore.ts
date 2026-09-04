@@ -1,5 +1,5 @@
 ﻿/**
- * useCircleStore — circle (group) management, response counts, member status
+ * useCircleStore - circle (group) management, response counts, member status
  *
  * Tracks which circles exist, member response states, invite codes,
  * and real-time responded/total counts for progress meters.
@@ -20,6 +20,7 @@ export interface Circle {
   name: string;
   inviteCode: string;
   organizerId: string;
+  organizerName?: string;
   status: 'collecting' | 'voting' | 'finalized' | 'cancelled';
   totalMembersCount: number;
   members: CircleMember[];
@@ -32,6 +33,7 @@ interface CircleState {
 
   // Derived helpers
   getCircle: (id: string) => Circle | undefined;
+  getCircleByInviteCode: (code: string) => Circle | undefined;
   getActiveCircle: () => Circle | undefined;
   getRespondedCount: (circleId: string) => number;
   getTotalCount: (circleId: string) => number;
@@ -61,6 +63,7 @@ const DEMO_CIRCLE: Circle = {
   name: 'Goa Beach Escape 2026',
   inviteCode: 'GOA-4F82',
   organizerId: 'user-maya-001',
+  organizerName: 'Alex Rivers',
   status: 'voting',
   totalMembersCount: 5,
   members: DEMO_MEMBERS,
@@ -72,6 +75,12 @@ export const useCircleStore = create<CircleState>((set, get) => ({
   activeCircleId: DEMO_CIRCLE.id,
 
   getCircle: (id) => get().circles.find((c) => c.id === id),
+
+  getCircleByInviteCode: (code) => {
+    if (!code) return undefined;
+    const clean = code.trim().toUpperCase();
+    return get().circles.find((c) => c.inviteCode.toUpperCase() === clean);
+  },
 
   getActiveCircle: () => {
     const { circles, activeCircleId } = get();
@@ -164,6 +173,7 @@ export const useCircleStore = create<CircleState>((set, get) => ({
       name: g.name,
       inviteCode: g.inviteCode,
       organizerId: g.organizerId,
+      organizerName: 'Alex Rivers',
       status: g.status,
       totalMembersCount: g.totalMembersCount || 5,
       members: DEMO_MEMBERS,

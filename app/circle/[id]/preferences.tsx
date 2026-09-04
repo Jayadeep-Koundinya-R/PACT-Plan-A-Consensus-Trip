@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -15,7 +15,46 @@ import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
 import { useVoteStore, bandToMax, bandToMin } from '../../../src/store/useVoteStore';
 import { usePactHaptics } from '../../../src/hooks/usePactHaptics';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
-import { ArrowLeft, Lock, Plus, Check, Sliders, ChevronDown, ChevronUp } from 'lucide-react-native';
+import { colors, radius } from '../../../src/theme/colors';
+import {
+  ArrowLeft,
+  Lock,
+  Plus,
+  Check,
+  Sliders,
+  ChevronDown,
+  ChevronUp,
+  Bed,
+  Plane,
+  Bath,
+  ShieldAlert,
+  Ban
+} from 'lucide-react-native';
+import { PactButton } from '../../../src/components/common';
+
+interface DealbreakerMeta {
+  label: string;
+  sub: string;
+  Icon: any;
+}
+
+const DEALBREAKER_METADATA: Record<string, DealbreakerMeta> = {
+  'No dorm hostels': {
+    label: 'No dorms',
+    sub: 'Private rooms only',
+    Icon: Bed
+  },
+  'Flight time > 5 hrs': {
+    label: 'No red-eye flights',
+    sub: 'Max 5h / direct',
+    Icon: Plane
+  },
+  'Shared bathrooms': {
+    label: 'No shared bath',
+    sub: 'Ensuite required',
+    Icon: Bath
+  }
+};
 
 const BUDGET_PRESETS = [400, 600, 800, 1200, 1800, 2500];
 
@@ -341,48 +380,116 @@ export default function PactConstraintsForm() {
 
           {/* 4. Strict Dealbreakers Card */}
           <View style={[styles.card, styles.dealbreakerCard]}>
-            <Text style={styles.cardLabel}>Strict dealbreakers</Text>
-            <Text style={styles.dealbreakerSub}>Any option with these is removed, no exceptions.</Text>
+            <View style={styles.dealbreakerHeaderRow}>
+              <View>
+                <Text style={styles.cardLabel}>Strict dealbreakers</Text>
+                <Text style={styles.dealbreakerSub}>
+                  Any option with these is removed, no exceptions.
+                </Text>
+              </View>
+              <View style={styles.vetoCountBadge}>
+                <Text style={styles.vetoCountText}>
+                  {Object.values(draft.dealbreakers).filter(Boolean).length} Active Vetoes
+                </Text>
+              </View>
+            </View>
 
-            <View style={styles.dealbreakersList}>
-              {Object.keys(draft.dealbreakers).map((k) => (
-                <TouchableOpacity
-                  key={k}
-                  activeOpacity={0.8}
-                  onPress={() => {
-                    haptics.warning();
-                    toggleDealbreaker(circleId, k);
-                  }}
-                  style={[
-                    styles.dealbreakerRow,
-                    draft.dealbreakers[k] && {
-                      backgroundColor: 'rgba(239,68,68,0.1)',
-                      borderColor: 'rgba(239,68,68,0.35)'
-                    }
-                  ]}
-                >
-                  <View
+            {/* Interactive Icon Tile Grid */}
+            <View style={styles.dealbreakerGrid}>
+              {Object.keys(draft.dealbreakers).map((k) => {
+                const isVetoed = Boolean(draft.dealbreakers[k]);
+                const meta = DEALBREAKER_METADATA[k] || {
+                  label: k,
+                  sub: 'Strict constraint',
+                  Icon: ShieldAlert
+                };
+                const IconComponent = meta.Icon;
+
+                return (
+                  <TouchableOpacity
+                    key={k}
+                    activeOpacity={0.82}
+                    onPress={() => {
+                      if (isVetoed) {
+                        haptics.tap();
+                      } else {
+                        haptics.warning();
+                      }
+                      toggleDealbreaker(circleId, k);
+                    }}
                     style={[
-                      styles.dealSquare,
-                      draft.dealbreakers[k] && { backgroundColor: '#EF4444', borderWidth: 0 }
+                      styles.dealbreakerTile,
+                      isVetoed
+                        ? styles.dealbreakerTileVetoed
+                        : styles.dealbreakerTileAllowed
                     ]}
                   >
-                    {draft.dealbreakers[k] && (
-                      <Svg width="10" height="10" viewBox="0 0 10 10">
-                        <Path d="M2 2l6 6M8 2l-6 6" stroke="#2E0805" strokeWidth="1.6" strokeLinecap="round" />
-                      </Svg>
-                    )}
-                  </View>
-                  <Text
-                    style={[
-                      styles.dealLabel,
-                      draft.dealbreakers[k] ? { color: '#F4F3F0' } : { color: '#6C6F7A' }
-                    ]}
-                  >
-                    {k}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+                    {/* Top Tile Row: Icon Box + Status Pill */}
+                    <View style={styles.tileHeaderRow}>
+                      <View
+                        style={[
+                          styles.tileIconBox,
+                          isVetoed
+                            ? styles.tileIconBoxVetoed
+                            : styles.tileIconBoxAllowed
+                        ]}
+                      >
+                        <IconComponent
+                          size={18}
+                          color={isVetoed ? '#EF4444' : '#3DE0A0'}
+                        />
+                      </View>
+
+                      <View
+                        style={[
+                          styles.tileStatusBadge,
+                          isVetoed
+                            ? styles.tileStatusBadgeVetoed
+                            : styles.tileStatusBadgeAllowed
+                        ]}
+                      >
+                        {isVetoed ? (
+                          <Ban size={9} color="#EF4444" style={{ marginRight: 3 }} />
+                        ) : (
+                          <Check size={9} color="#3DE0A0" style={{ marginRight: 3 }} />
+                        )}
+                        <Text
+                          style={[
+                            styles.tileStatusText,
+                            isVetoed
+                              ? styles.tileStatusTextVetoed
+                              : styles.tileStatusTextAllowed
+                          ]}
+                        >
+                          {isVetoed ? 'VETO' : 'ALLOWED'}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* Tile Label & Subtitle */}
+                    <Text
+                      style={[
+                        styles.tileTitle,
+                        isVetoed ? styles.tileTitleVetoed : styles.tileTitleAllowed
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {meta.label}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.tileSubtitle,
+                        isVetoed
+                          ? styles.tileSubtitleVetoed
+                          : styles.tileSubtitleAllowed
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {meta.sub}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
         </ScrollView>
@@ -725,44 +832,120 @@ const styles = StyleSheet.create({
     color: '#8B8D98'
   },
 
-  /* === Dealbreakers === */
+  /* === Dealbreakers Icon Tile Grid === */
   dealbreakerCard: {
-    borderColor: 'rgba(239,68,68,0.3)',
+    borderColor: 'rgba(239,68,68,0.25)',
     marginBottom: 20
+  },
+  dealbreakerHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 14
   },
   dealbreakerSub: {
     fontFamily: fontUI,
     fontSize: 11.5,
     color: '#6C6F7A',
-    marginTop: -6,
-    marginBottom: 14
+    marginTop: 2
   },
-  dealbreakersList: {
-    gap: 8
+  vetoCountBadge: {
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.25)'
   },
-  dealbreakerRow: {
+  vetoCountText: {
+    fontFamily: fontUIBold,
+    fontSize: 10.5,
+    color: '#EF4444',
+    letterSpacing: 0.3
+  },
+  dealbreakerGrid: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)'
+    flexWrap: 'wrap',
+    gap: 10
   },
-  dealSquare: {
-    width: 16,
-    height: 16,
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+  dealbreakerTile: {
+    flexBasis: '48%',
+    flexGrow: 1,
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1.5
+  },
+  dealbreakerTileVetoed: {
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    borderColor: '#EF4444'
+  },
+  dealbreakerTileAllowed: {
+    backgroundColor: 'rgba(61, 224, 160, 0.08)',
+    borderColor: 'rgba(61, 224, 160, 0.35)'
+  },
+  tileHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10
+  },
+  tileIconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center'
   },
-  dealLabel: {
+  tileIconBoxVetoed: {
+    backgroundColor: 'rgba(239, 68, 68, 0.2)'
+  },
+  tileIconBoxAllowed: {
+    backgroundColor: 'rgba(61, 224, 160, 0.15)'
+  },
+  tileStatusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 3,
+    paddingHorizontal: 7,
+    borderRadius: radius.pill
+  },
+  tileStatusBadgeVetoed: {
+    backgroundColor: 'rgba(239, 68, 68, 0.25)'
+  },
+  tileStatusBadgeAllowed: {
+    backgroundColor: 'rgba(61, 224, 160, 0.18)'
+  },
+  tileStatusText: {
+    fontFamily: fontUIBold,
+    fontSize: 9.5,
+    letterSpacing: 0.6
+  },
+  tileStatusTextVetoed: {
+    color: '#EF4444'
+  },
+  tileStatusTextAllowed: {
+    color: '#3DE0A0'
+  },
+  tileTitle: {
+    fontFamily: fontUIBold,
+    fontSize: 13.5,
+    marginBottom: 2
+  },
+  tileTitleVetoed: {
+    color: '#F4F3F0'
+  },
+  tileTitleAllowed: {
+    color: '#F4F3F0'
+  },
+  tileSubtitle: {
     fontFamily: fontUI,
-    fontSize: 13,
-    flex: 1
+    fontSize: 11
+  },
+  tileSubtitleVetoed: {
+    color: 'rgba(239, 68, 68, 0.9)'
+  },
+  tileSubtitleAllowed: {
+    color: '#8B8D98'
   },
 
   /* === Bottom Bar === */

@@ -1,4 +1,4 @@
-{
+﻿{
   "expo": {
     "name": "PACT",
     "slug": "pact",
@@ -27,6 +27,7 @@
         {
           "action": "VIEW",
           "data": [
+            { "scheme": "pact", "host": "join" },
             { "scheme": "pact", "host": "invite" }
           ],
           "category": ["BROWSABLE", "DEFAULT"]
