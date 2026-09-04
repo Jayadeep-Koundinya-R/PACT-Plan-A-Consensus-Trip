@@ -11,9 +11,10 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Svg, { Rect, Path } from 'react-native-svg';
-import * as Haptics from 'expo-haptics';
 import * as Clipboard from 'expo-clipboard';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
+import { usePactHaptics } from '../../../src/hooks/usePactHaptics';
+import { EmptyState } from '../../../src/components/EmptyState';
 import { colors, radius } from '../../../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
 import { ArrowLeft, FileText, Home, Shield, Copy, Check, Plus } from 'lucide-react-native';
@@ -21,7 +22,8 @@ import { ArrowLeft, FileText, Home, Shield, Copy, Check, Plus } from 'lucide-rea
 export default function PactTripVault() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { groups = [] } = useGatherlyStore();
+  const haptics = usePactHaptics();
+  const { groups = [], finalizedBrief } = useGatherlyStore();
 
   const currentGroup =
     groups.find((g) => g && g.id === id) ||
@@ -33,18 +35,23 @@ export default function PactTripVault() {
 
   const [copied, setCopied] = useState(false);
 
+  // Demo docs — in production, this would come from Supabase storage
+  const [documents] = useState([
+    { section: 'FLIGHTS & TRANSPORT', items: [
+      { name: 'IndiGo_Flight_All5.pdf', meta: 'Uploaded by Alex  ·  1.2 MB', type: 'flight' },
+      { name: 'Airport_Transfer_Receipt.pdf', meta: 'Uploaded by Sam', type: 'transfer' }
+    ]},
+    { section: 'ACCOMMODATION BOOKINGS', items: [
+      { name: 'South_Goa_Villa_Confirmation.pdf', meta: 'Uploaded by You  ·  Code #PACT-9921', type: 'villa' }
+    ]}
+  ]);
+
+  const hasDocuments = finalizedBrief !== null || documents.length > 0;
+
   const aiText = '✈️ Goa trip update: flights & villa confirmed! All PDF vouchers are ready in the vault.';
 
-  const triggerHaptic = () => {
-    if (Platform.OS !== 'web') {
-      try {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      } catch (e) {}
-    }
-  };
-
   const handleCopy = async () => {
-    triggerHaptic();
+    haptics.success();
     try {
       await Clipboard.setStringAsync(aiText);
       setCopied(true);
@@ -77,14 +84,20 @@ export default function PactTripVault() {
           <View style={styles.docChipsRow}>
             <TouchableOpacity
               activeOpacity={0.7}
-              onPress={() => Alert.alert('View Document', `Opening ${name}...`)}
+              onPress={() => {
+                haptics.tap();
+                Alert.alert('View Document', `Opening ${name}...`);
+              }}
               style={styles.docChip}
             >
               <Text style={styles.docChipText}>View</Text>
             </TouchableOpacity>
             <TouchableOpacity
               activeOpacity={0.7}
-              onPress={() => Alert.alert('Download', `Downloading ${name} to device storage.`)}
+              onPress={() => {
+                haptics.tap();
+                Alert.alert('Download', `Downloading ${name} to device storage.`);
+              }}
               style={styles.docChip}
             >
               <Text style={styles.docChipText}>Download</Text>
@@ -94,6 +107,41 @@ export default function PactTripVault() {
       </View>
     </View>
   );
+
+  const FlightIcon = () => (
+    <Svg width="17" height="17" viewBox="0 0 17 17">
+      <Path d="M4 1.5h6l3 3v11h-9z" fill="none" stroke="#FF5A5F" strokeWidth="1.1" strokeLinejoin="round" />
+      <Path d="M10 1.5v3h3" fill="none" stroke="#FF5A5F" strokeWidth="1.1" strokeLinejoin="round" />
+    </Svg>
+  );
+
+  const TransferIcon = () => (
+    <Svg width="17" height="17" viewBox="0 0 17 17">
+      <Path
+        d="M1.5 6l1.4-1.4a1.6 1.6 0 0 0 2.3 0l1-1a1.6 1.6 0 0 1 2.3 0l1 1a1.6 1.6 0 0 0 2.3 0L13.2 3l2.3 2.3v6.4L13.2 14l-1.4-1.4a1.6 1.6 0 0 0-2.3 0l-1 1a1.6 1.6 0 0 1-2.3 0l-1-1a1.6 1.6 0 0 0-2.3 0L1.5 14z"
+        fill="none"
+        stroke="#FF5A5F"
+        strokeWidth="1"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+
+  const VillaIcon = () => (
+    <Svg width="17" height="17" viewBox="0 0 17 17">
+      <Path d="M2 8L8.5 2.5 15 8" fill="none" stroke="#FF5A5F" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M3.7 6.8V14.5h9.6V6.8" fill="none" stroke="#FF5A5F" strokeWidth="1.1" strokeLinejoin="round" />
+    </Svg>
+  );
+
+  const getDocIcon = (type: string) => {
+    switch (type) {
+      case 'flight': return <FlightIcon />;
+      case 'transfer': return <TransferIcon />;
+      case 'villa': return <VillaIcon />;
+      default: return <FlightIcon />;
+    }
+  };
 
   return (
     <SafeAreaView style={styles.outerContainer}>
@@ -119,98 +167,83 @@ export default function PactTripVault() {
 
           {/* Vault Security Banner */}
           <View style={styles.securityBanner}>
-            <Svg width="15" height="15" viewBox="0 0 15 15" style={{ marginTop: 2 }}>
-              <Rect x="3.5" y="6.5" width="8" height="6.5" rx="1.5" fill="none" stroke="#3DE0A0" strokeWidth="1.3" />
-              <Path d="M5.2 6.5V4.8a2.3 2.3 0 0 1 4.6 0v1.7" fill="none" stroke="#3DE0A0" strokeWidth="1.3" />
-            </Svg>
+            <Shield size={15} color="#3DE0A0" />
             <Text style={styles.securityBannerText}>
-              Vault secured — all circle members have read/write access to these booking PDFs and vouchers.
+              Trip vault is shared with your circle only. No one outside can access these files.
             </Text>
           </View>
 
-          {/* Flights & Transport Section */}
-          <Text style={styles.sectionHeading}>FLIGHTS & TRANSPORT</Text>
-          <View style={styles.docsList}>
-            <DocCard
-              icon={
-                <Svg width="17" height="17" viewBox="0 0 17 17">
-                  <Path d="M4 1.5h6l3 3v11h-9z" fill="none" stroke="#FF5A5F" strokeWidth="1.1" strokeLinejoin="round" />
-                  <Path d="M10 1.5v3h3" fill="none" stroke="#FF5A5F" strokeWidth="1.1" strokeLinejoin="round" />
-                </Svg>
-              }
-              name="IndiGo_Flight_All5.pdf"
-              meta="Uploaded by Alex  •  1.2 MB"
+          {!hasDocuments ? (
+            /* Empty State — No documents yet */
+            <EmptyState
+              icon="folder"
+              title="No documents yet"
+              description="Upload flight confirmations, hotel vouchers, and booking PDFs here for your circle to access."
+              actionLabel="Upload first document"
+              onAction={() => Alert.alert('Upload Document', 'Opening file picker...')}
+              isDarkMode={true}
             />
+          ) : (
+            <>
+              {/* Document Sections */}
+              {documents.map((section) => (
+                <View key={section.section}>
+                  <Text style={styles.sectionHeading}>{section.section}</Text>
+                  <View style={styles.docsList}>
+                    {section.items.map((doc) => (
+                      <DocCard
+                        key={doc.name}
+                        icon={getDocIcon(doc.type)}
+                        name={doc.name}
+                        meta={doc.meta}
+                      />
+                    ))}
+                  </View>
+                </View>
+              ))}
 
-            <DocCard
-              icon={
-                <Svg width="17" height="17" viewBox="0 0 17 17">
-                  <Path
-                    d="M1.5 6l1.4-1.4a1.6 1.6 0 0 0 2.3 0l1-1a1.6 1.6 0 0 1 2.3 0l1 1a1.6 1.6 0 0 0 2.3 0L13.2 3l2.3 2.3v6.4L13.2 14l-1.4-1.4a1.6 1.6 0 0 0-2.3 0l-1 1a1.6 1.6 0 0 1-2.3 0l-1-1a1.6 1.6 0 0 0-2.3 0L1.5 14z"
-                    fill="none"
-                    stroke="#FF5A5F"
-                    strokeWidth="1"
-                    strokeLinejoin="round"
-                  />
-                </Svg>
-              }
-              name="Airport_Transfer_Receipt.pdf"
-              meta="Uploaded by Sam"
-            />
-          </View>
+              {/* AI Copy Assistant Card */}
+              <View style={styles.aiCopyCard}>
+                <View style={styles.aiCopyHeader}>
+                  <Text style={{ fontSize: 13 }}>✨</Text>
+                  <Text style={styles.aiCopyTitle}>AI copy assistant</Text>
+                </View>
 
-          {/* Accommodation Bookings Section */}
-          <Text style={styles.sectionHeading}>ACCOMMODATION BOOKINGS</Text>
-          <View style={styles.docsList}>
-            <DocCard
-              icon={
-                <Svg width="17" height="17" viewBox="0 0 17 17">
-                  <Path d="M2 8L8.5 2.5 15 8" fill="none" stroke="#FF5A5F" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" />
-                  <Path d="M3.7 6.8V14.5h9.6V6.8" fill="none" stroke="#FF5A5F" strokeWidth="1.1" strokeLinejoin="round" />
-                </Svg>
-              }
-              name="South_Goa_Villa_Confirmation.pdf"
-              meta="Uploaded by You  •  Code #PACT-9921"
-            />
-          </View>
+                <View style={styles.aiTextBox}>
+                  <Text style={styles.aiTextContent}>{aiText}</Text>
+                </View>
 
-          {/* AI Copy Assistant Card */}
-          <View style={styles.aiCopyCard}>
-            <View style={styles.aiCopyHeader}>
-              <Text style={{ fontSize: 13 }}>✨</Text>
-              <Text style={styles.aiCopyTitle}>AI copy assistant</Text>
-            </View>
-
-            <View style={styles.aiTextBox}>
-              <Text style={styles.aiTextContent}>{aiText}</Text>
-            </View>
-
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={handleCopy}
-              style={[
-                styles.copyBtn,
-                copied ? { backgroundColor: '#0F6E56' } : { backgroundColor: '#3DE0A0' }
-              ]}
-            >
-              {copied ? <Check size={14} color="#CFF3E4" /> : <Copy size={14} color="#052E20" />}
-              <Text
-                style={[
-                  styles.copyBtnText,
-                  copied ? { color: '#CFF3E4' } : { color: '#052E20' }
-                ]}
-              >
-                {copied ? 'Copied to clipboard' : 'Copy text to clipboard'}
-              </Text>
-            </TouchableOpacity>
-          </View>
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={handleCopy}
+                  style={[
+                    styles.copyBtn,
+                    copied ? { backgroundColor: '#0F6E56' } : { backgroundColor: '#3DE0A0' }
+                  ]}
+                >
+                  {copied ? <Check size={14} color="#CFF3E4" /> : <Copy size={14} color="#052E20" />}
+                  <Text
+                    style={[
+                      styles.copyBtnText,
+                      copied ? { color: '#CFF3E4' } : { color: '#052E20' }
+                    ]}
+                  >
+                    {copied ? 'Copied to clipboard' : 'Copy text to clipboard'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
         </ScrollView>
 
         {/* Bottom CTA Bar */}
         <View style={styles.bottomBar}>
           <TouchableOpacity
             activeOpacity={0.88}
-            onPress={() => Alert.alert('Upload Document', 'Opening file picker...')}
+            onPress={() => {
+              haptics.action();
+              Alert.alert('Upload Document', 'Opening file picker...');
+            }}
             style={styles.uploadFullBtn}
           >
             <Text style={styles.uploadFullBtnText}>+ Upload booking PDF / screenshot</Text>

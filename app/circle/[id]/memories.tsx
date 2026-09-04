@@ -11,17 +11,19 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Svg, { Rect, Circle, Path } from 'react-native-svg';
-import * as Haptics from 'expo-haptics';
 import * as Clipboard from 'expo-clipboard';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
+import { usePactHaptics } from '../../../src/hooks/usePactHaptics';
+import { EmptyState } from '../../../src/components/EmptyState';
 import { colors, radius } from '../../../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
-import { ArrowLeft, Share2, Plus, Download, Sparkles, Image as ImageIcon } from 'lucide-react-native';
+import { ArrowLeft, Share2, Plus, Download, Sparkles, Image as ImageIcon, Check, Copy } from 'lucide-react-native';
 
 export default function PactMemoryLibrary() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { groups = [] } = useGatherlyStore();
+  const haptics = usePactHaptics();
+  const { groups = [], finalizedBrief } = useGatherlyStore();
 
   const currentGroup =
     groups.find((g) => g && g.id === id) ||
@@ -33,25 +35,20 @@ export default function PactMemoryLibrary() {
 
   const [copied, setCopied] = useState(false);
 
-  const recap = '5 days, 5 friends, 100% consensus maintained. Favorite memory: South Goa sunset cruise.';
-
-  const photos = [
+  // In production, photos would come from cloud storage
+  const [photos] = useState([
     { bg: '#3A1F1F', by: 'Alex' },
     { bg: '#2A2416', by: 'Maya' },
     { bg: '#16241F', by: 'Sam' },
     { bg: '#1E1A2A', by: 'Jordan' }
-  ];
+  ]);
 
-  const triggerHaptic = () => {
-    if (Platform.OS !== 'web') {
-      try {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      } catch (e) {}
-    }
-  };
+  const hasMemories = finalizedBrief !== null || photos.length > 0;
+
+  const recap = '5 days, 5 friends, 100% consensus maintained. Favorite memory: South Goa sunset cruise.';
 
   const handleCopy = async () => {
-    triggerHaptic();
+    haptics.success();
     try {
       await Clipboard.setStringAsync(recap);
       setCopied(true);
@@ -91,79 +88,102 @@ export default function PactMemoryLibrary() {
             </TouchableOpacity>
           </View>
 
-          {/* Memories Count Bar */}
-          <View style={styles.countCard}>
-            <Text style={styles.countText}>
-              <Text style={styles.countBold}>128 shared memories</Text>  •  {currentGroup.name || 'Goa beach escape 2026'}
-            </Text>
-          </View>
+          {!hasMemories ? (
+            /* Empty State — No memories yet */
+            <EmptyState
+              icon="camera"
+              title="No memories yet"
+              description="Once your trip wraps up, upload photos and clips here to build your shared memory album."
+              actionLabel="Add first photo"
+              onAction={() => Alert.alert('Add Photos', 'Opening device gallery...')}
+              isDarkMode={true}
+            />
+          ) : (
+            <>
+              {/* Memories Count Bar */}
+              <View style={styles.countCard}>
+                <Text style={styles.countText}>
+                  <Text style={styles.countBold}>{photos.length > 0 ? '128 shared memories' : '0 memories'}</Text>  ·  {currentGroup.name || 'Goa beach escape 2026'}
+                </Text>
+              </View>
 
-          {/* 2x2 Photo Grid */}
-          <View style={styles.photoGrid}>
-            {photos.map((p) => (
-              <View key={p.by} style={[styles.photoTile, { backgroundColor: p.bg }]}>
-                <Svg width="26" height="26" viewBox="0 0 26 26" style={styles.photoCenterIcon}>
-                  <Rect x="2" y="5" width="22" height="17" rx="2.5" fill="none" stroke="#F4F3F0" strokeWidth="1.3" />
-                  <Circle cx="9" cy="11" r="2.3" fill="none" stroke="#F4F3F0" strokeWidth="1.3" />
-                  <Path d="M2 19l6-5 4 3.5 5-5 7 6.5" fill="none" stroke="#F4F3F0" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-                </Svg>
-                <View style={styles.photoTag}>
-                  <Text style={styles.photoTagText}>By {p.by}</Text>
+              {/* 2x2 Photo Grid */}
+              <View style={styles.photoGrid}>
+                {photos.map((p) => (
+                  <View key={p.by} style={[styles.photoTile, { backgroundColor: p.bg }]}>
+                    <Svg width="26" height="26" viewBox="0 0 26 26" style={styles.photoCenterIcon}>
+                      <Rect x="2" y="5" width="22" height="17" rx="2.5" fill="none" stroke="#F4F3F0" strokeWidth="1.3" />
+                      <Circle cx="9" cy="11" r="2.3" fill="none" stroke="#F4F3F0" strokeWidth="1.3" />
+                      <Path d="M2 19l6-5 4 3.5 5-5 7 6.5" fill="none" stroke="#F4F3F0" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+                    </Svg>
+                    <View style={styles.photoTag}>
+                      <Text style={styles.photoTagText}>By {p.by}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+
+              {/* Add Photos Button */}
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => {
+                  haptics.tap();
+                  Alert.alert('Add Photos', 'Opening device gallery...');
+                }}
+                style={styles.addPhotosBtn}
+              >
+                <Text style={styles.addPhotosBtnText}>+ Add photos / clips</Text>
+              </TouchableOpacity>
+
+              {/* Gold AI Trip Digest Card */}
+              <View style={styles.aiDigestOuter}>
+                <View style={styles.aiDigestInner}>
+                  <View style={styles.aiDigestHeader}>
+                    <Text style={{ fontSize: 13 }}>✨</Text>
+                    <Text style={styles.aiDigestTitle}>AI trip digest</Text>
+                    <View style={styles.aiGoldTag}>
+                      <Text style={styles.aiGoldTagText}>PRO</Text>
+                    </View>
+                  </View>
+
+                  <Text style={styles.aiDigestText}>{recap}</Text>
+
+                  <TouchableOpacity
+                    activeOpacity={0.85}
+                    onPress={handleCopy}
+                    style={[
+                      styles.aiCopyBtn,
+                      copied ? { backgroundColor: '#0F6E56' } : { backgroundColor: '#D4AF37' }
+                    ]}
+                  >
+                    {copied ? <Check size={13} color="#CFF3E4" /> : <Copy size={13} color="#3E2C0E" />}
+                    <Text
+                      style={[
+                        styles.aiCopyBtnText,
+                        copied ? { color: '#CFF3E4' } : { color: '#3E2C0E' }
+                      ]}
+                    >
+                      {copied ? 'Copied!' : 'Copy recap to clipboard'}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               </View>
-            ))}
-          </View>
-
-          {/* Add Photos Button */}
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => Alert.alert('Add Photos', 'Opening device gallery...')}
-            style={styles.addPhotosBtn}
-          >
-            <Text style={styles.addPhotosBtnText}>+ Add photos / clips</Text>
-          </TouchableOpacity>
-
-          {/* Gold AI Trip Digest Card */}
-          <View style={styles.aiDigestOuter}>
-            <View style={styles.aiDigestInner}>
-              <View style={styles.aiDigestHeader}>
-                <Text style={{ fontSize: 13 }}>✨</Text>
-                <Text style={styles.aiDigestTitle}>AI trip digest</Text>
-              </View>
-
-              <Text style={styles.aiDigestRecap}>"{recap}"</Text>
-
-              <TouchableOpacity
-                activeOpacity={0.85}
-                onPress={handleCopy}
-                style={[
-                  styles.copyDigestBtn,
-                  copied && { backgroundColor: 'rgba(212,175,55,0.18)' }
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.copyDigestBtnText,
-                    copied ? { color: '#D4AF37' } : { color: '#F4F3F0' }
-                  ]}
-                >
-                  {copied ? 'Copied to clipboard' : 'Copy AI trip recap text'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+            </>
+          )}
         </ScrollView>
 
-        {/* Bottom Sticky Action Bar */}
+        {/* Bottom CTA Bar */}
         <View style={styles.bottomBar}>
           <TouchableOpacity
             activeOpacity={0.88}
-            onPress={() => Alert.alert('Export ZIP', 'Compressing 128 high-res photos to Goa_Trip_Album.zip...')}
-            style={styles.downloadZipBtn}
+            onPress={() => {
+              haptics.action();
+              Alert.alert('Download Album', 'Downloading full ZIP album to device...');
+            }}
+            style={styles.downloadFullBtn}
           >
-            <Text style={styles.downloadZipBtnText}>
-              Download entire circle album (.ZIP)
-            </Text>
+            <Download size={16} color="#2E0805" />
+            <Text style={styles.downloadFullBtnText}>Download entire album (.ZIP)</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -205,7 +225,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
     flex: 1,
-    marginRight: 8
+    marginRight: 10
   },
   backBtn: {
     width: 32,
@@ -221,11 +241,11 @@ const styles = StyleSheet.create({
     flex: 1
   },
   shareBtn: {
-    width: 34,
-    height: 34,
+    width: 32,
+    height: 32,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderColor: 'rgba(255,255,255,0.1)',
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -234,14 +254,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
     borderRadius: 14,
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     paddingVertical: 12,
     marginBottom: 16
   },
   countText: {
     fontFamily: fontUI,
     fontSize: 12.5,
-    color: '#B4B6C0'
+    color: '#8B8D98'
   },
   countBold: {
     fontFamily: fontUIBold,
@@ -252,62 +272,57 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
-    marginBottom: 12
+    marginBottom: 14
   },
   photoTile: {
     width: '48%',
     aspectRatio: 1,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 16,
     overflow: 'hidden',
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
     position: 'relative'
   },
   photoCenterIcon: {
-    opacity: 0.35
+    opacity: 0.4
   },
   photoTag: {
     position: 'absolute',
-    left: 8,
     bottom: 8,
-    backgroundColor: 'rgba(9,10,15,0.7)',
-    borderRadius: 20,
+    left: 10,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderRadius: 10,
     paddingHorizontal: 8,
     paddingVertical: 3
   },
   photoTagText: {
-    fontFamily: fontUIBold,
+    fontFamily: fontUI,
     fontSize: 10,
-    fontWeight: '600',
-    color: '#F4F3F0'
+    color: '#B4B6C0'
   },
   addPhotosBtn: {
-    width: '100%',
-    paddingVertical: 15,
-    borderRadius: 14,
     borderWidth: 1,
     borderStyle: 'dashed',
-    borderColor: 'rgba(255,255,255,0.2)',
+    borderColor: 'rgba(255,255,255,0.18)',
+    borderRadius: 14,
+    paddingVertical: 12,
     alignItems: 'center',
-    justifyContent: 'center',
     marginBottom: 20
   },
   addPhotosBtnText: {
-    fontFamily: fontUI,
+    fontFamily: fontUIBold,
     fontSize: 13,
+    fontWeight: '600',
     color: '#8B8D98'
   },
   aiDigestOuter: {
-    borderRadius: 18,
-    padding: 1,
-    backgroundColor: '#D4AF37',
     marginBottom: 20
   },
   aiDigestInner: {
     backgroundColor: '#13151E',
-    borderRadius: 17,
+    borderWidth: 1,
+    borderColor: 'rgba(212,175,55,0.25)',
+    borderRadius: 18,
     padding: 18
   },
   aiDigestHeader: {
@@ -320,27 +335,39 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 13.5,
     fontWeight: '600',
-    color: '#F4F3F0'
+    color: '#F4F3F0',
+    flex: 1
   },
-  aiDigestRecap: {
+  aiGoldTag: {
+    backgroundColor: '#D4AF37',
+    borderRadius: 8,
+    paddingHorizontal: 7,
+    paddingVertical: 2
+  },
+  aiGoldTagText: {
+    fontFamily: fontUIBold,
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#3E2C0E',
+    letterSpacing: 0.5
+  },
+  aiDigestText: {
     fontFamily: fontUI,
-    fontSize: 12.5,
-    color: '#D4D5DA',
-    lineHeight: 20,
-    fontStyle: 'italic',
+    fontSize: 13,
+    color: '#B4B6C0',
+    lineHeight: 19,
     marginBottom: 14
   },
-  copyDigestBtn: {
+  aiCopyBtn: {
     width: '100%',
     paddingVertical: 11,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.14)',
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    gap: 8
   },
-  copyDigestBtnText: {
+  aiCopyBtnText: {
     fontFamily: fontUIBold,
     fontSize: 13,
     fontWeight: '600'
@@ -353,15 +380,17 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: 'rgba(255,255,255,0.06)'
   },
-  downloadZipBtn: {
+  downloadFullBtn: {
     width: '100%',
     paddingVertical: 14,
     borderRadius: 12,
     backgroundColor: '#FF5A5F',
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    gap: 8
   },
-  downloadZipBtnText: {
+  downloadFullBtnText: {
     fontFamily: fontUIBold,
     fontSize: 14.5,
     fontWeight: '700',

@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,21 +7,29 @@ import {
   StyleSheet,
   SafeAreaView,
   Platform,
-  Alert
+  Animated
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Svg, { Rect, Path } from 'react-native-svg';
-import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
-import { colors, radius } from '../../../src/theme/colors';
+import { useVoteStore, bandToMax, bandToMin } from '../../../src/store/useVoteStore';
+import { usePactHaptics } from '../../../src/hooks/usePactHaptics';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
-import { ArrowLeft, Lock, Plus, Check, Sliders } from 'lucide-react-native';
+import { ArrowLeft, Lock, Plus, Check, Sliders, ChevronDown, ChevronUp } from 'lucide-react-native';
 
 const BUDGET_PRESETS = [400, 600, 800, 1200, 1800, 2500];
+
+const BUDGET_BANDS = [
+  { key: 'under500' as const, label: 'Under $500', emoji: '💰', sub: 'Budget-friendly' },
+  { key: '500to1000' as const, label: '$500 – $1,000', emoji: '✈️', sub: 'Mid-range' },
+  { key: 'over1000' as const, label: '$1,000+', emoji: '🏝️', sub: 'Premium' }
+];
 
 export default function PactConstraintsForm() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const haptics = usePactHaptics();
+
   const {
     groups = [],
     currentUserId = 'user-maya-001',
@@ -29,10 +37,21 @@ export default function PactConstraintsForm() {
     submitPreferences
   } = useGatherlyStore();
 
+  const circleId = id || 'circle-college-reunion-2026';
+  const draft = useVoteStore((s) => s.getDraft(circleId));
+  const toggleDateWindow = useVoteStore((s) => s.toggleDateWindow);
+  const addDateWindow = useVoteStore((s) => s.addDateWindow);
+  const setBudgetBand = useVoteStore((s) => s.setBudgetBand);
+  const setBudgetCustom = useVoteStore((s) => s.setBudgetCustom);
+  const toggleFineTune = useVoteStore((s) => s.toggleFineTune);
+  const toggleVibe = useVoteStore((s) => s.toggleVibe);
+  const toggleDealbreaker = useVoteStore((s) => s.toggleDealbreaker);
+  const markSubmitted = useVoteStore((s) => s.markSubmitted);
+
   const currentGroup =
     groups.find((g) => g && g.id === id) ||
     groups[0] || {
-      id: id || 'circle-college-reunion-2026',
+      id: circleId,
       name: 'Goa trip',
       inviteCode: 'GOA-4F82',
       organizerId: currentUserId,
@@ -42,76 +61,39 @@ export default function PactConstraintsForm() {
 
   const existingMember = members.find((m) => m?.userId === currentUserId);
 
-  const [dateWindows, setDateWindows] = useState([
-    { label: 'Oct 12 – Oct 18', active: true, start: '2026-10-12', end: '2026-10-18' },
-    { label: 'Nov 02 – Nov 08', active: false, start: '2026-11-02', end: '2026-11-08' }
-  ]);
-
-  const [budget, setBudget] = useState(existingMember?.budgetMax || 800);
-
-  const [vibes, setVibes] = useState<Record<string, boolean>>({
-    'Beach & Coast': true,
-    'Nightlife': false,
-    'Mountain Trek': false,
-    'Food & Dining': true,
-    'Relaxing Spa': false
-  });
-
-  const [dealbreakers, setDealbreakers] = useState<Record<string, boolean>>({
-    'No dorm hostels': true,
-    'Flight time > 5 hrs': true,
-    'Shared bathrooms': true
-  });
-
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const triggerHaptic = () => {
-    if (Platform.OS !== 'web') {
-      try {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      } catch (e) {}
-    }
-  };
+  // Compute display budget from band or custom
+  const displayBudget = bandToMax(draft.budgetBand, draft.budgetCustom);
+  const sliderPct = Math.max(0, Math.min(100, ((draft.budgetCustom - 200) / (3000 - 200)) * 100));
 
-  const addWindow = () => {
-    triggerHaptic();
-    setDateWindows((w) => [
-      ...w,
-      { label: 'Nov 16 – Nov 22', active: true, start: '2026-11-16', end: '2026-11-22' }
-    ]);
-  };
-
-  const toggleDateWindow = (index: number) => {
-    triggerHaptic();
-    setDateWindows((w) =>
-      w.map((item, i) => (i === index ? { ...item, active: !item.active } : item))
-    );
-  };
-
-  const toggleVibe = (k: string) => {
-    triggerHaptic();
-    setVibes((v) => ({ ...v, [k]: !v[k] }));
-  };
-
-  const toggleDeal = (k: string) => {
-    triggerHaptic();
-    setDealbreakers((d) => ({ ...d, [k]: !d[k] }));
+  const handleAddWindow = () => {
+    haptics.tap();
+    addDateWindow(circleId, {
+      label: 'Nov 16 – Nov 22',
+      start: '2026-11-16',
+      end: '2026-11-22',
+      active: true
+    });
   };
 
   const handleBudgetAdjust = (delta: number) => {
-    triggerHaptic();
-    setBudget((b) => Math.max(200, Math.min(3000, b + delta)));
+    haptics.slider();
+    setBudgetCustom(circleId, draft.budgetCustom + delta);
   };
 
-  const sliderPct = Math.max(0, Math.min(100, ((budget - 200) / (3000 - 200)) * 100));
-
   const handleSubmit = async () => {
-    triggerHaptic();
+    haptics.success();
     setIsSubmitting(true);
 
-    const activeDates = dateWindows.filter((w) => w.active).map((w) => ({ start: w.start, end: w.end }));
-    const selectedVibes = Object.keys(vibes).filter((k) => vibes[k]);
-    const selectedDeals = Object.keys(dealbreakers).filter((k) => dealbreakers[k]);
+    const activeDates = draft.dateWindows
+      .filter((w) => w.active)
+      .map((w) => ({ start: w.start, end: w.end }));
+    const selectedVibes = Object.keys(draft.vibes).filter((k) => draft.vibes[k]);
+    const selectedDeals = Object.keys(draft.dealbreakers).filter((k) => draft.dealbreakers[k]);
+
+    const budgetMax = bandToMax(draft.budgetBand, draft.budgetCustom);
+    const budgetMin = bandToMin(draft.budgetBand, draft.budgetCustom);
 
     try {
       await submitPreferences({
@@ -119,13 +101,13 @@ export default function PactConstraintsForm() {
         userName: existingMember?.userName || 'You',
         groupId: currentGroup.id,
         dateRanges: activeDates.length > 0 ? activeDates : [{ start: '2026-10-12', end: '2026-10-18' }],
-        budgetMin: Math.max(200, budget - 400),
-        budgetMax: budget,
+        budgetMin,
+        budgetMax,
         tags: selectedVibes,
         dealbreakers: selectedDeals,
         submittedAt: new Date().toISOString()
       });
-
+      markSubmitted(circleId);
       router.push(`/circle/${currentGroup.id}/ranked-matrix` as any);
     } catch (e: any) {
       router.push(`/circle/${currentGroup.id}/ranked-matrix` as any);
@@ -160,83 +142,164 @@ export default function PactConstraintsForm() {
               <Path d="M5.2 6.5V4.8a2.3 2.3 0 0 1 4.6 0v1.7" fill="none" stroke="#3DE0A0" strokeWidth="1.3" />
             </Svg>
             <Text style={styles.privacyBannerText}>
-              100% private — individual budgets and dates are never shown to the group.
+              100% private – individual budgets and dates are never shown to the group.
             </Text>
           </View>
 
-          {/* 1. Date Windows Card */}
+          {/* 1. Date Windows — Horizontal Tap-to-Select Strip */}
           <View style={styles.card}>
             <Text style={styles.cardLabel}>Your available date windows</Text>
-            <View style={styles.dateChipsRow}>
-              {dateWindows.map((w, i) => (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.dateStripContent}
+            >
+              {draft.dateWindows.map((w, i) => (
                 <TouchableOpacity
                   key={i}
                   activeOpacity={0.8}
-                  onPress={() => toggleDateWindow(i)}
+                  onPress={() => {
+                    haptics.tap();
+                    toggleDateWindow(circleId, i);
+                  }}
                   style={[
-                    styles.dateChip,
-                    w.active && { borderColor: '#3DE0A0', backgroundColor: 'rgba(61,224,160,0.08)' }
+                    styles.dateStripCard,
+                    w.active && styles.dateStripCardActive
                   ]}
                 >
-                  <Text style={[styles.dateChipText, w.active && { color: '#3DE0A0' }]}>{w.label}</Text>
+                  <View style={styles.dateStripTopRow}>
+                    {w.active && (
+                      <View style={styles.dateCheckCircle}>
+                        <Check size={10} color="#0B3B22" />
+                      </View>
+                    )}
+                    <Text style={[styles.dateStripMonth, w.active && { color: '#3DE0A0' }]}>
+                      {w.label.split(' ')[0]}
+                    </Text>
+                  </View>
+                  <Text style={[styles.dateStripRange, w.active && { color: '#F4F3F0' }]}>
+                    {w.label}
+                  </Text>
+                  <Text style={[styles.dateStripDuration, w.active && { color: '#8B8D98' }]}>
+                    7 nights
+                  </Text>
                 </TouchableOpacity>
               ))}
 
               <TouchableOpacity
-                onPress={addWindow}
+                onPress={handleAddWindow}
                 activeOpacity={0.7}
-                style={styles.addDateChip}
+                style={styles.dateStripAdd}
               >
-                <Text style={styles.addDateChipText}>+ Add alternate date window</Text>
+                <Plus size={16} color="#8B8D98" />
+                <Text style={styles.dateStripAddText}>Add dates</Text>
               </TouchableOpacity>
-            </View>
+            </ScrollView>
           </View>
 
-          {/* 2. Maximum Budget Limit Card */}
+          {/* 2. Budget — Tap-to-Select Price Band Chips */}
           <View style={styles.card}>
             <Text style={styles.cardLabel}>Maximum budget limit</Text>
-            <View style={styles.budgetDisplayRow}>
-              <Text style={styles.budgetNumber}>${budget.toLocaleString()}</Text>
-              <Text style={styles.perPersonSub}> / person</Text>
-            </View>
 
-            {/* Custom Interactive Stepper / Preset Chips */}
-            <View style={styles.budgetPresetsRow}>
-              {BUDGET_PRESETS.map((p) => (
-                <TouchableOpacity
-                  key={p}
-                  activeOpacity={0.75}
-                  onPress={() => {
-                    triggerHaptic();
-                    setBudget(p);
-                  }}
-                  style={[
-                    styles.budgetPresetChip,
-                    budget === p && { backgroundColor: '#FF5A5F', borderColor: '#FF5A5F' }
-                  ]}
-                >
-                  <Text
+            {/* Price Band Chips */}
+            <View style={styles.bandChipsRow}>
+              {BUDGET_BANDS.map((band) => {
+                const isActive = draft.budgetBand === band.key;
+                return (
+                  <TouchableOpacity
+                    key={band.key}
+                    activeOpacity={0.8}
+                    onPress={() => {
+                      haptics.action();
+                      setBudgetBand(circleId, band.key);
+                    }}
                     style={[
-                      styles.budgetPresetText,
-                      budget === p && { color: '#2E0805', fontWeight: '700' }
+                      styles.bandChip,
+                      isActive && styles.bandChipActive
                     ]}
                   >
-                    ${p}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+                    <Text style={styles.bandEmoji}>{band.emoji}</Text>
+                    <View>
+                      <Text style={[styles.bandLabel, isActive && { color: '#F4F3F0', fontWeight: '700' }]}>
+                        {band.label}
+                      </Text>
+                      <Text style={[styles.bandSub, isActive && { color: '#8B8D98' }]}>
+                        {band.sub}
+                      </Text>
+                    </View>
+                    {isActive && (
+                      <View style={styles.bandCheckCircle}>
+                        <Check size={12} color="#0B3B22" />
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
             </View>
 
-            {/* Visual Budget Meter Bar */}
-            <View style={styles.sliderTrackWrapper}>
-              <View style={styles.sliderTrackBg}>
-                <View style={[styles.sliderTrackFill, { width: `${sliderPct}%` }]} />
+            {/* Fine-tune toggle */}
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => {
+                haptics.tap();
+                toggleFineTune(circleId);
+              }}
+              style={styles.fineTuneToggle}
+            >
+              <Sliders size={13} color="#8B8D98" />
+              <Text style={styles.fineTuneText}>Fine-tune exact amount</Text>
+              {draft.showFineTune ? (
+                <ChevronUp size={14} color="#8B8D98" />
+              ) : (
+                <ChevronDown size={14} color="#8B8D98" />
+              )}
+            </TouchableOpacity>
+
+            {/* Collapsible fine-tune section */}
+            {draft.showFineTune && (
+              <View style={styles.fineTunePanel}>
+                <View style={styles.budgetDisplayRow}>
+                  <Text style={styles.budgetNumber}>${draft.budgetCustom.toLocaleString()}</Text>
+                  <Text style={styles.perPersonSub}> / person</Text>
+                </View>
+
+                <View style={styles.budgetPresetsRow}>
+                  {BUDGET_PRESETS.map((p) => (
+                    <TouchableOpacity
+                      key={p}
+                      activeOpacity={0.75}
+                      onPress={() => {
+                        haptics.slider();
+                        setBudgetCustom(circleId, p);
+                      }}
+                      style={[
+                        styles.budgetPresetChip,
+                        draft.budgetCustom === p && { backgroundColor: '#FF5A5F', borderColor: '#FF5A5F' }
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.budgetPresetText,
+                          draft.budgetCustom === p && { color: '#2E0805', fontWeight: '700' }
+                        ]}
+                      >
+                        ${p}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <View style={styles.sliderTrackWrapper}>
+                  <View style={styles.sliderTrackBg}>
+                    <View style={[styles.sliderTrackFill, { width: `${sliderPct}%` }]} />
+                  </View>
+                  <View style={styles.budgetRangeRow}>
+                    <Text style={styles.rangeLimitText}>$200</Text>
+                    <Text style={styles.rangeLimitText}>$3,000</Text>
+                  </View>
+                </View>
               </View>
-              <View style={styles.budgetRangeRow}>
-                <Text style={styles.rangeLimitText}>$200</Text>
-                <Text style={styles.rangeLimitText}>$3,000</Text>
-              </View>
-            </View>
+            )}
 
             <Text style={styles.budgetExplainerText}>
               The engine hides options above your limit without revealing this number.
@@ -247,14 +310,17 @@ export default function PactConstraintsForm() {
           <View style={styles.card}>
             <Text style={styles.cardLabel}>What's the vibe?</Text>
             <View style={styles.vibesGrid}>
-              {Object.keys(vibes).map((v) => (
+              {Object.keys(draft.vibes).map((v) => (
                 <TouchableOpacity
                   key={v}
                   activeOpacity={0.8}
-                  onPress={() => toggleVibe(v)}
+                  onPress={() => {
+                    haptics.tap();
+                    toggleVibe(circleId, v);
+                  }}
                   style={[
                     styles.vibeChip,
-                    vibes[v] && {
+                    draft.vibes[v] && {
                       backgroundColor: '#FF5A5F',
                       borderColor: '#FF5A5F'
                     }
@@ -263,7 +329,7 @@ export default function PactConstraintsForm() {
                   <Text
                     style={[
                       styles.vibeChipText,
-                      vibes[v] && { color: '#2E0805', fontWeight: '700' }
+                      draft.vibes[v] && { color: '#2E0805', fontWeight: '700' }
                     ]}
                   >
                     {v}
@@ -279,14 +345,17 @@ export default function PactConstraintsForm() {
             <Text style={styles.dealbreakerSub}>Any option with these is removed, no exceptions.</Text>
 
             <View style={styles.dealbreakersList}>
-              {Object.keys(dealbreakers).map((k) => (
+              {Object.keys(draft.dealbreakers).map((k) => (
                 <TouchableOpacity
                   key={k}
                   activeOpacity={0.8}
-                  onPress={() => toggleDeal(k)}
+                  onPress={() => {
+                    haptics.warning();
+                    toggleDealbreaker(circleId, k);
+                  }}
                   style={[
                     styles.dealbreakerRow,
-                    dealbreakers[k] && {
+                    draft.dealbreakers[k] && {
                       backgroundColor: 'rgba(239,68,68,0.1)',
                       borderColor: 'rgba(239,68,68,0.35)'
                     }
@@ -295,10 +364,10 @@ export default function PactConstraintsForm() {
                   <View
                     style={[
                       styles.dealSquare,
-                      dealbreakers[k] && { backgroundColor: '#EF4444', borderWidth: 0 }
+                      draft.dealbreakers[k] && { backgroundColor: '#EF4444', borderWidth: 0 }
                     ]}
                   >
-                    {dealbreakers[k] && (
+                    {draft.dealbreakers[k] && (
                       <Svg width="10" height="10" viewBox="0 0 10 10">
                         <Path d="M2 2l6 6M8 2l-6 6" stroke="#2E0805" strokeWidth="1.6" strokeLinecap="round" />
                       </Svg>
@@ -307,7 +376,7 @@ export default function PactConstraintsForm() {
                   <Text
                     style={[
                       styles.dealLabel,
-                      dealbreakers[k] ? { color: '#F4F3F0' } : { color: '#6C6F7A' }
+                      draft.dealbreakers[k] ? { color: '#F4F3F0' } : { color: '#6C6F7A' }
                     ]}
                   >
                     {k}
@@ -436,38 +505,138 @@ const styles = StyleSheet.create({
     color: '#F4F3F0',
     marginBottom: 12
   },
-  dateChipsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8
+
+  /* === Date Strip === */
+  dateStripContent: {
+    gap: 10,
+    paddingRight: 4
   },
-  dateChip: {
+  dateStripCard: {
+    width: 130,
     backgroundColor: '#0F1017',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.14)',
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 8
+    borderColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 14,
+    padding: 14,
+    justifyContent: 'center'
   },
-  dateChipText: {
+  dateStripCardActive: {
+    borderColor: '#3DE0A0',
+    backgroundColor: 'rgba(61,224,160,0.06)'
+  },
+  dateStripTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 6
+  },
+  dateCheckCircle: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: '#3DE0A0',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  dateStripMonth: {
+    fontFamily: fontUIBold,
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#6C6F7A',
+    letterSpacing: 0.4
+  },
+  dateStripRange: {
     fontFamily: fontUIBold,
     fontSize: 12,
     fontWeight: '600',
-    color: '#F4F3F0'
+    color: '#8B8D98',
+    marginBottom: 2
   },
-  addDateChip: {
+  dateStripDuration: {
+    fontFamily: fontUI,
+    fontSize: 10.5,
+    color: '#454857'
+  },
+  dateStripAdd: {
+    width: 100,
     borderWidth: 1,
     borderStyle: 'dashed',
-    borderColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 8
+    borderColor: 'rgba(255,255,255,0.18)',
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    padding: 14
   },
-  addDateChipText: {
+  dateStripAddText: {
     fontFamily: fontUI,
-    fontSize: 12,
+    fontSize: 11,
     color: '#8B8D98'
   },
+
+  /* === Budget Bands === */
+  bandChipsRow: {
+    gap: 8,
+    marginBottom: 12
+  },
+  bandChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#0F1017',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 14,
+    padding: 14
+  },
+  bandChipActive: {
+    borderColor: '#FF5A5F',
+    backgroundColor: 'rgba(255,90,95,0.08)'
+  },
+  bandEmoji: {
+    fontSize: 20
+  },
+  bandLabel: {
+    fontFamily: fontUIBold,
+    fontSize: 13.5,
+    fontWeight: '600',
+    color: '#8B8D98'
+  },
+  bandSub: {
+    fontFamily: fontUI,
+    fontSize: 11,
+    color: '#454857',
+    marginTop: 1
+  },
+  bandCheckCircle: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#FF5A5F',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 'auto'
+  },
+
+  /* === Fine-tune toggle === */
+  fineTuneToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    marginBottom: 4
+  },
+  fineTuneText: {
+    fontFamily: fontUI,
+    fontSize: 12,
+    color: '#8B8D98',
+    flex: 1
+  },
+  fineTunePanel: {
+    marginTop: 4
+  },
+
+  /* === Budget fine-tune (existing stepper) === */
   budgetDisplayRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
@@ -535,6 +704,8 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     marginTop: 4
   },
+
+  /* === Vibes === */
   vibesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -553,6 +724,8 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     color: '#8B8D98'
   },
+
+  /* === Dealbreakers === */
   dealbreakerCard: {
     borderColor: 'rgba(239,68,68,0.3)',
     marginBottom: 20
@@ -588,8 +761,11 @@ const styles = StyleSheet.create({
   },
   dealLabel: {
     fontFamily: fontUI,
-    fontSize: 13
+    fontSize: 13,
+    flex: 1
   },
+
+  /* === Bottom Bar === */
   bottomBar: {
     paddingHorizontal: 20,
     paddingTop: 14,

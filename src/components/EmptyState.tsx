@@ -1,10 +1,13 @@
-import React from 'react';
+﻿import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { colors, radius, shadows } from '../theme/colors';
-import { Compass, Users, Sparkles, Sliders } from 'lucide-react-native';
+import { fontUI, fontUIBold, fontDisplay } from '../theme/typography';
+import { Compass, Users, Sparkles, Sliders, FileText, Image as ImageIcon, FolderOpen, Camera } from 'lucide-react-native';
+
+export type EmptyStateIcon = 'compass' | 'users' | 'sparkles' | 'sliders' | 'file' | 'image' | 'folder' | 'camera';
 
 interface EmptyStateProps {
-  icon?: 'compass' | 'users' | 'sparkles' | 'sliders';
+  icon?: EmptyStateIcon;
   title: string;
   description: string;
   actionLabel?: string;
@@ -18,20 +21,22 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   description,
   actionLabel,
   onAction,
-  isDarkMode = false
+  isDarkMode = true
 }) => {
   const theme = isDarkMode ? colors.dark : colors.light;
 
   const renderIcon = () => {
+    const iconColor = icon === 'sparkles' ? theme.secondary : theme.primary;
+    const size = 28;
     switch (icon) {
-      case 'users':
-        return <Users size={32} color={theme.primary} />;
-      case 'sparkles':
-        return <Sparkles size={32} color={theme.secondary} />;
-      case 'sliders':
-        return <Sliders size={32} color={theme.success} />;
-      default:
-        return <Compass size={32} color={theme.primary} />;
+      case 'users': return <Users size={size} color={iconColor} />;
+      case 'sparkles': return <Sparkles size={size} color={iconColor} />;
+      case 'sliders': return <Sliders size={size} color={theme.success} />;
+      case 'file': return <FileText size={size} color={iconColor} />;
+      case 'image': return <ImageIcon size={size} color={theme.secondary} />;
+      case 'folder': return <FolderOpen size={size} color={theme.warning} />;
+      case 'camera': return <Camera size={size} color={theme.secondary} />;
+      default: return <Compass size={size} color={iconColor} />;
     }
   };
 
@@ -39,8 +44,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
     <View
       style={[
         styles.container,
-        { backgroundColor: theme.surface, borderColor: theme.border },
-        shadows.sm
+        { backgroundColor: theme.surface, borderColor: theme.border }
       ]}
     >
       <View style={[styles.iconCircle, { backgroundColor: theme.surfaceSubtle }]}>
@@ -55,7 +59,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={onAction}
-          style={[styles.actionBtn, { backgroundColor: theme.primary }, shadows.sm]}
+          style={[styles.actionBtn, { backgroundColor: theme.primary }]}
         >
           <Text style={styles.actionBtnText}>{actionLabel}</Text>
         </TouchableOpacity>
@@ -67,38 +71,41 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 const styles = StyleSheet.create({
   container: {
     borderRadius: radius.card,
-    padding: 24,
+    padding: 28,
     alignItems: 'center',
     borderWidth: 1,
     marginVertical: 12
   },
   iconCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12
+    marginBottom: 14
   },
   title: {
-    fontSize: 17,
-    fontWeight: '800',
+    fontFamily: fontUIBold,
+    fontSize: 15,
+    fontWeight: '700',
     textAlign: 'center',
-    marginBottom: 4
+    marginBottom: 6
   },
   description: {
-    fontSize: 13,
+    fontFamily: fontUI,
+    fontSize: 12.5,
     textAlign: 'center',
     lineHeight: 18,
-    maxWidth: 320,
-    marginBottom: 16
+    maxWidth: 280,
+    marginBottom: 18
   },
   actionBtn: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingHorizontal: 22,
+    paddingVertical: 11,
     borderRadius: radius.pill
   },
   actionBtnText: {
+    fontFamily: fontUIBold,
     color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '700'
