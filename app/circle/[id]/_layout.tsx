@@ -9,6 +9,7 @@ import { DemoScenarioSwitcher } from '../../../src/components/DemoScenarioSwitch
 import { colors, radius, shadows } from '../../../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
 import { ArrowLeft, Lock, Image as ImageIcon, Sparkles } from 'lucide-react-native';
+import { CircleRouteGuard } from '../../../src/components/common';
 
 export default function CircleDetailLayout() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -36,6 +37,7 @@ export default function CircleDetailLayout() {
   const showStepBar = !isVault && !isMemories;
 
   return (
+    <CircleRouteGuard id={id}>
     <View style={styles.container}>
       {/* Top Header Bar */}
       <SafeAreaView style={styles.safeHeader}>
@@ -119,6 +121,7 @@ export default function CircleDetailLayout() {
         }}
       />
     </View>
+    </CircleRouteGuard>
   );
 }
 

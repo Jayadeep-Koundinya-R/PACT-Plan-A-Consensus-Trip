@@ -1,3 +1,4 @@
+import { CircleRouteGuard } from '../../../src/components/common';
 import React, { useState } from 'react';
 import {
   View,
@@ -187,6 +188,10 @@ const StampBallotCard: React.FC<StampBallotCardProps> = ({
 
 export default function PactSilentBallot() {
   const { id } = useLocalSearchParams<{ id: string }>();
+
+  if (!id || id === 'undefined' || id === '[id]') {
+    return <CircleRouteGuard id={id}><View /></CircleRouteGuard>;
+  }
   const router = useRouter();
   const { groups = [], castVote, currentUserId = 'user-maya-001' } = useGatherlyStore();
   const haptics = usePactHaptics();

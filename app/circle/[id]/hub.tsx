@@ -1,3 +1,4 @@
+import { CircleRouteGuard } from '../../../src/components/common';
 ﻿import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
@@ -37,6 +38,10 @@ import {
 
 export default function PactCirclesHub() {
   const { id } = useLocalSearchParams<{ id: string }>();
+
+  if (!id || id === 'undefined' || id === '[id]') {
+    return <CircleRouteGuard id={id}><View /></CircleRouteGuard>;
+  }
   const router = useRouter();
   const haptics = usePactHaptics();
   const { groups = [], members = [], activeGroupId, setActiveGroup, activeDemoScenario = "early_bird" } = useGatherlyStore();

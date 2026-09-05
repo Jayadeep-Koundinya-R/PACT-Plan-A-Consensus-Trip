@@ -1,3 +1,4 @@
+import { CircleRouteGuard } from '../../../src/components/common';
 import React, { useEffect } from 'react';
 import {
   View,
@@ -22,6 +23,10 @@ import { ArrowLeft, Share2, Calendar, Lock, Sparkles, FolderArchive, Image as Im
 
 export default function PactTripBrief() {
   const { id } = useLocalSearchParams<{ id: string }>();
+
+  if (!id || id === 'undefined' || id === '[id]') {
+    return <CircleRouteGuard id={id}><View /></CircleRouteGuard>;
+  }
   const router = useRouter();
   const { groups = [] } = useGatherlyStore();
 

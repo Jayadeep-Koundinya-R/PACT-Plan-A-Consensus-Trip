@@ -23,6 +23,7 @@ create table if not exists public.groups (
   invite_code text unique not null, -- e.g., "GOA-2026"
   organizer_id uuid references public.profiles(id) on delete set null,
   status text default 'collecting' check (status in ('collecting', 'voting', 'finalized', 'cancelled')),
+    has_pro boolean default false,
   created_at timestamptz default now() not null,
   updated_at timestamptz default now() not null
 );

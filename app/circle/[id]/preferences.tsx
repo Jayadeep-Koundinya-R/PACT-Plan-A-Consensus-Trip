@@ -1,3 +1,4 @@
+import { CircleRouteGuard } from '../../../src/components/common';
 import React, { useState, useRef } from 'react';
 import {
   View,
@@ -74,6 +75,10 @@ const BUDGET_BANDS = [
 
 export default function PactConstraintsForm() {
   const { id } = useLocalSearchParams<{ id: string }>();
+
+  if (!id || id === 'undefined' || id === '[id]') {
+    return <CircleRouteGuard id={id}><View /></CircleRouteGuard>;
+  }
   const router = useRouter();
   const haptics = usePactHaptics();
 

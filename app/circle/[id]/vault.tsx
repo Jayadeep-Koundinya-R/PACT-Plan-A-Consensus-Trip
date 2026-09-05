@@ -1,3 +1,4 @@
+import { CircleRouteGuard } from '../../../src/components/common';
 ﻿import React, { useState } from 'react';
 import {
   View,
@@ -24,6 +25,10 @@ import { VaultDocSkeleton } from '../../../src/components/SkeletonLoader';
 
 export default function PactTripVault() {
   const { id } = useLocalSearchParams<{ id: string }>();
+
+  if (!id || id === 'undefined' || id === '[id]') {
+    return <CircleRouteGuard id={id}><View /></CircleRouteGuard>;
+  }
   const router = useRouter();
   const haptics = usePactHaptics();
   const { groups = [], finalizedBrief, vaultDocuments = {} } = useGatherlyStore();

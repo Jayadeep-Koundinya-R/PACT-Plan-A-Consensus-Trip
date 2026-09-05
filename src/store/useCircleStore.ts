@@ -23,6 +23,7 @@ export interface Circle {
   organizerName?: string;
   status: 'collecting' | 'voting' | 'finalized' | 'cancelled';
   totalMembersCount: number;
+  hasPro?: boolean;
   members: CircleMember[];
   createdAt: string;
 }
@@ -48,6 +49,8 @@ interface CircleState {
   nudgeMember: (circleId: string, userId: string) => void;
   addMember: (circleId: string, member: CircleMember) => void;
   syncFromLegacy: (groups: any[], activeGroupId: string) => void;
+  setCircleProStatus: (circleId: string, hasPro: boolean) => void;
+  isCirclePro: (circleId: string) => boolean;
 }
 
 const DEMO_MEMBERS: CircleMember[] = [
@@ -66,6 +69,7 @@ const DEMO_CIRCLE: Circle = {
   organizerName: 'Alex Rivers',
   status: 'voting',
   totalMembersCount: 5,
+  hasPro: true,
   members: DEMO_MEMBERS,
   createdAt: new Date().toISOString()
 };
@@ -137,6 +141,18 @@ export const useCircleStore = create<CircleState>((set, get) => ({
           : c
       )
     })),
+
+  setCircleProStatus: (circleId, hasPro) =>
+    set((s) => ({
+      circles: s.circles.map((c) =>
+        c.id === circleId ? { ...c, hasPro } : c
+      )
+    })),
+
+  isCirclePro: (circleId) => {
+    const circle = get().circles.find((c) => c.id === circleId);
+    return Boolean(circle?.hasPro);
+  },
 
   nudgeMember: (circleId, userId) =>
     set((s) => ({

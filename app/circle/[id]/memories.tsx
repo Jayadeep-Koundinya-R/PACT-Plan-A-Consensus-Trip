@@ -1,3 +1,4 @@
+import { CircleRouteGuard } from '../../../src/components/common';
 ﻿import React, { useState } from 'react';
 import {
   View,
@@ -23,6 +24,10 @@ import { MemoryPhotoSkeleton } from '../../../src/components/SkeletonLoader';
 
 export default function PactMemoryLibrary() {
   const { id } = useLocalSearchParams<{ id: string }>();
+
+  if (!id || id === 'undefined' || id === '[id]') {
+    return <CircleRouteGuard id={id}><View /></CircleRouteGuard>;
+  }
   const router = useRouter();
   const haptics = usePactHaptics();
   const { groups = [], finalizedBrief, memoryPhotos = {} } = useGatherlyStore();
