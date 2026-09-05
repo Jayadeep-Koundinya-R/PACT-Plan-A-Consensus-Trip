@@ -30,12 +30,12 @@ interface ParticleConfig {
   delayMs: number;
 }
 
-const PARTICLE_COUNT = 18;
+const PARTICLE_COUNT = 32;
 
 // Deterministic particle layout around center
 const PARTICLES: ParticleConfig[] = Array.from({ length: PARTICLE_COUNT }, (_, i) => {
   const angle = (i / PARTICLE_COUNT) * 2 * Math.PI + (Math.sin(i * 3) * 0.4);
-  const distance = 90 + ((i * 17) % 80);
+  const distance = 120 + ((i * 17) % 120);
   return {
     id: i,
     size: 7 + (i % 5),

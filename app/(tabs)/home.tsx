@@ -7,6 +7,7 @@ import {
   StyleSheet,
   SafeAreaView,
   Platform
+  Image
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
@@ -97,6 +98,13 @@ export default function MyCirclesScreen() {
     haptics.action();
     setActiveCircle(circleId);
     router.push(`/circle/${circleId}/hub` as any);
+  };
+
+  
+  // Destination cover images for trip cards
+  const tripCoverImages: Record<string, string> = {
+    'circle-college-reunion-2026': 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=400&h=160&fit=crop&q=80',
+    'circle-kyoto-2027': 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=400&h=160&fit=crop&q=80',
   };
 
   return (
@@ -197,6 +205,18 @@ export default function MyCirclesScreen() {
                 onPress={() => handleOpenCircle(circle.id)}
                 style={styles.circleCard}
               >
+                {/* Destination Cover Banner */}
+                {tripCoverImages[circle.id] && (
+                  <View style={styles.cardCoverContainer}>
+                    <Image
+                      source={{ uri: tripCoverImages[circle.id] }}
+                      style={styles.cardCoverImage}
+                      resizeMode="cover"
+                    />
+                    <View style={styles.cardCoverGradient} />
+                  </View>
+                )}
+
                 {/* Card Top Row */}
                 <View style={styles.cardHeaderRow}>
                   <View style={styles.cardTitleCol}>
@@ -258,7 +278,7 @@ export default function MyCirclesScreen() {
                         styles.meterFill,
                         {
                           width: `${progressPercent}%`,
-                          backgroundColor: progressPercent >= 80 ? '#3DE0A0' : '#FF5A5F'
+                          backgroundColor: progressPercent >= 80 ? '#3DE0A0' : progressPercent >= 40 ? '#F59E0B' : '#60A5FA'
                         }
                       ]}
                     />

@@ -106,7 +106,7 @@ export default function PactMemoryLibrary() {
             <View style={styles.headerLeft}>
               
               <Text style={styles.headerTitle} numberOfLines={1}>
-                {currentGroup.name ? (currentGroup.name.toLowerCase().includes('memories') ? currentGroup.name : currentGroup.name.replace(/\s*trip$/i, '') + ' Memories') : 'Goa Beach Escape Memories'}
+                {currentGroup.name ? currentGroup.name.replace(/\s*trip$/i, '') : 'Goa Beach Escape'} Memories
               </Text>
             </View>
 

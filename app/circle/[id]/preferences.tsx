@@ -222,7 +222,7 @@ export default function PactConstraintsForm() {
               </Text>
             </View>
             <View style={styles.stepBadge}>
-              <Text style={styles.stepBadgeText}>Step 1 of 3</Text>
+              <Text style={styles.stepBadgeText}>Step 2 of 5</Text>
             </View>
           </View>
 

@@ -102,7 +102,7 @@ export default function PactTripBrief() {
           </View>
 
           {/* Reanimated 3 Particle Burst */}
-          <ParticleBurst active={true} durationMs={1600} />
+          <ParticleBurst active={true} durationMs={2200} />
 
           {/* Consensus Reached Banner with Animated ConsensusGauge */}
           <View style={styles.consensusBanner}>
@@ -114,7 +114,7 @@ export default function PactTripBrief() {
               centerSubtext="locked"
               style={{ marginBottom: 12 }}
             />
-            <Text style={styles.consensusTitle}>Consensus reached!</Text>
+            <Text style={styles.consensusTitle}>🎉 Consensus reached!</Text>
             <Text style={styles.consensusSub}>All 5 members approved this plan.</Text>
           </View>
 
@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
     position: 'relative',
     backgroundColor: 'rgba(61,224,160,0.1)',
     borderWidth: 1,
-    borderColor: 'rgba(61,224,160,0.25)',
+    borderColor: 'rgba(61,224,160,0.45)',
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 13,
