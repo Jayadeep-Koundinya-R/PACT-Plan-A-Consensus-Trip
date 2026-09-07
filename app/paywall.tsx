@@ -533,7 +533,7 @@ const styles = StyleSheet.create({
     marginBottom: 12
   },
   webDemoUnlockBtn: {
-    backgroundColor: '#25C9A0',
+    backgroundColor: '#F0B24A',
     borderRadius: 10,
     paddingVertical: 11,
     flexDirection: 'row',

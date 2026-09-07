@@ -905,7 +905,7 @@ const styles = StyleSheet.create({
     borderTopColor: 'rgba(253, 249, 239, 0.11)'
   },
   proceedButton: {
-    backgroundColor: '#25C9A0',
+    backgroundColor: '#F0B24A',
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center'
@@ -913,7 +913,7 @@ const styles = StyleSheet.create({
   proceedButtonText: {
     fontFamily: fontUIBold,
     fontSize: 14,
-    color: '#0B3327'
+    color: '#2A1A05'
   },
   // Modal Styles
   modalOverlay: {

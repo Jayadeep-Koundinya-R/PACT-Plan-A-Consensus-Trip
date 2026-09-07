@@ -69,6 +69,17 @@ serve(async (req: Request) => {
       return new Response(JSON.stringify({ error: 'Missing event in payload' }), { status: 400 });
     }
 
+    // Environment Guard: Reject SANDBOX events in production unless explicitly allowed
+    const appEnv = Deno.env.get('ENVIRONMENT') || 'development';
+    const allowSandbox = Deno.env.get('REVENUECAT_ALLOW_SANDBOX') === 'true';
+    if (appEnv === 'production' && event.environment === 'SANDBOX' && !allowSandbox) {
+      console.warn(`[REVENUECAT] Ignored SANDBOX event in production for user ${event.app_user_id}`);
+      return new Response(JSON.stringify({ message: 'SANDBOX event ignored in production' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
     const supabase = createClient(supabaseUrl, supabaseServiceKey);

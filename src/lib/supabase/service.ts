@@ -3,7 +3,6 @@ import { MemberPreference, TripOption, ScoredTripOption, ConsensusResult } from 
 
 export interface SupabaseProfile {
   id: string;
-  email: string;
   display_name?: string;
   avatar_url?: string;
 }
@@ -56,7 +55,6 @@ export async function signUpWithEmail(email: string, password: string, displayNa
   if (data.user) {
     await supabase.from('profiles').upsert({
       id: data.user.id,
-      email: data.user.email || email,
       display_name: displayName || email.split('@')[0]
     });
   }
@@ -129,6 +127,29 @@ export interface GroupPreview {
 
 export async function lookupGroupByInviteCode(code: string): Promise<GroupPreview | null> {
   const cleanCode = code.trim().toUpperCase();
+
+  // Try the security definer RPC (bypasses member-only RLS safely)
+  try {
+    const { data: rpcRows, error: rpcError } = await supabase
+      .rpc('lookup_group_by_invite_code', { p_invite_code: cleanCode });
+
+    if (!rpcError && rpcRows && rpcRows.length > 0) {
+      const r = rpcRows[0];
+      return {
+        id: r.id,
+        name: r.name,
+        invite_code: r.invite_code,
+        organizer_id: r.organizer_id,
+        organizer_name: r.organizer_name || 'Organizer',
+        status: r.status,
+        member_count: Number(r.member_count) || 1
+      };
+    }
+  } catch (e) {
+    // Fall back to direct query if RPC not yet deployed
+  }
+
+  // Direct table fallback
   const { data: group, error } = await supabase
     .from('groups')
     .select('id, name, invite_code, organizer_id, status')
@@ -139,7 +160,7 @@ export async function lookupGroupByInviteCode(code: string): Promise<GroupPrevie
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('display_name, email')
+    .select('display_name')
     .eq('id', group.organizer_id)
     .single();
 
@@ -153,7 +174,7 @@ export async function lookupGroupByInviteCode(code: string): Promise<GroupPrevie
     name: group.name,
     invite_code: group.invite_code,
     organizer_id: group.organizer_id,
-    organizer_name: profile?.display_name || profile?.email?.split('@')[0] || 'Organizer',
+    organizer_name: profile?.display_name || 'Organizer',
     status: group.status,
     member_count: count || 1
   };
@@ -250,14 +271,14 @@ export async function savePreferencesToSupabase(
 export async function fetchGroupPreferencesFromSupabase(groupId: string): Promise<MemberPreference[]> {
   const { data: prefs, error } = await supabase
     .from('preferences')
-    .select('user_id, start_date, end_date, budget_min, budget_max, preferred_tags, dealbreakers, is_flexible, submitted_at, profiles:user_id(display_name, email)')
+    .select('user_id, start_date, end_date, budget_min, budget_max, preferred_tags, dealbreakers, is_flexible, submitted_at, profiles:user_id(display_name, avatar_url)')
     .eq('group_id', groupId);
   if (error) throw error;
 
   return (prefs || []).map((p: any) => ({
     userId: p.user_id,
-    userName: p.profiles?.display_name || p.profiles?.email?.split('@')[0] || 'Member',
-    name: p.profiles?.display_name || p.profiles?.email?.split('@')[0] || 'Member',
+    userName: p.profiles?.display_name || 'Member',
+    name: p.profiles?.display_name || 'Member',
     dateRanges: p.start_date && p.end_date ? [{ start: p.start_date, end: p.end_date }] : [],
     tags: p.preferred_tags || [],
     startDate: p.start_date, endDate: p.end_date,
@@ -293,17 +314,16 @@ export async function fetchTripOptionsFromSupabase(groupId: string): Promise<Tri
 }
 
 export async function castVoteInSupabase(groupId: string, optionId: string, userId: string, approved: boolean) {
-  if (approved) {
-    const { error } = await supabase.from('votes').upsert({
-      group_id: groupId, option_id: optionId, user_id: userId,
-      approved: true, voted_at: new Date().toISOString()
-    }, { onConflict: 'option_id,user_id' });
-    if (error) throw error;
-  } else {
-    const { error } = await supabase.from('votes').delete()
-      .eq('option_id', optionId).eq('user_id', userId);
-    if (error) throw error;
-  }
+  // Silent voting semantics: Record true (approved) or false (vetoed/rejected)
+  // An unvoted state is the absence of a record.
+  const { error } = await supabase.from('votes').upsert({
+    group_id: groupId,
+    option_id: optionId,
+    user_id: userId,
+    approved: Boolean(approved),
+    voted_at: new Date().toISOString()
+  }, { onConflict: 'option_id,user_id' });
+  if (error) throw error;
 }
 
 export async function fetchGroupVotesFromSupabase(groupId: string): Promise<Record<string, boolean>> {
@@ -364,4 +384,40 @@ export async function transferGroupOwnership(groupId: string, newOrganizerId: st
     .update({ organizer_id: newOrganizerId })
     .eq('id', groupId);
   if (error) throw error;
+}
+export interface GroupConsensusSnapshot {
+  group_id: string;
+  total_members_count: number;
+  responded_members_count: number;
+  is_consensus_unlocked: boolean;
+  winning_option_id: string | null;
+  highest_score: number;
+  is_unanimous: boolean;
+  is_deadlock: boolean;
+  options: Array<{
+    option_id: string;
+    title: string;
+    destination: string;
+    price_per_person: number;
+    start_date: string;
+    end_date: string;
+    tags: string[];
+    total_votes: number;
+    approved_votes: number;
+    veto_votes: number;
+    consensus_score: number;
+  }>;
+}
+
+export async function fetchGroupConsensusSnapshot(groupId: string): Promise<GroupConsensusSnapshot | null> {
+  try {
+    const { data, error } = await supabase.rpc('get_group_consensus_snapshot', {
+      p_group_id: groupId
+    });
+    if (error || !data) return null;
+    return data as GroupConsensusSnapshot;
+  } catch (e) {
+    console.warn('fetchGroupConsensusSnapshot error:', e);
+    return null;
+  }
 }

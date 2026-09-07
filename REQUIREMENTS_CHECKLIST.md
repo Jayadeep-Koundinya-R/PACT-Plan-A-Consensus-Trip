@@ -63,7 +63,7 @@ Status legend: ✅ Done & verified · 🟡 Built but not verified · ⬜ Not sta
 |---|---|---|---|
 | N1 | Dark theme only, consistent tokens (Ink/Parchment/Brass/Petrol/Sealing Red) across all screens | ✅ | Evaluated in `colors.test.mjs` with 10 property tests (Properties 1-10) |
 | N2 | Haptics on key interactions (lock, seal, success, warning) | ✅ | `usePactHaptics.ts` wrapper with web safe no-op fallbacks |
-| N3 | Full automated test suite passing | ✅ | **85/85 tests passing across 19 suites**; `npx tsc --noEmit` exits with 0 errors |
+| N3 | Full automated test suite passing | ✅ | **89/89 tests passing across 20 suites**; `npx tsc --noEmit` exits with 0 errors |
 | N4 | No git push to `main` or production deploy without explicit approval | ✅ | Strict branch isolation on `pre-submission-review` |
 
 ---
@@ -80,6 +80,7 @@ Status legend: ✅ Done & verified · 🟡 Built but not verified · ⬜ Not sta
 ---
 
 *Change log — AG adds one line here per update session, newest on top:*
+- **2026-09-07 20:30**: #15 Completed — Backend Audit Remediation (Issues 1-9). Implemented `get_group_consensus_snapshot` and `lookup_group_by_invite_code` RPCs with `SECURITY DEFINER`, authenticated `ai-advisor` edge function with JWT guard, fixed silent voting veto persistence (`approved: false`), added DELETE policies, sandbox webhook gating, PII email stripping, and DB member cap trigger. **89/89 tests passing across 20 suites**.
 - **2026-09-07 19:15**: Design System & Color Palette Realignment — Aligned `src/theme/colors.ts` and all screens/components to authentic Ink (`#12182B`), Parchment (`#F6EFDE`), Brass (`#C99A5B`), Petrol (`#58A68C`), and Sealing Red (`#C1503F`). Expanded test suite to **85 tests across 19 suites** (all passing). Verified 0 TypeScript errors and clean 24-route web export.
 - **2026-09-07 12:46**: #9 Completed — Consensus Threshold Alignment. Clarified dual-tier model in `README.md`: 70% supermajority enforced by `assertOrganizerCanFinalize` to break deadlock and finalize trips, while 100% represents unanimous alignment celebrated with golden seal stamps and confetti payoff.
 - **2026-09-07 12:44**: #8 Completed — Cryptographic Circle Codes & Collision Retry. Implemented `crypto.getRandomValues` alphanumeric generator excluding ambiguous characters (0/O/1/I), formatted codes as `GOA-4F82` or 6-char alphanumeric, and wrapped Supabase group creation in an automated 5-attempt collision retry loop.

@@ -2,7 +2,7 @@
 
 > **Last Updated**: 2026-09-07  
 > **Target Branch**: `pre-submission-review` *(main kept untouched per safety boundary)*  
-> **Automated Test Suite**: **85/85 tests passing** (19 suites)  
+> **Automated Test Suite**: **89/89 tests passing** (20 suites)  
 > **TypeScript Strict Check**: **0 errors** (`npx tsc --noEmit` exits with code 0)  
 > **Static Web Export**: **24/24 static routes exported cleanly** to `dist/`  
 > **Local Server**: Running at `http://localhost:3000` with clean Expo routing  
@@ -123,6 +123,22 @@ The following tasks have been fully implemented, unit-tested, verified on localh
 
 ---
 
+### 15. 🛡️ Backend Audit Remediation & Security Hardening
+- **Changes**:
+  - **Issue 1 (Consensus Architecture)**: Created `get_group_consensus_snapshot(p_group_id)` PostgreSQL RPC with `SECURITY DEFINER` to calculate and return aggregate consensus scores directly inside the database, solving the client-side vs. RLS privacy mismatch.
+  - **Issue 2 (AI Edge Function Security)**: Added mandatory JWT verification in `supabase/functions/ai-advisor/index.ts` to reject unauthenticated requests (`401 Unauthorized`), and moved Gemini API key to `x-goog-api-key` header.
+  - **Issue 3 (Join by Code)**: Created `lookup_group_by_invite_code(p_invite_code)` RPC with `SECURITY DEFINER` so prospective joiners can preview circles without failing member-only RLS.
+  - **Issue 4 (Silent Vote Semantics)**: Fixed `castVoteInSupabase` to persist vetoes (`approved: false`) rather than deleting rows, preserving distinction between abstentions and vetoes. Added `GRANT EXECUTE` on `get_option_vote_count`.
+  - **Issue 5 (PII Email Leak)**: Omitted email from profile queries, joins, and tables. Fellow members see only display names.
+  - **Issue 6 (Group Lifecycle DELETE Policies)**: Added RLS DELETE policies for `group_members` (leave circle, remove member) and `groups` (delete circle).
+  - **Issue 7 (Webhook Sandbox Gating)**: Added environment guard in `revenuecat-webhook/index.ts` ignoring `SANDBOX` purchases in production unless explicitly permitted.
+  - **Issue 8 (Credential Hygiene)**: Removed hardcoded anon key fallback from `src/lib/supabase/client.ts`.
+  - **Issue 9 (Database Member Cap)**: Added PostgreSQL `BEFORE INSERT` trigger enforcing `MAX=10` members per circle at the database level.
+- **Verification**: **89/89 tests passing across 20 suites** (including new `auditRemediation.test.mjs`). `npx tsc --noEmit` exits with **0 errors**. Web export builds all 24 static routes cleanly.
+- **Files Modified**: `supabase/migrations/20260907_backend_audit_fixes.sql`, `supabase/schema.sql`, `src/lib/supabase/service.ts`, `src/lib/supabase/client.ts`, `supabase/functions/ai-advisor/index.ts`, `supabase/functions/revenuecat-webhook/index.ts`, `src/lib/supabase/__tests__/auditRemediation.test.mjs`.
+
+---
+
 ### 14. 🎨 Design System Realignment — Ink & Parchment Travel Document Palette
 - **Changes**:
   - Realigned `src/theme/colors.ts` to the definitive travel document aesthetic: **Dark** = Ink (`#12182B`), **Light** = Parchment (`#F6EFDE`), **Primary** = Brass (`#C99A5B`), **Secondary/Success** = Petrol & Moss (`#58A68C`), **Danger/Seal** = Sealing Red (`#C1503F`).
@@ -219,7 +235,8 @@ The tasks below fall into two clear groups:
 | **Medium Priority Code Polish** | 3 | 0 | 3 (#10, #11, #14) | 0 |
 | **Infrastructure & Localhost Proof** | 3 | 3 (100%) | 0 | 0 |
 | **Personal Action & Submission Items** | 7 | 0 | 0 | 7 |
-| **TOTAL** | **24** | **13** | **4** | **7** |
+| **Backend Security Remediation** | 1 | 1 (100%) | 0 | 0 |
+| **TOTAL** | **25** | **14** | **4** | **7** |
 
 ---
 

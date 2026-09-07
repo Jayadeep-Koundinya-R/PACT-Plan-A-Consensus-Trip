@@ -12,8 +12,8 @@ try {
   storageAdapter = undefined;
 }
 
-const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://xnfoobubyqbzzcuavfre.supabase.co';
-const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhuZm9vYnVieXFienpjdWF2ZnJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgwNjkyMDQsImV4cCI6MjEwMzY0NTIwNH0.Qc8C58bnJeEASvNEArG5fZs7oo2nCWPViVo9ooXw7xc';
+const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://pact-offline-mock.supabase.co';
+const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.dummy-signature-for-local-offline-mock';
 
 export const isLiveSupabaseConfigured = Boolean(
   process.env.EXPO_PUBLIC_SUPABASE_URL && process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY

@@ -996,9 +996,9 @@ const styles = StyleSheet.create({
     borderTopColor: 'rgba(253, 249, 239, 0.11)'
   },
   primaryActionButton: {
-    backgroundColor: 'rgba(253, 249, 239, 0.14)',
+    backgroundColor: '#F0B24A',
     borderWidth: 1,
-    borderColor: 'rgba(253, 249, 239, 0.18)',
+    borderColor: '#F0B24A',
     borderRadius: 12,
     paddingVertical: 13,
     alignItems: 'center'
@@ -1006,6 +1006,6 @@ const styles = StyleSheet.create({
   primaryActionButtonText: {
     fontFamily: fontUIBold,
     fontSize: 13.5,
-    color: '#FDF9EF'
+    color: '#2A1A05'
   }
 });
