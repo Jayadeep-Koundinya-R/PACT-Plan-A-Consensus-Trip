@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill
   },
   timeBadgeText: {
-    color: '#0EA5E9',
+    color: '#4FA39B',
     fontSize: 10,
     fontWeight: '800'
   },

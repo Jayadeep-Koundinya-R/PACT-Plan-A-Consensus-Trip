@@ -28,7 +28,7 @@ const SCENARIOS: ScenarioOption[] = [
     label: 'Early Bird',
     sub: '1/5 Responded',
     Icon: Users,
-    color: '#38BDF8',
+    color: '#4FA39B',
     accentBg: 'rgba(56, 189, 248, 0.12)'
   },
   {
@@ -36,24 +36,24 @@ const SCENARIOS: ScenarioOption[] = [
     label: 'Budget Gap',
     sub: '$700 vs $2500',
     Icon: Scale,
-    color: '#F59E0B',
-    accentBg: 'rgba(245, 158, 11, 0.12)'
+    color: '#D99A3F',
+    accentBg: 'rgba(217, 154, 63, 0.12)'
   },
   {
     id: 'deadlock',
     label: 'Deadlock',
     sub: 'Veto Active',
     Icon: Ban,
-    color: '#EF4444',
-    accentBg: 'rgba(239, 68, 68, 0.12)'
+    color: '#C1503F',
+    accentBg: 'rgba(193, 80, 63, 0.12)'
   },
   {
     id: 'consensus',
     label: 'Consensus',
     sub: '100% Locked',
     Icon: CheckCircle2,
-    color: '#3DE0A0',
-    accentBg: 'rgba(61, 224, 160, 0.12)'
+    color: '#58A68C',
+    accentBg: 'rgba(88, 166, 140, 0.12)'
   }
 ];
 
@@ -78,7 +78,7 @@ export const DemoScenarioSwitcher: React.FC = () => {
         <View style={styles.headerRow}>
           <View style={styles.headerLeft}>
             <View style={[styles.pulseDot, { backgroundColor: currentScenario.color }]} />
-            <Sparkles size={13} color="#FF5A5F" />
+            <Sparkles size={13} color="#C99A5B" />
             <Text style={styles.headerTitle}>DEMO CONTROLLER</Text>
             <View style={[styles.activeTag, { backgroundColor: currentScenario.accentBg, borderColor: currentScenario.color }]}>
               <Text style={[styles.activeTagText, { color: currentScenario.color }]}>
@@ -100,9 +100,9 @@ export const DemoScenarioSwitcher: React.FC = () => {
               {isExpanded ? 'Hide' : 'Presets'}
             </Text>
             {isExpanded ? (
-              <ChevronUp size={13} color="#8B8D98" />
+              <ChevronUp size={13} color="#A9A08C" />
             ) : (
-              <ChevronDown size={13} color="#8B8D98" />
+              <ChevronDown size={13} color="#A9A08C" />
             )}
           </TouchableOpacity>
         </View>
@@ -128,7 +128,7 @@ export const DemoScenarioSwitcher: React.FC = () => {
                   ]}
                 >
                   <View style={styles.btnTopRow}>
-                    <Icon size={13} color={isActive ? sc.color : '#8B8D98'} />
+                    <Icon size={13} color={isActive ? sc.color : '#A9A08C'} />
                     <Text
                       style={[
                         styles.presetLabel,
@@ -142,7 +142,7 @@ export const DemoScenarioSwitcher: React.FC = () => {
                   <Text
                     style={[
                       styles.presetSub,
-                      isActive && { color: '#F4F3F0' }
+                      isActive && { color: '#F3EEE2' }
                     ]}
                     numberOfLines={1}
                   >
@@ -166,13 +166,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingTop: 6,
     paddingBottom: 4,
-    backgroundColor: '#0D0E15'
+    backgroundColor: '#0E1424'
   },
   floatingBar: {
-    backgroundColor: '#13151E',
+    backgroundColor: '#1A2138',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#1F2232',
+    borderColor: '#262E48',
     padding: 8
   },
   headerRow: {
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 10,
     fontWeight: '800',
-    color: '#8B8D98',
+    color: '#A9A08C',
     letterSpacing: 0.8
   },
   activeTag: {
@@ -215,12 +215,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 3,
     borderRadius: 6,
-    backgroundColor: '#181A26'
+    backgroundColor: '#1F2840'
   },
   collapseToggleText: {
     fontFamily: fontUI,
     fontSize: 10,
-    color: '#8B8D98',
+    color: '#A9A08C',
     fontWeight: '600'
   },
   presetsRow: {
@@ -230,9 +230,9 @@ const styles = StyleSheet.create({
   },
   presetBtn: {
     flex: 1,
-    backgroundColor: '#181A26',
+    backgroundColor: '#1F2840',
     borderWidth: 1,
-    borderColor: '#25293A',
+    borderColor: '#262F4C',
     borderRadius: 8,
     paddingVertical: 6,
     paddingHorizontal: 6,
@@ -248,12 +248,12 @@ const styles = StyleSheet.create({
     fontFamily: fontUI,
     fontSize: 10,
     fontWeight: '700',
-    color: '#8B8D98'
+    color: '#A9A08C'
   },
   presetSub: {
     fontFamily: fontUI,
     fontSize: 8.5,
-    color: '#555866',
+    color: '#6B6455',
     textAlign: 'center'
   }
 });

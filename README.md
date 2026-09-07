@@ -7,7 +7,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-3178C6.svg?style=flat&logo=typescript)](https://www.typescriptlang.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-Auth%20%2B%20Postgres-3ECF8E.svg?style=flat&logo=supabase)](https://supabase.com)
 [![RevenueCat](https://img.shields.io/badge/RevenueCat-In--App%20Subscriptions-E85D04.svg?style=flat&logo=revenuecat)](https://revenuecat.com)
-[![Tests](https://img.shields.io/badge/Tests-77%2F77%20Passing-brightgreen.svg)](package.json)
+[![Tests](https://img.shields.io/badge/Tests-85%2F85%20Passing-brightgreen.svg)](package.json)
 
 ---
 
@@ -145,11 +145,11 @@ npm install
 ```
 
 ### Step 2: Run the Automated Regression Test Suite
-Run the 77-test suite validating scoring, privacy guards, webhooks, and AI fallbacks:
+Run the 85-test suite validating scoring, privacy guards, webhooks, AI fallbacks, and the design-system tokens:
 ```bash
 npm test
 ```
-*Expected output: 77 passed across 16 suites.*
+*Expected output: 85 passed across 19 suites.*
 
 ### Step 3: Launch Web Preview
 ```bash

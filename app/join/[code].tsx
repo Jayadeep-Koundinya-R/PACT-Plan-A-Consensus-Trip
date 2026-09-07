@@ -101,7 +101,7 @@ export default function JoinConfirmationScreen() {
         {/* Top Branding Pill */}
         <View style={styles.brandRow}>
           <View style={styles.logoBadge}>
-            <Compass size={18} color="#FF5A5F" />
+            <Compass size={18} color="#C99A5B" />
             <Text style={styles.brandText}>PACT</Text>
           </View>
           <View style={styles.inviteCodeBadge}>
@@ -116,7 +116,7 @@ export default function JoinConfirmationScreen() {
           topContent={
             <View style={styles.ticketTopContent}>
               <View style={styles.invitationHeader}>
-                <Sparkles size={14} color="#D4AF37" />
+                <Sparkles size={14} color="#E0C286" />
                 <Text style={styles.invitationSubtitle}>
                   YOU HAVE BEEN INVITED TO JOIN
                 </Text>
@@ -138,7 +138,7 @@ export default function JoinConfirmationScreen() {
                 <View style={styles.metaItem}>
                   <Text style={styles.metaLabel}>MEMBERS</Text>
                   <View style={styles.memberCountRow}>
-                    <Users size={14} color="#3DE0A0" />
+                    <Users size={14} color="#58A68C" />
                     <Text style={styles.metaValueHighlight}>
                       {memberCount} friends
                     </Text>
@@ -157,7 +157,7 @@ export default function JoinConfirmationScreen() {
           bottomContent={
             <View style={styles.ticketBottomContent}>
               <View style={styles.securityBanner}>
-                <ShieldCheck size={16} color="#3DE0A0" />
+                <ShieldCheck size={16} color="#58A68C" />
                 <View style={styles.securityTextCol}>
                   <Text style={styles.securityTitle}>Zero-Signup Joining</Text>
                   <Text style={styles.securitySub}>
@@ -225,7 +225,7 @@ export default function JoinConfirmationScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#090A0F'
+    backgroundColor: '#12182B'
   },
   scrollContent: {
     paddingHorizontal: 20,
@@ -245,17 +245,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: 'rgba(255, 90, 95, 0.12)',
+    backgroundColor: 'rgba(201, 154, 91, 0.12)',
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: radius.pill,
     borderWidth: 1,
-    borderColor: 'rgba(255, 90, 95, 0.3)'
+    borderColor: 'rgba(201, 154, 91, 0.3)'
   },
   brandText: {
     fontFamily: fontDisplay,
     fontSize: 16,
-    color: '#FF5A5F',
+    color: '#C99A5B',
     letterSpacing: 1.5
   },
   inviteCodeBadge: {
@@ -264,19 +264,19 @@ const styles = StyleSheet.create({
   inviteCodeLabel: {
     fontFamily: fontUI,
     fontSize: 10,
-    color: '#6C6F7A',
+    color: '#8B8474',
     letterSpacing: 0.8
   },
   inviteCodeValue: {
     fontFamily: fontUIBold,
     fontSize: 13,
-    color: '#D4AF37',
+    color: '#E0C286',
     letterSpacing: 1
   },
   ticketCard: {
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)'
+    borderColor: 'rgba(243, 238, 226, 0.14)'
   },
   ticketTopContent: {
     padding: 20
@@ -290,13 +290,13 @@ const styles = StyleSheet.create({
   invitationSubtitle: {
     fontFamily: fontUIBold,
     fontSize: 11,
-    color: '#D4AF37',
+    color: '#E0C286',
     letterSpacing: 0.8
   },
   tripTitleHeading: {
     fontFamily: fontDisplay,
     fontSize: 26,
-    color: '#F4F3F0',
+    color: '#F3EEE2',
     lineHeight: 32,
     marginBottom: 20
   },
@@ -304,12 +304,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#0F1017',
+    backgroundColor: '#161D33',
     borderRadius: radius.md,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.06)'
+    borderColor: 'rgba(243, 238, 226, 0.07)'
   },
   metaItem: {
     flex: 1
@@ -317,20 +317,20 @@ const styles = StyleSheet.create({
   metaDivider: {
     width: 1,
     height: 28,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: 'rgba(243, 238, 226, 0.1)',
     marginHorizontal: 10
   },
   metaLabel: {
     fontFamily: fontUI,
     fontSize: 10,
-    color: '#6C6F7A',
+    color: '#8B8474',
     letterSpacing: 0.5,
     marginBottom: 4
   },
   metaValue: {
     fontFamily: fontUIBold,
     fontSize: 13,
-    color: '#F4F3F0'
+    color: '#F3EEE2'
   },
   memberCountRow: {
     flexDirection: 'row',
@@ -340,16 +340,16 @@ const styles = StyleSheet.create({
   metaValueHighlight: {
     fontFamily: fontUIBold,
     fontSize: 13,
-    color: '#3DE0A0'
+    color: '#58A68C'
   },
   metaValueStatus: {
     fontFamily: fontUIBold,
     fontSize: 13,
-    color: '#FF5A5F'
+    color: '#C99A5B'
   },
   ticketBottomContent: {
     padding: 16,
-    backgroundColor: '#0F1017'
+    backgroundColor: '#161D33'
   },
   securityBanner: {
     flexDirection: 'row',
@@ -362,23 +362,23 @@ const styles = StyleSheet.create({
   securityTitle: {
     fontFamily: fontUIBold,
     fontSize: 13,
-    color: '#3DE0A0',
+    color: '#58A68C',
     marginBottom: 2
   },
   securitySub: {
     fontFamily: fontUI,
     fontSize: 11.5,
-    color: '#8B8D98',
+    color: '#A9A08C',
     lineHeight: 16
   },
   membersPreviewCard: {
     marginBottom: 28,
-    backgroundColor: '#13151E'
+    backgroundColor: '#1A2138'
   },
   membersCardTitle: {
     fontFamily: fontUIBold,
     fontSize: 13,
-    color: '#8B8D98',
+    color: '#A9A08C',
     marginBottom: 12,
     textTransform: 'uppercase',
     letterSpacing: 0.6
@@ -392,30 +392,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: 'rgba(243, 238, 226, 0.05)',
     paddingVertical: 5,
     paddingHorizontal: 10,
     borderRadius: radius.pill,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)'
+    borderColor: 'rgba(243, 238, 226, 0.1)'
   },
   avatarCircle: {
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#1E2235',
+    backgroundColor: '#222B45',
     alignItems: 'center',
     justifyContent: 'center'
   },
   avatarInitial: {
     fontFamily: fontUIBold,
     fontSize: 10,
-    color: '#3DE0A0'
+    color: '#58A68C'
   },
   memberName: {
     fontFamily: fontUI,
     fontSize: 12,
-    color: '#F4F3F0'
+    color: '#F3EEE2'
   },
   ctaContainer: {
     gap: 12,
@@ -424,7 +424,7 @@ const styles = StyleSheet.create({
   ctaFooterNote: {
     fontFamily: fontUI,
     fontSize: 11.5,
-    color: '#6C6F7A',
+    color: '#8B8474',
     textAlign: 'center'
   }
 });

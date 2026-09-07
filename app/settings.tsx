@@ -45,13 +45,13 @@ export default function PactSettings() {
       onPress={onPress}
       style={[
         styles.toggleTrack,
-        on ? { backgroundColor: '#3DE0A0' } : { backgroundColor: 'rgba(255,255,255,0.12)' }
+        on ? { backgroundColor: '#58A68C' } : { backgroundColor: 'rgba(243, 238, 226, 0.14)' }
       ]}
     >
       <View
         style={[
           styles.toggleThumb,
-          on ? { backgroundColor: '#052E20', transform: [{ translateX: 16 }] } : { backgroundColor: '#8B8D98', transform: [{ translateX: 0 }] }
+          on ? { backgroundColor: '#16301E', transform: [{ translateX: 16 }] } : { backgroundColor: '#A9A08C', transform: [{ translateX: 0 }] }
         ]}
       />
     </TouchableOpacity>
@@ -65,7 +65,7 @@ export default function PactSettings() {
           <View style={styles.headerRow}>
             <View style={styles.headerLeft}>
               <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7} style={styles.backBtn}>
-                <ArrowLeft size={18} color="#8B8D98" />
+                <ArrowLeft size={18} color="#A9A08C" />
               </TouchableOpacity>
               <Text style={styles.headerTitle}>Settings & circles</Text>
             </View>
@@ -75,7 +75,7 @@ export default function PactSettings() {
                 <Path
                   d="M7 1.3l5 1.8v3.7c0 3-2 5.3-5 6-3-.7-5-3-5-6V3.1z"
                   fill="none"
-                  stroke="#8B8D98"
+                  stroke="#A9A08C"
                   strokeWidth="1.1"
                   strokeLinejoin="round"
                 />
@@ -99,7 +99,7 @@ export default function PactSettings() {
               <Text style={styles.profileHandle}>@alex_travels</Text>
               <View style={styles.proStatusPill}>
                 <Svg width="10" height="10" viewBox="0 0 10 10">
-                  <Path d="M1 3.5l2 1.5 2-3 2 3 2-1.5-.7 4.5H1.7z" fill="#D4AF37" />
+                  <Path d="M1 3.5l2 1.5 2-3 2 3 2-1.5-.7 4.5H1.7z" fill="#E0C286" />
                 </Svg>
                 <Text style={styles.proStatusPillText}>PACT Pro organizer pass active</Text>
               </View>
@@ -117,7 +117,7 @@ export default function PactSettings() {
             >
               <View style={styles.circleHeaderRow}>
                 <Text style={styles.circleTitle}>Goa beach escape 2026</Text>
-                <MoreVertical size={16} color="#6C6F7A" />
+                <MoreVertical size={16} color="#8B8474" />
               </View>
               <View style={styles.circleMetaRow}>
                 <Text style={styles.circleStatusGreen}>3/5 responded</Text>
@@ -179,7 +179,7 @@ export default function PactSettings() {
             <View style={styles.settingRow}>
               <Text style={styles.settingLabel}>WhatsApp nudges</Text>
               <View style={styles.connectedRow}>
-                <Check size={12} color="#3DE0A0" />
+                <Check size={12} color="#58A68C" />
                 <Text style={styles.connectedText}>Connected</Text>
               </View>
             </View>
@@ -225,7 +225,7 @@ export default function PactSettings() {
 const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
-    backgroundColor: '#050608',
+    backgroundColor: '#0C1120',
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -233,9 +233,9 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 420,
     flex: 1,
-    backgroundColor: '#090A0F',
+    backgroundColor: '#12182B',
     borderWidth: Platform.OS === 'web' ? 1 : 0,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: 'rgba(243, 238, 226, 0.07)',
     borderRadius: Platform.OS === 'web' ? 40 : 0,
     overflow: 'hidden',
     position: 'relative'
@@ -266,21 +266,21 @@ const styles = StyleSheet.create({
     fontFamily: fontDisplay,
     fontWeight: '700',
     fontSize: 16,
-    color: '#F4F3F0'
+    color: '#F3EEE2'
   },
   shieldIconBox: {
     width: 34,
     height: 34,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderColor: 'rgba(243, 238, 226, 0.14)',
     alignItems: 'center',
     justifyContent: 'center'
   },
   profileCard: {
-    backgroundColor: '#13151E',
+    backgroundColor: '#1A2138',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: 'rgba(243, 238, 226, 0.1)',
     borderRadius: 18,
     padding: 18,
     marginBottom: 20,
@@ -295,9 +295,9 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#2A2D3A',
+    backgroundColor: '#6B6455',
     borderWidth: 2,
-    borderColor: '#D4AF37',
+    borderColor: '#E0C286',
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -305,13 +305,13 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 17,
     fontWeight: '700',
-    color: '#D4D5DA'
+    color: '#C9C0AC'
   },
   proMiniBadge: {
     position: 'absolute',
     bottom: -4,
     alignSelf: 'center',
-    backgroundColor: '#D4AF37',
+    backgroundColor: '#E0C286',
     borderRadius: 6,
     paddingHorizontal: 6,
     paddingVertical: 2
@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 8.5,
     fontWeight: '800',
-    color: '#3A2B00'
+    color: '#3A2C12'
   },
   profileTextCol: {
     flex: 1
@@ -329,12 +329,12 @@ const styles = StyleSheet.create({
     fontFamily: fontDisplay,
     fontSize: 18,
     fontWeight: '700',
-    color: '#F4F3F0'
+    color: '#F3EEE2'
   },
   profileHandle: {
     fontFamily: fontUI,
     fontSize: 12,
-    color: '#6C6F7A',
+    color: '#8B8474',
     marginTop: 2,
     marginBottom: 8
   },
@@ -354,13 +354,13 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 10.5,
     fontWeight: '600',
-    color: '#D4AF37'
+    color: '#E0C286'
   },
   sectionHeading: {
     fontFamily: fontUIBold,
     fontSize: 11,
     fontWeight: '700',
-    color: '#6C6F7A',
+    color: '#8B8474',
     letterSpacing: 0.8,
     marginBottom: 10
   },
@@ -369,9 +369,9 @@ const styles = StyleSheet.create({
     marginBottom: 12
   },
   circleItemCard: {
-    backgroundColor: '#13151E',
+    backgroundColor: '#1A2138',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: 'rgba(243, 238, 226, 0.1)',
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 15
@@ -385,7 +385,7 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 14.5,
     fontWeight: '600',
-    color: '#F4F3F0',
+    color: '#F3EEE2',
     marginBottom: 8
   },
   circleMetaRow: {
@@ -396,16 +396,16 @@ const styles = StyleSheet.create({
   circleStatusGreen: {
     fontFamily: fontUIBold,
     fontSize: 11.5,
-    color: '#3DE0A0'
+    color: '#58A68C'
   },
   circleStatusAmber: {
     fontFamily: fontUIBold,
     fontSize: 11.5,
-    color: '#F0B547'
+    color: '#E3B25E'
   },
   roleBadge: {
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.14)',
+    borderColor: 'rgba(243, 238, 226, 0.16)',
     borderRadius: 20,
     paddingHorizontal: 9,
     paddingVertical: 3
@@ -414,7 +414,7 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 10.5,
     fontWeight: '600',
-    color: '#B4B6C0'
+    color: '#C9C0AC'
   },
   createCircleBtn: {
     width: '100%',
@@ -430,12 +430,12 @@ const styles = StyleSheet.create({
   createCircleBtnText: {
     fontFamily: fontUI,
     fontSize: 13,
-    color: '#8B8D98'
+    color: '#A9A08C'
   },
   settingsGroupCard: {
-    backgroundColor: '#13151E',
+    backgroundColor: '#1A2138',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: 'rgba(243, 238, 226, 0.1)',
     borderRadius: 16,
     paddingHorizontal: 16,
     marginBottom: 22
@@ -448,7 +448,7 @@ const styles = StyleSheet.create({
   },
   settingRowBorder: {
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.06)'
+    borderTopColor: 'rgba(243, 238, 226, 0.07)'
   },
   settingTextCol: {
     flex: 1,
@@ -458,12 +458,12 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 13.5,
     fontWeight: '600',
-    color: '#F4F3F0'
+    color: '#F3EEE2'
   },
   settingDesc: {
     fontFamily: fontUI,
     fontSize: 11.5,
-    color: '#6C6F7A',
+    color: '#8B8474',
     lineHeight: 16,
     marginTop: 3
   },
@@ -487,12 +487,12 @@ const styles = StyleSheet.create({
   connectedText: {
     fontFamily: fontUIBold,
     fontSize: 11.5,
-    color: '#3DE0A0'
+    color: '#58A68C'
   },
   remindersSub: {
     fontFamily: fontUI,
     fontSize: 11.5,
-    color: '#6C6F7A'
+    color: '#8B8474'
   },
   planInfoRow: {
     flexDirection: 'row',
@@ -500,17 +500,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.06)'
+    borderBottomColor: 'rgba(243, 238, 226, 0.07)'
   },
   renewsDate: {
     fontFamily: fontUI,
     fontSize: 11,
-    color: '#6C6F7A'
+    color: '#8B8474'
   },
   dangerBox: {
-    backgroundColor: 'rgba(239,68,68,0.07)',
+    backgroundColor: 'rgba(193, 80, 63,0.07)',
     borderWidth: 1,
-    borderColor: 'rgba(239,68,68,0.2)',
+    borderColor: 'rgba(193, 80, 63,0.2)',
     borderRadius: 12,
     paddingVertical: 6,
     marginVertical: 14
@@ -523,16 +523,16 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 13,
     fontWeight: '600',
-    color: '#EF4444'
+    color: '#C1503F'
   },
   dangerDivider: {
     borderTopWidth: 1,
-    borderTopColor: 'rgba(239,68,68,0.15)',
+    borderTopColor: 'rgba(193, 80, 63,0.15)',
     marginHorizontal: 8
   },
   purgeBtnText: {
     fontFamily: fontUI,
     fontSize: 12.5,
-    color: '#B54848'
+    color: '#A97C3D'
   }
 });

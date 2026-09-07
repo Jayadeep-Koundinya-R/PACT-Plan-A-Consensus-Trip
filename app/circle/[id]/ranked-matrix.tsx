@@ -163,8 +163,8 @@ export default function PactConsensusResults() {
               style={styles.gridIconBtn}
               accessibilityLabel="Toggle deadlock simulation"
             >
-              <Text style={{ fontFamily: fontUIBold, fontSize: 10, color: deadlockMode ? '#EF4444' : '#8B8D98' }}>
-                {deadlockMode ? 'DEADLOCK ON' : 'SIMULATE'}
+              <Text style={{ fontFamily: fontUIBold, fontSize: 10, color: deadlockMode ? '#C1503F' : '#A9A08C' }}>
+                {deadlockMode ? 'Deadlock on' : 'Simulate deadlock'}
               </Text>
             </TouchableOpacity>
           </View>
@@ -174,7 +174,7 @@ export default function PactConsensusResults() {
             <View style={styles.wideBudgetBanner}>
               <View style={styles.wideBudgetHeaderRow}>
                 <View style={styles.wideBudgetIconBox}>
-                  <AlertTriangle size={15} color="#F59E0B" />
+                  <AlertTriangle size={15} color="#D99A3F" />
                 </View>
                 <Text style={styles.wideBudgetTitle}>
                   Wide Budget Gap Detected (${minBudget} – ${maxBudget})
@@ -193,7 +193,7 @@ export default function PactConsensusResults() {
                 activeOpacity={0.8}
                 style={styles.flexibleSplitPill}
               >
-                <Sliders size={12} color="#F59E0B" />
+                <Sliders size={12} color="#D99A3F" />
                 <Text style={styles.flexibleSplitPillText}>Suggest flexible budget split</Text>
               </TouchableOpacity>
             </View>
@@ -204,7 +204,7 @@ export default function PactConsensusResults() {
             <View style={styles.deadlockCard}>
               <View style={styles.deadlockHeaderRow}>
                 <View style={styles.deadlockAlertIcon}>
-                  <ShieldAlert size={20} color="#EF4444" />
+                  <ShieldAlert size={20} color="#C1503F" />
                 </View>
                 <View style={{ flex: 1 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -224,8 +224,8 @@ export default function PactConsensusResults() {
               {/* AI Whisperer Recommendation */}
               <View style={styles.whispererBox}>
                 <View style={styles.whispererBoxHeader}>
-                  <Sparkles size={13} color="#3DE0A0" />
-                  <Text style={styles.whispererBoxTag}>RECOMMENDED COMPROMISE</Text>
+                  <Sparkles size={13} color="#58A68C" />
+                  <Text style={styles.whispererBoxTag}>Recommended compromise</Text>
                 </View>
                 <Text style={styles.whispererBoxText}>
                   {whispererResult?.compromise || 'Booking a 5-bedroom private villa with en-suite bathrooms in South Goa bridges accommodation constraints while preserving 100% date overlap (Oct 14–16). Tiered room splits maintain budget fairness.'}
@@ -234,11 +234,11 @@ export default function PactConsensusResults() {
 
               {/* Resolution Path 1 */}
               <View style={styles.resolutionPathBox}>
-                <Text style={styles.resolutionPathNumber}>RESOLUTION PATH 1 (PRIVATE NUDGE)</Text>
+                <Text style={styles.resolutionPathNumber}>Resolution path 1 — private nudge</Text>
                 <PactButton
                   variant="glass"
                   onPress={handleSendPrivateNudge}
-                  icon={<Send size={13} color="#F4F3F0" />}
+                  icon={<Send size={13} color="#F3EEE2" />}
                 >
                   {privateNudgeSent ? 'Private Nudge Dispatched ✓' : 'Send generic private nudge'}
                 </PactButton>
@@ -249,11 +249,11 @@ export default function PactConsensusResults() {
 
               {/* Resolution Path 2 */}
               <View style={styles.resolutionPathBox}>
-                <Text style={styles.resolutionPathNumber}>RESOLUTION PATH 2 (SUPERMAJORITY)</Text>
+                <Text style={styles.resolutionPathNumber}>Resolution path 2 — supermajority</Text>
                 <PactButton
                   variant="gradient"
                   onPress={handleSoftOverride}
-                  icon={<Users size={14} color="#050608" />}
+                  icon={<Users size={14} color="#0C1120" />}
                 >
                   Soft Override (4 of 5 members approve)
                 </PactButton>
@@ -267,7 +267,7 @@ export default function PactConsensusResults() {
               {/* Soft Override Banner if override was triggered */}
               {softOverrideActive && (
                 <View style={styles.overrideBanner}>
-                  <Check size={14} color="#3DE0A0" />
+                  <Check size={14} color="#58A68C" />
                   <Text style={styles.overrideBannerText}>
                     Supermajority Override Active: 4 of 5 members approved Goa. En-suite suite reserved for Sam.
                   </Text>
@@ -286,7 +286,7 @@ export default function PactConsensusResults() {
                   <View style={styles.topBadgeRow}>
                     <View style={styles.topPickBadge}>
                       <Text style={styles.topPickBadgeText}>
-                        {softOverrideActive ? '#1 TOP COMPROMISE (OVERRIDE)' : '#1 TOP COMPROMISE'}
+                        {softOverrideActive ? 'Top compromise — override' : 'Top compromise'}
                       </Text>
                     </View>
                     {softOverrideActive && (
@@ -303,7 +303,7 @@ export default function PactConsensusResults() {
                     {checklist.map((item, idx) => (
                       <View key={idx} style={styles.checkRow}>
                         <View style={styles.checkCircle}>
-                          <Check size={11} color="#3DE0A0" />
+                          <Check size={11} color="#58A68C" />
                         </View>
                         <Text style={styles.checkItemText}>{item}</Text>
                       </View>
@@ -331,16 +331,22 @@ export default function PactConsensusResults() {
                 }}
                 style={styles.subOptionCard}
               >
-                <Image
-                  source={{ uri: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=300' }}
-                  style={styles.subOptionThumb}
-                  resizeMode="cover"
-                />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.subOptionName}>Puducherry, India</Text>
-                  <Text style={styles.subOptionMeta}>Oct 12 - Oct 17  |  $480 / person</Text>
+                <View style={styles.subOptionStub}>
+                  <Text style={[styles.subOptionScore, { color: 82 >= 70 ? '#58A68C' : '#C99A5B' }]}>82%</Text>
+                  <Text style={styles.subOptionStubLabel}>match</Text>
                 </View>
-                <Text style={styles.subOptionScore}>82%</Text>
+                <View style={styles.subOptionPerforation} />
+                <View style={styles.subOptionMain}>
+                  <Image
+                    source={{ uri: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=300' }}
+                    style={styles.subOptionThumb}
+                    resizeMode="cover"
+                  />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.subOptionName}>Puducherry, India</Text>
+                    <Text style={styles.subOptionMeta}>Oct 12 - Oct 17  |  $480 / person</Text>
+                  </View>
+                </View>
               </TouchableOpacity>
 
               {/* #3 Ranked Destination Card */}
@@ -362,16 +368,22 @@ export default function PactConsensusResults() {
                 }}
                 style={styles.subOptionCard}
               >
-                <Image
-                  source={{ uri: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=300' }}
-                  style={styles.subOptionThumb}
-                  resizeMode="cover"
-                />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.subOptionName}>Manali, Himachal Pradesh</Text>
-                  <Text style={styles.subOptionMeta}>Oct 15 - Oct 20  |  $620 / person</Text>
+                <View style={styles.subOptionStub}>
+                  <Text style={[styles.subOptionScore, { color: 74 >= 70 ? '#58A68C' : '#C99A5B' }]}>74%</Text>
+                  <Text style={styles.subOptionStubLabel}>match</Text>
                 </View>
-                <Text style={styles.subOptionScore}>74%</Text>
+                <View style={styles.subOptionPerforation} />
+                <View style={styles.subOptionMain}>
+                  <Image
+                    source={{ uri: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=300' }}
+                    style={styles.subOptionThumb}
+                    resizeMode="cover"
+                  />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.subOptionName}>Manali, Himachal Pradesh</Text>
+                    <Text style={styles.subOptionMeta}>Oct 15 - Oct 20  |  $620 / person</Text>
+                  </View>
+                </View>
               </TouchableOpacity>
             </>
           )}
@@ -409,7 +421,7 @@ export default function PactConsensusResults() {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Flexible Budget Split</Text>
               <TouchableOpacity onPress={() => setShowFlexibleSplitModal(false)} style={styles.modalCloseBtn}>
-                <X size={18} color="#8B8D98" />
+                <X size={18} color="#A9A08C" />
               </TouchableOpacity>
             </View>
 
@@ -430,7 +442,7 @@ export default function PactConsensusResults() {
             </View>
 
             <View style={styles.tierSummary}>
-              <Check size={14} color="#3DE0A0" />
+              <Check size={14} color="#58A68C" />
               <Text style={styles.tierSummaryText}>
                 Result: 100% of 5 members funded within private caps!
               </Text>
@@ -461,18 +473,18 @@ export default function PactConsensusResults() {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{selectedDetails?.name}</Text>
               <TouchableOpacity onPress={() => setSelectedDetails(null)} style={styles.modalCloseBtn}>
-                <X size={18} color="#8B8D98" />
+                <X size={18} color="#A9A08C" />
               </TouchableOpacity>
             </View>
 
             <View style={styles.modalMetaRow}>
               <View style={styles.modalMetaBadge}>
-                <Calendar size={13} color="#3DE0A0" />
+                <Calendar size={13} color="#58A68C" />
                 <Text style={styles.modalMetaBadgeText}>{selectedDetails?.dates}</Text>
               </View>
 
               <View style={styles.modalMetaBadge}>
-                <DollarSign size={13} color="#3DE0A0" />
+                <DollarSign size={13} color="#58A68C" />
                 <Text style={styles.modalMetaBadgeText}>{selectedDetails?.cost}</Text>
               </View>
             </View>
@@ -480,7 +492,7 @@ export default function PactConsensusResults() {
             <View style={styles.modalChecklist}>
               {selectedDetails?.reasons?.map((r: string, i: number) => (
                 <View key={i} style={styles.modalCheckRow}>
-                  <Check size={14} color="#3DE0A0" />
+                  <Check size={14} color="#58A68C" />
                   <Text style={styles.modalCheckText}>{r}</Text>
                 </View>
               ))}
@@ -502,7 +514,7 @@ export default function PactConsensusResults() {
 const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
-    backgroundColor: '#050608',
+    backgroundColor: '#0C1120',
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -510,7 +522,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 420,
     height: '100%',
-    backgroundColor: '#050608'
+    backgroundColor: '#0C1120'
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -532,28 +544,28 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: 'rgba(243, 238, 226, 0.06)',
     justifyContent: 'center',
     alignItems: 'center'
   },
   headerTitle: {
     fontFamily: fontDisplay,
     fontSize: 20,
-    color: '#F4F3F0'
+    color: '#F3EEE2'
   },
   gridIconBtn: {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: 'rgba(243, 238, 226, 0.06)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)'
+    borderColor: 'rgba(243, 238, 226, 0.1)'
   },
   // Wide Budget Gap Banner Styles
   wideBudgetBanner: {
-    backgroundColor: 'rgba(245, 158, 11, 0.08)',
+    backgroundColor: 'rgba(217, 154, 63, 0.08)',
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.35)',
+    borderColor: 'rgba(217, 154, 63, 0.35)',
     borderRadius: 14,
     padding: 14,
     marginBottom: 16
@@ -568,19 +580,19 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+    backgroundColor: 'rgba(217, 154, 63, 0.2)',
     justifyContent: 'center',
     alignItems: 'center'
   },
   wideBudgetTitle: {
     fontFamily: fontUIBold,
     fontSize: 13,
-    color: '#F59E0B'
+    color: '#D99A3F'
   },
   wideBudgetDesc: {
     fontFamily: fontUI,
     fontSize: 12,
-    color: '#D1D5DB',
+    color: '#C9C0AC',
     lineHeight: 17,
     marginBottom: 10
   },
@@ -589,9 +601,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    backgroundColor: 'rgba(217, 154, 63, 0.15)',
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.4)',
+    borderColor: 'rgba(217, 154, 63, 0.4)',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20
@@ -599,28 +611,28 @@ const styles = StyleSheet.create({
   flexibleSplitPillText: {
     fontFamily: fontUIBold,
     fontSize: 11.5,
-    color: '#F59E0B'
+    color: '#D99A3F'
   },
   // Deadlock Diagnostics Card Styles
   whispererLiveBadge: {
     paddingHorizontal: 5,
     paddingVertical: 1,
     borderRadius: 4,
-    backgroundColor: '#3DE0A0'
+    backgroundColor: '#58A68C'
   },
   whispererLiveBadgeText: {
     fontFamily: fontUIBold,
     fontSize: 8,
-    color: '#050608'
+    color: '#0C1120'
   },
   whispererBox: {
     marginTop: 10,
     marginBottom: 12,
     padding: 12,
     borderRadius: 10,
-    backgroundColor: 'rgba(61, 224, 160, 0.08)',
+    backgroundColor: 'rgba(88, 166, 140, 0.08)',
     borderWidth: 1,
-    borderColor: 'rgba(61, 224, 160, 0.25)'
+    borderColor: 'rgba(88, 166, 140, 0.25)'
   },
   whispererBoxHeader: {
     flexDirection: 'row',
@@ -631,19 +643,19 @@ const styles = StyleSheet.create({
   whispererBoxTag: {
     fontFamily: fontUIBold,
     fontSize: 9,
-    color: '#3DE0A0',
+    color: '#58A68C',
     letterSpacing: 0.8
   },
   whispererBoxText: {
     fontFamily: fontUI,
     fontSize: 12,
-    color: '#F4F3F0',
+    color: '#F3EEE2',
     lineHeight: 18
   },
   deadlockCard: {
-    backgroundColor: '#161824',
+    backgroundColor: '#1F2840',
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.4)',
+    borderColor: 'rgba(193, 80, 63, 0.4)',
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
@@ -658,31 +670,31 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    backgroundColor: 'rgba(193, 80, 63, 0.15)',
     justifyContent: 'center',
     alignItems: 'center'
   },
   deadlockTitle: {
     fontFamily: fontUIBold,
     fontSize: 14,
-    color: '#EF4444'
+    color: '#C1503F'
   },
   deadlockSubtitle: {
     fontFamily: fontUI,
     fontSize: 11.5,
-    color: '#8B8D98',
+    color: '#A9A08C',
     marginTop: 2
   },
   deadlockDesc: {
     fontFamily: fontUI,
     fontSize: 12.5,
-    color: '#D1D5DB',
+    color: '#C9C0AC',
     lineHeight: 18
   },
   resolutionPathBox: {
     backgroundColor: 'rgba(255, 255, 255, 0.03)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: 'rgba(243, 238, 226, 0.1)',
     borderRadius: 12,
     padding: 12,
     gap: 8
@@ -690,22 +702,22 @@ const styles = StyleSheet.create({
   resolutionPathNumber: {
     fontFamily: fontUIBold,
     fontSize: 10,
-    color: '#8B8D98',
+    color: '#A9A08C',
     letterSpacing: 0.8
   },
   resolutionPathDetail: {
     fontFamily: fontUI,
     fontSize: 11,
-    color: '#8B8D98',
+    color: '#A9A08C',
     lineHeight: 15
   },
   overrideBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: 'rgba(61, 224, 160, 0.1)',
+    backgroundColor: 'rgba(88, 166, 140, 0.1)',
     borderWidth: 1,
-    borderColor: 'rgba(61, 224, 160, 0.3)',
+    borderColor: 'rgba(88, 166, 140, 0.3)',
     borderRadius: 12,
     padding: 10,
     marginBottom: 14
@@ -713,12 +725,12 @@ const styles = StyleSheet.create({
   overrideBannerText: {
     fontFamily: fontUI,
     fontSize: 11.5,
-    color: '#3DE0A0',
+    color: '#58A68C',
     flex: 1,
     lineHeight: 16
   },
   overridePill: {
-    backgroundColor: 'rgba(61, 224, 160, 0.15)',
+    backgroundColor: 'rgba(88, 166, 140, 0.15)',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 10
@@ -726,13 +738,13 @@ const styles = StyleSheet.create({
   overridePillText: {
     fontFamily: fontUIBold,
     fontSize: 9.5,
-    color: '#3DE0A0'
+    color: '#58A68C'
   },
   // Top Ticket Card Styles
   topTicketCard: {
-    backgroundColor: '#13151E',
+    backgroundColor: '#1A2138',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: 'rgba(243, 238, 226, 0.1)',
     borderRadius: 18,
     overflow: 'hidden',
     marginBottom: 16
@@ -747,7 +759,7 @@ const styles = StyleSheet.create({
     marginBottom: 12
   },
   topPickBadge: {
-    backgroundColor: 'rgba(61, 224, 160, 0.12)',
+    backgroundColor: 'rgba(88, 166, 140, 0.12)',
     paddingHorizontal: 9,
     paddingVertical: 4,
     borderRadius: 12
@@ -755,7 +767,7 @@ const styles = StyleSheet.create({
   topPickBadgeText: {
     fontFamily: fontUIBold,
     fontSize: 10,
-    color: '#3DE0A0',
+    color: '#58A68C',
     letterSpacing: 0.5
   },
   destMatchRow: {
@@ -767,17 +779,17 @@ const styles = StyleSheet.create({
   destTitleText: {
     fontFamily: fontDisplay,
     fontSize: 22,
-    color: '#F4F3F0'
+    color: '#F3EEE2'
   },
   matchProgressBarBg: {
     height: 4,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: 'rgba(243, 238, 226, 0.07)',
     borderRadius: 2,
     marginBottom: 14
   },
   matchProgressBarFill: {
     height: '100%',
-    backgroundColor: '#3DE0A0',
+    backgroundColor: '#58A68C',
     borderRadius: 2
   },
   metaTagsRow: {
@@ -793,13 +805,13 @@ const styles = StyleSheet.create({
   metaItemText: {
     fontFamily: fontUI,
     fontSize: 12,
-    color: '#8B8D98'
+    color: '#A9A08C'
   },
   checklistContainer: {
     gap: 8,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.06)'
+    borderTopColor: 'rgba(243, 238, 226, 0.07)'
   },
   checkRow: {
     flexDirection: 'row',
@@ -810,42 +822,75 @@ const styles = StyleSheet.create({
     width: 16,
     height: 16,
     borderRadius: 8,
-    backgroundColor: 'rgba(61, 224, 160, 0.12)',
+    backgroundColor: 'rgba(88, 166, 140, 0.12)',
     justifyContent: 'center',
     alignItems: 'center'
   },
   checkItemText: {
     fontFamily: fontUI,
     fontSize: 12,
-    color: '#F4F3F0'
+    color: '#F3EEE2'
   },
-  // Sub options
+  // Sub options — doc Ticket motif: sharp on 3 sides, top-right rounded, score stub
+  // in Fraunces on a surfaceSubtle fill left of a dashed perforation.
   subOptionCard: {
-    backgroundColor: '#13151E',
+    backgroundColor: '#1A2138',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
-    borderRadius: 14,
-    padding: 16,
+    borderColor: 'rgba(243, 238, 226, 0.1)',
+    borderTopLeftRadius: 0,
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    borderTopRightRadius: 12,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    overflow: 'hidden',
     marginBottom: 10
+  },
+  subOptionStub: {
+    width: 64,
+    backgroundColor: '#161D33',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 14
+  },
+  subOptionStubLabel: {
+    fontFamily: fontUI,
+    fontSize: 9.5,
+    color: '#A9A08C',
+    marginTop: 2
+  },
+  subOptionPerforation: {
+    width: 0,
+    borderLeftWidth: 1,
+    borderStyle: 'dashed',
+    borderLeftColor: 'rgba(243, 238, 226, 0.18)'
+  },
+  subOptionMain: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 12
+  },
+  subOptionThumb: {
+    width: 52,
+    height: 44,
+    borderRadius: 6
   },
   subOptionName: {
     fontFamily: fontUIBold,
     fontSize: 15,
-    color: '#F4F3F0',
+    color: '#F3EEE2',
     marginBottom: 3
   },
   subOptionMeta: {
     fontFamily: fontUI,
     fontSize: 11.5,
-    color: '#8B8D98'
+    color: '#A9A08C'
   },
   subOptionScore: {
-    fontFamily: fontUIBold,
-    fontSize: 14,
-    color: '#8B8D98'
+    fontFamily: fontDisplay,
+    fontSize: 22,
+    color: '#C99A5B'
   },
   // Bottom Bar
   bottomBar: {
@@ -855,12 +900,12 @@ const styles = StyleSheet.create({
     right: 0,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    backgroundColor: 'rgba(5, 6, 8, 0.95)',
+    backgroundColor: 'rgba(12, 17, 32, 0.95)',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.06)'
+    borderTopColor: 'rgba(243, 238, 226, 0.07)'
   },
   proceedButton: {
-    backgroundColor: '#3DE0A0',
+    backgroundColor: '#58A68C',
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center'
@@ -868,7 +913,7 @@ const styles = StyleSheet.create({
   proceedButtonText: {
     fontFamily: fontUIBold,
     fontSize: 14,
-    color: '#0B3B22'
+    color: '#1E3A30'
   },
   // Modal Styles
   modalOverlay: {
@@ -881,7 +926,7 @@ const styles = StyleSheet.create({
   modalContent: {
     width: '100%',
     maxWidth: 380,
-    backgroundColor: '#13151E',
+    backgroundColor: '#1A2138',
     borderRadius: 18,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
@@ -896,26 +941,26 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontFamily: fontDisplay,
     fontSize: 18,
-    color: '#F4F3F0'
+    color: '#F3EEE2'
   },
   modalCloseBtn: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: 'rgba(243, 238, 226, 0.07)',
     justifyContent: 'center',
     alignItems: 'center'
   },
   modalDesc: {
     fontFamily: fontUI,
     fontSize: 12.5,
-    color: '#8B8D98',
+    color: '#A9A08C',
     lineHeight: 18
   },
   tierCard: {
     backgroundColor: 'rgba(255,255,255,0.03)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: 'rgba(243, 238, 226, 0.07)',
     borderRadius: 10,
     padding: 12,
     gap: 3
@@ -923,30 +968,30 @@ const styles = StyleSheet.create({
   tierName: {
     fontFamily: fontUIBold,
     fontSize: 13,
-    color: '#F4F3F0'
+    color: '#F3EEE2'
   },
   tierCost: {
     fontFamily: fontUIBold,
     fontSize: 14,
-    color: '#F59E0B'
+    color: '#D99A3F'
   },
   tierNote: {
     fontFamily: fontUI,
     fontSize: 11,
-    color: '#8B8D98'
+    color: '#A9A08C'
   },
   tierSummary: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: 'rgba(61, 224, 160, 0.1)',
+    backgroundColor: 'rgba(88, 166, 140, 0.1)',
     borderRadius: 8,
     padding: 10
   },
   tierSummaryText: {
     fontFamily: fontUIBold,
     fontSize: 11.5,
-    color: '#3DE0A0',
+    color: '#58A68C',
     flex: 1
   },
   modalMetaRow: {
@@ -957,7 +1002,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: 'rgba(243, 238, 226, 0.06)',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8
@@ -965,7 +1010,7 @@ const styles = StyleSheet.create({
   modalMetaBadgeText: {
     fontFamily: fontUI,
     fontSize: 11.5,
-    color: '#F4F3F0'
+    color: '#F3EEE2'
   },
   modalChecklist: {
     gap: 8
@@ -978,7 +1023,7 @@ const styles = StyleSheet.create({
   modalCheckText: {
     fontFamily: fontUI,
     fontSize: 12,
-    color: '#D1D5DB'
+    color: '#C9C0AC'
   },
 
   topCardCoverBox: {
@@ -993,12 +1038,6 @@ const styles = StyleSheet.create({
   },
   topCardCoverOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(9, 10, 15, 0.45)'
-  },
-  subOptionThumb: {
-    width: 48,
-    height: 48,
-    borderRadius: 10,
-    marginRight: 12
+    backgroundColor: 'rgba(18, 24, 43, 0.45)'
   },
 });

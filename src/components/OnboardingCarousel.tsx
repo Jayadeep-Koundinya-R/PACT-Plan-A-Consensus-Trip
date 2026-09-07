@@ -29,34 +29,34 @@ interface OnboardingSlide {
 const SLIDES: OnboardingSlide[] = [
   {
     tag: 'PRIVACY SHIELD',
-    tagColor: '#3DE0A0',
+    tagColor: '#58A68C',
     title: 'Your Budget & Dates Are Sealed',
     description: 'Nobody sees what you earn or can afford. Input your private constraints — PACT only searches for the hidden group overlap.',
     icon: Shield,
-    iconColor: '#3DE0A0',
-    iconBg: 'rgba(61, 224, 160, 0.12)',
+    iconColor: '#58A68C',
+    iconBg: 'rgba(88, 166, 140, 0.12)',
     cardMetric: '100% Confidential',
     cardMetricSub: 'Zero peer pressure or awkward budget talks'
   },
   {
     tag: 'CONSENSUS ENGINE',
-    tagColor: '#F59E0B',
+    tagColor: '#D99A3F',
     title: 'Math Resolves Group Deadlocks',
     description: 'No more 47-message WhatsApp debates that go nowhere. Our Pareto engine computes the exact compromise where every friend wins.',
     icon: BrainCircuit,
-    iconColor: '#F59E0B',
-    iconBg: 'rgba(245, 158, 11, 0.12)',
+    iconColor: '#D99A3F',
+    iconBg: 'rgba(217, 154, 63, 0.12)',
     cardMetric: 'Pareto Optimal',
     cardMetricSub: 'Automatically diagnoses budget & date collisions'
   },
   {
     tag: 'SEALED BALLOT',
-    tagColor: '#FF5A5F',
+    tagColor: '#C99A5B',
     title: 'Vote Privately · Export to WhatsApp',
     description: 'Approve or veto options with a tactile wax-seal stamp. Once locked, 1-tap exports the confirmed brief and .ics calendar invite.',
     icon: CheckCircle2,
-    iconColor: '#FF5A5F',
-    iconBg: 'rgba(255, 90, 95, 0.12)',
+    iconColor: '#C99A5B',
+    iconBg: 'rgba(201, 154, 91, 0.12)',
     cardMetric: '1-Tap Export',
     cardMetricSub: 'The 5 minutes before the WhatsApp chat starts'
   }
@@ -102,7 +102,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
         </View>
         <TouchableOpacity activeOpacity={0.7} onPress={onSkip} style={styles.skipBtn}>
           <Text style={styles.skipText}>Skip</Text>
-          <X size={14} color="#8B8D98" />
+          <X size={14} color="#A9A08C" />
         </TouchableOpacity>
       </View>
 
@@ -157,7 +157,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
           <Text style={styles.actionBtnText}>
             {currentIdx === SLIDES.length - 1 ? 'Enter PACT' : 'Continue'}
           </Text>
-          <ArrowRight size={16} color="#052E20" strokeWidth={2.5} />
+          <ArrowRight size={16} color="#16301E" strokeWidth={2.5} />
         </TouchableOpacity>
       </View>
     </View>
@@ -168,10 +168,10 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     maxWidth: 420,
-    backgroundColor: '#090A0F',
+    backgroundColor: '#12182B',
     borderRadius: Platform.OS === 'web' ? 32 : 0,
     borderWidth: Platform.OS === 'web' ? 1 : 0,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: 'rgba(243, 238, 226, 0.1)',
     padding: 24,
     justifyContent: 'space-between',
     minHeight: 540
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
     marginBottom: 20
   },
   stepIndicator: {
-    backgroundColor: '#13151E',
+    backgroundColor: '#1A2138',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 12,
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
   stepText: {
     fontFamily: fontUIBold,
     fontSize: 10,
-    color: '#8B8D98',
+    color: '#A9A08C',
     letterSpacing: 0.8
   },
   skipBtn: {
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
   skipText: {
     fontFamily: fontUI,
     fontSize: 12,
-    color: '#8B8D98'
+    color: '#A9A08C'
   },
   slideContent: {
     alignItems: 'center',
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 3,
     marginBottom: 12,
-    backgroundColor: 'rgba(5, 6, 8, 0.6)'
+    backgroundColor: 'rgba(12, 17, 32, 0.6)'
   },
   tagText: {
     fontFamily: fontUIBold,
@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
   slideDesc: {
     fontFamily: fontUI,
     fontSize: 13.5,
-    color: '#8B8D98',
+    color: '#A9A08C',
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 24,
@@ -257,9 +257,9 @@ const styles = StyleSheet.create({
   },
   visualCard: {
     width: '100%',
-    backgroundColor: '#13151E',
+    backgroundColor: '#1A2138',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: 'rgba(243, 238, 226, 0.1)',
     borderRadius: 14,
     padding: 14,
     flexDirection: 'row',
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#3DE0A0'
+    backgroundColor: '#58A68C'
   },
   visualCardTextCol: {
     flex: 1
@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
   visualMetricSub: {
     fontFamily: fontUI,
     fontSize: 11,
-    color: '#8B8D98'
+    color: '#A9A08C'
   },
   bottomSection: {
     marginTop: 20
@@ -300,16 +300,16 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)'
+    backgroundColor: 'rgba(243, 238, 226, 0.17)'
   },
   dotActive: {
     width: 24,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#3DE0A0'
+    backgroundColor: '#58A68C'
   },
   actionBtn: {
-    backgroundColor: '#3DE0A0',
+    backgroundColor: '#58A68C',
     borderRadius: 14,
     paddingVertical: 14,
     flexDirection: 'row',
@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
   actionBtnText: {
     fontFamily: fontUIBold,
     fontSize: 14,
-    color: '#052E20',
+    color: '#16301E',
     fontWeight: '800'
   }
 });

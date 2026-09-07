@@ -113,10 +113,10 @@ export default function PactTripBrief() {
 
             <TouchableOpacity onPress={handleShareWhatsApp} activeOpacity={0.7} style={styles.shareTopBtn}>
               <Svg width="13" height="13" viewBox="0 0 13 13">
-                <Circle cx="10" cy="2.8" r="1.6" fill="none" stroke="#F4F3F0" strokeWidth="1.1" />
-                <Circle cx="3" cy="6.5" r="1.6" fill="none" stroke="#F4F3F0" strokeWidth="1.1" />
-                <Circle cx="10" cy="10.2" r="1.6" fill="none" stroke="#F4F3F0" strokeWidth="1.1" />
-                <Path d="M4.4 5.7l4.2-2.1M4.4 7.3l4.2 2.1" stroke="#F4F3F0" strokeWidth="1.1" />
+                <Circle cx="10" cy="2.8" r="1.6" fill="none" stroke="#F3EEE2" strokeWidth="1.1" />
+                <Circle cx="3" cy="6.5" r="1.6" fill="none" stroke="#F3EEE2" strokeWidth="1.1" />
+                <Circle cx="10" cy="10.2" r="1.6" fill="none" stroke="#F3EEE2" strokeWidth="1.1" />
+                <Path d="M4.4 5.7l4.2-2.1M4.4 7.3l4.2 2.1" stroke="#F3EEE2" strokeWidth="1.1" />
               </Svg>
               <Text style={styles.shareTopBtnText}>Share</Text>
             </TouchableOpacity>
@@ -130,12 +130,12 @@ export default function PactTripBrief() {
             <ConsensusGauge
               value={100}
               size={84}
-              strokeColor="#3DE0A0"
+              strokeColor="#58A68C"
               centerText="100%"
               centerSubtext="locked"
               style={{ marginBottom: 12 }}
             />
-            <Text style={styles.consensusTitle}>🎉 100% Consensus Locked!</Text>
+            <Text style={styles.consensusTitle}>Consensus locked — 100%</Text>
             <Text style={styles.consensusSub}>All 5 members approved this plan.</Text>
           </View>
 
@@ -183,7 +183,7 @@ export default function PactTripBrief() {
               style={styles.whatsAppBriefBtn}
             >
               <Svg width="15" height="15" viewBox="0 0 15 15">
-                <Path d="M7.5 1.3A6.2 6.2 0 0 0 2.2 10.8L1.3 13.7l3-1a6.2 6.2 0 1 0 3.2-11.4z" fill="#0B3B22" />
+                <Path d="M7.5 1.3A6.2 6.2 0 0 0 2.2 10.8L1.3 13.7l3-1a6.2 6.2 0 1 0 3.2-11.4z" fill="#1E3A30" />
               </Svg>
               <Text style={styles.whatsAppBriefBtnText}>Send WhatsApp group brief</Text>
             </TouchableOpacity>
@@ -194,8 +194,8 @@ export default function PactTripBrief() {
               style={styles.secondaryActionBtn}
             >
               <Svg width="15" height="15" viewBox="0 0 15 15">
-                <Rect x="1.5" y="2.7" width="12" height="10.5" rx="1.5" fill="none" stroke="#8B8D98" strokeWidth="1.1" />
-                <Path d="M1.5 5.5h12M4.3 1.3v2.3M10.7 1.3v2.3" stroke="#8B8D98" strokeWidth="1.1" strokeLinecap="round" />
+                <Rect x="1.5" y="2.7" width="12" height="10.5" rx="1.5" fill="none" stroke="#A9A08C" strokeWidth="1.1" />
+                <Path d="M1.5 5.5h12M4.3 1.3v2.3M10.7 1.3v2.3" stroke="#A9A08C" strokeWidth="1.1" strokeLinecap="round" />
               </Svg>
               <Text style={styles.secondaryActionBtnText}>Add to Apple / Google calendar</Text>
             </TouchableOpacity>
@@ -206,9 +206,9 @@ export default function PactTripBrief() {
               style={styles.secondaryActionBtn}
             >
               <Svg width="15" height="15" viewBox="0 0 15 15">
-                <Rect x="1.5" y="1.5" width="12" height="12" rx="3.5" fill="none" stroke="#FF5A5F" strokeWidth="1.1" />
-                <Circle cx="7.5" cy="7.5" r="3" fill="none" stroke="#FF5A5F" strokeWidth="1.1" />
-                <Circle cx="10.8" cy="4.2" r="0.7" fill="#FF5A5F" />
+                <Rect x="1.5" y="1.5" width="12" height="12" rx="3.5" fill="none" stroke="#C99A5B" strokeWidth="1.1" />
+                <Circle cx="7.5" cy="7.5" r="3" fill="none" stroke="#C99A5B" strokeWidth="1.1" />
+                <Circle cx="10.8" cy="4.2" r="0.7" fill="#C99A5B" />
               </Svg>
               <Text style={styles.secondaryActionBtnText}>Export story card (Instagram / Snap)</Text>
             </TouchableOpacity>
@@ -234,7 +234,7 @@ export default function PactTripBrief() {
               onPress={() => router.push(`/circle/${currentGroup.id}/vault` as any)}
               style={styles.quickNavTile}
             >
-              <FolderArchive size={16} color="#FF5A5F" />
+              <FolderArchive size={16} color="#C99A5B" />
               <Text style={styles.quickNavTileText}>Trip Vault</Text>
             </TouchableOpacity>
 
@@ -243,7 +243,7 @@ export default function PactTripBrief() {
               onPress={() => router.push(`/circle/${currentGroup.id}/memories` as any)}
               style={styles.quickNavTile}
             >
-              <ImageIcon size={16} color="#3DE0A0" />
+              <ImageIcon size={16} color="#58A68C" />
               <Text style={styles.quickNavTileText}>Memories</Text>
             </TouchableOpacity>
 
@@ -252,7 +252,7 @@ export default function PactTripBrief() {
               onPress={() => router.push('/paywall' as any)}
               style={styles.quickNavTile}
             >
-              <Sparkles size={16} color="#D4AF37" />
+              <Sparkles size={16} color="#E0C286" />
               <Text style={styles.quickNavTileText}>PACT Pro</Text>
             </TouchableOpacity>
           </View>
@@ -278,7 +278,7 @@ export default function PactTripBrief() {
 const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
-    backgroundColor: '#050608',
+    backgroundColor: '#0C1120',
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -286,9 +286,9 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 420,
     flex: 1,
-    backgroundColor: '#090A0F',
+    backgroundColor: '#12182B',
     borderWidth: Platform.OS === 'web' ? 1 : 0,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: 'rgba(243, 238, 226, 0.07)',
     borderRadius: Platform.OS === 'web' ? 40 : 0,
     overflow: 'hidden',
     position: 'relative'
@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
   briefCodeTitle: {
     fontFamily: fontUIBold,
     fontSize: 13,
-    color: '#8B8D98',
+    color: '#A9A08C',
     flex: 1
   },
   shareTopBtn: {
@@ -332,17 +332,17 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 12.5,
     fontWeight: '600',
-    color: '#F4F3F0'
+    color: '#F3EEE2'
   },
   consensusBanner: {
     position: 'relative',
-    backgroundColor: 'rgba(61,224,160,0.12)',
-    shadowColor: '#3DE0A0',
+    backgroundColor: 'rgba(88, 166, 140,0.12)',
+    shadowColor: '#58A68C',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 18,
     borderWidth: 1,
-    borderColor: 'rgba(61,224,160,0.45)',
+    borderColor: 'rgba(88, 166, 140,0.45)',
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 13,
@@ -358,12 +358,12 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 13,
     fontWeight: '600',
-    color: '#3DE0A0'
+    color: '#58A68C'
   },
   consensusSub: {
     fontFamily: fontUI,
     fontSize: 12,
-    color: '#7FC9A5',
+    color: '#8FB8A4',
     marginTop: 3
   },
   sealedTicketContainer: {
@@ -376,24 +376,24 @@ const styles = StyleSheet.create({
     right: 4,
     transform: [{ rotate: '-9deg' }],
     borderWidth: 2,
-    borderColor: '#3DE0A0',
+    borderColor: '#58A68C',
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    backgroundColor: 'rgba(9,10,15,0.92)',
+    backgroundColor: 'rgba(18, 24, 43,0.92)',
     zIndex: 2
   },
   stampBadgeText: {
     fontFamily: fontUIBold,
     fontSize: 10,
     fontWeight: '700',
-    color: '#3DE0A0',
+    color: '#58A68C',
     letterSpacing: 0.5
   },
   ticketBody: {
-    backgroundColor: '#13151E',
+    backgroundColor: '#1A2138',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: 'rgba(243, 238, 226, 0.1)',
     borderRadius: 18,
     overflow: 'hidden',
     paddingTop: 22
@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
     fontFamily: fontDisplay,
     fontWeight: '700',
     fontSize: 26,
-    color: '#F4F3F0',
+    color: '#F3EEE2',
     marginBottom: 18
   },
   detailsList: {
@@ -416,14 +416,14 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 10.5,
     fontWeight: '700',
-    color: '#6C6F7A',
+    color: '#8B8474',
     letterSpacing: 0.6,
     marginBottom: 3
   },
   detailValue: {
     fontFamily: fontUIBold,
     fontSize: 13,
-    color: '#F4F3F0'
+    color: '#F3EEE2'
   },
   perforationWrapper: {
     position: 'relative',
@@ -437,9 +437,9 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#090A0F',
+    backgroundColor: '#12182B',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)'
+    borderColor: 'rgba(243, 238, 226, 0.07)'
   },
   notchRight: {
     position: 'absolute',
@@ -448,14 +448,14 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#090A0F',
+    backgroundColor: '#12182B',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)'
+    borderColor: 'rgba(243, 238, 226, 0.07)'
   },
   dashedLine: {
     borderTopWidth: 1.5,
     borderStyle: 'dashed',
-    borderTopColor: 'rgba(255,255,255,0.16)',
+    borderTopColor: 'rgba(243, 238, 226, 0.18)',
     marginHorizontal: 22
   },
   ticketFooter: {
@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
   ticketFooterText: {
     fontFamily: fontUIBold,
     fontSize: 10.5,
-    color: '#454857',
+    color: '#6B6455',
     letterSpacing: 0.8
   },
   actionsStack: {
@@ -487,15 +487,15 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 14,
     fontWeight: '700',
-    color: '#0B3B22'
+    color: '#1E3A30'
   },
   secondaryActionBtn: {
     width: '100%',
     paddingVertical: 13,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
-    backgroundColor: '#13151E',
+    borderColor: 'rgba(243, 238, 226, 0.14)',
+    backgroundColor: '#1A2138',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -505,12 +505,12 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 14,
     fontWeight: '600',
-    color: '#F4F3F0'
+    color: '#F3EEE2'
   },
   itineraryCard: {
-    backgroundColor: '#13151E',
+    backgroundColor: '#1A2138',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: 'rgba(243, 238, 226, 0.1)',
     borderRadius: 18,
     padding: 18,
     marginBottom: 16
@@ -519,7 +519,7 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 13.5,
     fontWeight: '600',
-    color: '#F4F3F0',
+    color: '#F3EEE2',
     marginBottom: 14
   },
   itineraryList: {
@@ -533,13 +533,13 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 11.5,
     fontWeight: '700',
-    color: '#FF5A5F',
+    color: '#C99A5B',
     minWidth: 42
   },
   dayText: {
     fontFamily: fontUI,
     fontSize: 12.5,
-    color: '#B4B6C0',
+    color: '#C9C0AC',
     lineHeight: 18,
     flex: 1
   },
@@ -550,9 +550,9 @@ const styles = StyleSheet.create({
   },
   quickNavTile: {
     flex: 1,
-    backgroundColor: '#13151E',
+    backgroundColor: '#1A2138',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: 'rgba(243, 238, 226, 0.1)',
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
@@ -562,21 +562,21 @@ const styles = StyleSheet.create({
   quickNavTileText: {
     fontFamily: fontUIBold,
     fontSize: 11.5,
-    color: '#F4F3F0'
+    color: '#F3EEE2'
   },
   bottomBar: {
     paddingHorizontal: 20,
     paddingTop: 14,
     paddingBottom: 22,
-    backgroundColor: '#090A0F',
+    backgroundColor: '#12182B',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.06)'
+    borderTopColor: 'rgba(243, 238, 226, 0.07)'
   },
   primaryCtaBtn: {
     width: '100%',
     paddingVertical: 14,
     borderRadius: 12,
-    backgroundColor: '#FF5A5F',
+    backgroundColor: '#C99A5B',
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -584,6 +584,6 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 14.5,
     fontWeight: '700',
-    color: '#2E0805'
+    color: '#231A0C'
   }
 });

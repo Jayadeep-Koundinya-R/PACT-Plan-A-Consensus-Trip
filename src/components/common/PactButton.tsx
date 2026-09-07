@@ -103,8 +103,8 @@ export const PactButton: React.FC<PactButtonProps> = ({
           <Svg width="100%" height="100%">
             <Defs>
               <SvgGradient id="pactBtnGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <Stop offset="0%" stopColor="#FF5A5F" />
-                <Stop offset="100%" stopColor="#D4AF37" />
+                <Stop offset="0%" stopColor="#C99A5B" />
+                <Stop offset="100%" stopColor="#8A6530" />
               </SvgGradient>
             </Defs>
             <Rect width="100%" height="100%" rx={radius.btn} fill="url(#pactBtnGrad)" />
@@ -115,7 +115,7 @@ export const PactButton: React.FC<PactButtonProps> = ({
       {loading ? (
         <ActivityIndicator
           size="small"
-          color={variant === 'glass' ? '#F4F3F0' : '#FFFFFF'}
+          color={variant === 'glass' ? '#F3EEE2' : '#FFFFFF'}
         />
       ) : (
         <View style={styles.contentRow}>
@@ -178,24 +178,24 @@ const styles = StyleSheet.create({
   },
   // Variant styles
   solid: {
-    backgroundColor: '#FF5A5F',
+    backgroundColor: '#C99A5B',
     ...shadows.glowPrimary
   },
   glass: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: 'rgba(243, 238, 226, 0.1)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.14)'
+    borderColor: 'rgba(243, 238, 226, 0.16)'
   },
   danger: {
-    backgroundColor: '#EF4444',
-    shadowColor: '#EF4444',
+    backgroundColor: '#C1503F',
+    shadowColor: '#C1503F',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    elevation: 3
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 2
   },
   gradientContainer: {
-    backgroundColor: '#FF5A5F',
+    backgroundColor: '#C99A5B',
     ...shadows.glowPrimary
   },
   // Text styles
@@ -214,16 +214,16 @@ const styles = StyleSheet.create({
     fontSize: 16
   },
   solidText: {
-    color: '#FFFFFF'
+    color: '#231A0C'
   },
   glassText: {
-    color: '#F4F3F0'
+    color: '#F3EEE2'
   },
   dangerText: {
     color: '#FFFFFF'
   },
   gradientText: {
-    color: '#FFFFFF'
+    color: '#231A0C'
   },
   // Disabled
   disabled: {

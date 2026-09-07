@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: '#CBD5E1',
+    backgroundColor: '#C9C0AC',
     marginVertical: 12,
     opacity: 0.5
   },

@@ -116,7 +116,7 @@ export default function PactCreateJoinScreen() {
               style={styles.backButton}
               accessibilityLabel="Go back"
             >
-              <ArrowLeft size={18} color="#8B8D98" />
+              <ArrowLeft size={18} color="#A9A08C" />
             </TouchableOpacity>
             <Text style={styles.navTitle}>Start planning</Text>
           </View>
@@ -135,7 +135,7 @@ export default function PactCreateJoinScreen() {
           >
             <View style={styles.createIconBox}>
               <Svg width="20" height="20" viewBox="0 0 20 20">
-                <Path d="M10 3v14M3 10h14" stroke="#FF5A5F" strokeWidth="2" strokeLinecap="round" />
+                <Path d="M10 3v14M3 10h14" stroke="#C99A5B" strokeWidth="2" strokeLinecap="round" />
               </Svg>
             </View>
             <View style={styles.cardTextCol}>
@@ -152,7 +152,7 @@ export default function PactCreateJoinScreen() {
                 <Svg width="20" height="20" viewBox="0 0 20 20">
                   <Path
                     d="M7 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm6 6a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8.5 8.5l3 3"
-                    stroke="#3DE0A0"
+                    stroke="#58A68C"
                     strokeWidth="1.6"
                     fill="none"
                     strokeLinecap="round"
@@ -168,7 +168,7 @@ export default function PactCreateJoinScreen() {
             <TextInput
               style={[
                 styles.codeInput,
-                error ? { borderColor: '#E24B4A' } : {}
+                error ? { borderColor: '#B98A4E' } : {}
               ]}
               value={code}
               onChangeText={(t) => {
@@ -176,7 +176,7 @@ export default function PactCreateJoinScreen() {
                 if (error) setError('');
               }}
               placeholder="e.g. GOA-4F82"
-              placeholderTextColor="#454857"
+              placeholderTextColor="#6B6455"
               autoCapitalize="characters"
             />
 
@@ -194,8 +194,8 @@ export default function PactCreateJoinScreen() {
           {/* Privacy Footnote */}
           <View style={styles.privacyRow}>
             <Svg width="14" height="14" viewBox="0 0 14 14">
-              <Circle cx="7" cy="7" r="6.2" fill="none" stroke="#454857" strokeWidth="1.2" />
-              <Path d="M7 4v3.3l2.2 1.3" stroke="#454857" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+              <Circle cx="7" cy="7" r="6.2" fill="none" stroke="#6B6455" strokeWidth="1.2" />
+              <Path d="M7 4v3.3l2.2 1.3" stroke="#6B6455" strokeWidth="1.2" fill="none" strokeLinecap="round" />
             </Svg>
             <Text style={styles.privacyText}>
               Your constraints stay private until everyone's voted
@@ -219,7 +219,7 @@ export default function PactCreateJoinScreen() {
                 onPress={() => setIsCreateModalOpen(false)}
                 style={styles.modalCloseBtn}
               >
-                <X size={18} color="#8B8D98" />
+                <X size={18} color="#A9A08C" />
               </TouchableOpacity>
             </View>
 
@@ -229,7 +229,7 @@ export default function PactCreateJoinScreen() {
               value={tripName}
               onChangeText={setTripName}
               placeholder="e.g. Goa Beach Escape 2026"
-              placeholderTextColor="#454857"
+              placeholderTextColor="#6B6455"
             />
 
             <Text style={styles.modalLabel}>ESTIMATED TRAVELERS</Text>
@@ -239,7 +239,7 @@ export default function PactCreateJoinScreen() {
               onChangeText={setMemberCount}
               keyboardType="number-pad"
               placeholder="5"
-              placeholderTextColor="#454857"
+              placeholderTextColor="#6B6455"
             />
 
             <TouchableOpacity
@@ -247,7 +247,7 @@ export default function PactCreateJoinScreen() {
               onPress={handleConfirmCreate}
               style={styles.modalCreateBtn}
             >
-              <Sparkles size={16} color="#0D0A0A" />
+              <Sparkles size={16} color="#0C1120" />
               <Text style={styles.modalCreateBtnText}>Create Circle & Get Code</Text>
             </TouchableOpacity>
           </View>
@@ -260,7 +260,7 @@ export default function PactCreateJoinScreen() {
 const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
-    backgroundColor: '#050608',
+    backgroundColor: '#0C1120',
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -268,9 +268,9 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 420,
     flex: 1,
-    backgroundColor: '#090A0F',
+    backgroundColor: '#12182B',
     borderWidth: Platform.OS === 'web' ? 1 : 0,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: 'rgba(243, 238, 226, 0.07)',
     borderRadius: Platform.OS === 'web' ? 40 : 0,
     overflow: 'hidden',
     position: 'relative'
@@ -296,27 +296,27 @@ const styles = StyleSheet.create({
     fontFamily: fontDisplay,
     fontWeight: '700',
     fontSize: 15,
-    color: '#F4F3F0'
+    color: '#F3EEE2'
   },
   mainTitle: {
     fontFamily: fontDisplay,
     fontWeight: '700',
     fontSize: 26,
     lineHeight: 32,
-    color: '#F4F3F0',
+    color: '#F3EEE2',
     marginBottom: 8
   },
   mainSubtitle: {
     fontFamily: fontUI,
     fontSize: 14,
-    color: '#8B8D98',
+    color: '#A9A08C',
     lineHeight: 21,
     marginBottom: 28
   },
   createCard: {
-    backgroundColor: '#13151E',
+    backgroundColor: '#1A2138',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: 'rgba(243, 238, 226, 0.1)',
     borderRadius: 18,
     padding: 20,
     marginBottom: 14,
@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
     width: 46,
     height: 46,
     borderRadius: 12,
-    backgroundColor: 'rgba(255,90,95,0.12)',
+    backgroundColor: 'rgba(201, 154, 91,0.12)',
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -339,23 +339,23 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 15,
     fontWeight: '600',
-    color: '#F4F3F0'
+    color: '#F3EEE2'
   },
   cardSubtext: {
     fontFamily: fontUI,
     fontSize: 12.5,
-    color: '#6C6F7A',
+    color: '#8B8474',
     marginTop: 3
   },
   cardChevron: {
-    color: '#454857',
+    color: '#6B6455',
     fontSize: 20,
     fontWeight: '300'
   },
   joinCard: {
-    backgroundColor: '#13151E',
+    backgroundColor: '#1A2138',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: 'rgba(243, 238, 226, 0.1)',
     borderRadius: 18,
     padding: 20,
     marginBottom: 24
@@ -370,7 +370,7 @@ const styles = StyleSheet.create({
     width: 46,
     height: 46,
     borderRadius: 12,
-    backgroundColor: 'rgba(61,224,160,0.12)',
+    backgroundColor: 'rgba(88, 166, 140,0.12)',
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -381,8 +381,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
-    backgroundColor: '#090A0F',
-    color: '#F4F3F0',
+    backgroundColor: '#12182B',
+    color: '#F3EEE2',
     fontSize: 14,
     fontFamily: fontUIBold,
     letterSpacing: 1,
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 12,
-    color: '#E24B4A',
+    color: '#B98A4E',
     marginBottom: 10,
     fontFamily: fontUI
   },
@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingVertical: 12,
     borderRadius: 10,
-    backgroundColor: '#F4F3F0',
+    backgroundColor: '#F3EEE2',
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 14,
     fontWeight: '600',
-    color: '#090A0F'
+    color: '#12182B'
   },
   privacyRow: {
     flexDirection: 'row',
@@ -417,11 +417,11 @@ const styles = StyleSheet.create({
   privacyText: {
     fontFamily: fontUI,
     fontSize: 12,
-    color: '#6C6F7A'
+    color: '#8B8474'
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(5,6,8,0.85)',
+    backgroundColor: 'rgba(12, 17, 32,0.85)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20
@@ -429,7 +429,7 @@ const styles = StyleSheet.create({
   modalContent: {
     width: '100%',
     maxWidth: 380,
-    backgroundColor: '#13151E',
+    backgroundColor: '#1A2138',
     borderRadius: 20,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
@@ -445,7 +445,7 @@ const styles = StyleSheet.create({
     fontFamily: fontDisplay,
     fontSize: 18,
     fontWeight: '700',
-    color: '#F4F3F0'
+    color: '#F3EEE2'
   },
   modalCloseBtn: {
     padding: 4
@@ -454,24 +454,24 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 10.5,
     fontWeight: '700',
-    color: '#6C6F7A',
+    color: '#8B8474',
     letterSpacing: 0.8,
     marginBottom: 6
   },
   modalInput: {
-    backgroundColor: '#090A0F',
+    backgroundColor: '#12182B',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 11,
-    color: '#F4F3F0',
+    color: '#F3EEE2',
     fontSize: 14,
     fontFamily: fontUI,
     marginBottom: 16
   },
   modalCreateBtn: {
-    backgroundColor: '#FF5A5F',
+    backgroundColor: '#C99A5B',
     borderRadius: 12,
     paddingVertical: 13,
     flexDirection: 'row',
@@ -481,7 +481,7 @@ const styles = StyleSheet.create({
     marginTop: 4
   },
   modalCreateBtnText: {
-    color: '#0D0A0A',
+    color: '#0C1120',
     fontSize: 14,
     fontWeight: '700',
     fontFamily: fontUIBold

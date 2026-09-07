@@ -90,7 +90,7 @@ export const InviteQRModal: React.FC<InviteQRModalProps> = ({
             >
               <View style={[styles.qrCodeBox, { backgroundColor: '#FFFFFF' }]}>
                 {/* SVG/Vector-styled QR representation */}
-                <QrCode size={130} color="#0F172A" />
+                <QrCode size={130} color="#12182B" />
               </View>
 
               <View style={styles.codeRow}>

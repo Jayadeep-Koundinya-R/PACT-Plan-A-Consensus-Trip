@@ -46,9 +46,9 @@ export const WaxSealStamp: React.FC<WaxSealStampProps> = ({
   });
 
   const isEmerald = variant === 'emerald';
-  const outerBg = isEmerald ? '#064E3B' : '#831843';
-  const outerBorder = isEmerald ? '#059669' : '#BE185D';
-  const shadowCol = isEmerald ? '#047857' : '#9D174D';
+  const outerBg = isEmerald ? '#3A241E' : '#7A2F23';
+  const outerBorder = isEmerald ? '#3E7D63' : '#C1503F';
+  const shadowCol = isEmerald ? '#3E7D63' : '#A63D2F';
 
   return (
     <Animated.View
@@ -72,7 +72,7 @@ export const WaxSealStamp: React.FC<WaxSealStampProps> = ({
       >
         <View style={styles.dashedRing}>
           <View style={styles.centerSeal}>
-            <Shield size={11} color="#F59E0B" strokeWidth={2.5} />
+            <Shield size={11} color="#D99A3F" strokeWidth={2.5} />
             <Text style={styles.sealMainText}>{label}</Text>
             <Text style={styles.sealSubText}>{sublabel}</Text>
           </View>
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 28,
     borderWidth: 1.5,
-    borderColor: '#F59E0B',
+    borderColor: '#D99A3F',
     borderStyle: 'dashed',
     justifyContent: 'center',
     alignItems: 'center',
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     fontFamily: fontDisplay,
     fontSize: 9,
     fontWeight: '900',
-    color: '#F59E0B',
+    color: '#D99A3F',
     letterSpacing: 1.1,
     marginTop: 1
   },

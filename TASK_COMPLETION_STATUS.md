@@ -2,7 +2,7 @@
 
 > **Last Updated**: 2026-09-07  
 > **Target Branch**: `pre-submission-review` *(main kept untouched per safety boundary)*  
-> **Automated Test Suite**: **77/77 tests passing** (16 suites)  
+> **Automated Test Suite**: **85/85 tests passing** (19 suites)  
 > **TypeScript Strict Check**: **0 errors** (`npx tsc --noEmit` exits with code 0)  
 > **Static Web Export**: **24/24 static routes exported cleanly** to `dist/`  
 > **Local Server**: Running at `http://localhost:3000` with clean Expo routing  
@@ -123,6 +123,17 @@ The following tasks have been fully implemented, unit-tested, verified on localh
 
 ---
 
+### 14. 🎨 Design System Realignment — Ink & Parchment Travel Document Palette
+- **Changes**:
+  - Realigned `src/theme/colors.ts` to the definitive travel document aesthetic: **Dark** = Ink (`#12182B`), **Light** = Parchment (`#F6EFDE`), **Primary** = Brass (`#C99A5B`), **Secondary/Success** = Petrol & Moss (`#58A68C`), **Danger/Seal** = Sealing Red (`#C1503F`).
+  - Executed automated re-theming codemod (`scripts/retheme-codemod.mjs`) across 40+ components and screens to retire legacy coral and mint tokens.
+  - Added 8 new automated property verification tests in `src/theme/__tests__/colors.test.mjs` (Properties 8, 9, 10) asserting token constraints.
+  - Updated `DESIGN_SYSTEM.md` and `README.md` documentation to match.
+- **Verification**: All **85/85 tests passing** across 19 suites. `npx tsc --noEmit` exits with **0 errors**. Web export builds all 24 static routes cleanly.
+- **Files Modified**: `src/theme/colors.ts`, `src/theme/__tests__/colors.test.mjs`, `DESIGN_SYSTEM.md`, `README.md`, `VIDEO_CAPTURE_CHECKLIST.md`, and 40+ UI components in `app/` and `src/components/`.
+
+---
+
 ### 13. 🌐 Static Web Export & Local Verification Server
 - **Status**: `npx expo export --platform web` bundles 24 routes with 0 errors. Created `scripts/serve-clean-web.mjs` to serve the static export on `http://localhost:3000`.
 - **Live Localhost Screenshots Captured**:
@@ -204,10 +215,11 @@ The tasks below fall into two clear groups:
 |---|:---:|:---:|:---:|:---:|
 | **Critical Blocker Fixes** | 4 | 4 (100%) | 0 | 0 |
 | **High Priority Code Polish** | 6 | 5 (83%) | 1 (#5 rename) | 0 |
+| **Design System Realignment** | 1 | 1 (100%) | 0 | 0 |
 | **Medium Priority Code Polish** | 3 | 0 | 3 (#10, #11, #14) | 0 |
 | **Infrastructure & Localhost Proof** | 3 | 3 (100%) | 0 | 0 |
 | **Personal Action & Submission Items** | 7 | 0 | 0 | 7 |
-| **TOTAL** | **23** | **12** | **4** | **7** |
+| **TOTAL** | **24** | **13** | **4** | **7** |
 
 ---
 

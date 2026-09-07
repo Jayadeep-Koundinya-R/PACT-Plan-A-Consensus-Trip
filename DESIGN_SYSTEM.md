@@ -86,16 +86,18 @@ Use this to track what still needs building or restyling. Check off as you go.
 
 | Screen | Restyled to new system? | Missing functional pieces to add |
 |---|---|---|
-| Welcome / Auth | ☐ | Forgot-password link, loading skeleton instead of blank while checking session |
-| Dashboard (Your Circles) | ☐ | Empty state ("no circles yet" invitation to act, not a blank screen), pull-to-refresh |
-| Group Hub | ☐ | Clear "X of Y responded" always visible near the top, not buried |
-| Preferences form | ☐ | Inline validation messages (not just a submit-time error), edit-after-submit before deadline |
-| Ranked Options | ☐ | Explicit "Budget Division" / "Deadlock" state UI (not just a low score — a distinct screen state per the design doc's deadlock diagnostics) |
-| Silent Vote | ☐ | Confirmation state after voting ("Your vote is recorded — results are private") |
-| Trip Brief | ☐ | Wax-seal finalize animation, share-to-WhatsApp button, .ics export button |
-| Paywall | ☐ | Real RevenueCat entitlement check wired to the "PRO ACTIVE" badge (currently decorative — see engineering note below) |
-| Invite (join by code) | ☐ | Error state for invalid/expired code |
-| Join Circle landing | ☐ | Preview of group name before requiring signup |
+| Welcome / Auth | ✅ (Ink/Brass retheme + token sweep) | Forgot-password link |
+| Dashboard (Your Circles) | ✅ | Pull-to-refresh |
+| Group Hub | ✅ | — ("X of Y responded" already prominent in early-bird + meter states) |
+| Preferences form | ✅ | Edit-after-submit before deadline |
+| Ranked Options | ✅ (Ticket motif applied to #2/#3 option cards) | — (deadlock state UI exists) |
+| Silent Vote | ✅ | — (sealed confirmation state exists) |
+| Trip Brief | ✅ (perforation ticket + wax seal in seal-red) | — (WhatsApp share + .ics buttons exist) |
+| Paywall | ✅ | RevenueCat entitlement check wired on mobile (web demo unlock exists) |
+| Invite (join by code) | ✅ | Error state for invalid/expired code |
+| Join Circle landing | ✅ | — (group name preview exists) |
+
+> **2026-09-07 retheme note:** the full Ink/Parchment/Brass palette described in this file is now implemented. `src/theme/colors.ts` carries the real tokens, all hardcoded coral/mint values across `app/` and `src/` were migrated via `scripts/retheme-codemod.mjs`, `src/theme/__tests__/colors.test.mjs` now asserts the *actual* token values (it previously self-asserted constants), the wax seal uses seal-red per section 5, and the Ticket motif (perforation + Fraunces score stub) is live on Ranked Options and the Trip Brief ticket.
 
 **Non-visual gaps worth fixing alongside the redesign** (not styling, but they'll show during a demo): the AI Compromise Engine currently runs no real model call despite the "AI thinking" animation — see prior engineering note; the RevenueCat "PRO ACTIVE" badge needs a real entitlement check; add a seeded demo group so the live demo never depends on typing data on camera.
 

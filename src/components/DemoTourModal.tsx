@@ -32,35 +32,35 @@ const TOUR_STEPS = [
     step: 1,
     title: 'The Real-World Group Problem',
     icon: Compass,
-    color: '#0EA5E9',
+    color: '#4FA39B',
     summary: '5 friends (Maya, Jake, Priya, Alex, Sam) want to travel together, but negotiate for weeks on WhatsApp with incompatible budgets ($300-$3000), conflicting dates, and unvoiced dealbreakers.'
   },
   {
     step: 2,
     title: '100% Private Constraints',
     icon: ShieldCheck,
-    color: '#10B981',
+    color: '#58A68C',
     summary: 'Everyone submits their dates, budget caps, and hard dealbreakers privately. Raw individual numbers are strictly hidden from peers, preventing peer pressure and resentment.'
   },
   {
     step: 3,
     title: 'Deterministic Consensus Scoring',
     icon: Calculator,
-    color: '#F59E0B',
+    color: '#D99A3F',
     summary: 'Pure mathematical evaluation: Date (35%) + Budget (35%) + Tags (25%) with instant dealbreaker override (-100%). Goa Beach Weekend emerges as #1 with 74.24% compatibility and 100% group consensus.'
   },
   {
     step: 4,
     title: 'Truly Silent Voting Room',
     icon: Vote,
-    color: '#EC4899',
+    color: '#C1503F',
     summary: 'Members vote silently. Individual ballots are never broadcast—only live aggregate consensus percentages are displayed. When 70% threshold is reached, organizer Maya finalizes the trip.'
   },
   {
     step: 5,
     title: 'RevenueCat In-App Monetization',
     icon: Crown,
-    color: '#8B5CF6',
+    color: '#8A6A33',
     summary: 'Free tier allows 1 active circle. PACT Pro ($4.99/mo or $39.99/yr) unlocks unlimited circles, calendar exports, and AI-powered natural language conflict diagnoses.'
   }
 ];
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill
   },
   stepBadgeText: {
-    color: '#0EA5E9',
+    color: '#4FA39B',
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 0.8

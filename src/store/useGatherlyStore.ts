@@ -272,9 +272,9 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   },
   memoryPhotos: {
     'circle-college-reunion-2026': [
-      { id: 'p1', bg: '#3A1F1F', by: 'Alex', caption: 'Sunset at Palolem beach' },
-      { id: 'p2', bg: '#2A2416', by: 'Maya', caption: 'Old Goa cathedral walk' },
-      { id: 'p3', bg: '#16241F', by: 'Sam', caption: 'Scooter convoy morning' },
+      { id: 'p1', bg: '#3A241E', by: 'Alex', caption: 'Sunset at Palolem beach' },
+      { id: 'p2', bg: '#33270F', by: 'Maya', caption: 'Old Goa cathedral walk' },
+      { id: 'p3', bg: '#16301E', by: 'Sam', caption: 'Scooter convoy morning' },
       { id: 'p4', bg: '#1E1A2A', by: 'Jordan', caption: 'Seafood feast dinner' }
     ]
   },
@@ -732,9 +732,9 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   },
   memoryPhotos: {
     'circle-college-reunion-2026': [
-      { id: 'p1', bg: '#3A1F1F', by: 'Alex', caption: 'Sunset at Palolem beach' },
-      { id: 'p2', bg: '#2A2416', by: 'Maya', caption: 'Old Goa cathedral walk' },
-      { id: 'p3', bg: '#16241F', by: 'Sam', caption: 'Scooter convoy morning' },
+      { id: 'p1', bg: '#3A241E', by: 'Alex', caption: 'Sunset at Palolem beach' },
+      { id: 'p2', bg: '#33270F', by: 'Maya', caption: 'Old Goa cathedral walk' },
+      { id: 'p3', bg: '#16301E', by: 'Sam', caption: 'Scooter convoy morning' },
       { id: 'p4', bg: '#1E1A2A', by: 'Jordan', caption: 'Seafood feast dinner' }
     ]
   },

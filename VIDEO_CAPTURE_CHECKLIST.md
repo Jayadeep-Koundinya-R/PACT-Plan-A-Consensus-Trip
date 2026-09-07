@@ -45,7 +45,7 @@
 
 ### 🎬 Scene 3: Ranked Matrix & AI Compromise Whisperer (0:42 – 1:05)
 1. **Screen**: Navigate to Consensus Results (`/circle/.../ranked-matrix`).
-2. **Tap**: At the top right of the header, tap **"SIMULATE"** to turn on **DEADLOCK ON**.
+2. **Tap**: At the top right of the header, tap **"Simulate deadlock"** to turn on **Deadlock on**.
 3. **Action**: The screen instantly displays the **AI Compromise Whisperer** banner:
    - **ShieldAlert**: *"Consensus Blocked by Strict Dealbreaker (0 of 3 destinations eligible)"*
    - **AI Whisperer Box**: *"Analyzed 5 sealed ballots: 2 members capped at $600, 3 at $1,200. Recommended Compromise: Booking a 5-bedroom private villa with en-suite bathrooms in South Goa bridges accommodation constraints while preserving 100% date overlap."*

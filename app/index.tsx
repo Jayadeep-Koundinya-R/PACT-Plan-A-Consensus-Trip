@@ -186,7 +186,7 @@ export default function PactLandingScreen() {
 
   if (isCheckingAuth) {
     return (
-      <View style={[styles.outerContainer, { backgroundColor: '#050608' }]}>
+      <View style={[styles.outerContainer, { backgroundColor: '#0C1120' }]}>
         <View style={styles.loadingLogoBadge}>
           <Text style={styles.loadingBrandText}>PACT</Text>
         </View>
@@ -249,9 +249,9 @@ export default function PactLandingScreen() {
                 ]}
               >
                 <Svg width="24" height="24" viewBox="0 0 24 24">
-                  <Circle cx="12" cy="12" r="10" fill="#2A2D3A" stroke="#454857" strokeWidth="1" />
-                  <Path d="M8 10v-3a4 4 0 0 1 8 0v3" fill="none" stroke="#8B8D98" strokeWidth="1.2" />
-                  <Rect x="7" y="9.5" width="10" height="7" rx="1.5" fill="#8B8D98" />
+                  <Circle cx="12" cy="12" r="10" fill="#6B6455" stroke="#6B6455" strokeWidth="1" />
+                  <Path d="M8 10v-3a4 4 0 0 1 8 0v3" fill="none" stroke="#A9A08C" strokeWidth="1.2" />
+                  <Rect x="7" y="9.5" width="10" height="7" rx="1.5" fill="#A9A08C" />
                 </Svg>
               </Animated.View>
 
@@ -270,9 +270,9 @@ export default function PactLandingScreen() {
                 ]}
               >
                 <Svg width="24" height="24" viewBox="0 0 24 24">
-                  <Circle cx="12" cy="12" r="10" fill="#2A2D3A" stroke="#454857" strokeWidth="1" />
-                  <Path d="M8 10v-3a4 4 0 0 1 8 0v3" fill="none" stroke="#8B8D98" strokeWidth="1.2" />
-                  <Rect x="7" y="9.5" width="10" height="7" rx="1.5" fill="#8B8D98" />
+                  <Circle cx="12" cy="12" r="10" fill="#6B6455" stroke="#6B6455" strokeWidth="1" />
+                  <Path d="M8 10v-3a4 4 0 0 1 8 0v3" fill="none" stroke="#A9A08C" strokeWidth="1.2" />
+                  <Rect x="7" y="9.5" width="10" height="7" rx="1.5" fill="#A9A08C" />
                 </Svg>
               </Animated.View>
 
@@ -290,9 +290,9 @@ export default function PactLandingScreen() {
                 ]}
               >
                 <Svg width="24" height="24" viewBox="0 0 24 24">
-                  <Circle cx="12" cy="12" r="10" fill="#2A2D3A" stroke="#454857" strokeWidth="1" />
-                  <Path d="M8 10v-3a4 4 0 0 1 8 0v3" fill="none" stroke="#8B8D98" strokeWidth="1.2" />
-                  <Rect x="7" y="9.5" width="10" height="7" rx="1.5" fill="#8B8D98" />
+                  <Circle cx="12" cy="12" r="10" fill="#6B6455" stroke="#6B6455" strokeWidth="1" />
+                  <Path d="M8 10v-3a4 4 0 0 1 8 0v3" fill="none" stroke="#A9A08C" strokeWidth="1.2" />
+                  <Rect x="7" y="9.5" width="10" height="7" rx="1.5" fill="#A9A08C" />
                 </Svg>
               </Animated.View>
 
@@ -314,16 +314,16 @@ export default function PactLandingScreen() {
                     cx="70"
                     cy="60"
                     r="32"
-                    fill="#0D2A20"
+                    fill="#16301E"
                     fillOpacity="0.8"
-                    stroke="#22C58B"
+                    stroke="#58A68C"
                     strokeWidth="2.5"
                     strokeDasharray="4 3"
                   />
                   <Path
                     d="M57 60l9 9 17-19"
                     fill="none"
-                    stroke="#3DE0A0"
+                    stroke="#58A68C"
                     strokeWidth="3.4"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -334,7 +334,7 @@ export default function PactLandingScreen() {
                     textAnchor="middle"
                     fontSize="11"
                     fontWeight="700"
-                    fill="#3DE0A0"
+                    fill="#58A68C"
                     letterSpacing="0.5"
                   >
                     100% match
@@ -343,9 +343,6 @@ export default function PactLandingScreen() {
               </Animated.View>
             </View>
 
-            <View style={styles.authenticPill}>
-              <Text style={styles.authenticPillText}>BUILT FOR THE TRIPS THAT DIE IN A WHATSAPP CHAT</Text>
-            </View>
             <Text style={styles.heroHeading}>
               5 friends. 47 messages. Zero plan.
             </Text>
@@ -366,7 +363,7 @@ export default function PactLandingScreen() {
                 <Path
                   d="M1 1l8 7 8-7"
                   fill="none"
-                  stroke="#454857"
+                  stroke="#6B6455"
                   strokeWidth="1.6"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -422,7 +419,7 @@ export default function PactLandingScreen() {
             style={styles.primaryCtaBtn}
           >
             <Text style={styles.primaryCtaBtnText}>Get Started / Log In</Text>
-            <ArrowRight size={18} color="#050608" strokeWidth={2.5} />
+            <ArrowRight size={18} color="#0C1120" strokeWidth={2.5} />
           </TouchableOpacity>
 
           {/* Secondary Demo Mode CTA */}
@@ -431,7 +428,7 @@ export default function PactLandingScreen() {
             onPress={handleInstantDemo}
             style={styles.demoCtaBtn}
           >
-            <Sparkles size={15} color="#F4F3F0" />
+            <Sparkles size={15} color="#F3EEE2" />
             <Text style={styles.demoCtaBtnText}>Explore Demo Mode (5 Members)</Text>
           </TouchableOpacity>
 
@@ -447,7 +444,7 @@ export default function PactLandingScreen() {
 const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
-    backgroundColor: '#050608',
+    backgroundColor: '#0C1120',
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -455,9 +452,9 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 20,
-    backgroundColor: '#0D0E15',
+    backgroundColor: '#0E1424',
     borderWidth: 1,
-    borderColor: '#1F2232',
+    borderColor: '#262E48',
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -465,16 +462,16 @@ const styles = StyleSheet.create({
     fontFamily: fontDisplay,
     fontSize: 22,
     fontWeight: '800',
-    color: '#FF5A5F',
+    color: '#C99A5B',
     letterSpacing: 1
   },
   phoneFrame: {
     width: '100%',
     maxWidth: 420,
     flex: 1,
-    backgroundColor: '#090A0F',
+    backgroundColor: '#12182B',
     borderWidth: Platform.OS === 'web' ? 1 : 0,
-    borderColor: 'rgba(255,255,255,0.06)',
+    borderColor: 'rgba(243, 238, 226, 0.07)',
     borderRadius: Platform.OS === 'web' ? 40 : 0,
     overflow: 'hidden',
     position: 'relative'
@@ -495,25 +492,25 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 22,
     letterSpacing: 0.3,
-    color: '#FF5A5F'
+    color: '#C99A5B'
   },
   howItWorksPill: {
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#1F2232',
-    backgroundColor: '#13151E'
+    borderColor: '#262E48',
+    backgroundColor: '#1A2138'
   },
   howItWorksText: {
     fontSize: 12,
-    color: '#8B8D98',
+    color: '#A9A08C',
     fontWeight: '600'
   },
   heroCard: {
-    backgroundColor: '#13151E',
+    backgroundColor: '#1A2138',
     borderWidth: 1,
-    borderColor: '#1F2232',
+    borderColor: '#262E48',
     borderRadius: 20,
     padding: 24,
     alignItems: 'center',
@@ -535,36 +532,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center'
   },
-  authenticPill: {
-    backgroundColor: 'rgba(61, 224, 160, 0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(61, 224, 160, 0.3)',
-    borderRadius: 16,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    marginBottom: 10,
-    alignSelf: 'center'
-  },
-  authenticPillText: {
-    fontFamily: fontUIBold,
-    fontSize: 9.5,
-    color: '#3DE0A0',
-    letterSpacing: 0.6,
-    fontWeight: '700'
-  },
   heroHeading: {
     fontFamily: fontDisplay,
     fontWeight: '700',
-    fontSize: 21,
-    color: '#F4F3F0',
+    fontSize: 26,
+    lineHeight: 32,
+    color: '#F3EEE2',
     textAlign: 'center',
-    lineHeight: 27,
     letterSpacing: -0.3,
     marginBottom: 8
   },
   heroSubheading: {
     fontSize: 13,
-    color: '#8B8D98',
+    color: '#A9A08C',
     textAlign: 'center',
     lineHeight: 18
   },
@@ -574,9 +554,9 @@ const styles = StyleSheet.create({
     marginBottom: 10
   },
   stepsSection: {
-    backgroundColor: '#13151E',
+    backgroundColor: '#1A2138',
     borderWidth: 1,
-    borderColor: '#1F2232',
+    borderColor: '#262E48',
     borderRadius: 20,
     padding: 20,
     marginBottom: 16
@@ -585,7 +565,7 @@ const styles = StyleSheet.create({
     fontFamily: fontDisplay,
     fontWeight: '700',
     fontSize: 15,
-    color: '#F4F3F0',
+    color: '#F3EEE2',
     marginBottom: 14
   },
   stepRow: {
@@ -594,13 +574,13 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingVertical: 12,
     borderTopWidth: 1,
-    borderTopColor: '#1F2232'
+    borderTopColor: '#262E48'
   },
   stepNumber: {
     fontFamily: fontDisplay,
     fontSize: 15,
     fontWeight: '700',
-    color: '#FF5A5F',
+    color: '#C99A5B',
     width: 18,
     marginTop: 1
   },
@@ -610,21 +590,21 @@ const styles = StyleSheet.create({
   stepTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#F4F3F0',
+    color: '#F3EEE2',
     marginBottom: 3
   },
   stepDesc: {
     fontSize: 12,
-    color: '#8B8D98',
+    color: '#A9A08C',
     lineHeight: 16
   },
   bottomCtaBar: {
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: Platform.OS === 'ios' ? 24 : 16,
-    backgroundColor: '#090A0F',
+    backgroundColor: '#12182B',
     borderTopWidth: 1,
-    borderTopColor: '#1F2232',
+    borderTopColor: '#262E48',
     gap: 8
   },
   primaryCtaBtn: {
@@ -632,14 +612,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
-    backgroundColor: '#FF5A5F',
+    backgroundColor: '#C99A5B',
     paddingVertical: 14,
     borderRadius: 14
   },
   primaryCtaBtnText: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#050608',
+    color: '#0C1120',
     letterSpacing: -0.2
   },
   demoCtaBtn: {
@@ -647,20 +627,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#13151E',
+    backgroundColor: '#1A2138',
     borderWidth: 1,
-    borderColor: '#1F2232',
+    borderColor: '#262E48',
     paddingVertical: 12,
     borderRadius: 14
   },
   demoCtaBtnText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#F4F3F0'
+    color: '#F3EEE2'
   },
   termsFooterText: {
     fontSize: 10,
-    color: '#555866',
+    color: '#6B6455',
     textAlign: 'center',
     marginTop: 4
   }
