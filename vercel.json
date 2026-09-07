@@ -3,8 +3,20 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "source": "/",
+      "destination": "/index"
+    },
+    {
+      "source": "/circle/:id/:tab",
+      "destination": "/circle/[id]/:tab"
+    },
+    {
+      "source": "/join/:code",
+      "destination": "/join/[code]"
+    },
+    {
+      "source": "/invite/:code",
+      "destination": "/invite/[code]"
     }
   ]
 }
