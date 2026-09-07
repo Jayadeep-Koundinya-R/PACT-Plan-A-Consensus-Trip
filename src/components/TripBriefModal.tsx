@@ -69,7 +69,7 @@ export const TripBriefModal: React.FC<TripBriefModalProps> = ({
               <View style={styles.winnerHeader}>
                 <Award size={20} color={theme.primary} />
                 <Text style={[styles.winnerLabel, { color: theme.primary }]}>
-                  OFFICIAL DESTINATION
+                  Official destination
                 </Text>
               </View>
 

@@ -105,7 +105,7 @@ export default function JoinConfirmationScreen() {
             <Text style={styles.brandText}>PACT</Text>
           </View>
           <View style={styles.inviteCodeBadge}>
-            <Text style={styles.inviteCodeLabel}>INVITE CODE</Text>
+            <Text style={styles.inviteCodeLabel}>Invite code</Text>
             <Text style={styles.inviteCodeValue}>{inviteCode || 'GOA-4F82'}</Text>
           </View>
         </View>
@@ -118,7 +118,7 @@ export default function JoinConfirmationScreen() {
               <View style={styles.invitationHeader}>
                 <Sparkles size={14} color="#FFD98A" />
                 <Text style={styles.invitationSubtitle}>
-                  YOU HAVE BEEN INVITED TO JOIN
+                  You have been invited to join
                 </Text>
               </View>
 
@@ -129,14 +129,14 @@ export default function JoinConfirmationScreen() {
               {/* Trip Metadata Grid */}
               <View style={styles.metaRow}>
                 <View style={styles.metaItem}>
-                  <Text style={styles.metaLabel}>ORGANIZER</Text>
+                  <Text style={styles.metaLabel}>Organizer</Text>
                   <Text style={styles.metaValue}>{organizerName}</Text>
                 </View>
 
                 <View style={styles.metaDivider} />
 
                 <View style={styles.metaItem}>
-                  <Text style={styles.metaLabel}>MEMBERS</Text>
+                  <Text style={styles.metaLabel}>Members</Text>
                   <View style={styles.memberCountRow}>
                     <Users size={14} color="#25C9A0" />
                     <Text style={styles.metaValueHighlight}>
@@ -148,7 +148,7 @@ export default function JoinConfirmationScreen() {
                 <View style={styles.metaDivider} />
 
                 <View style={styles.metaItem}>
-                  <Text style={styles.metaLabel}>STATUS</Text>
+                  <Text style={styles.metaLabel}>Status</Text>
                   <Text style={styles.metaValueStatus}>Voting</Text>
                 </View>
               </View>

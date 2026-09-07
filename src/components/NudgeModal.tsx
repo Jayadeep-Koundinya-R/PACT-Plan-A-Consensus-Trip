@@ -108,7 +108,7 @@ export const NudgeModal: React.FC<NudgeModalProps> = ({
               <View style={styles.messageHeaderRow}>
                 <Sparkles size={14} color={theme.primary} />
                 <Text style={[styles.messageHeaderTitle, { color: theme.primary }]}>
-                  PRE-WRITTEN GENTLE NUDGE
+                  Pre-written gentle nudge
                 </Text>
               </View>
 

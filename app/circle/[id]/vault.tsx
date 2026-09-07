@@ -296,7 +296,7 @@ export default function PactTripVault() {
             <View style={styles.modalHeaderRow}>
               <View style={styles.modalBadge}>
                 <Shield size={12} color="#25C9A0" />
-                <Text style={styles.modalBadgeText}>SEALED CONSENSUS VOUCHER</Text>
+                <Text style={styles.modalBadgeText}>Sealed consensus voucher</Text>
               </View>
               <TouchableOpacity
                 onPress={() => {
@@ -322,10 +322,10 @@ export default function PactTripVault() {
 
             {/* Ticket Details */}
             <View style={styles.modalDetailsBox}>
-              <Text style={styles.modalDetailLabel}>DETAILS & BOOKING SUMMARY</Text>
+              <Text style={styles.modalDetailLabel}>Details & booking summary</Text>
               <Text style={styles.modalDetailValue}>{selectedDoc?.details}</Text>
 
-              <Text style={[styles.modalDetailLabel, { marginTop: 12 }]}>CONFIRMED ATTENDEES (5)</Text>
+              <Text style={[styles.modalDetailLabel, { marginTop: 12 }]}>Confirmed attendees (5)</Text>
               <View style={styles.passengerChipsRow}>
                 {selectedDoc?.passengers?.map((p: string, idx: number) => (
                   <View key={idx} style={styles.passengerChip}>

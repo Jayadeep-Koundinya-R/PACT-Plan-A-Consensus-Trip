@@ -143,7 +143,7 @@ export default function PactMemoryLibrary() {
           {isSyncing ? (
             <View style={{ marginBottom: 20 }}>
               <View style={styles.countCard}>
-                <Text style={styles.countText}>SYNCING SHARED ALBUM & CLOUD MEMORIES...</Text>
+                <Text style={styles.countText}>Syncing shared album & cloud memories…</Text>
               </View>
               <MemoryPhotoSkeleton count={4} />
             </View>

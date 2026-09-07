@@ -134,17 +134,17 @@ export default function MyCirclesScreen() {
           <View style={styles.metricsBar}>
             <View style={styles.metricItem}>
               <Text style={styles.metricValue}>{displayCircles.length}</Text>
-              <Text style={styles.metricLabel}>ACTIVE CIRCLES</Text>
+              <Text style={styles.metricLabel}>Active circles</Text>
             </View>
             <View style={styles.metricDivider} />
             <View style={styles.metricItem}>
               <Text style={[styles.metricValue, { color: '#25C9A0' }]}>80%</Text>
-              <Text style={styles.metricLabel}>SUPERMAJORITY</Text>
+              <Text style={styles.metricLabel}>Supermajority</Text>
             </View>
             <View style={styles.metricDivider} />
             <View style={styles.metricItem}>
               <Text style={[styles.metricValue, { color: '#F0B24A' }]}>100%</Text>
-              <Text style={styles.metricLabel}>SEALED PRIVACY</Text>
+              <Text style={styles.metricLabel}>Sealed privacy</Text>
             </View>
           </View>
 
@@ -178,7 +178,7 @@ export default function MyCirclesScreen() {
           {/* Circles Section with Active / Archived Tabs */}
           <View style={styles.sectionHeaderRow}>
             <View style={styles.sectionTitleRow}>
-              <Text style={styles.sectionTitle}>YOUR TRIP CIRCLES</Text>
+              <Text style={styles.sectionTitle}>Your trip circles</Text>
             </View>
             <View style={styles.tabSwitcher}>
               <TouchableOpacity
@@ -277,7 +277,7 @@ export default function MyCirclesScreen() {
                   />
                   <View style={styles.cardCoverGradient} />
                   <View style={styles.coverTagRow}>
-                    <Text style={styles.coverTagText}>DESTINATION</Text>
+                    <Text style={styles.coverTagText}>Destination</Text>
                   </View>
                 </View>
 

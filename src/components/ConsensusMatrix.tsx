@@ -76,7 +76,7 @@ export const ConsensusMatrix: React.FC<ConsensusMatrixProps> = ({
           </Text>
         </View>
         <View style={[styles.leadingBadge, { backgroundColor: isDarkMode ? 'rgba(234, 88, 12, 0.2)' : '#FFEFC9' }]}>
-          <Text style={[styles.leadingText, { color: theme.primary }]}>LEADING OPTION</Text>
+          <Text style={[styles.leadingText, { color: theme.primary }]}>Leading option</Text>
         </View>
       </View>
 
@@ -152,7 +152,7 @@ export const ConsensusMatrix: React.FC<ConsensusMatrixProps> = ({
               onPress={handleNudgePress}
               style={[styles.nudgeBtn, { backgroundColor: isDarkMode ? '#3A446A' : '#FFEFC9' }]}
             >
-              <Text style={[styles.nudgeBtnText, { color: theme.primary }]}>NUDGE</Text>
+              <Text style={[styles.nudgeBtnText, { color: theme.primary }]}>Nudge</Text>
               <BellRing size={12} color={theme.primary} />
             </TouchableOpacity>
           )}

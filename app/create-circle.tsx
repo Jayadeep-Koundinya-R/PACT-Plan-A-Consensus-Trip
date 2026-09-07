@@ -223,7 +223,7 @@ export default function PactCreateJoinScreen() {
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.modalLabel}>TRIP NAME</Text>
+            <Text style={styles.modalLabel}>Trip name</Text>
             <TextInput
               style={styles.modalInput}
               value={tripName}
@@ -232,7 +232,7 @@ export default function PactCreateJoinScreen() {
               placeholderTextColor="#7A7263"
             />
 
-            <Text style={styles.modalLabel}>ESTIMATED TRAVELERS</Text>
+            <Text style={styles.modalLabel}>Estimated travelers</Text>
             <TextInput
               style={styles.modalInput}
               value={memberCount}

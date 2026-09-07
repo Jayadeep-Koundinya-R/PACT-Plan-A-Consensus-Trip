@@ -121,7 +121,7 @@ export const RankedOptionCard: React.FC<RankedOptionCardProps> = ({
             {consensusPercent}%
           </Text>
           <Text style={[styles.stubLabel, { fontFamily: fontUI, color: theme.textSecondary }]}>
-            AGREEMENT
+            Agreement
           </Text>
         </View>
 
@@ -236,7 +236,7 @@ export const RankedOptionCard: React.FC<RankedOptionCardProps> = ({
                   {isDealbreaker ? (
                     <View style={[styles.dealbreakerPill, { backgroundColor: theme.dangerLight }]}>
                       <XCircle size={12} color={theme.danger} />
-                      <Text style={[styles.dealbreakerPillText, { fontFamily: fontUIBold, color: theme.danger }]}>VETO</Text>
+                      <Text style={[styles.dealbreakerPillText, { fontFamily: fontUIBold, color: theme.danger }]}>Veto</Text>
                     </View>
                   ) : (
                     <Text style={[styles.memberScorePill, { fontFamily: fontUIBold, color: theme.success }]}>

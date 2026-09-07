@@ -425,7 +425,7 @@ export default function PactConstraintsForm() {
                 <View style={styles.advisorHintCard}>
                   <View style={styles.advisorHintHeader}>
                     <Sparkles size={12} color="#F0B24A" />
-                    <Text style={styles.advisorHintBadge}>AI BUDGET ADVISOR</Text>
+                    <Text style={styles.advisorHintBadge}>AI budget advisor</Text>
                     {budgetAdvisor?.source === 'gemini_live' && (
                       <View style={styles.advisorLiveBadge}>
                         <Text style={styles.advisorLiveBadgeText}>LIVE</Text>

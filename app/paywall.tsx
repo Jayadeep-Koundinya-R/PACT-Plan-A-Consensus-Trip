@@ -106,7 +106,7 @@ export default function PactPaywall() {
 
             <View style={styles.heroBottom}>
               <Text style={styles.heroPassLabel}>
-                ONE PASS  •  WHOLE CIRCLE COVERED
+                One pass · whole circle covered
               </Text>
             </View>
           </View>
@@ -149,7 +149,7 @@ export default function PactPaywall() {
               ]}
             >
               <View style={styles.popularTag}>
-                <Text style={styles.popularTagText}>MOST POPULAR — SAVE 50%</Text>
+                <Text style={styles.popularTagText}>Most popular — save 50%</Text>
               </View>
 
               <View style={styles.planCardContent}>
@@ -544,7 +544,7 @@ const styles = StyleSheet.create({
   webDemoUnlockBtnText: {
     fontFamily: fontUIBold,
     fontSize: 13,
-    color: '#0A2A1F',
+    color: '#2A1A05',
     fontWeight: '700'
   },
   bottomBar: {
@@ -568,7 +568,7 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 14.5,
     fontWeight: '700',
-    color: '#231A0C'
+    color: '#2A1A05'
   },
   billingFooterText: {
     fontFamily: fontUI,

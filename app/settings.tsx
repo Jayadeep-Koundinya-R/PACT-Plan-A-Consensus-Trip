@@ -107,7 +107,7 @@ export default function PactSettings() {
           </View>
 
           {/* Active Trip Circles Section */}
-          <Text style={styles.sectionHeading}>ACTIVE TRIP CIRCLES (2)</Text>
+          <Text style={styles.sectionHeading}>Active trip circles (2)</Text>
           <View style={styles.circlesList}>
             {/* Circle 1 */}
             <TouchableOpacity
@@ -153,7 +153,7 @@ export default function PactSettings() {
           </TouchableOpacity>
 
           {/* Privacy Shield Defaults */}
-          <Text style={styles.sectionHeading}>PRIVACY SHIELD DEFAULTS</Text>
+          <Text style={styles.sectionHeading}>Privacy shield defaults</Text>
           <View style={styles.settingsGroupCard}>
             <View style={styles.settingRow}>
               <View style={styles.settingTextCol}>
@@ -174,7 +174,7 @@ export default function PactSettings() {
           </View>
 
           {/* Circle Nudges Section */}
-          <Text style={styles.sectionHeading}>CIRCLE NUDGES</Text>
+          <Text style={styles.sectionHeading}>Circle nudges</Text>
           <View style={styles.settingsGroupCard}>
             <View style={styles.settingRow}>
               <Text style={styles.settingLabel}>WhatsApp nudges</Text>
@@ -191,7 +191,7 @@ export default function PactSettings() {
           </View>
 
           {/* Account & Plan Section */}
-          <Text style={styles.sectionHeading}>ACCOUNT & PLAN</Text>
+          <Text style={styles.sectionHeading}>Account & plan</Text>
           <View style={styles.settingsGroupCard}>
             <View style={styles.planInfoRow}>
               <Text style={styles.settingLabel}>PACT Pro annual ($29.99/yr)</Text>

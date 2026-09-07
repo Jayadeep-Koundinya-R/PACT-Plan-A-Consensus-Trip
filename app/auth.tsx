@@ -349,7 +349,7 @@ export default function AuthScreen() {
             {isSignUp && (
               <View style={styles.inputGroup}>
                 <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
-                  YOUR FULL NAME
+                  Your full name
                 </Text>
                 <View
                   style={[
@@ -372,7 +372,7 @@ export default function AuthScreen() {
 
             <View style={styles.inputGroup}>
               <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
-                EMAIL ADDRESS
+                Email address
               </Text>
               <View
                 style={[
@@ -395,7 +395,7 @@ export default function AuthScreen() {
 
             <View style={styles.inputGroup}>
               <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
-                PASSWORD
+                Password
               </Text>
               <View
                 style={[

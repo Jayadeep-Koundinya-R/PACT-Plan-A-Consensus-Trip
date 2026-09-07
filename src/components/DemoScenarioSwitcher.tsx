@@ -79,7 +79,7 @@ export const DemoScenarioSwitcher: React.FC = () => {
           <View style={styles.headerLeft}>
             <View style={[styles.pulseDot, { backgroundColor: currentScenario.color }]} />
             <Sparkles size={13} color="#F0B24A" />
-            <Text style={styles.headerTitle}>DEMO CONTROLLER</Text>
+            <Text style={styles.headerTitle}>Demo controller</Text>
             <View style={[styles.activeTag, { backgroundColor: currentScenario.accentBg, borderColor: currentScenario.color }]}>
               <Text style={[styles.activeTagText, { color: currentScenario.color }]}>
                 {currentScenario.label}

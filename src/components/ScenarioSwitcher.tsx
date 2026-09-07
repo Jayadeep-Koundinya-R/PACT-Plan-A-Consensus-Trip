@@ -51,7 +51,7 @@ export const ScenarioSwitcher: React.FC = () => {
         <View style={styles.headerTitleRow}>
           <Sparkles size={14} color={theme.primary} />
           <Text style={[styles.headerTitle, { color: theme.textSecondary }]}>
-            EDGE-CASE ENGINE (JUDGE TOOL)
+            Edge-case engine (judge tool)
           </Text>
         </View>
 

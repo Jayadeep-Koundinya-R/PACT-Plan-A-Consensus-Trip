@@ -347,7 +347,7 @@ export default function PactCirclesHub() {
 
               <View style={styles.statusTextCol}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Text style={styles.statusHeaderLabel}>GROUP CONSENSUS STATUS</Text>
+                  <Text style={styles.statusHeaderLabel}>Group consensus status</Text>
                   <TouchableOpacity onPress={toggleDemoSimulation} activeOpacity={0.7}>
                     <Text style={{ fontFamily: fontUI, fontSize: 10, color: '#9C947F' }}>toggle</Text>
                   </TouchableOpacity>
@@ -362,7 +362,7 @@ export default function PactCirclesHub() {
           {/* Members Response List */}
           <View style={styles.membersCard}>
             <View style={styles.membersCardHeader}>
-              <Text style={styles.membersCardTitle}>MEMBER RESPONSES</Text>
+              <Text style={styles.membersCardTitle}>Member responses</Text>
               <Text style={styles.membersCardSubtitle}>{totalCount - lockedCount} pending</Text>
             </View>
 
@@ -452,7 +452,7 @@ export default function PactCirclesHub() {
           <View style={styles.ticketCardContainer}>
             <View style={styles.ticketCard}>
               <View style={styles.ticketTopSection}>
-                <Text style={styles.ticketCodeLabel}>CIRCLE INVITE CODE</Text>
+                <Text style={styles.ticketCodeLabel}>Circle invite code</Text>
                 <Text style={styles.ticketCodeHeading}>
                   {currentGroup.inviteCode || 'GOA-4F82'}
                 </Text>
