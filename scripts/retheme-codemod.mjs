@@ -109,7 +109,57 @@ const HEX_MAP = {
   '#3B82F6': '#4FA39B',
   // Violet (vault doc tags) -> deep amber-brown
   '#A855F7': '#8A6A33',
-  '#8B5CF6': '#8A6A33'
+  '#8B5CF6': '#8A6A33',
+
+  // ---- SHARP & BRIGHT pass (2026-09-07): raise saturation/luminance of accents ----
+  // Brass -> vivid gold
+  '#C99A5B': '#F0B24A',
+  '#B98A4E': '#D99836',
+  '#D8B27A': '#F3C878',
+  '#E0C286': '#FFD98A',
+  '#8A6530': '#C8842A',
+  // Petrol -> vivid teal
+  '#58A68C': '#25C9A0',
+  '#3E7D63': '#0FA47F',
+  '#8FB8A4': '#6FD8B8',
+  '#D3E4DA': '#C8F2E4',
+  '#1E3A30': '#0B3327',
+  '#16301E': '#0A2A1F',
+  '#4FA39B': '#35C4A5',
+  // Seal -> vivid vermilion
+  '#C1503F': '#E14733',
+  '#A63D2F': '#D6432B',
+  '#D06B58': '#E96A50',
+  '#7A2F23': '#8A2E1C',
+  // Amber family -> vivid
+  '#D99A3F': '#FFB224',
+  '#E3B25E': '#FFC55C',
+  '#A98B5F': '#C9A25E',
+  '#B0782A': '#E08A00',
+  '#8A5F22': '#B86E00',
+  '#5C3E16': '#8A5500',
+  '#8A6A33': '#B58722',
+  '#3A2C12': '#4A3A14',
+  '#33270F': '#403012',
+  '#F0E3C8': '#FFEFC9',
+  '#F4EAD5': '#FFF3D9',
+  '#E8D4AE': '#F5DCA8',
+  // Text: brighter warm neutrals
+  '#F3EEE2': '#FDF9EF',
+  '#A9A08C': '#C3BAA6',
+  '#8B8474': '#9C947F',
+  '#6B6455': '#7A7263',
+  '#C9C0AC': '#D8D0BC',
+  // Surfaces: more separation from Ink background
+  '#1A2138': '#1E2742',
+  '#222B45': '#28324F',
+  '#161D33': '#182036',
+  '#1F2840': '#242E4A',
+  '#262F4C': '#2C3654',
+  '#262E48': '#2B3552',
+  '#303A55': '#384262',
+  '#2A3350': '#323C5A',
+  '#323C58': '#3A446A'
 };
 
 // rgba() functional replacements: old rgb triples -> new rgb triples (alpha preserved).
@@ -123,12 +173,21 @@ const RGB_MAP = [
   [/rgba\(\s*220\s*,\s*38\s*,\s*38\s*,/gi, 'rgba(166, 61, 47,'],
   [/rgba\(\s*22\s*,\s*163\s*,\s*74\s*,/gi, 'rgba(94, 154, 100,'],   // green -> moss
   [/rgba\(\s*9\s*,\s*10\s*,\s*15\s*,/gi, 'rgba(18, 24, 43,'],       // old ink bg scrim -> Ink
-  [/rgba\(\s*5\s*,\s*6\s*,\s*8\s*,/gi, 'rgba(12, 17, 32,']          // old deep bg scrim -> deep Ink
+  [/rgba\(\s*5\s*,\s*6\s*,\s*8\s*,/gi, 'rgba(12, 17, 32,'],         // old deep bg scrim -> deep Ink
+
+  // ---- SHARP & BRIGHT pass: accent rgba tints ----
+  [/rgba\(\s*201\s*,\s*154\s*,\s*91\s*,/gi, 'rgba(240, 178, 74,'],  // brass tint -> gold tint
+  [/rgba\(\s*88\s*,\s*166\s*,\s*140\s*,/gi, 'rgba(37, 201, 160,'],  // sea tint -> teal tint
+  [/rgba\(\s*94\s*,\s*154\s*,\s*100\s*,/gi, 'rgba(15, 164, 127,'],  // moss tint -> vivid teal
+  [/rgba\(\s*193\s*,\s*80\s*,\s*63\s*,/gi, 'rgba(225, 71, 51,'],    // seal tint -> vermilion
+  [/rgba\(\s*166\s*,\s*61\s*,\s*47\s*,/gi, 'rgba(214, 67, 43,'],
+  [/rgba\(\s*217\s*,\s*154\s*,\s*63\s*,/gi, 'rgba(255, 178, 36,'],  // amber tint
+  [/rgba\(\s*176\s*,\s*120\s*,\s*42\s*,/gi, 'rgba(224, 138, 0,']
 ];
 
 const SKIP_DIRS = /node_modules|__tests__|\.vercel|^dist$|web-build|\.git|\.expo/;
 const ROOTS = ['app', 'src'];
-const SKIP_FILES = new Set([path.join('src', 'theme', 'colors.ts')]);
+const SKIP_FILES = new Set(['src/theme/colors.ts']);
 
 function walk(dir, files = []) {
   for (const entry of fs.readdirSync(dir)) {
@@ -198,6 +257,18 @@ for (const root of ROOTS) {
       if (mapped === undefined) return m;
       rgbaCount++;
       return `rgba(243, 238, 226, ${mapped})`;
+    });
+
+    // Pass 4: bump warm hairline alphas so borders/surfaces separate from Ink
+    // (the sharpened palette lifts low-alpha strokes for contrast).
+    src = src.replace(/rgba\(\s*243\s*,\s*238\s*,\s*226\s*,\s*(0\.[0-9]+)\s*\)/gi, (m, a) => {
+      const alpha = parseFloat(a);
+      const BUMP = { 0.05: 0.08, 0.06: 0.1, 0.07: 0.11, 0.08: 0.12, 0.09: 0.13, 0.1: 0.14, 0.11: 0.15, 0.12: 0.16, 0.13: 0.17, 0.14: 0.18, 0.15: 0.19, 0.16: 0.2, 0.17: 0.21, 0.18: 0.22 };
+      const rounded = Math.round(alpha * 100) / 100;
+      const mapped = BUMP[rounded];
+      if (mapped === undefined) return m;
+      rgbaCount++;
+      return `rgba(253, 249, 239, ${mapped})`;
     });
 
     if (src !== before) {
