@@ -4,13 +4,14 @@ import { View, StyleSheet, Dimensions } from 'react-native';
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const CONFETTI_COLORS = [
-  '#0EA5E9', // Sky
-  '#F59E0B', // Amber
-  '#10B981', // Emerald
-  '#EC4899', // Pink
-  '#8B5CF6', // Purple
-  '#38BDF8', // Light blue
-  '#F43F5E'  // Rose
+  '#3DE0A0', // PACT Emerald
+  '#FF5A5F', // Coral
+  '#F59E0B', // Warm Amber
+  '#38BDF8', // Sky Blue
+  '#A855F7', // Violet
+  '#EC4899', // Rose Pink
+  '#FFD700', // Gold
+  '#FFFFFF'  // White Sparkle
 ];
 
 interface Particle {
@@ -26,29 +27,32 @@ interface Particle {
   opacity: number;
 }
 
-export const ConfettiEffect: React.FC<{ durationMs?: number }> = ({ durationMs = 3500 }) => {
+export const ConfettiEffect: React.FC<{ durationMs?: number; count?: number }> = ({
+  durationMs = 4500,
+  count = 65
+}) => {
   const [particles, setParticles] = useState<Particle[]>([]);
   const [isActive, setIsActive] = useState(true);
 
   useEffect(() => {
-    // Generate 45 randomized confetti particles
-    const initialParticles: Particle[] = Array.from({ length: 45 }, (_, i) => ({
+    const width = SCREEN_WIDTH && SCREEN_WIDTH > 0 ? SCREEN_WIDTH : 420;
+    const initialParticles: Particle[] = Array.from({ length: count }, (_, i) => ({
       id: i,
-      x: Math.random() * (SCREEN_WIDTH || 400),
-      y: -20 - Math.random() * 80,
-      size: 6 + Math.random() * 8,
+      x: Math.random() * width,
+      y: -25 - Math.random() * 120,
+      size: 6 + Math.random() * 9,
       color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
-      speedY: 2.5 + Math.random() * 4.5,
-      speedX: (Math.random() - 0.5) * 3,
+      speedY: 2.2 + Math.random() * 4.8,
+      speedX: (Math.random() - 0.5) * 3.6,
       rotation: Math.random() * 360,
-      rotSpeed: (Math.random() - 0.5) * 12,
+      rotSpeed: (Math.random() - 0.5) * 14,
       opacity: 1
     }));
 
     setParticles(initialParticles);
 
     let animationFrameId: number;
-    let startTime = Date.now();
+    const startTime = Date.now();
 
     const updatePhysics = () => {
       const elapsed = Date.now() - startTime;
@@ -61,9 +65,9 @@ export const ConfettiEffect: React.FC<{ durationMs?: number }> = ({ durationMs =
         prev.map((p) => ({
           ...p,
           y: p.y + p.speedY,
-          x: p.x + p.speedX + Math.sin(p.y / 20) * 0.8,
+          x: p.x + p.speedX + Math.sin((p.y + p.id * 10) / 25) * 1.1,
           rotation: p.rotation + p.rotSpeed,
-          opacity: Math.max(0, 1 - elapsed / durationMs)
+          opacity: Math.max(0, 1 - (elapsed / durationMs) * 0.95)
         }))
       );
 
@@ -80,7 +84,7 @@ export const ConfettiEffect: React.FC<{ durationMs?: number }> = ({ durationMs =
       cancelAnimationFrame(animationFrameId);
       clearTimeout(timer);
     };
-  }, [durationMs]);
+  }, [durationMs, count]);
 
   if (!isActive) return null;
 
@@ -95,7 +99,7 @@ export const ConfettiEffect: React.FC<{ durationMs?: number }> = ({ durationMs =
               left: p.x,
               top: p.y,
               width: p.size,
-              height: p.size * 1.4,
+              height: p.size * 1.5,
               backgroundColor: p.color,
               opacity: p.opacity,
               transform: [{ rotate: `${p.rotation}deg` }]
@@ -110,11 +114,15 @@ export const ConfettiEffect: React.FC<{ durationMs?: number }> = ({ durationMs =
 const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
-    zIndex: 999,
+    zIndex: 9999,
     overflow: 'hidden'
   },
   particle: {
     position: 'absolute',
-    borderRadius: 2
+    borderRadius: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.3,
+    shadowRadius: 2
   }
 });

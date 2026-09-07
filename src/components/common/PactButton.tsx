@@ -1,4 +1,4 @@
-﻿import React, { ReactNode } from 'react';
+import React, { ReactNode } from 'react';
 import {
   TouchableOpacity,
   Text,
@@ -124,6 +124,8 @@ export const PactButton: React.FC<PactButtonProps> = ({
           )}
           {title ? (
             <Text style={getTextStyles()}>{title}</Text>
+          ) : typeof children === 'string' ? (
+            <Text style={getTextStyles()}>{children}</Text>
           ) : (
             children
           )}

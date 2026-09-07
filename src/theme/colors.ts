@@ -1,4 +1,4 @@
-﻿export const colors = {
+export const colors = {
   dark: {
     background:      '#090A0F',
     backgroundDeep:  '#050608',

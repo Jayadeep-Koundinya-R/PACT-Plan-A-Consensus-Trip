@@ -27,6 +27,7 @@ import { colors, radius } from '../../../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
 import { ArrowLeft, Check, X, Shield, Lock } from 'lucide-react-native';
 import { PactButton } from '../../../src/components/common';
+import { WaxSealStamp } from '../../../src/components/WaxSealStamp';
 
 
 interface StampBallotCardProps {
@@ -58,6 +59,11 @@ const StampBallotCard: React.FC<StampBallotCardProps> = ({
 
   const triggerImpactHaptic = (decision: 'approve' | 'reject') => {
     if (decision === 'approve') {
+      if (Platform.OS !== 'web') {
+        try {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+        } catch (e) {}
+      }
       haptics.success();
     } else {
       haptics.action();
@@ -104,6 +110,7 @@ const StampBallotCard: React.FC<StampBallotCardProps> = ({
 
   return (
     <Animated.View style={[styles.ballotCard, animatedCardStyle]}>
+      {vote === 'approve' && <WaxSealStamp label="SEALED" sublabel="APPROVED" />}
       <View style={styles.cardHeaderRow}>
         <Text style={styles.destName}>{opt.name}</Text>
         <Text style={styles.matchScore}>{opt.match}%</Text>

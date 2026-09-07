@@ -1,5 +1,5 @@
 # 🌴 PACT — Plan A Consensus Trip
-> **Shipathon 2026 (RevenueCat)** — Next Gen Award (Student Track)  
+> **Shipathon 2026 (RevenueCat)** — Next Gen Award Track  
 > *Turn "we should go somewhere" into a real confirmed trip plan.*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -7,126 +7,171 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-3178C6.svg?style=flat&logo=typescript)](https://www.typescriptlang.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-Auth%20%2B%20Postgres-3ECF8E.svg?style=flat&logo=supabase)](https://supabase.com)
 [![RevenueCat](https://img.shields.io/badge/RevenueCat-In--App%20Subscriptions-E85D04.svg?style=flat&logo=revenuecat)](https://revenuecat.com)
+[![Tests](https://img.shields.io/badge/Tests-77%2F77%20Passing-brightgreen.svg)](package.json)
 
 ---
 
 ## 📖 1. Overview & Problem Statement
 
-**The Problem:** Groups of 8–12 friends and family want to travel together, but everyone has conflicting date availabilities, different budget caps, varying activity preferences, and unspoken dealbreakers. Today, negotiations drag on for weeks in messy WhatsApp group chats. Plans stall, someone unilaterally books something that breeds resentment, or the trip simply never happens.
+**The Problem:** Groups of friends and family want to travel together, but conflicting dates, different budget caps, varying vibe preferences, and unspoken dealbreakers stall planning for weeks in chaotic WhatsApp group chats. Either someone unilaterally books something that breeds resentment, or the trip never happens.
 
-**The Solution:** PACT (Plan A Consensus Trip) is a private, zero-guilt decision-phase tool:
-1. **Privately collects constraints** (dates, min/max budget, tags, dealbreakers).
-2. **Deterministically scores and ranks trip options** with plain-English breakdowns.
-3. **Enables Silent Voting** where members privately approve options and only aggregate consensus percentages are visible.
-4. **Auto-generates a shareable Trip Brief** once consensus is reached.
-
----
-
-## 🎯 2. Critical Design Principles
-
-1. **Deterministic Ranking:** Date overlap %, Budget fit %, and Tag match % use exact mathematical scoring. AI is strictly layered on top for plain-English prose enhancement.
-2. **Truly Silent Voting:** Individual voting ballots are never exposed to other members. Only group consensus percentages are visible.
-3. **Ghost Members Never Poison Averages:** Scoring calculations only evaluate members who have submitted their private preferences (e.g., "5 of 5 responded").
-4. **Explicit Budget Gap Flagging:** If >30% of members cannot afford an option, the system flags a visible `Budget Division` warning rather than masking it behind a composite score.
-5. **Deadlock State Diagnostics:** If no option reaches the ~70% threshold, PACT diagnoses the root cause (`budget_gap`, `date_conflict`, `dealbreakers`, or `split_support`) and provides organizer recommendations.
+**The Solution:** PACT is a private, zero-guilt consensus platform:
+1. **Privately collects sealed constraints** (dates, budget bands, vibes, dealbreakers) without peer pressure.
+2. **Deterministically scores and ranks destinations** using a mathematical formula where ghost members never poison averages.
+3. **Resolves deadlocks with AI** through an **AI Compromise Whisperer** operating strictly on anonymized, aggregated bucket data.
+4. **Conducts Silent Voting** with an authentic wax seal stamp animation where individual ballots remain strictly secret.
+5. **Locks 100% consensus** and generates an exportable **Trip Brief** shareable back to WhatsApp in one tap.
 
 ---
 
-## 🧮 3. Consensus Engine Formula
+## 🏗️ 2. System Architecture
 
 ```
-Member Score = (Date Score × 0.35) + (Budget Score × 0.35) + (Tag Score × 0.25)
-If Dealbreaker Triggered: Member Score = 0 (Override)
+                       +-----------------------------------+
+                       |         User Interfaces           |
+                       |  iOS / Android App | Web Preview  |
+                       +-----------------+-----------------+
+                                         |
+                       +-----------------v-----------------+
+                       |       Zustand Reactive Store       |
+                       | (useCircleStore, useVoteStore)    |
+                       +--------+-----------------+--------+
+                                |                 |
+         +----------------------v--+           +--v---------------------+
+         | Deterministic Consensus |           | Live Edge AI Services  |
+         |    Scoring Engine       |           | Supabase Edge Function |
+         | (Dates 35%, Budget 35%, |           |     (ai-advisor)       |
+         |  Tags 25%, Dealbreakers)|           |     + Gemini API       |
+         +-------------------------+           +------------+-----------+
+                                                            |
+                       +------------------------------------v--+
+                       |              Supabase Backend         |
+                       |  PostgreSQL 15 + Row Level Security   |
+                       |  Aggregated Functions + Realtime Sync |
+                       +--------------------+------------------+
+                                            |
+                       +--------------------v------------------+
+                       |      RevenueCat Subscriptions         |
+                       |  Mobile Native Purchases + Webhooks   |
+                       |  Pro Circle Inheritance to All Guests |
+                       +---------------------------------------+
 ```
 
-- **Date Overlap Score (35%):**  
-  `max(overlap_days across member ranges) / trip_duration` (capped at `1.0`)
-- **Budget Fit Score (35%):**  
-  - Trip cost within `[budgetMin, budgetMax]` $\rightarrow$ `1.0`  
-  - Trip cost $< budgetMin$ $\rightarrow$ `tripCost / budgetMin`  
-  - Trip cost $> budgetMax$ $\rightarrow$ `0.0` (cannot afford)
-- **Tag Match Score (25%):**  
-  `|member_tags ∩ trip_tags| / |member_tags|`
-- **Dealbreaker Override:**  
-  If any dealbreaker keyword matches trip characteristics $\rightarrow$ Member Score drops to `0`.
-- **Consensus Percentage:**  
-  `members where (dateScore > 0 && budgetScore > 0 && !dealbreakerHit) / responding_members × 100`
+### Architectural Guarantees:
+- **Privacy-First Vault**: Individual budgets and personal dealbreakers are protected by Supabase Row-Level Security (RLS) policies. Only the ballot creator can view raw entries.
+- **Anonymized AI Whispering**: The Gemini Edge Function receives only aggregated data buckets (e.g. *"2 members capped at $600, 3 at $1,200"*). Zero individual names or veto details are ever sent to external LLMs.
+- **Fail-Safe Client Caching**: All AI endpoints feature an in-memory cache and a strict **3.5-second timeout** with instant local market-index fallbacks so the UI never blocks.
+- **Pro Circle Inheritance**: When a circle organizer holds an active RevenueCat Pro subscription, all invited friends automatically inherit Pro perks for that trip circle.
 
 ---
 
-## 🏖️ 4. Demo Scenario: College Friends Beach Trip
+## ✨ 3. Feature Matrix
 
-### The 5 Members & Constraints:
-| Member | Preferred Dates | Budget | Tags | Dealbreakers |
-|---|---|---|---|---|
-| **Maya** *(Organizer)* | Jul 10–15, Jul 25–30 | $400–$900 | Beach, Relaxed | Hiking, Cold |
-| **Jake** | Jul 12–20, Aug 1–10 | $1000–$2500 | Active, Beach, Hiking | City |
-| **Priya** | Jul 8–14 | $300–$700 | Budget-conscious, Relaxed, Beach | Expensive |
-| **Alex** | Jul 10–25 | $800–$2000 | City, Culture, Active | Isolated |
-| **Sam** | Jul 15–28, Aug 5–15 | $600–$1500 | Beach, Active, Budget-conscious | *None* |
-
-### Scored Trip Options:
-1. **🏆 Goa Beach Weekend (Winner):** Score **74.24%** | Consensus **100%**  
-   *Reason: Fits all 5 member budgets and date ranges with great beach/relaxed tag match and zero dealbreakers.*
-2. **#2 Kerala Backwaters Chill:** Score **53.00%** | Consensus **60%** (Budget Gap Flagged)  
-   *Reason: Over budget for 2 (Priya, Maya) and no date overlap for 2.*
-3. **#3 Manali Mountain Trek:** Score **48.67%** | Consensus **60%**  
-   *Reason: Triggers "hiking/cold" dealbreaker for Maya.*
-4. **#4 Bangalore City Break:** Score **48.67%** | Consensus **40%**  
-   *Reason: Triggers "city" dealbreaker for Jake.*
+| Feature | Description | Privacy Guarantee |
+|---|---|---|
+| **Cryptographic Invite Codes** | 6-character codes (`GOA-4F82`) for closed, trusted trip circles. | No public stranger discovery. |
+| **Sealed Constraints** | Date availability ranges, budget slider, and dealbreaker chips. | Stored privately; never shared with peers. |
+| **AI Budget Advisor** | Dynamic typical destination budget range near slider. | Live Gemini estimate with instant fallback. |
+| **Deterministic Matrix** | Mathematical scoring of candidate destinations with plain-English breakdowns. | Ghost members never poison averages. |
+| **AI Compromise Whisperer** | Detects deadlocks and proposes fair villa/itinerary compromises. | Operates on anonymized buckets only. |
+| **Silent Ballot & Wax Seal** | Secret voting tickets with animated wax seal stamp. | Ballots are sealed; only % consensus is shown. |
+| **Trip Brief** | Sealed agreement with dates, cost split, and 1-tap WhatsApp export. | Unshakeable post-consensus confirmation. |
+| **Archive Circles** | Active vs Archived dashboard tabs with 1-tap Archive and Restore. | Keeps dashboard clean and focused. |
+| **Push Notifications** | Generic reminders (*"A member hasn't responded yet"*). | Privacy engine strictly blocks financial numbers. |
+| **Trip Vault & Memories** | Shared documents, booking codes, and photo library with attribution. | Available offline with pre-seeded fallbacks. |
 
 ---
 
-## 🛠️ 5. Tech Stack
+## 🧮 4. Consensus Engine Scoring Formula
 
-- **Frontend:** Expo SDK 52 + React Native + Expo Router v4
-- **State Management:** Zustand
-- **Database & Auth:** Supabase (PostgreSQL with Row Level Security & Functions)
-- **Monetization:** RevenueCat (Student / Next Gen Award Track)
-- **Icons & Theme:** Lucide React Native + Curated Light/Dark Palette
-- **Language:** TypeScript 5.3
+$$\\text{Member Score} = (\\text{Date Score} \\times 0.35) + (\\text{Budget Score} \\times 0.35) + (\\text{Tag Score} \\times 0.25)$$
+
+- **Dealbreaker Override**: If any dealbreaker keyword matches trip characteristics, the member's score immediately drops to `0.0`.
+- **Date Overlap Score (35%)**: Max overlapping days divided by trip duration.
+- **Budget Fit Score (35%)**:
+  - Trip cost within $[\\text{min}, \\text{max}] \\rightarrow 1.0$
+  - Trip cost $< \\text{min} \\rightarrow \\text{trip cost} / \\text{budget min}$
+  - Trip cost $> \\text{max} \\rightarrow 0.0$ (disqualified for that member)
+- **Tag Match Score (25%)**: Jaccard similarity across selected vibe tags.
+- **Supermajority Rule**: If an individual veto blocks an otherwise unanimous trip, an 80% supermajority vote unlocks a soft override with guaranteed accommodations.
 
 ---
 
-## 🚀 6. Quick Start & Verification
+## 💳 5. Monetization (RevenueCat Integration)
 
-### 1. Run Unit Tests (Built-in Node Test Runner)
+PACT incorporates a sustainable, fair monetization model powered by RevenueCat:
+
+- **Free Tier**: Up to 1 active trip circle, standard destination scoring, basic Trip Brief.
+- **PACT Pro** ($4.99/mo or $39.99/yr):
+  - Unlimited active circles.
+  - AI Compromise Whisperer & AI Budget Advisor live calls.
+  - **Circle Inheritance**: When the organizer has Pro, all invited circle members get Pro features for that trip.
+- **Cross-Platform Resilience**: On mobile builds, native StoreKit and Google Play flows operate seamlessly. On web preview builds, a graceful notice informs users that *"Pro purchases are available in the mobile app"* while providing a 1-tap demo unlock so judges can test all Pro features without errors.
+
+---
+
+## 🛠️ 6. Tech Stack
+
+- **Framework**: Expo SDK 52 + React Native + Expo Router v4
+- **State Management**: Zustand
+- **Animations**: React Native Reanimated 3 + Expo Haptics
+- **Backend & Database**: Supabase (PostgreSQL 15 with Row Level Security)
+- **AI Services**: Supabase Edge Functions + Google Gemini API (with local fallback heuristics)
+- **Subscriptions**: RevenueCat In-App Purchases & Webhook Handlers
+- **Deployment**: Vercel (Web Preview) + EAS Build (Android APK / iOS)
+- **Language**: TypeScript 5.3
+
+---
+
+## 🔥 7. Quick Start for Judges (Run Locally in 3 Steps)
+
+### Prerequisites:
+- Node.js 18+ installed on your machine.
+- Git.
+
+### Step 1: Clone and Install Dependencies
+```bash
+git clone https://github.com/rajeshjayaprakash/PACT-Plan-A-Consensus-Trip.git
+cd PACT-Plan-A-Consensus-Trip
+git checkout pre-submission-review
+npm install
+```
+
+### Step 2: Run the Automated Regression Test Suite
+Run the 77-test suite validating scoring, privacy guards, webhooks, and AI fallbacks:
 ```bash
 npm test
 ```
+*Expected output: 77 passed across 16 suites.*
 
-### 2. Run the Consensus Engine Demo Script
+### Step 3: Launch Web Preview
 ```bash
-npm run verify-demo
-```
-
-### 3. Launch the Expo App
-```bash
-# Web preview
 npm run web
-
-# Mobile (iOS / Android)
-npm start
 ```
+Open **`http://localhost:8081`** in your browser to test the full consensus experience.
 
 ---
 
-## 🗄️ 7. Database Schema (Supabase)
+## 🔮 8. What's Next (Roadmap & Explicit Non-Goals)
 
-The complete SQL schema and Row Level Security definitions are located in [`supabase/schema.sql`](supabase/schema.sql).
+To preserve PACT's high-trust group consensus mechanics, certain features were **intentionally excluded** from this build:
 
-### Key Tables:
-- `profiles`: User information extending Supabase Auth.
-- `groups`: Circles with unique invite codes (e.g. `GOA-2026`).
-- `group_members`: Member membership and roles.
-- `preferences`: Private per-member constraints with RLS restricting access to the owner only.
-- `trip_options`: Candidate destinations and cached scoring results.
-- `votes`: Private votes aggregated securely without exposing ballots.
-- `trip_briefs`: Finalized trip agreements and shareable details.
-- `subscriptions`: RevenueCat entitlement sync.
+### 1. Username Search & Add-Friend System (Roadmap)
+- **Why excluded now:** PACT is intentionally built around private, high-trust groups using 6-character cryptographic circle codes (`GOA-4F82`). Public directory lookups and stranger requests introduce social friction and spam that undermine the core privacy guarantee.
+- **Future implementation:** Mutual, double-opt-in contact book matching where both users must mutually accept connection before appearing in friend lists.
+
+### 2. Public Circle Discovery & Open Stranger Trips (Roadmap)
+- **Why excluded now:** Group travel consensus works because participants are real friends/colleagues navigating shared budgets and genuine constraints. Opening circles to public internet strangers dilutes ballot authenticity and compromises sealed privacy.
+- **Future implementation:** Curated solo traveler circles with identity-verified deposits and reputation escrow.
+
+### 3. Integrated Split Payments (Stripe / Splitwise / UPI)
+- Direct payment deep-links triggered from the locked **Trip Brief** to settle shared deposits (villas, rental cars) automatically honoring the consensus tiered budget splits.
+
+### 4. Direct Calendar Integration
+- 1-tap .ics / Google Calendar / Apple Calendar sync for confirmed trip dates once 100% consensus is reached.
 
 ---
 
-## 📜 8. License
+## 📜 9. License
 
 This project is licensed under the [MIT License](LICENSE).

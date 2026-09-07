@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { Award, Check, Shield } from 'lucide-react-native';
 import { colors, radius } from '../theme/colors';

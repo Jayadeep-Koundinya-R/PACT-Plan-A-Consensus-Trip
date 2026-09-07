@@ -6,7 +6,7 @@ import {
   ScrollView,
   StyleSheet,
   SafeAreaView,
-  Platform
+  Platform,
   Image
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -28,14 +28,18 @@ import {
   CheckCircle2,
   Clock,
   Copy,
-  Check
+  Check,
+  Archive,
+  RotateCcw,
+  FolderArchive
 } from 'lucide-react-native';
 
 export default function MyCirclesScreen() {
   const router = useRouter();
   const haptics = usePactHaptics();
 
-  const { circles = [], activeCircleId, setActiveCircle } = useCircleStore();
+  const { circles = [], activeCircleId, setActiveCircle, archiveCircle, unarchiveCircle } = useCircleStore();
+  const [circleTab, setCircleTab] = useState<'active' | 'archived'>('active');
   const { profile, subscriptionPlan } = useUserStore();
   const { groups = [] } = useGatherlyStore();
 
@@ -62,8 +66,8 @@ export default function MyCirclesScreen() {
     }
   ];
 
-  // Secondary demo circle if only 1 circle present
-  const displayCircles = allCircles.length === 1 ? [
+  // Ensure baseline circles with default archived flag
+  const baseCircles = allCircles.length === 1 ? [
     ...allCircles,
     {
       id: 'circle-kyoto-2027',
@@ -73,6 +77,7 @@ export default function MyCirclesScreen() {
       organizerName: 'Kenji Sato',
       status: 'collecting' as const,
       totalMembersCount: 4,
+      archived: false,
       members: [
         { userId: 'user-kenji-099', name: 'Kenji', status: 'locked' as const, nudgedAt: null },
         { userId: 'user-maya-001', name: 'Alex', status: 'waiting' as const, nudgedAt: null },
@@ -82,6 +87,10 @@ export default function MyCirclesScreen() {
       createdAt: new Date().toISOString()
     }
   ] : allCircles;
+
+  const activeCircles = baseCircles.filter((c) => !c.archived);
+  const archivedCircles = baseCircles.filter((c) => !!c.archived);
+  const displayCircles = circleTab === 'active' ? activeCircles : archivedCircles;
 
   const handleCopy = async (code: string) => {
     haptics.tap();
@@ -101,10 +110,25 @@ export default function MyCirclesScreen() {
   };
 
   
-  // Destination cover images for trip cards
-  const tripCoverImages: Record<string, string> = {
-    'circle-college-reunion-2026': 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=400&h=160&fit=crop&q=80',
-    'circle-kyoto-2027': 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=400&h=160&fit=crop&q=80',
+  // Smart destination cover photo matcher
+  const getDestinationCoverImage = (c: { id?: string; name?: string }) => {
+    const text = ((c.name || '') + ' ' + (c.id || '')).toLowerCase();
+    if (text.includes('goa') || text.includes('beach') || text.includes('coast') || text.includes('ocean')) {
+      return 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=600&h=240&fit=crop&q=80';
+    }
+    if (text.includes('kyoto') || text.includes('japan') || text.includes('tokyo')) {
+      return 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=600&h=240&fit=crop&q=80';
+    }
+    if (text.includes('bali') || text.includes('island') || text.includes('tropical')) {
+      return 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=600&h=240&fit=crop&q=80';
+    }
+    if (text.includes('paris') || text.includes('europe') || text.includes('rome') || text.includes('london')) {
+      return 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=600&h=240&fit=crop&q=80';
+    }
+    if (text.includes('mountain') || text.includes('ski') || text.includes('trek') || text.includes('manali')) {
+      return 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600&h=240&fit=crop&q=80';
+    }
+    return 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=600&h=240&fit=crop&q=80';
   };
 
   return (
@@ -186,11 +210,56 @@ export default function MyCirclesScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Circles Section */}
+          {/* Circles Section with Active / Archived Tabs */}
           <View style={styles.sectionHeaderRow}>
-            <Text style={styles.sectionTitle}>YOUR TRIP CIRCLES</Text>
-            <Text style={styles.sectionCount}>({displayCircles.length})</Text>
+            <View style={styles.sectionTitleRow}>
+              <Text style={styles.sectionTitle}>YOUR TRIP CIRCLES</Text>
+            </View>
+            <View style={styles.tabSwitcher}>
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => {
+                  haptics.tap();
+                  setCircleTab('active');
+                }}
+                style={[styles.tabButton, circleTab === 'active' && styles.tabButtonActive]}
+                accessibilityLabel={`Active circles, ${activeCircles.length} available`}
+              >
+                <Text style={[styles.tabButtonText, circleTab === 'active' && styles.tabButtonTextActive]}>
+                  Active ({activeCircles.length})
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => {
+                  haptics.tap();
+                  setCircleTab('archived');
+                }}
+                style={[styles.tabButton, circleTab === 'archived' && styles.tabButtonActive]}
+                accessibilityLabel={`Archived circles, ${archivedCircles.length} available`}
+              >
+                <Archive size={11} color={circleTab === 'archived' ? '#FF5A5F' : '#8B8D98'} />
+                <Text style={[styles.tabButtonText, circleTab === 'archived' && styles.tabButtonTextActive]}>
+                  Archived ({archivedCircles.length})
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
+
+          {displayCircles.length === 0 && (
+            <View style={styles.emptyTabCard}>
+              <FolderArchive size={28} color="#2D3144" />
+              <Text style={styles.emptyTabTitle}>
+                {circleTab === 'archived' ? 'No Archived Circles' : 'No Active Circles'}
+              </Text>
+              <Text style={styles.emptyTabDesc}>
+                {circleTab === 'archived'
+                  ? 'Trips you archive will be stored here for future reference.'
+                  : 'Start a new circle or join with an invite code.'}
+              </Text>
+            </View>
+          )}
 
           {displayCircles.map((circle) => {
             const isOrganizer = circle.organizerId === 'user-maya-001' || circle.organizerName === 'Alex Rivers';
@@ -205,18 +274,22 @@ export default function MyCirclesScreen() {
                 onPress={() => handleOpenCircle(circle.id)}
                 style={styles.circleCard}
               >
-                {/* Destination Cover Banner */}
-                {tripCoverImages[circle.id] && (
-                  <View style={styles.cardCoverContainer}>
-                    <Image
-                      source={{ uri: tripCoverImages[circle.id] }}
-                      style={styles.cardCoverImage}
-                      resizeMode="cover"
-                    />
-                    <View style={styles.cardCoverGradient} />
+                {/* Flush Destination Cover Banner */}
+                <View style={styles.cardCoverContainer}>
+                  <Image
+                    source={{ uri: getDestinationCoverImage(circle) }}
+                    style={styles.cardCoverImage}
+                    resizeMode="cover"
+                    defaultSource={{ uri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==' }}
+                  />
+                  <View style={styles.cardCoverGradient} />
+                  <View style={styles.coverTagRow}>
+                    <Text style={styles.coverTagText}>DESTINATION</Text>
                   </View>
-                )}
+                </View>
 
+                {/* Card Content Area */}
+                <View style={styles.cardContentPadding}>
                 {/* Card Top Row */}
                 <View style={styles.cardHeaderRow}>
                   <View style={styles.cardTitleCol}>
@@ -246,22 +319,49 @@ export default function MyCirclesScreen() {
                     </View>
                   </View>
 
-                  {/* Invite Code Pill with Copy */}
-                  <TouchableOpacity
-                    activeOpacity={0.7}
-                    onPress={() => handleCopy(circle.inviteCode)}
-                    style={styles.invitePill}
-                    accessibilityLabel={`Copy invite code ${circle.inviteCode}`}
-                  >
-                    {copiedCode === circle.inviteCode ? (
-                      <Check size={11} color="#3DE0A0" />
-                    ) : (
-                      <Copy size={11} color="#8B8D98" />
-                    )}
-                    <Text style={[styles.invitePillText, copiedCode === circle.inviteCode && { color: '#3DE0A0' }]}>
-                      {copiedCode === circle.inviteCode ? 'COPIED' : circle.inviteCode}
-                    </Text>
-                  </TouchableOpacity>
+                  <View style={styles.cardHeaderActions}>
+                    {/* Invite Code Pill with Copy */}
+                    <TouchableOpacity
+                      activeOpacity={0.7}
+                      onPress={() => handleCopy(circle.inviteCode)}
+                      style={styles.invitePill}
+                      accessibilityLabel={`Copy invite code ${circle.inviteCode}`}
+                    >
+                      {copiedCode === circle.inviteCode ? (
+                        <Check size={11} color="#3DE0A0" />
+                      ) : (
+                        <Copy size={11} color="#8B8D98" />
+                      )}
+                      <Text style={[styles.invitePillText, copiedCode === circle.inviteCode && { color: '#3DE0A0' }]}>
+                        {copiedCode === circle.inviteCode ? 'COPIED' : circle.inviteCode}
+                      </Text>
+                    </TouchableOpacity>
+
+                    {/* Archive / Unarchive Action Button */}
+                    <TouchableOpacity
+                      activeOpacity={0.7}
+                      onPress={(e) => {
+                        e.stopPropagation?.();
+                        haptics.action();
+                        if (circle.archived) {
+                          unarchiveCircle(circle.id);
+                        } else {
+                          archiveCircle(circle.id);
+                        }
+                      }}
+                      style={[styles.archiveBtn, circle.archived && styles.archiveBtnRestoring]}
+                      accessibilityLabel={circle.archived ? 'Restore circle from archive' : 'Archive circle'}
+                    >
+                      {circle.archived ? (
+                        <RotateCcw size={11} color="#3DE0A0" />
+                      ) : (
+                        <Archive size={11} color="#8B8D98" />
+                      )}
+                      <Text style={[styles.archiveBtnText, circle.archived && { color: '#3DE0A0' }]}>
+                        {circle.archived ? 'Restore' : 'Archive'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
 
                 {/* Response Meter */}
@@ -314,6 +414,7 @@ export default function MyCirclesScreen() {
                     <ArrowRight size={13} color="#FF5A5F" />
                   </View>
                 </View>
+                </View>
               </TouchableOpacity>
             );
           })}
@@ -336,6 +437,91 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#050608',
     alignItems: 'center'
+  },
+  tabSwitcher: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#13151E',
+    borderRadius: 8,
+    padding: 2,
+    borderWidth: 1,
+    borderColor: '#1F2232',
+    gap: 2
+  },
+  tabButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6
+  },
+  tabButtonActive: {
+    backgroundColor: 'rgba(255, 90, 95, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 90, 95, 0.35)'
+  },
+  tabButtonText: {
+    fontFamily: fontUIBold,
+    fontSize: 11,
+    color: '#8B8D98',
+    letterSpacing: 0.2
+  },
+  tabButtonTextActive: {
+    color: '#FF5A5F'
+  },
+  cardHeaderActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6
+  },
+  archiveBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    backgroundColor: '#181B26',
+    borderWidth: 1,
+    borderColor: '#262938'
+  },
+  archiveBtnRestoring: {
+    borderColor: 'rgba(61, 224, 160, 0.3)',
+    backgroundColor: 'rgba(61, 224, 160, 0.08)'
+  },
+  archiveBtnText: {
+    fontFamily: fontUIBold,
+    fontSize: 10,
+    color: '#8B8D98',
+    letterSpacing: 0.2
+  },
+  emptyTabCard: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+    borderRadius: 14,
+    backgroundColor: '#0F111A',
+    borderWidth: 1,
+    borderColor: '#1F2232',
+    marginBottom: 16
+  },
+  emptyTabTitle: {
+    fontFamily: fontDisplay,
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#F4F3F0',
+    marginTop: 10,
+    marginBottom: 4
+  },
+  emptyTabDesc: {
+    fontFamily: fontUI,
+    fontSize: 12,
+    color: '#8B8D98',
+    textAlign: 'center',
+    lineHeight: 18,
+    maxWidth: 260
   },
   phoneFrame: {
     width: '100%',
@@ -511,11 +697,50 @@ const styles = StyleSheet.create({
   },
   circleCard: {
     backgroundColor: '#13151E',
-    borderRadius: 16,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: '#1F2232',
-    padding: 16,
-    marginBottom: 12
+    overflow: 'hidden',
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 4
+  },
+  cardCoverContainer: {
+    width: '100%',
+    height: 130,
+    position: 'relative',
+    backgroundColor: '#161926'
+  },
+  cardCoverImage: {
+    width: '100%',
+    height: '100%'
+  },
+  cardCoverGradient: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(5, 6, 8, 0.35)'
+  },
+  coverTagRow: {
+    position: 'absolute',
+    top: 10,
+    left: 12,
+    backgroundColor: 'rgba(5, 6, 8, 0.65)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)'
+  },
+  coverTagText: {
+    fontFamily: fontUIBold,
+    fontSize: 9.5,
+    color: '#3DE0A0',
+    letterSpacing: 0.8
+  },
+  cardContentPadding: {
+    padding: 16
   },
   cardHeaderRow: {
     flexDirection: 'row',

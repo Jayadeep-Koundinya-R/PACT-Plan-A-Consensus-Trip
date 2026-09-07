@@ -28,3 +28,5 @@ Desktop.ini
 android/.gradle/
 android/app/build/
 android/build/
+
+.vercel

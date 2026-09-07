@@ -1,5 +1,7 @@
 import { CircleRouteGuard } from '../../../src/components/common';
-﻿import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { fetchCompromiseWhisperer, CompromiseWhispererResult } from '../../../src/lib/ai/aiAdvisorClient';
+import { sendPactNotification, buildNudgeNotification } from '../../../src/lib/notifications/pactNotifications';
 import {
   View,
   Image,
@@ -71,6 +73,27 @@ export default function PactConsensusResults() {
   };
   const [softOverrideActive, setSoftOverrideActive] = useState(false);
   const [privateNudgeSent, setPrivateNudgeSent] = useState(false);
+  const [whispererResult, setWhispererResult] = useState<CompromiseWhispererResult | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    if (deadlockMode) {
+      const dest = currentGroup?.name || 'Goa';
+      // Strictly anonymized, aggregated group data only — NEVER individual entries or names
+      fetchCompromiseWhisperer(dest, 5, {
+        budgetBuckets: { '$400–$600': 2, '$800–$1,200': 3 },
+        commonDates: 'Oct 14–16 (100% overlap)',
+        dealbreakerSummary: '1 member requested private en-suite room'
+      })
+        .then((res) => {
+          if (mounted) setWhispererResult(res);
+        })
+        .catch(() => {});
+    }
+    return () => {
+      mounted = false;
+    };
+  }, [deadlockMode, currentGroup?.name]);
 
   // Budget calculations for Wide Budget Gap Banner
   const budgetCaps = members.length > 0 ? members.map((m) => m.budgetMax) : [600, 2000, 1200, 500, 1800];
@@ -97,10 +120,14 @@ export default function PactConsensusResults() {
   const handleSendPrivateNudge = () => {
     haptics.action();
     setPrivateNudgeSent(true);
+    try {
+      const notification = buildNudgeNotification('A member', currentGroup?.name || 'Goa trip');
+      sendPactNotification(notification);
+    } catch {}
     if (Platform.OS !== 'web') {
       Alert.alert(
         'Private Nudge Sent',
-        'We sent an anonymous message to Sam: "Your dealbreaker is blocking group consensus for Goa. Would you consider softening it?"'
+        "An anonymous notification was dispatched: \"A member hasn't responded yet.\" Zero names, budgets, or personal veto details revealed."
       );
     }
   };
@@ -180,27 +207,43 @@ export default function PactConsensusResults() {
                   <ShieldAlert size={20} color="#EF4444" />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.deadlockTitle}>Consensus Blocked by Strict Dealbreaker</Text>
-                  <Text style={styles.deadlockSubtitle}>0 of 3 destinations eligible under strict rules</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Text style={styles.deadlockTitle}>AI Compromise Whisperer</Text>
+                    {whispererResult?.source === 'gemini_live' && (
+                      <View style={styles.whispererLiveBadge}>
+                        <Text style={styles.whispererLiveBadgeText}>LIVE</Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={styles.deadlockSubtitle}>
+                    {whispererResult?.anonymizedSummary || 'Analyzed 5 sealed ballots: 2 members capped at $600, 3 at $1,200.'}
+                  </Text>
                 </View>
               </View>
 
-              <Text style={styles.deadlockDesc}>
-                Sam's strict dealbreaker ("No shared bath") disqualified all 3 top destinations. The rest of the group is 100% aligned on dates and budget.
-              </Text>
+              {/* AI Whisperer Recommendation */}
+              <View style={styles.whispererBox}>
+                <View style={styles.whispererBoxHeader}>
+                  <Sparkles size={13} color="#3DE0A0" />
+                  <Text style={styles.whispererBoxTag}>RECOMMENDED COMPROMISE</Text>
+                </View>
+                <Text style={styles.whispererBoxText}>
+                  {whispererResult?.compromise || 'Booking a 5-bedroom private villa with en-suite bathrooms in South Goa bridges accommodation constraints while preserving 100% date overlap (Oct 14–16). Tiered room splits maintain budget fairness.'}
+                </Text>
+              </View>
 
               {/* Resolution Path 1 */}
               <View style={styles.resolutionPathBox}>
-                <Text style={styles.resolutionPathNumber}>RESOLUTION PATH 1</Text>
+                <Text style={styles.resolutionPathNumber}>RESOLUTION PATH 1 (PRIVATE NUDGE)</Text>
                 <PactButton
                   variant="glass"
                   onPress={handleSendPrivateNudge}
                   icon={<Send size={13} color="#F4F3F0" />}
                 >
-                  {privateNudgeSent ? 'Private Nudge Sent to Sam ✓' : 'Send private nudge to Sam'}
+                  {privateNudgeSent ? 'Private Nudge Dispatched ✓' : 'Send generic private nudge'}
                 </PactButton>
                 <Text style={styles.resolutionPathDetail}>
-                  Anonymously asks Sam to relax "No shared bath" to allow private en-suite villa rooms.
+                  Anonymously nudges members with pending room constraints. Zero names, budgets, or personal veto details revealed.
                 </Text>
               </View>
 
@@ -215,7 +258,7 @@ export default function PactConsensusResults() {
                   Soft Override (4 of 5 members approve)
                 </PactButton>
                 <Text style={styles.resolutionPathDetail}>
-                  Supermajority consensus rule: 80% approval proceeds with private en-suite room guarantee for Sam.
+                  Supermajority consensus rule: 80% approval proceeds with private en-suite room guarantee for all members.
                 </Text>
               </View>
             </View>
@@ -559,6 +602,44 @@ const styles = StyleSheet.create({
     color: '#F59E0B'
   },
   // Deadlock Diagnostics Card Styles
+  whispererLiveBadge: {
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 4,
+    backgroundColor: '#3DE0A0'
+  },
+  whispererLiveBadgeText: {
+    fontFamily: fontUIBold,
+    fontSize: 8,
+    color: '#050608'
+  },
+  whispererBox: {
+    marginTop: 10,
+    marginBottom: 12,
+    padding: 12,
+    borderRadius: 10,
+    backgroundColor: 'rgba(61, 224, 160, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.25)'
+  },
+  whispererBoxHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 6
+  },
+  whispererBoxTag: {
+    fontFamily: fontUIBold,
+    fontSize: 9,
+    color: '#3DE0A0',
+    letterSpacing: 0.8
+  },
+  whispererBoxText: {
+    fontFamily: fontUI,
+    fontSize: 12,
+    color: '#F4F3F0',
+    lineHeight: 18
+  },
   deadlockCard: {
     backgroundColor: '#161824',
     borderWidth: 1,

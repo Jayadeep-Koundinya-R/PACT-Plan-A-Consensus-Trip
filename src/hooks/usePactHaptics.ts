@@ -1,4 +1,4 @@
-﻿/**
+/**
  * usePactHaptics — unified haptic feedback hook for PACT
  *
  * Wraps expo-haptics with 5 named presets and a throttled slider preset.

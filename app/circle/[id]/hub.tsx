@@ -1,5 +1,5 @@
 import { CircleRouteGuard } from '../../../src/components/common';
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,8 @@ import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 import * as Clipboard from 'expo-clipboard';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
+import { useCircleStore } from '../../../src/store/useCircleStore';
+import { useCircleRealtime } from '../../../src/hooks/useCircleRealtime';
 import { colors, radius } from '../../../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
 import { usePactHaptics } from '../../../src/hooks/usePactHaptics';
@@ -45,6 +47,8 @@ export default function PactCirclesHub() {
   const router = useRouter();
   const haptics = usePactHaptics();
   const { groups = [], members = [], activeGroupId, setActiveGroup, activeDemoScenario = "early_bird" } = useGatherlyStore();
+  const circleFromStore = useCircleStore((s) => s.getCircle(id as string || 'circle-college-reunion-2026'));
+  const { isConnected, lastEvent, lastUpdated, simulateSecondDeviceSubmission } = useCircleRealtime(id as string || 'circle-college-reunion-2026');
 
   const rawId = (id && id !== 'undefined') ? id : undefined;
   const currentGroup =
@@ -85,8 +89,15 @@ export default function PactCirclesHub() {
     return () => pulseLoop.stop();
   }, []);
 
-  // Demo members dynamically synchronized with activeDemoScenario
-  const demoMembers = activeDemoScenario === 'early_bird' ? [
+  // Dynamic circle members connected to live Supabase Realtime & Store
+  const storeMembers = circleFromStore?.members?.map(m => ({
+    name: m.name,
+    status: m.status
+  }));
+
+  const [localMembersOverride, setLocalMembersOverride] = useState<any[] | null>(null);
+
+  const demoMembers = localMembersOverride || (storeMembers && storeMembers.length > 0 ? storeMembers : (activeDemoScenario === 'early_bird' ? [
     { name: 'You', status: 'locked' as const },
     { name: 'Alex', status: 'waiting' as const },
     { name: 'Sam', status: 'waiting' as const },
@@ -98,7 +109,7 @@ export default function PactCirclesHub() {
     { name: 'Sam', status: 'locked' as const },
     { name: 'Jordan', status: 'locked' as const },
     { name: 'Maya', status: 'locked' as const }
-  ];
+  ]));
 
   const lockedCount = demoMembers.filter((m) => m.status === 'locked').length;
   const totalCount = demoMembers.length;
@@ -197,12 +208,14 @@ export default function PactCirclesHub() {
 
   // Helper toggle for demo tester to simulate 3rd member locking in
   const toggleDemoSimulation = () => {
-    haptics.tap();
-    setDemoMembers((prev) => {
-      if (prev.filter((m) => m.status === 'locked').length <= 2) {
-        return prev.map((m, idx) => (idx === 2 ? { ...m, status: 'locked' as const } : m));
+    haptics.success();
+    simulateSecondDeviceSubmission('Sam');
+    setLocalMembersOverride((prev) => {
+      const base = prev || demoMembers;
+      if (base.filter((m: any) => m.status === 'locked').length <= 2) {
+        return base.map((m: any, idx: number) => (idx === 2 ? { ...m, status: 'locked' as const } : m));
       } else {
-        return prev.map((m, idx) => (idx >= 2 ? { ...m, status: 'waiting' as const } : m));
+        return base.map((m: any, idx: number) => (idx >= 2 ? { ...m, status: 'waiting' as const } : m));
       }
     });
   };
@@ -211,27 +224,58 @@ export default function PactCirclesHub() {
     <SafeAreaView style={styles.outerContainer}>
       <View style={styles.phoneFrame}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          {/* Header Row */}
-          <View style={styles.headerRow}>
-            <View style={styles.headerLeft}>
-              
-              <Text style={styles.tripTitle} numberOfLines={1}>
+          {/* Header Row: Dedicated Title Row + Secondary Meta Row */}
+          <View style={styles.headerContainer}>
+            <View style={styles.headerTopRow}>
+              <Text style={styles.tripTitle} numberOfLines={2}>
                 {currentGroup.name || 'Goa Beach Escape 2026'}
               </Text>
+
+              <View style={styles.headerRightActions}>
+                <TouchableOpacity onPress={handleCopyCode} activeOpacity={0.7} style={styles.inviteCodeBadge}>
+                  <Text style={styles.inviteCodeText}>{copiedCode ? 'COPIED!' : currentGroup.inviteCode || 'GOA-4F82'}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => router.push('/(tabs)/settings' as any)}
+                  activeOpacity={0.7}
+                  style={styles.settingsBtn}
+                >
+                  <Settings size={16} color="#8B8D98" />
+                </TouchableOpacity>
+              </View>
             </View>
 
-            <View style={styles.headerRightActions}>
-              <TouchableOpacity onPress={handleCopyCode} activeOpacity={0.7} style={styles.inviteCodeBadge}>
-                <Text style={styles.inviteCodeText}>{copiedCode ? 'COPIED!' : currentGroup.inviteCode || 'GOA-4F82'}</Text>
+            {/* Status and Live Event Bar */}
+            <View style={styles.headerMetaRow}>
+              <TouchableOpacity
+                activeOpacity={0.75}
+                onPress={toggleDemoSimulation}
+                style={[
+                  styles.realtimePill,
+                  !isConnected && styles.realtimePillOffline
+                ]}
+                accessibilityLabel="Live Realtime Sync Indicator"
+              >
+                <View style={[
+                  styles.realtimeDot,
+                  isConnected && styles.realtimeDotConnected
+                ]} />
+                <Text style={[
+                  styles.realtimeText,
+                  !isConnected && styles.realtimeTextOffline
+                ]}>
+                  {isConnected ? 'LIVE SYNC' : 'OFFLINE'}
+                </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={() => router.push('/(tabs)/settings' as any)}
-                activeOpacity={0.7}
-                style={styles.settingsBtn}
-              >
-                <Settings size={16} color="#8B8D98" />
-              </TouchableOpacity>
+              {lastEvent && (
+                <View style={styles.realtimeEventBadge}>
+                  <Text style={styles.realtimeEventText} numberOfLines={1}>
+                    ·· {lastEvent}
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
 
@@ -248,7 +292,7 @@ export default function PactCirclesHub() {
                 </TouchableOpacity>
               </View>
 
-              <Text style={styles.earlyBirdTitle}>You're leading the charge! ⚡</Text>
+              <Text style={styles.earlyBirdTitle}>You're leading the charge! ❕</Text>
               <Text style={styles.earlyBirdDesc}>
                 Consensus calculations unlock once 3 members lock in. Nudge remaining friends to reveal your group's match!
               </Text>
@@ -389,7 +433,7 @@ export default function PactCirclesHub() {
                   onPress={handleBulkWhatsAppNudge}
                   icon={<Send size={14} color="#050608" />}
                 >
-                  {bulkNudged ? 'WhatsApp Nudge Sent ✓' : 'Nudge Everyone on WhatsApp'}
+                  {bulkNudged ? 'WhatsApp Nudge Sent ✨' : 'Nudge Everyone on WhatsApp'}
                 </PactButton>
                 <Text style={styles.bulkNudgeSubtext}>
                   Sends a single private group reminder with your invite link to all {waitingMembers.length} remaining friends.
@@ -487,31 +531,77 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 90
   },
-  headerRow: {
+  headerContainer: {
+    marginBottom: 16
+  },
+  headerTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    flex: 1
-  },
-  backBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    justifyContent: 'center',
-    alignItems: 'center'
+    gap: 12
   },
   tripTitle: {
     fontFamily: fontDisplay,
-    fontSize: 20,
+    fontSize: 22,
     color: '#F4F3F0',
-    flex: 1
+    flex: 1,
+    lineHeight: 28
+  },
+  headerMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 8
+  },
+  realtimePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(61, 224, 160, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.28)',
+    borderRadius: 20,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    gap: 5
+  },
+  realtimePillOffline: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: 'rgba(255, 255, 255, 0.12)'
+  },
+  realtimeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#8B8D98'
+  },
+  realtimeDotConnected: {
+    backgroundColor: '#3DE0A0',
+    shadowColor: '#3DE0A0',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 4
+  },
+  realtimeText: {
+    fontFamily: fontUIBold,
+    fontSize: 9.5,
+    color: '#3DE0A0',
+    fontWeight: '700',
+    letterSpacing: 0.5
+  },
+  realtimeTextOffline: {
+    color: '#8B8D98'
+  },
+  realtimeEventBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+    maxWidth: 240
+  },
+  realtimeEventText: {
+    fontFamily: fontUI,
+    fontSize: 9.5,
+    color: '#8B8D98'
   },
   headerRightActions: {
     flexDirection: 'row',

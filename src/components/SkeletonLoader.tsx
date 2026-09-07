@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, ReactNode } from 'react';
+import React, { useEffect, useRef, ReactNode } from 'react';
 import { View, StyleSheet, StyleProp, ViewStyle, Animated, Easing } from 'react-native';
 import { colors, radius } from '../theme/colors';
 

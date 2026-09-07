@@ -245,3 +245,7 @@ create policy "Users can view own subscription"
   on public.subscriptions for select
   to authenticated
   using (user_id = auth.uid());
+
+-- Archive circles migration
+ALTER TABLE public.groups ADD COLUMN IF NOT EXISTS archived boolean DEFAULT false;
+CREATE INDEX IF NOT EXISTS idx_groups_archived ON public.groups(archived);

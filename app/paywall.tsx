@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -14,7 +14,9 @@ import Svg, { Path, Circle } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 import { colors, radius } from '../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../src/theme/typography';
-import { X, Sparkles, Check, Star } from 'lucide-react-native';
+import { X, Sparkles, Check, Star, Smartphone, ExternalLink, ShieldCheck } from 'lucide-react-native';
+import { useGatherlyStore } from '../src/store/useGatherlyStore';
+import { useUserStore } from '../src/store/useUserStore';
 
 export default function PactPaywall() {
   const router = useRouter();
@@ -48,8 +50,22 @@ export default function PactPaywall() {
     }
   };
 
+  const isWeb = Platform.OS === 'web';
+
+  const handleWebDemoUnlock = () => {
+    triggerHaptic();
+    useGatherlyStore.getState().setSubscriptionPlan('premium_monthly');
+    useUserStore.getState().setSubscriptionPlan('premium_monthly');
+    Alert.alert('PACT Pro Demo Mode', 'Pro features unlocked for web evaluation!');
+    router.back();
+  };
+
   const handleSubscribe = () => {
     triggerHaptic();
+    if (isWeb) {
+      handleWebDemoUnlock();
+      return;
+    }
     setIsPurchasing(true);
     setTimeout(() => {
       setIsPurchasing(false);
@@ -198,19 +214,41 @@ export default function PactPaywall() {
 
         {/* Bottom Sticky Action Bar */}
         <View style={styles.bottomBar}>
-          <TouchableOpacity
-            activeOpacity={0.88}
-            onPress={handleSubscribe}
-            disabled={isPurchasing}
-            style={styles.proUnlockBtn}
-          >
-            <Text style={styles.proUnlockBtnText}>
-              {isPurchasing ? 'Unlocking PACT Pro...' : 'Start 7-day free trial & unlock circle'}
-            </Text>
-          </TouchableOpacity>
-          <Text style={styles.billingFooterText}>
-            Recurring billing. Cancel anytime in App Store settings.
-          </Text>
+          {isWeb ? (
+            <View style={styles.webNoticeContainer}>
+              <View style={styles.webNoticeHeader}>
+                <Smartphone size={16} color="#3DE0A0" />
+                <Text style={styles.webNoticeTitle}>Pro purchases available in the iOS/Android app</Text>
+              </View>
+              <Text style={styles.webNoticeDesc}>
+                Native StoreKit & Google Play billing operate in mobile app builds. For web evaluation, preview all Pro features below.
+              </Text>
+              <TouchableOpacity
+                activeOpacity={0.88}
+                onPress={handleWebDemoUnlock}
+                style={styles.webDemoUnlockBtn}
+              >
+                <Sparkles size={15} color="#052E20" />
+                <Text style={styles.webDemoUnlockBtnText}>Preview PACT Pro in Web Demo</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <>
+              <TouchableOpacity
+                activeOpacity={0.88}
+                onPress={handleSubscribe}
+                disabled={isPurchasing}
+                style={styles.proUnlockBtn}
+              >
+                <Text style={styles.proUnlockBtnText}>
+                  {isPurchasing ? 'Unlocking PACT Pro...' : 'Start 7-day free trial & unlock circle'}
+                </Text>
+              </TouchableOpacity>
+              <Text style={styles.billingFooterText}>
+                Recurring billing. Cancel anytime in App Store settings.
+              </Text>
+            </>
+          )}
         </View>
       </View>
     </SafeAreaView>
@@ -466,6 +504,48 @@ const styles = StyleSheet.create({
     fontFamily: fontUI,
     fontSize: 12,
     color: '#6C6F7A'
+  },
+  webNoticeContainer: {
+    backgroundColor: '#13151E',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.3)',
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 4
+  },
+  webNoticeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 6
+  },
+  webNoticeTitle: {
+    fontFamily: fontUIBold,
+    fontSize: 13,
+    color: '#3DE0A0',
+    fontWeight: '700'
+  },
+  webNoticeDesc: {
+    fontFamily: fontUI,
+    fontSize: 11.5,
+    color: '#8B8D98',
+    lineHeight: 16,
+    marginBottom: 12
+  },
+  webDemoUnlockBtn: {
+    backgroundColor: '#3DE0A0',
+    borderRadius: 10,
+    paddingVertical: 11,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8
+  },
+  webDemoUnlockBtnText: {
+    fontFamily: fontUIBold,
+    fontSize: 13,
+    color: '#052E20',
+    fontWeight: '700'
   },
   bottomBar: {
     paddingHorizontal: 20,

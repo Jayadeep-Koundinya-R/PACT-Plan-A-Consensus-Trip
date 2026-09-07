@@ -1,4 +1,4 @@
-﻿import React, { Component, ReactNode, useEffect } from 'react';
+import React, { Component, ReactNode, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';

@@ -1,4 +1,4 @@
-﻿import { synthesizeAICompromise, CompromiseProposal } from '../lib/ai/compromiseEngine';
+import { synthesizeAICompromise, CompromiseProposal } from '../lib/ai/compromiseEngine';
 import { SubscriptionPlan } from '../lib/purchases/customerInfo';
 import { create } from 'zustand';
 import {
@@ -86,6 +86,9 @@ interface GatherlyState {
   setCurrentUser: (userId: string, email?: string, name?: string) => void;
   initAuthSession: () => Promise<void>;
   logout: () => Promise<void>;
+  login: (email: string, password: string) => Promise<any>;
+  register: (email: string, password: string, displayName?: string) => Promise<any>;
+  loginAsPersona: (userId: string) => void;
   setIsCheckingEntitlement: (v: boolean) => void;
   setPurchaseError: (msg: string | null) => void;
   setSubscriptionPlan: (plan: 'free' | 'premium_monthly' | 'premium_annual') => void;

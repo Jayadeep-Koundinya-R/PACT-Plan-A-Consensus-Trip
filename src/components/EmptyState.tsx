@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { colors, radius, shadows } from '../theme/colors';
 import { fontUI, fontUIBold, fontDisplay } from '../theme/typography';

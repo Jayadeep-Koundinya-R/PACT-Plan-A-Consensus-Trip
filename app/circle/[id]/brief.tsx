@@ -12,6 +12,7 @@ import {
   Alert
 } from 'react-native';
 import { ConsensusGauge, ParticleBurst } from '../../../src/components/common';
+import { ConfettiEffect } from '../../../src/components/ConfettiEffect';
 import { usePactHaptics } from '../../../src/hooks/usePactHaptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Svg, { Rect, Path, Circle } from 'react-native-svg';
@@ -41,8 +42,22 @@ export default function PactTripBrief() {
   const haptics = usePactHaptics();
 
   useEffect(() => {
-    // Celebration haptic on consensus brief reveal
+    // 3-stage rhythmic celebration haptics for consensus payoff
     haptics.success();
+    const t1 = setTimeout(() => {
+      if (Platform.OS !== 'web') {
+        try {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+        } catch (e) {}
+      }
+    }, 280);
+    const t2 = setTimeout(() => {
+      haptics.success();
+    }, 600);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
   }, []);
 
   const details = [
@@ -84,6 +99,7 @@ export default function PactTripBrief() {
 
   return (
     <SafeAreaView style={styles.outerContainer}>
+      <ConfettiEffect durationMs={5000} count={75} />
       <View style={styles.phoneFrame}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           {/* Header Row */}
@@ -119,7 +135,7 @@ export default function PactTripBrief() {
               centerSubtext="locked"
               style={{ marginBottom: 12 }}
             />
-            <Text style={styles.consensusTitle}>🎉 Consensus reached!</Text>
+            <Text style={styles.consensusTitle}>🎉 100% Consensus Locked!</Text>
             <Text style={styles.consensusSub}>All 5 members approved this plan.</Text>
           </View>
 
@@ -320,7 +336,11 @@ const styles = StyleSheet.create({
   },
   consensusBanner: {
     position: 'relative',
-    backgroundColor: 'rgba(61,224,160,0.1)',
+    backgroundColor: 'rgba(61,224,160,0.12)',
+    shadowColor: '#3DE0A0',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 18,
     borderWidth: 1,
     borderColor: 'rgba(61,224,160,0.45)',
     borderRadius: 14,

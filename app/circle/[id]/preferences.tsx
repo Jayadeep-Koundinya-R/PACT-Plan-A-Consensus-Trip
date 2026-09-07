@@ -1,5 +1,6 @@
 import { CircleRouteGuard } from '../../../src/components/common';
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { fetchBudgetAdvisor, BudgetAdvisorResult } from '../../../src/lib/ai/aiAdvisorClient';
 import {
   View,
   Text,
@@ -37,7 +38,8 @@ import {
   Plane,
   Bath,
   ShieldAlert,
-  Ban
+  Ban,
+  Sparkles
 } from 'lucide-react-native';
 import { PactButton } from '../../../src/components/common';
 
@@ -114,6 +116,20 @@ export default function PactConstraintsForm() {
   const existingMember = members.find((m) => m?.userId === currentUserId);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [budgetAdvisor, setBudgetAdvisor] = useState<BudgetAdvisorResult | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    const dest = currentGroup?.name || 'Goa';
+    fetchBudgetAdvisor(dest, 5)
+      .then((res) => {
+        if (mounted) setBudgetAdvisor(res);
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, [currentGroup?.name]);
 
   // Compute display budget from band or custom
   const displayBudget = bandToMax(draft.budgetBand, draft.budgetCustom);
@@ -404,6 +420,25 @@ export default function PactConstraintsForm() {
                     <Text style={styles.rangeLimitText}>$3,000</Text>
                   </View>
                 </View>
+
+                {/* AI Budget Advisor Market Benchmark Hint */}
+                <View style={styles.advisorHintCard}>
+                  <View style={styles.advisorHintHeader}>
+                    <Sparkles size={12} color="#FF5A5F" />
+                    <Text style={styles.advisorHintBadge}>AI BUDGET ADVISOR</Text>
+                    {budgetAdvisor?.source === 'gemini_live' && (
+                      <View style={styles.advisorLiveBadge}>
+                        <Text style={styles.advisorLiveBadgeText}>LIVE</Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={styles.advisorHintRange}>
+                    {budgetAdvisor?.formattedRange || `Typical budget for a 5-day ${currentGroup?.name || 'Goa'} trip: $400–$600/person`}
+                  </Text>
+                  <Text style={styles.advisorHintExplanation}>
+                    {budgetAdvisor?.explanation || 'Covers beachfront villa share, scooter rentals, and coastal dining.'}
+                  </Text>
+                </View>
               </View>
             )}
 
@@ -590,6 +625,49 @@ const styles = StyleSheet.create({
     backgroundColor: '#050608',
     justifyContent: 'center',
     alignItems: 'center'
+  },
+  advisorHintCard: {
+    marginTop: 12,
+    padding: 10,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 90, 95, 0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 90, 95, 0.22)'
+  },
+  advisorHintHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4
+  },
+  advisorHintBadge: {
+    fontFamily: fontUIBold,
+    fontSize: 10,
+    color: '#FF5A5F',
+    letterSpacing: 0.6
+  },
+  advisorLiveBadge: {
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 3,
+    backgroundColor: '#3DE0A0'
+  },
+  advisorLiveBadgeText: {
+    fontFamily: fontUIBold,
+    fontSize: 8,
+    color: '#050608'
+  },
+  advisorHintRange: {
+    fontFamily: fontUIBold,
+    fontSize: 12,
+    color: '#F4F3F0',
+    marginBottom: 2
+  },
+  advisorHintExplanation: {
+    fontFamily: fontUI,
+    fontSize: 11,
+    color: '#8B8D98',
+    lineHeight: 15
   },
   phoneFrame: {
     width: '100%',

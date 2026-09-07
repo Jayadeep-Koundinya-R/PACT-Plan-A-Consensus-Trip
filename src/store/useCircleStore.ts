@@ -1,4 +1,4 @@
-﻿/**
+/**
  * useCircleStore - circle (group) management, response counts, member status
  *
  * Tracks which circles exist, member response states, invite codes,
@@ -24,6 +24,7 @@ export interface Circle {
   status: 'collecting' | 'voting' | 'finalized' | 'cancelled';
   totalMembersCount: number;
   hasPro?: boolean;
+  archived?: boolean;
   members: CircleMember[];
   createdAt: string;
 }
@@ -48,6 +49,8 @@ interface CircleState {
   setMemberStatus: (circleId: string, userId: string, status: MemberStatus) => void;
   nudgeMember: (circleId: string, userId: string) => void;
   addMember: (circleId: string, member: CircleMember) => void;
+  archiveCircle: (id: string) => void;
+  unarchiveCircle: (id: string) => void;
   syncFromLegacy: (groups: any[], activeGroupId: string) => void;
   setCircleProStatus: (circleId: string, hasPro: boolean) => void;
   isCirclePro: (circleId: string) => boolean;
@@ -181,6 +184,16 @@ export const useCircleStore = create<CircleState>((set, get) => ({
             }
           : c
       )
+    })),
+
+  archiveCircle: (id) =>
+    set((s) => ({
+      circles: s.circles.map((c) => (c.id === id ? { ...c, archived: true } : c))
+    })),
+
+  unarchiveCircle: (id) =>
+    set((s) => ({
+      circles: s.circles.map((c) => (c.id === id ? { ...c, archived: false } : c))
     })),
 
   syncFromLegacy: (groups, activeGroupId) => {

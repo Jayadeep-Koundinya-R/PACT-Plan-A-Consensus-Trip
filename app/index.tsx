@@ -18,6 +18,7 @@ import { supabase } from '../src/lib/supabase/client';
 import { colors, radius } from '../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../src/theme/typography';
 import { ArrowRight, Sparkles, ShieldCheck } from 'lucide-react-native';
+import { OnboardingCarousel } from '../src/components/OnboardingCarousel';
 
 export default function PactLandingScreen() {
   const router = useRouter();
@@ -27,6 +28,7 @@ export default function PactLandingScreen() {
   const chevronAnim = useRef(new Animated.Value(0)).current;
   const scrollViewRef = useRef<ScrollView>(null);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     // 1. Auth Gate Verification
@@ -99,7 +101,7 @@ export default function PactLandingScreen() {
 
   const handleGetStarted = () => {
     triggerHaptic();
-    router.push('/auth' as any);
+    setShowOnboarding(true);
   };
 
   const handleInstantDemo = () => {
@@ -189,6 +191,23 @@ export default function PactLandingScreen() {
           <Text style={styles.loadingBrandText}>PACT</Text>
         </View>
       </View>
+    );
+  }
+
+  if (showOnboarding) {
+    return (
+      <SafeAreaView style={styles.outerContainer}>
+        <OnboardingCarousel
+          onComplete={() => {
+            setShowOnboarding(false);
+            router.push('/auth' as any);
+          }}
+          onSkip={() => {
+            setShowOnboarding(false);
+            router.push('/auth' as any);
+          }}
+        />
+      </SafeAreaView>
     );
   }
 
@@ -324,11 +343,14 @@ export default function PactLandingScreen() {
               </Animated.View>
             </View>
 
+            <View style={styles.authenticPill}>
+              <Text style={styles.authenticPillText}>BUILT FOR THE TRIPS THAT DIE IN A WHATSAPP CHAT</Text>
+            </View>
             <Text style={styles.heroHeading}>
-              Group travel, minus the deadlock.
+              5 friends. 47 messages. Zero plan.
             </Text>
             <Text style={styles.heroSubheading}>
-              Set private constraints. Vote anonymously. Lock in the plan.
+              Set budget and dates privately. Sealed votes. Zero peer pressure.
             </Text>
           </View>
 
@@ -512,6 +534,23 @@ const styles = StyleSheet.create({
     position: 'absolute',
     justifyContent: 'center',
     alignItems: 'center'
+  },
+  authenticPill: {
+    backgroundColor: 'rgba(61, 224, 160, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.3)',
+    borderRadius: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    marginBottom: 10,
+    alignSelf: 'center'
+  },
+  authenticPillText: {
+    fontFamily: fontUIBold,
+    fontSize: 9.5,
+    color: '#3DE0A0',
+    letterSpacing: 0.6,
+    fontWeight: '700'
   },
   heroHeading: {
     fontFamily: fontDisplay,

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * useVoteStore — private constraints, locked votes, silent ballots
  *
  * Manages the voting lifecycle: constraint drafts, submitted preferences,

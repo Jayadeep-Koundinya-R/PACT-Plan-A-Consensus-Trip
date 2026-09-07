@@ -1,5 +1,5 @@
 import { CircleRouteGuard } from '../../../src/components/common';
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Modal,

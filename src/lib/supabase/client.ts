@@ -1,13 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
-import { Platform } from 'react-native';
 
 let storageAdapter: any = undefined;
-if (Platform.OS !== 'web') {
-  try {
+try {
+  // Safe dynamic import to allow pure Node unit tests to run without React Native Flow syntax errors
+  // @ts-ignore
+  const { Platform } = require('react-native');
+  if (Platform && Platform.OS !== 'web') {
     storageAdapter = require('@react-native-async-storage/async-storage').default;
-  } catch (e) {
-    storageAdapter = undefined;
   }
+} catch (e) {
+  storageAdapter = undefined;
 }
 
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://xnfoobubyqbzzcuavfre.supabase.co';

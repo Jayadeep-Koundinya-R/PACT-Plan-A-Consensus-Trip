@@ -1,4 +1,4 @@
-﻿/**
+/**
  * useUserStore - user profile, auth state, Pro/subscription status
  *
  * Extracted from useGatherlyStore for clean separation of concerns.

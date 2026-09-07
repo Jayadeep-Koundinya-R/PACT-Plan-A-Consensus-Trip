@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -111,7 +111,7 @@ export default function PactCreateJoinScreen() {
           {/* Header Navigation */}
           <View style={styles.navHeader}>
             <TouchableOpacity
-              onPress={() => router.back()}
+              onPress={() => { if (router.canGoBack()) { router.back(); } else { router.replace('/(tabs)/home'); } }}
               activeOpacity={0.7}
               style={styles.backButton}
               accessibilityLabel="Go back"

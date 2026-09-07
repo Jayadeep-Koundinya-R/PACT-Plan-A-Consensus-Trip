@@ -1,5 +1,5 @@
 import { CircleRouteGuard } from '../../../src/components/common';
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Image,
@@ -110,7 +110,7 @@ export default function PactMemoryLibrary() {
           <View style={styles.headerRow}>
             <View style={styles.headerLeft}>
               
-              <Text style={styles.headerTitle} numberOfLines={1}>
+              <Text style={styles.headerTitle} numberOfLines={2}>
                 {currentGroup.name ? currentGroup.name.replace(/\s*trip$/i, '') : 'Goa Beach Escape'} Memories
               </Text>
             </View>
