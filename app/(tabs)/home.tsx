@@ -7,7 +7,8 @@ import {
   StyleSheet,
   SafeAreaView,
   Platform,
-  Image
+  Image,
+  RefreshControl
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
@@ -50,6 +51,18 @@ export default function MyCirclesScreen() {
   }, [currentUserId]);
 
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    haptics.tap();
+    try {
+      if (currentUserId) {
+        await fetchUserGroupsFromCloud();
+      }
+    } catch {}
+    setRefreshing(false);
+  };
 
   // Pure live circles from store (populated from Supabase or empty)
   const allCircles = circles;
@@ -102,6 +115,14 @@ export default function MyCirclesScreen() {
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#F0B24A"
+              colors={['#F0B24A']}
+            />
+          }
         >
           {/* Header Row */}
           <View style={styles.headerRow}>
@@ -122,10 +143,12 @@ export default function MyCirclesScreen() {
               style={styles.profilePill}
             >
               <View style={styles.avatarMini}>
-                <Text style={styles.avatarMiniText}>AR</Text>
+                <Text style={styles.avatarMiniText}>{profile?.displayName ? profile.displayName.slice(0, 2).toUpperCase() : 'ME'}</Text>
               </View>
-              <View style={styles.proMiniBadge}>
-                <Text style={styles.proMiniBadgeText}>PRO</Text>
+              <View style={[styles.proMiniBadge, subscriptionPlan === 'free' && { backgroundColor: 'rgba(255,255,255,0.1)' }]}>
+                <Text style={[styles.proMiniBadgeText, subscriptionPlan === 'free' && { color: '#C3BAA6' }]}>
+                  {subscriptionPlan !== 'free' ? 'PRO' : 'FREE'}
+                </Text>
               </View>
             </TouchableOpacity>
           </View>

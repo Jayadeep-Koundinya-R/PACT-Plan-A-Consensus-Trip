@@ -353,7 +353,7 @@ export default function PactCirclesHub() {
                   </TouchableOpacity>
                 </View>
                 <Text style={styles.statusSubtext}>
-                  3+ members locked in! Consensus algorithms active.
+                  {lockedCount >= totalCount ? `All ${totalCount} members locked in! Unanimous consensus ready.` : `${lockedCount} of ${totalCount} members locked in! Consensus algorithms active.`}
                 </Text>
               </View>
             </View>

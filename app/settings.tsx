@@ -1,3 +1,5 @@
+import { useUserStore } from '../src/store/useUserStore';
+import { useCircleStore } from '../src/store/useCircleStore';
 import React, { useState } from 'react';
 import {
   View,
@@ -20,6 +22,10 @@ import { ArrowLeft, Shield, MoreVertical, Plus, Check } from 'lucide-react-nativ
 export default function PactSettings() {
   const router = useRouter();
   const { groups = [], currentUserId = 'user-maya-001' } = useGatherlyStore();
+  const { profile, subscriptionPlan, logout } = useUserStore();
+  const { circles = [] } = useCircleStore();
+  const allCircles = circles.length > 0 ? circles : groups.map((g: any) => ({ id: g.id, name: g.name, inviteCode: g.inviteCode, archived: false, members: [] }));
+  const activeCircles = allCircles.filter((c: any) => !c.archived);
 
   const [toggles, setToggles] = useState<Record<string, boolean>>({
     maskBudget: true,
@@ -87,7 +93,7 @@ export default function PactSettings() {
           <View style={styles.profileCard}>
             <View style={styles.avatarContainer}>
               <View style={styles.avatarBox}>
-                <Text style={styles.avatarInitials}>AR</Text>
+                <Text style={styles.avatarInitials}>{profile?.displayName ? profile.displayName.slice(0, 2).toUpperCase() : 'ME'}</Text>
               </View>
               <View style={styles.proMiniBadge}>
                 <Text style={styles.proMiniBadgeText}>PRO</Text>
@@ -95,19 +101,19 @@ export default function PactSettings() {
             </View>
 
             <View style={styles.profileTextCol}>
-              <Text style={styles.profileName}>Alex Rivers</Text>
-              <Text style={styles.profileHandle}>@alex_travels</Text>
+              <Text style={styles.profileName}>{profile?.displayName || 'Alex Rivers (Demo)'}</Text>
+              <Text style={styles.profileHandle}>{profile?.email || '@alex_travels'}</Text>
               <View style={styles.proStatusPill}>
                 <Svg width="10" height="10" viewBox="0 0 10 10">
                   <Path d="M1 3.5l2 1.5 2-3 2 3 2-1.5-.7 4.5H1.7z" fill="#FFD98A" />
                 </Svg>
-                <Text style={styles.proStatusPillText}>PACT Pro organizer pass active</Text>
+                <Text style={styles.proStatusPillText}>{subscriptionPlan !== 'free' ? 'PACT Pro organizer pass active' : 'Free tier (Up to 3 members)'}</Text>
               </View>
             </View>
           </View>
 
           {/* Active Trip Circles Section */}
-          <Text style={styles.sectionHeading}>Active trip circles (2)</Text>
+          <Text style={styles.sectionHeading}>Active trip circles ({activeCircles.length})</Text>
           <View style={styles.circlesList}>
             {/* Circle 1 */}
             <TouchableOpacity
@@ -194,17 +200,26 @@ export default function PactSettings() {
           <Text style={styles.sectionHeading}>Account & plan</Text>
           <View style={styles.settingsGroupCard}>
             <View style={styles.planInfoRow}>
-              <Text style={styles.settingLabel}>PACT Pro annual ($29.99/yr)</Text>
-              <Text style={styles.renewsDate}>Renews Oct 12</Text>
+              <Text style={styles.settingLabel}>{subscriptionPlan !== 'free' ? 'PACT Pro active ($29.99/yr)' : 'Free tier'}</Text>
+              <Text style={styles.renewsDate}>{subscriptionPlan !== 'free' ? 'Renews annually' : 'Upgrade to PACT Pro'}</Text>
             </View>
 
             <View style={styles.dangerBox}>
               <TouchableOpacity
                 activeOpacity={0.7}
-                onPress={() => Alert.alert('Leave Circle', 'Are you sure you want to leave this circle?')}
+                onPress={() => {
+                  triggerHaptic();
+                  Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+                    { text: 'Cancel', style: 'cancel' },
+                    { text: 'Sign Out', style: 'destructive', onPress: () => {
+                      logout();
+                      router.replace('/auth');
+                    }}
+                  ]);
+                }}
                 style={styles.dangerBtn}
               >
-                <Text style={styles.dangerBtnText}>Leave active circle</Text>
+                <Text style={styles.dangerBtnText}>Sign out / Switch account</Text>
               </TouchableOpacity>
               <View style={styles.dangerDivider} />
               <TouchableOpacity

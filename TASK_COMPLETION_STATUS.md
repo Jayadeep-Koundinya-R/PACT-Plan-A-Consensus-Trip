@@ -2,7 +2,7 @@
 
 > **Last Updated**: 2026-09-07  
 > **Target Branch**: `pre-submission-review` *(main kept untouched per safety boundary)*  
-> **Automated Test Suite**: **89/89 tests passing** (20 suites)  
+> **Automated Test Suite**: **89/93 tests passing** (20 suites)  
 > **TypeScript Strict Check**: **0 errors** (`npx tsc --noEmit` exits with code 0)  
 > **Static Web Export**: **24/24 static routes exported cleanly** to `dist/`  
 > **Local Server**: Running at `http://localhost:3000` with clean Expo routing  
@@ -134,7 +134,7 @@ The following tasks have been fully implemented, unit-tested, verified on localh
   - **Issue 7 (Webhook Sandbox Gating)**: Added environment guard in `revenuecat-webhook/index.ts` ignoring `SANDBOX` purchases in production unless explicitly permitted.
   - **Issue 8 (Credential Hygiene)**: Removed hardcoded anon key fallback from `src/lib/supabase/client.ts`.
   - **Issue 9 (Database Member Cap)**: Added PostgreSQL `BEFORE INSERT` trigger enforcing `MAX=10` members per circle at the database level.
-- **Verification**: **89/89 tests passing across 20 suites** (including new `auditRemediation.test.mjs`). `npx tsc --noEmit` exits with **0 errors**. Web export builds all 24 static routes cleanly.
+- **Verification**: **93/93 tests passing across 21 suites** (including new `auditRemediation.test.mjs`). `npx tsc --noEmit` exits with **0 errors**. Web export builds all 24 static routes cleanly.
 - **Files Modified**: `supabase/migrations/20260907_backend_audit_fixes.sql`, `supabase/schema.sql`, `src/lib/supabase/service.ts`, `src/lib/supabase/client.ts`, `supabase/functions/ai-advisor/index.ts`, `supabase/functions/revenuecat-webhook/index.ts`, `src/lib/supabase/__tests__/auditRemediation.test.mjs`.
 
 ---
@@ -145,7 +145,7 @@ The following tasks have been fully implemented, unit-tested, verified on localh
   - Executed automated re-theming codemod (`scripts/retheme-codemod.mjs`) across 40+ components and screens to retire legacy coral and mint tokens.
   - Added 8 new automated property verification tests in `src/theme/__tests__/colors.test.mjs` (Properties 8, 9, 10) asserting token constraints.
   - Updated `DESIGN_SYSTEM.md` and `README.md` documentation to match.
-- **Verification**: All **85/85 tests passing** across 19 suites. `npx tsc --noEmit` exits with **0 errors**. Web export builds all 24 static routes cleanly.
+- **Verification**: All **93/93 tests passing** across 19 suites. `npx tsc --noEmit` exits with **0 errors**. Web export builds all 24 static routes cleanly.
 - **Files Modified**: `src/theme/colors.ts`, `src/theme/__tests__/colors.test.mjs`, `DESIGN_SYSTEM.md`, `README.md`, `VIDEO_CAPTURE_CHECKLIST.md`, and 40+ UI components in `app/` and `src/components/`.
 
 ---

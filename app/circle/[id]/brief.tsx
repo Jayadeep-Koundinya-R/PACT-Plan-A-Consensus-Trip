@@ -81,6 +81,49 @@ export default function PactTripBrief() {
     }
   };
 
+  const handleExportIcsCalendar = () => {
+    haptics.action();
+    const title = currentGroup.name || 'Goa Beach Escape 2026';
+    const dest = currentGroup.name || 'Goa';
+    const nowStr = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    const icsData = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//PACT//Consensus Trip Planner//EN',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
+      'BEGIN:VEVENT',
+      'UID:pact-' + Date.now() + '@pact.travel',
+      'DTSTAMP:' + nowStr,
+      'DTSTART;VALUE=DATE:20261012',
+      'DTEND;VALUE=DATE:20261017',
+      'SUMMARY:' + title + ' (PACT Consensus Trip)',
+      'DESCRIPTION:Consensus Trip to ' + dest + ' backed by PACT.\\n100% agreement reached by all circle members.',
+      'LOCATION:' + dest,
+      'STATUS:CONFIRMED',
+      'END:VEVENT',
+      'END:VCALENDAR'
+    ].join('\r\n');
+
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      const blob = new Blob([icsData], { type: 'text/calendar;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = title.replace(/\s+/g, '_') + '_Consensus.ics';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      Alert.alert('Calendar Exported', 'Downloaded ' + title.replace(/\s+/g, '_') + '_Consensus.ics! Import into Google or Apple Calendar.');
+    } else {
+      Share.share({
+        title: title + ' Calendar Event',
+        message: 'PACT Trip: ' + title + ' in ' + dest + '! Dates: Oct 12 - 17, 2026. Import to your calendar.'
+      });
+    }
+  };
+
   const handleShareWhatsApp = async () => {
     triggerHaptic();
     const briefMsg = `🏖️ *PACT Consensus Brief: Goa, India*\n🗓️ Oct 14 - Oct 19, 2026\n💰 ~$540 / person\n👥 5 members locked\n📍 Private beach villa\n\nView itinerary & vouchers: https://pact.app/circle/${currentGroup.id}/brief`;
@@ -190,7 +233,7 @@ export default function PactTripBrief() {
 
             <TouchableOpacity
               activeOpacity={0.85}
-              onPress={() => Alert.alert('Calendar Sync', 'Added 5 days to your Google & Apple Calendar.')}
+              onPress={handleExportIcsCalendar}
               style={styles.secondaryActionBtn}
             >
               <Svg width="15" height="15" viewBox="0 0 15 15">

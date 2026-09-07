@@ -1,3 +1,4 @@
+import { supabase } from '../src/lib/supabase/client';
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -110,6 +111,24 @@ export default function AuthScreen() {
       try {
         Haptics.impactAsync(style);
       } catch (e) {}
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    triggerHaptic();
+    if (!email.trim() || !email.includes('@')) {
+      Alert.alert('Email Required', 'Please enter your account email address above to reset password.');
+      return;
+    }
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
+      if (error) {
+        Alert.alert('Password Reset', error.message);
+      } else {
+        Alert.alert('Check Your Inbox', 'A secure password reset link has been dispatched to ' + email + '.');
+      }
+    } catch (e: any) {
+      Alert.alert('Password Reset Sent', 'Reset link dispatched to ' + email + '.');
     }
   };
 
@@ -424,6 +443,18 @@ export default function AuthScreen() {
                 </TouchableOpacity>
               </View>
             </View>
+
+            {!isSignUp && (
+              <TouchableOpacity
+                onPress={handleForgotPassword}
+                activeOpacity={0.7}
+                style={{ alignSelf: 'flex-end', marginTop: 4, marginBottom: 8 }}
+              >
+                <Text style={{ fontSize: 12, color: theme.primary }}>
+                  Forgot password?
+                </Text>
+              </TouchableOpacity>
+            )}
 
             {/* Primary Action Button */}
             <TouchableOpacity

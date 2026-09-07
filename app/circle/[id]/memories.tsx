@@ -1,3 +1,4 @@
+import * as ImagePicker from 'expo-image-picker';
 import { CircleRouteGuard } from '../../../src/components/common';
 import React, { useState } from 'react';
 import {
@@ -84,11 +85,69 @@ export default function PactMemoryLibrary() {
       bg: '#3A241E'
     }
   ];
-  const photos = curatedPhotos;
+  const [uploadedPhotos, setUploadedPhotos] = useState<any[]>([]);
+  const photos = [...uploadedPhotos, ...storePhotos, ...(storePhotos.length === 0 && uploadedPhotos.length === 0 ? curatedPhotos : [])];
 
   const hasMemories = finalizedBrief !== null || photos.length > 0;
 
   const recap = '5 days, 5 friends, 100% consensus maintained. Favorite memory: South Goa sunset cruise.';
+
+    const handleAddPhotos = async () => {
+    haptics.tap();
+    try {
+      if (Platform.OS === 'web' && typeof document !== 'undefined') {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = (e: any) => {
+          const file = e.target.files && e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (evt: any) => {
+              const uri = evt.target ? evt.target.result : '';
+              const newPhoto = {
+                id: 'up_' + Date.now(),
+                uri,
+                by: 'You',
+                caption: file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' '),
+                bg: '#1E2742'
+              };
+              setUploadedPhotos((prev: any[]) => [newPhoto, ...prev]);
+              haptics.success();
+            };
+            reader.readAsDataURL(file);
+          }
+        };
+        input.click();
+        return;
+      }
+
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Denied', 'Photo gallery permission is required.');
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 0.8
+      });
+      if (!result.canceled && result.assets && result.assets[0]) {
+        const asset = result.assets[0];
+        const newPhoto = {
+          id: 'up_' + Date.now(),
+          uri: asset.uri,
+          by: 'You',
+          caption: 'Trip Memory',
+          bg: '#1E2742'
+        };
+        setUploadedPhotos((prev: any[]) => [newPhoto, ...prev]);
+        haptics.success();
+      }
+    } catch (err: any) {
+      Alert.alert('Image Picker', 'Could not open photo picker: ' + (err.message || 'unknown error'));
+    }
+  };
 
   const handleCopy = async () => {
     haptics.success();
@@ -154,7 +213,7 @@ export default function PactMemoryLibrary() {
               title="No memories yet"
               description="Once your trip wraps up, upload photos and clips here to build your shared memory album."
               actionLabel="Add first photo"
-              onAction={() => Alert.alert('Add Photos', 'Opening device gallery...')}
+              onAction={handleAddPhotos}
               isDarkMode={true}
             />
           ) : (
@@ -162,7 +221,7 @@ export default function PactMemoryLibrary() {
               {/* Memories Count Bar */}
               <View style={styles.countCard}>
                 <Text style={styles.countText}>
-                  <Text style={styles.countBold}>{photos.length > 0 ? '128 shared memories' : '0 memories'}</Text>  ·  {currentGroup.name || 'Goa beach escape 2026'}
+                  <Text style={styles.countBold}>{`${photos.length} shared ${photos.length === 1 ? 'memory' : 'memories'}`}</Text>  ·  {currentGroup.name || 'Goa beach escape 2026'}
                 </Text>
               </View>
 
@@ -199,10 +258,7 @@ export default function PactMemoryLibrary() {
               {/* Add Photos Button */}
               <TouchableOpacity
                 activeOpacity={0.8}
-                onPress={() => {
-                  haptics.tap();
-                  Alert.alert('Add Photos', 'Opening device gallery...');
-                }}
+                onPress={handleAddPhotos}
                 style={styles.addPhotosBtn}
               >
                 <Text style={styles.addPhotosBtnText}>+ Add photos / clips</Text>

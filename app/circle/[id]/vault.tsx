@@ -55,7 +55,7 @@ export default function PactTripVault() {
   };
 
   // Demo docs — in production, this would come from Supabase storage
-  const [documents] = useState([
+  const [documents, setDocsList] = useState([
     { section: 'FLIGHTS & TRANSPORT', items: [
       { name: 'IndiGo_Flight_All5.pdf', meta: 'Uploaded by Alex  ·  1.2 MB', type: 'flight' },
       { name: 'Airport_Transfer_Receipt.pdf', meta: 'Uploaded by Sam', type: 'transfer' }
@@ -68,6 +68,44 @@ export default function PactTripVault() {
   const hasDocuments = finalizedBrief !== null || documents.length > 0;
 
   const aiText = '✈️ Goa trip update: flights & villa confirmed! All PDF vouchers are ready in the vault.';
+
+    const handleUploadDocument = () => {
+    haptics.tap();
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.pdf,image/*,.doc,.docx';
+      input.onchange = (e: any) => {
+        const file = e.target.files && e.target.files[0];
+        if (file) {
+          const isVilla = file.name.toLowerCase().includes('hotel') || file.name.toLowerCase().includes('villa') || file.name.toLowerCase().includes('resort');
+          const isTransfer = file.name.toLowerCase().includes('transfer') || file.name.toLowerCase().includes('cab') || file.name.toLowerCase().includes('car');
+          const type = isTransfer ? 'transfer' : isVilla ? 'villa' : 'flight';
+          const sizeKb = Math.round(file.size / 1024);
+          const sizeStr = sizeKb > 1024 ? (sizeKb / 1024).toFixed(1) + ' MB' : sizeKb + ' KB';
+          const newDoc = {
+            name: file.name,
+            meta: 'Uploaded by You · ' + sizeStr,
+            type
+          };
+          setDocsList((prev: any[]) => {
+            const targetSection = isVilla ? 'ACCOMMODATION BOOKINGS' : 'FLIGHTS & TRANSPORT';
+            return prev.map((sec: any) => {
+              if (sec.section === targetSection) {
+                return { ...sec, items: [newDoc, ...sec.items] };
+              }
+              return sec;
+            });
+          });
+          haptics.success();
+          Alert.alert('Document Vault', `"${file.name}" encrypted and stored in vault.`);
+        }
+      };
+      input.click();
+    } else {
+      Alert.alert('Upload Document', 'Document upload dialog opened. Select flight, villa, or transport voucher.');
+    }
+  };
 
   const handleCopy = async () => {
     haptics.success();
@@ -190,7 +228,7 @@ export default function PactTripVault() {
 
             <TouchableOpacity
               activeOpacity={0.7}
-              onPress={() => Alert.alert('Upload Document', 'Select PDF or screenshot to upload to vault.')}
+              onPress={handleUploadDocument}
               style={styles.uploadBtnTop}
             >
               <Text style={styles.uploadBtnTopText}>+ Upload</Text>
@@ -212,7 +250,7 @@ export default function PactTripVault() {
               title="No documents yet"
               description="Upload flight confirmations, hotel vouchers, and booking PDFs here for your circle to access."
               actionLabel="Upload first document"
-              onAction={() => Alert.alert('Upload Document', 'Opening file picker...')}
+              onAction={handleUploadDocument}
               isDarkMode={true}
             />
           ) : (

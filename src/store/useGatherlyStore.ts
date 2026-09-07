@@ -46,6 +46,7 @@ export interface VaultItem {
 
 export interface MemoryPhotoItem {
   id: string;
+  uri?: string;
   bg: string;
   by: string;
   caption?: string;
