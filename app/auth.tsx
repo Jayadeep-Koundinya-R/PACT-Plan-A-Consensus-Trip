@@ -35,7 +35,8 @@ import {
   EyeOff,
   UserCheck,
   CheckCircle2,
-  Zap
+  Zap,
+  Compass
 } from 'lucide-react-native';
 
 const VALUE_PILLARS = [

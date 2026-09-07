@@ -1118,5 +1118,35 @@ const styles = StyleSheet.create({
     fontSize: 14.5,
     fontWeight: '700',
     color: '#2E0805'
+  },
+  successCheckmarkBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: 'rgba(61, 224, 160, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.4)',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 16,
+    justifyContent: 'center'
+  },
+  successCheckmarkCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#3DE0A0',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  successCheckmarkText: {
+    fontFamily: fontUIBold,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#3DE0A0'
+  },
+  mainCardWrapper: {
+    width: '100%'
   }
 });

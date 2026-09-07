@@ -60,6 +60,10 @@ export interface TripBrief {
 }
 
 interface GatherlyState {
+  vaultDocuments: Record<string, { section: string; items: VaultItem[] }[]>;
+  memoryPhotos: Record<string, MemoryPhotoItem[]>;
+  addVaultDocument: (groupId: string, doc: Omit<VaultItem, 'id'>) => void;
+  addMemoryPhoto: (groupId: string, photo: Omit<MemoryPhotoItem, 'id'>) => void;
   // Auth & Profile
   currentUserId: string;
   userEmail: string | null;
@@ -134,6 +138,62 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   isCheckingEntitlement: false,
   purchaseError: null,
 
+  login: async (email: string, password: string) => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      if (data.user) {
+        set({
+          currentUserId: data.user.id,
+          userEmail: data.user.email || null,
+          userName: data.user.user_metadata?.display_name || data.user.email?.split('@')[0] || null
+        });
+        await get().fetchUserGroupsFromCloud();
+      }
+      return { data, error: null };
+    } catch (err: any) {
+      console.warn('Login error:', err);
+      return { data: null, error: err };
+    }
+  },
+
+  register: async (email: string, password: string, displayName?: string) => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { display_name: displayName } }
+      });
+      if (error) throw error;
+      if (data.user) {
+        set({
+          currentUserId: data.user.id,
+          userEmail: data.user.email || null,
+          userName: displayName || data.user.email?.split('@')[0] || null
+        });
+      }
+      return { data, error: null };
+    } catch (err: any) {
+      console.warn('Register error:', err);
+      return { data: null, error: err };
+    }
+  },
+
+  loginAsPersona: (userId: string) => {
+    const names: Record<string, string> = {
+      'user-maya-001': 'Maya',
+      'user-jake-002': 'Jake',
+      'user-priya-003': 'Priya',
+      'user-alex-004': 'Alex',
+      'user-sam-005': 'Sam'
+    };
+    set({
+      currentUserId: userId,
+      userEmail: `${userId.replace('user-', '')}@pact.app`,
+      userName: names[userId] || userId.replace('user-', '').toUpperCase()
+    });
+  },
+
   groups: [initialGroup],
   activeGroupId: DEMO_GROUP_ID,
   members: DEMO_MEMBERS,
@@ -188,10 +248,10 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     const newItem: VaultItem = { ...doc, id };
     set((state) => {
       const existingSections = state.vaultDocuments[groupId] || [];
-      const sectionIdx = existingSections.findIndex((s) => s.section === doc.section);
+      const sectionIdx = existingSections.findIndex((s: any) => s.section === doc.section);
       let updatedSections;
       if (sectionIdx >= 0) {
-        updatedSections = existingSections.map((s, idx) =>
+        updatedSections = existingSections.map((s: any, idx: number) =>
           idx === sectionIdx ? { ...s, items: [...s.items, newItem] } : s
         );
       } else {
@@ -277,7 +337,7 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
           name: g.name,
           inviteCode: g.invite_code,
           organizerId: g.organizer_id,
-          status: g.status,
+          status: (g.status as Group['status']) || 'collecting',
           totalMembersCount: g.total_members_count || 1
         }));
         set({
@@ -359,7 +419,7 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
           name: cloudGroup.name,
           inviteCode: cloudGroup.invite_code,
           organizerId: cloudGroup.organizer_id,
-          status: cloudGroup.status,
+          status: (cloudGroup.status as Group['status']) || 'collecting',
           totalMembersCount: totalCount
         };
       } catch (e) {
@@ -423,7 +483,7 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
           name: joined.name,
           inviteCode: joined.invite_code,
           organizerId: joined.organizer_id,
-          status: joined.status,
+          status: (joined.status as Group['status']) || 'collecting',
           totalMembersCount: 2
         };
         set({
@@ -471,13 +531,13 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     if (currentUserId && !currentUserId.startsWith('user-') && activeGroupId && activeGroupId !== DEMO_GROUP_ID) {
       try {
         await savePreferencesToSupabase(activeGroupId, currentUserId, {
-          startDate: preference.startDate,
-          endDate: preference.endDate,
+          startDate: preference.startDate || preference.dateRanges?.[0]?.start || '',
+          endDate: preference.endDate || preference.dateRanges?.[0]?.end || '',
           budgetMin: preference.budgetMin,
           budgetMax: preference.budgetMax,
-          preferredTags: preference.preferredTags,
-          dealbreakers: preference.dealbreakers,
-          isFlexible: preference.isFlexible
+          preferredTags: preference.preferredTags || preference.tags || [],
+          dealbreakers: preference.dealbreakers || [],
+          isFlexible: preference.isFlexible ?? true
         });
       } catch (e) {
         console.warn('Supabase submitPreferences error:', e);
@@ -746,7 +806,7 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     }
   },
 
-  resetDemoState: () => {
+    resetDemoState: () => {
     set({
       currentUserId: 'user-maya-001',
       groups: [initialGroup],
@@ -768,63 +828,6 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
         'opt-manali-02_user-alex-004': true
       },
       finalizedBrief: null,
-
-  vaultDocuments: {
-    'circle-college-reunion-2026': [
-      {
-        section: 'FLIGHTS & TRANSPORT',
-        items: [
-          { id: 'v1', name: 'IndiGo_Flight_All5.pdf', meta: 'Uploaded by Alex  •  1.2 MB', type: 'flight', section: 'FLIGHTS & TRANSPORT' },
-          { id: 'v2', name: 'Airport_Transfer_Receipt.pdf', meta: 'Uploaded by Sam  •  450 KB', type: 'transfer', section: 'FLIGHTS & TRANSPORT' }
-        ]
-      },
-      {
-        section: 'ACCOMMODATION BOOKINGS',
-        items: [
-          { id: 'v3', name: 'South_Goa_Villa_Confirmation.pdf', meta: 'Uploaded by You  •  Code #PACT-9921', type: 'villa', section: 'ACCOMMODATION BOOKINGS' }
-        ]
-      }
-    ]
-  },
-  memoryPhotos: {
-    'circle-college-reunion-2026': [
-      { id: 'p1', bg: '#3A1F1F', by: 'Alex', caption: 'Sunset at Palolem beach' },
-      { id: 'p2', bg: '#2A2416', by: 'Maya', caption: 'Old Goa cathedral walk' },
-      { id: 'p3', bg: '#16241F', by: 'Sam', caption: 'Scooter convoy morning' },
-      { id: 'p4', bg: '#1E1A2A', by: 'Jordan', caption: 'Seafood feast dinner' }
-    ]
-  },
-
-  addVaultDocument: (groupId: string, doc: Omit<VaultItem, 'id'>) => {
-    const id = 'v_' + Date.now();
-    const newItem: VaultItem = { ...doc, id };
-    set((state) => {
-      const existingSections = state.vaultDocuments[groupId] || [];
-      const sectionIdx = existingSections.findIndex((s) => s.section === doc.section);
-      let updatedSections;
-      if (sectionIdx >= 0) {
-        updatedSections = existingSections.map((s, idx) =>
-          idx === sectionIdx ? { ...s, items: [...s.items, newItem] } : s
-        );
-      } else {
-        updatedSections = [...existingSections, { section: doc.section, items: [newItem] }];
-      }
-      return {
-        vaultDocuments: { ...state.vaultDocuments, [groupId]: updatedSections }
-      };
-    });
-  },
-
-  addMemoryPhoto: (groupId: string, photo: Omit<MemoryPhotoItem, 'id'>) => {
-    const id = 'p_' + Date.now();
-    const newPhoto: MemoryPhotoItem = { ...photo, id };
-    set((state) => ({
-      memoryPhotos: {
-        ...state.memoryPhotos,
-        [groupId]: [...(state.memoryPhotos[groupId] || []), newPhoto]
-      }
-    }));
-  },
       subscriptionPlan: 'free'
     });
   }

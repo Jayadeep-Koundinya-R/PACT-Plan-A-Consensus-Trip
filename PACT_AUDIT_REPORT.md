@@ -3,7 +3,7 @@
 > **Date**: 2026-09-01  
 > **Version**: 1.4.0 (AI Compromise Engine Integrated)  
 > **Status**: **Phase 1 & Phase 2 Complete** | **Feature 1 (AI Compromise Engine) Complete & Verified**  
-> **Verification**: 13/13 static routes export with 0 errors (`npx expo export --platform web`)
+> **Verification**: 19/19 static routes export with 0 errors (`npx expo export --platform web`)
 
 ---
 
@@ -33,8 +33,8 @@
   - **Proposal Card**: Displays projected consensus score (96.5%), destination details, trade-off rationale, and traveler fit.
   - **1-Tap Action**: *"✨ Add to Group Ballot & Vote Yes"* button directly injects option into store and casts vote.
 - **Screen Integration**:
-  - Added AI Engine card to `app/groups/[id]/options.tsx`.
-  - Added AI Resolution hook to `app/groups/[id]/index.tsx`.
+  - Added AI Engine card to `app/circle/[id]/ranked-matrix.tsx`.
+  - Added AI Resolution hook to `app/circle/[id]/hub.tsx`.
 
 ---
 

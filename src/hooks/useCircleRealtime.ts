@@ -67,7 +67,7 @@ export function useCircleRealtime(circleId?: string): RealtimeSyncStatus {
         const userId = newRecord?.user_id;
         if (userId) {
           setMemberStatus(circleId, userId, 'locked');
-          haptics.notification();
+          haptics.action();
           setLastEvent('A member submitted preferences live via WebSocket');
           setLastUpdated(new Date().toLocaleTimeString());
         }
@@ -93,7 +93,7 @@ export function useCircleRealtime(circleId?: string): RealtimeSyncStatus {
               [key]: Boolean(newVote.approved)
             }
           }));
-          haptics.notification();
+          haptics.action();
           setLastEvent('Vote cast live on ballot');
           setLastUpdated(new Date().toLocaleTimeString());
         }

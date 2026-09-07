@@ -36,7 +36,7 @@ export default function PactTripVault() {
   const currentGroup =
     groups.find((g) => g && g.id === id) ||
     groups[0] || {
-      id: (id && id !== 'undefined') ? id : (groups[0]?.id || 'circle-college-reunion-2026'),
+      id: (id && id !== 'undefined') ? id : 'circle-college-reunion-2026',
       name: 'Goa',
       inviteCode: 'GOA-4F82'
     };

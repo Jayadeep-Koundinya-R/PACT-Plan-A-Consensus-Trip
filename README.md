@@ -131,7 +131,7 @@ PACT incorporates a sustainable, fair monetization model powered by RevenueCat:
 
 ### Step 1: Clone and Install Dependencies
 ```bash
-git clone https://github.com/rajeshjayaprakash/PACT-Plan-A-Consensus-Trip.git
+git clone https://github.com/Jayadeep-Koundinya-R/PACT-Plan-A-Consensus-Trip.git
 cd PACT-Plan-A-Consensus-Trip
 git checkout pre-submission-review
 npm install

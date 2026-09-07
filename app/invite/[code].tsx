@@ -113,7 +113,7 @@ export default function InviteCodeScreen() {
       if (res.success && res.group) {
         setStatus('joined');
         setTimeout(() => {
-          router.replace(`/circle/${res.group.id}/hub`);
+          router.replace(`/circle/${res.group?.id || 'circle-college-reunion-2026'}/hub`);
         }, 1200);
       } else {
         setStatus('error');
@@ -234,7 +234,7 @@ export default function InviteCodeScreen() {
         )}
 
         {/* Normal Preview & Join State (Document Motif) */}
-        {status === 'preview' && (
+        {(status === 'preview' || status === 'joining') && (
           <View style={[styles.documentCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <View style={[styles.logoIcon, { backgroundColor: theme.primaryLight }]}>
               <Compass size={30} color={theme.primary} />

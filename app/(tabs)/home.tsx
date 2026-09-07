@@ -690,6 +690,11 @@ const styles = StyleSheet.create({
     color: '#8B8D98',
     letterSpacing: 0.8
   },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8
+  },
   sectionCount: {
     fontSize: 11,
     fontWeight: '800',
@@ -767,6 +772,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 7,
     paddingVertical: 2,
     borderRadius: 6
+  },
+  roleBadgeText: {
+    fontSize: 10,
+    fontWeight: '700'
   },
   organizerBadge: {
     backgroundColor: 'rgba(255, 90, 95, 0.12)',

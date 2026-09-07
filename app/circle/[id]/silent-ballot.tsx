@@ -1,3 +1,4 @@
+import * as Haptics from 'expo-haptics';
 import { CircleRouteGuard } from '../../../src/components/common';
 import React, { useState } from 'react';
 import {
@@ -206,7 +207,7 @@ export default function PactSilentBallot() {
   const currentGroup =
     groups.find((g) => g && g.id === id) ||
     groups[0] || {
-      id: (id && id !== 'undefined') ? id : (groups[0]?.id || 'circle-college-reunion-2026'),
+      id: (id && id !== 'undefined') ? id : 'circle-college-reunion-2026',
       name: 'Goa Beach Escape 2026',
       inviteCode: 'GOA-4F82'
     };
@@ -263,14 +264,8 @@ export default function PactSilentBallot() {
     setIsSubmitting(true);
 
     try {
-      await castVote({
-        groupId: currentGroup.id,
-        userId: currentUserId,
-        votes: {
-          'opt-goa-001': votes.goa === 'approve' ? 'yes' : votes.goa === 'reject' ? 'no' : 'neutral',
-          'opt-pondy-002': votes.pondy === 'approve' ? 'yes' : votes.pondy === 'reject' ? 'no' : 'neutral'
-        }
-      });
+      await castVote('opt-goa-001', votes.goa === 'approve');
+      await castVote('opt-pondy-002', votes.pondy === 'approve');
       router.push(`/circle/${currentGroup.id}/brief` as any);
     } catch (e) {
       router.push(`/circle/${currentGroup.id}/brief` as any);

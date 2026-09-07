@@ -13,6 +13,11 @@ export interface MemberPreference {
   tags: string[];
   dealbreakers?: string[];
   submittedAt?: string;
+  groupId?: string;
+  startDate?: string;
+  endDate?: string;
+  preferredTags?: string[];
+  isFlexible?: boolean;
 }
 
 export interface TripOption {

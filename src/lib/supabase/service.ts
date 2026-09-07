@@ -228,7 +228,10 @@ export async function fetchGroupPreferencesFromSupabase(groupId: string): Promis
 
   return (prefs || []).map((p: any) => ({
     userId: p.user_id,
+    userName: p.profiles?.display_name || p.profiles?.email?.split('@')[0] || 'Member',
     name: p.profiles?.display_name || p.profiles?.email?.split('@')[0] || 'Member',
+    dateRanges: p.start_date && p.end_date ? [{ start: p.start_date, end: p.end_date }] : [],
+    tags: p.preferred_tags || [],
     startDate: p.start_date, endDate: p.end_date,
     budgetMin: p.budget_min, budgetMax: p.budget_max,
     preferredTags: p.preferred_tags || [], dealbreakers: p.dealbreakers || [],
@@ -244,9 +247,20 @@ export async function fetchTripOptionsFromSupabase(groupId: string): Promise<Tri
   const { data, error } = await supabase.from('trip_options').select('*').eq('group_id', groupId);
   if (error) throw error;
   return (data || []).map((opt: any) => ({
-    id: opt.id, title: opt.title, destination: opt.destination,
-    description: opt.description || '', startDate: opt.start_date, endDate: opt.end_date,
-    pricePerPerson: opt.price_per_person, tags: opt.tags || []
+    id: opt.id,
+    groupId: opt.group_id || groupId,
+    name: opt.title || opt.name || 'Trip Option',
+    destinationType: opt.destination || opt.destination_type || 'General',
+    dateStart: opt.start_date || opt.date_start || '2026-07-01',
+    dateEnd: opt.end_date || opt.date_end || '2026-07-05',
+    budgetPerPerson: opt.price_per_person ?? opt.budget_per_person ?? 500,
+    tags: opt.tags || [],
+    description: opt.description || '',
+    title: opt.title || opt.name || 'Trip Option',
+    destination: opt.destination || opt.destination_type || 'General',
+    startDate: opt.start_date || opt.date_start || '2026-07-01',
+    endDate: opt.end_date || opt.date_end || '2026-07-05',
+    pricePerPerson: opt.price_per_person ?? opt.budget_per_person ?? 500
   }));
 }
 

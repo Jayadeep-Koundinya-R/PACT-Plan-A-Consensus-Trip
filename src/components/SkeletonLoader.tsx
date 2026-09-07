@@ -91,9 +91,13 @@ export const MemoryPhotoSkeleton: React.FC<{ count?: number }> = ({ count = 4 })
   );
 };
 
-interface SkeletonLoaderProps {
+export interface SkeletonLoaderProps {
   isDarkMode?: boolean;
   count?: number;
+  width?: number | string;
+  height?: number;
+  borderRadius?: number;
+  style?: StyleProp<ViewStyle>;
 }
 
 /**
@@ -101,12 +105,16 @@ interface SkeletonLoaderProps {
  */
 export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({
   isDarkMode = true,
-  count = 2
+  count = 2,
+  width,
+  height,
+  borderRadius: customRadius,
+  style
 }) => {
   const theme = isDarkMode ? colors.dark : colors.light;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, style]}>
       {Array.from({ length: count }).map((_, idx) => (
         <ShimmerView
           key={idx}
@@ -115,7 +123,10 @@ export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({
             {
               backgroundColor: theme.surface,
               borderColor: theme.glassBorder
-            }
+            },
+            width !== undefined && ({ width: width as any }),
+            height !== undefined && ({ height }),
+            customRadius !== undefined && ({ borderRadius: customRadius })
           ]}
         >
           {/* Top row */}
