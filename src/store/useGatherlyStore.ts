@@ -131,7 +131,7 @@ const initialGroup: Group = {
 };
 
 export const useGatherlyStore = create<GatherlyState>((set, get) => ({
-  currentUserId: 'user-maya-001',
+  currentUserId: '',
   userEmail: null,
   userName: null,
   isDarkMode: false,
@@ -230,54 +230,19 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     });
   },
 
-  groups: [initialGroup],
-  activeGroupId: DEMO_GROUP_ID,
-  members: DEMO_MEMBERS,
-  tripOptions: DEMO_TRIP_OPTIONS,
+  groups: [],
+  activeGroupId: '',
+  members: [],
+  tripOptions: [],
   preferenceDrafts: {},
 
   pendingInviteCode: null,
-  votes: {
-    'opt-goa-01_user-maya-001': true,
-    'opt-goa-01_user-jake-002': true,
-    'opt-goa-01_user-priya-003': true,
-    'opt-goa-01_user-alex-004': true,
-    'opt-goa-01_user-sam-005': true,
-    'opt-manali-02_user-jake-002': true,
-    'opt-manali-02_user-alex-004': true,
-    'opt-kerala-04_user-jake-002': true,
-    'opt-kerala-04_user-sam-005': true,
-    'opt-bangalore-03_user-alex-004': true,
-    'opt-bangalore-03_user-maya-001': true
-  },
+  votes: {},
   finalizedBrief: null,
   activeDemoScenario: 'early_bird',
 
-  vaultDocuments: {
-    'circle-college-reunion-2026': [
-      {
-        section: 'FLIGHTS & TRANSPORT',
-        items: [
-          { id: 'v1', name: 'IndiGo_Flight_All5.pdf', meta: 'Uploaded by Alex  •  1.2 MB', type: 'flight', section: 'FLIGHTS & TRANSPORT' },
-          { id: 'v2', name: 'Airport_Transfer_Receipt.pdf', meta: 'Uploaded by Sam  •  450 KB', type: 'transfer', section: 'FLIGHTS & TRANSPORT' }
-        ]
-      },
-      {
-        section: 'ACCOMMODATION BOOKINGS',
-        items: [
-          { id: 'v3', name: 'South_Goa_Villa_Confirmation.pdf', meta: 'Uploaded by You  •  Code #PACT-9921', type: 'villa', section: 'ACCOMMODATION BOOKINGS' }
-        ]
-      }
-    ]
-  },
-  memoryPhotos: {
-    'circle-college-reunion-2026': [
-      { id: 'p1', bg: '#3A241E', by: 'Alex', caption: 'Sunset at Palolem beach' },
-      { id: 'p2', bg: '#33270F', by: 'Maya', caption: 'Old Goa cathedral walk' },
-      { id: 'p3', bg: '#16301E', by: 'Sam', caption: 'Scooter convoy morning' },
-      { id: 'p4', bg: '#1E1A2A', by: 'Jordan', caption: 'Seafood feast dinner' }
-    ]
-  },
+  vaultDocuments: {},
+  memoryPhotos: {},
 
   addVaultDocument: (groupId: string, doc: Omit<VaultItem, 'id'>) => {
     const id = 'v_' + Date.now();
@@ -353,12 +318,23 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     } catch (e) {
       console.warn('Sign out error:', e);
     }
+    try {
+      const { useCircleStore } = require('./useCircleStore');
+      useCircleStore.getState().clearCircles();
+    } catch (e) {}
     set({
-      currentUserId: 'user-maya-001',
+      currentUserId: '',
       userEmail: null,
       userName: null,
-      groups: [initialGroup],
-      activeGroupId: DEMO_GROUP_ID
+      groups: [],
+      activeGroupId: '',
+      members: [],
+      tripOptions: [],
+      preferenceDrafts: {},
+      votes: {},
+      finalizedBrief: null,
+      vaultDocuments: {},
+      memoryPhotos: {}
     });
   },
 
@@ -733,8 +709,8 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   memoryPhotos: {
     'circle-college-reunion-2026': [
       { id: 'p1', bg: '#3A241E', by: 'Alex', caption: 'Sunset at Palolem beach' },
-      { id: 'p2', bg: '#33270F', by: 'Maya', caption: 'Old Goa cathedral walk' },
-      { id: 'p3', bg: '#16301E', by: 'Sam', caption: 'Scooter convoy morning' },
+      { id: 'p2', bg: '#403012', by: 'Maya', caption: 'Old Goa cathedral walk' },
+      { id: 'p3', bg: '#0A2A1F', by: 'Sam', caption: 'Scooter convoy morning' },
       { id: 'p4', bg: '#1E1A2A', by: 'Jordan', caption: 'Seafood feast dinner' }
     ]
   },

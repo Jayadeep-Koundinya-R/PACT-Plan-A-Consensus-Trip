@@ -48,13 +48,13 @@ export const BottlenecksSection: React.FC<BottlenecksSectionProps> = ({
     <View
       style={[
         styles.container,
-        { backgroundColor: isDarkMode ? '#2A3350' : '#F4EAD5', borderColor: isDarkMode ? 'rgba(234, 88, 12, 0.3)' : '#E8D4AE' },
+        { backgroundColor: isDarkMode ? '#323C5A' : '#FFF3D9', borderColor: isDarkMode ? 'rgba(234, 88, 12, 0.3)' : '#F5DCA8' },
         shadows.sm
       ]}
     >
       {/* Header */}
       <View style={styles.headerRow}>
-        <View style={[styles.iconBox, { backgroundColor: isDarkMode ? 'rgba(234, 88, 12, 0.2)' : '#F0E3C8' }]}>
+        <View style={[styles.iconBox, { backgroundColor: isDarkMode ? 'rgba(234, 88, 12, 0.2)' : '#FFEFC9' }]}>
           <AlertTriangle size={18} color={theme.primary} />
         </View>
         <View style={styles.headerTextCol}>
@@ -79,11 +79,11 @@ export const BottlenecksSection: React.FC<BottlenecksSectionProps> = ({
           >
             <View style={styles.issueIconCircle}>
               {issue.type === 'budget' ? (
-                <DollarSign size={14} color="#D99A3F" />
+                <DollarSign size={14} color="#FFB224" />
               ) : issue.type === 'dates' ? (
-                <Calendar size={14} color="#4FA39B" />
+                <Calendar size={14} color="#35C4A5" />
               ) : (
-                <ShieldAlert size={14} color="#C1503F" />
+                <ShieldAlert size={14} color="#E14733" />
               )}
             </View>
             <View style={styles.issueTextCol}>

@@ -103,8 +103,8 @@ export const PactButton: React.FC<PactButtonProps> = ({
           <Svg width="100%" height="100%">
             <Defs>
               <SvgGradient id="pactBtnGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <Stop offset="0%" stopColor="#C99A5B" />
-                <Stop offset="100%" stopColor="#8A6530" />
+                <Stop offset="0%" stopColor="#F0B24A" />
+                <Stop offset="100%" stopColor="#C8842A" />
               </SvgGradient>
             </Defs>
             <Rect width="100%" height="100%" rx={radius.btn} fill="url(#pactBtnGrad)" />
@@ -115,7 +115,7 @@ export const PactButton: React.FC<PactButtonProps> = ({
       {loading ? (
         <ActivityIndicator
           size="small"
-          color={variant === 'glass' ? '#F3EEE2' : '#FFFFFF'}
+          color={variant === 'glass' ? '#FDF9EF' : '#FFFFFF'}
         />
       ) : (
         <View style={styles.contentRow}>
@@ -178,24 +178,24 @@ const styles = StyleSheet.create({
   },
   // Variant styles
   solid: {
-    backgroundColor: '#C99A5B',
+    backgroundColor: '#F0B24A',
     ...shadows.glowPrimary
   },
   glass: {
-    backgroundColor: 'rgba(243, 238, 226, 0.1)',
+    backgroundColor: 'rgba(253, 249, 239, 0.14)',
     borderWidth: 1,
-    borderColor: 'rgba(243, 238, 226, 0.16)'
+    borderColor: 'rgba(253, 249, 239, 0.2)'
   },
   danger: {
-    backgroundColor: '#C1503F',
-    shadowColor: '#C1503F',
+    backgroundColor: '#E14733',
+    shadowColor: '#E14733',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 2
   },
   gradientContainer: {
-    backgroundColor: '#C99A5B',
+    backgroundColor: '#F0B24A',
     ...shadows.glowPrimary
   },
   // Text styles
@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
     color: '#231A0C'
   },
   glassText: {
-    color: '#F3EEE2'
+    color: '#FDF9EF'
   },
   dangerText: {
     color: '#FFFFFF'

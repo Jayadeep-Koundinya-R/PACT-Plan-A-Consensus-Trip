@@ -56,7 +56,7 @@ const StampBallotCard: React.FC<StampBallotCardProps> = ({
 }) => {
   const cardScale = useSharedValue(1);
   const glowPulse = useSharedValue(0);
-  const glowColor = useSharedValue('#58A68C');
+  const glowColor = useSharedValue('#25C9A0');
 
   const triggerImpactHaptic = (decision: 'approve' | 'reject') => {
     if (decision === 'approve') {
@@ -73,7 +73,7 @@ const StampBallotCard: React.FC<StampBallotCardProps> = ({
 
   const handleDecision = (decision: 'approve' | 'reject') => {
     const isApprove = decision === 'approve';
-    glowColor.value = isApprove ? '#58A68C' : '#C1503F';
+    glowColor.value = isApprove ? '#25C9A0' : '#E14733';
 
     // Fast stamp-down: scale down to 0.9 and spring back rapidly with high tension
     cardScale.value = withSequence(
@@ -104,7 +104,7 @@ const StampBallotCard: React.FC<StampBallotCardProps> = ({
       borderColor: interpolateColor(
         glowPulse.value,
         [0, 1],
-        ['rgba(243, 238, 226, 0.1)', glowColor.value]
+        ['rgba(253, 249, 239, 0.14)', glowColor.value]
       )
     };
   });
@@ -131,11 +131,11 @@ const StampBallotCard: React.FC<StampBallotCardProps> = ({
             vote === 'approve' && styles.approveBtnActive
           ]}
         >
-          <Check size={16} color={vote === 'approve' ? '#16301E' : '#A9A08C'} />
+          <Check size={16} color={vote === 'approve' ? '#0A2A1F' : '#C3BAA6'} />
           <Text
             style={[
               styles.approveBtnText,
-              vote === 'approve' && { color: '#16301E' }
+              vote === 'approve' && { color: '#0A2A1F' }
             ]}
           >
             Approve
@@ -150,7 +150,7 @@ const StampBallotCard: React.FC<StampBallotCardProps> = ({
             vote === 'reject' && styles.rejectBtnActive
           ]}
         >
-          <X size={16} color={vote === 'reject' ? '#41201A' : '#A9A08C'} />
+          <X size={16} color={vote === 'reject' ? '#41201A' : '#C3BAA6'} />
           <Text
             style={[
               styles.rejectBtnText,
@@ -287,8 +287,8 @@ export default function PactSilentBallot() {
 
             <View style={styles.sealedBadge}>
               <Svg width="10" height="10" viewBox="0 0 10 10">
-                <Rect x="2" y="4.3" width="6" height="4.7" rx="1" fill="none" stroke="#A9A08C" strokeWidth="0.9" />
-                <Path d="M3.2 4.3V3a1.8 1.8 0 0 1 3.6 0v1.3" fill="none" stroke="#A9A08C" strokeWidth="0.9" />
+                <Rect x="2" y="4.3" width="6" height="4.7" rx="1" fill="none" stroke="#C3BAA6" strokeWidth="0.9" />
+                <Path d="M3.2 4.3V3a1.8 1.8 0 0 1 3.6 0v1.3" fill="none" stroke="#C3BAA6" strokeWidth="0.9" />
               </Svg>
               <Text style={styles.sealedBadgeText}>Votes sealed</Text>
             </View>
@@ -300,7 +300,7 @@ export default function PactSilentBallot() {
               <Path
                 d="M8 1.5l5.5 2v4.2c0 3.4-2.3 6-5.5 6.8-3.2-.8-5.5-3.4-5.5-6.8V3.5z"
                 fill="none"
-                stroke="#A9A08C"
+                stroke="#C3BAA6"
                 strokeWidth="1.1"
                 strokeLinejoin="round"
               />
@@ -335,11 +335,11 @@ export default function PactSilentBallot() {
                       vote === 'approve' && styles.approveBtnActive
                     ]}
                   >
-                    <Check size={16} color={vote === 'approve' ? '#16301E' : '#A9A08C'} />
+                    <Check size={16} color={vote === 'approve' ? '#0A2A1F' : '#C3BAA6'} />
                     <Text
                       style={[
                         styles.approveBtnText,
-                        vote === 'approve' && { color: '#16301E' }
+                        vote === 'approve' && { color: '#0A2A1F' }
                       ]}
                     >
                       Approve
@@ -354,7 +354,7 @@ export default function PactSilentBallot() {
                       vote === 'reject' && styles.rejectBtnActive
                     ]}
                   >
-                    <X size={16} color={vote === 'reject' ? '#41201A' : '#A9A08C'} />
+                    <X size={16} color={vote === 'reject' ? '#41201A' : '#C3BAA6'} />
                     <Text
                       style={[
                         styles.rejectBtnText,
@@ -434,7 +434,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#12182B',
     borderWidth: Platform.OS === 'web' ? 1 : 0,
-    borderColor: 'rgba(243, 238, 226, 0.07)',
+    borderColor: 'rgba(253, 249, 239, 0.11)',
     borderRadius: Platform.OS === 'web' ? 40 : 0,
     overflow: 'hidden',
     position: 'relative'
@@ -465,7 +465,7 @@ const styles = StyleSheet.create({
     fontFamily: fontDisplay,
     fontWeight: '700',
     fontSize: 16,
-    color: '#F3EEE2'
+    color: '#FDF9EF'
   },
   sealedBadge: {
     flexDirection: 'row',
@@ -481,7 +481,7 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 11,
     fontWeight: '600',
-    color: '#A9A08C'
+    color: '#C3BAA6'
   },
   guaranteeBanner: {
     flexDirection: 'row',
@@ -489,7 +489,7 @@ const styles = StyleSheet.create({
     gap: 10,
     backgroundColor: 'rgba(255,255,255,0.03)',
     borderWidth: 1,
-    borderColor: 'rgba(243, 238, 226, 0.1)',
+    borderColor: 'rgba(253, 249, 239, 0.14)',
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 13,
@@ -498,19 +498,19 @@ const styles = StyleSheet.create({
   guaranteeText: {
     fontFamily: fontUI,
     fontSize: 12,
-    color: '#A9A08C',
+    color: '#C3BAA6',
     lineHeight: 18,
     flex: 1
   },
   guaranteeBold: {
     fontFamily: fontUIBold,
-    color: '#F3EEE2',
+    color: '#FDF9EF',
     fontWeight: '600'
   },
   ballotCard: {
-    backgroundColor: '#1A2138',
+    backgroundColor: '#1E2742',
     borderWidth: 1,
-    borderColor: 'rgba(243, 238, 226, 0.1)',
+    borderColor: 'rgba(253, 249, 239, 0.14)',
     borderRadius: 18,
     padding: 18,
     marginBottom: 16
@@ -525,18 +525,18 @@ const styles = StyleSheet.create({
     fontFamily: fontDisplay,
     fontSize: 21,
     fontWeight: '700',
-    color: '#F3EEE2'
+    color: '#FDF9EF'
   },
   matchScore: {
     fontFamily: fontUIBold,
     fontSize: 14,
     fontWeight: '700',
-    color: '#58A68C'
+    color: '#25C9A0'
   },
   destMeta: {
     fontFamily: fontUI,
     fontSize: 11.5,
-    color: '#8B8474',
+    color: '#9C947F',
     marginBottom: 16
   },
   voteButtonsRow: {
@@ -548,51 +548,51 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(243, 238, 226, 0.16)',
-    backgroundColor: 'rgba(243, 238, 226, 0.05)',
+    borderColor: 'rgba(253, 249, 239, 0.2)',
+    backgroundColor: 'rgba(253, 249, 239, 0.08)',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6
   },
   approveBtnActive: {
-    backgroundColor: '#58A68C',
-    borderColor: '#58A68C'
+    backgroundColor: '#25C9A0',
+    borderColor: '#25C9A0'
   },
   approveBtnText: {
     fontFamily: fontUIBold,
     fontSize: 13.5,
     fontWeight: '600',
-    color: '#A9A08C'
+    color: '#C3BAA6'
   },
   rejectBtn: {
     flex: 1,
     paddingVertical: 12,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(243, 238, 226, 0.16)',
-    backgroundColor: 'rgba(243, 238, 226, 0.05)',
+    borderColor: 'rgba(253, 249, 239, 0.2)',
+    backgroundColor: 'rgba(253, 249, 239, 0.08)',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6
   },
   rejectBtnActive: {
-    backgroundColor: '#C1503F',
-    borderColor: '#C1503F'
+    backgroundColor: '#E14733',
+    borderColor: '#E14733'
   },
   rejectBtnText: {
     fontFamily: fontUIBold,
     fontSize: 13.5,
     fontWeight: '600',
-    color: '#A9A08C'
+    color: '#C3BAA6'
   },
   rankChipsRow: {
     flexDirection: 'row',
     gap: 8,
-    backgroundColor: '#161D33',
+    backgroundColor: '#182036',
     borderWidth: 1,
-    borderColor: 'rgba(243, 238, 226, 0.1)',
+    borderColor: 'rgba(253, 249, 239, 0.14)',
     borderRadius: 12,
     padding: 4
   },
@@ -604,12 +604,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   rankChipActive: {
-    backgroundColor: '#C99A5B'
+    backgroundColor: '#F0B24A'
   },
   rankChipText: {
     fontFamily: fontUI,
     fontSize: 12,
-    color: '#A9A08C'
+    color: '#C3BAA6'
   },
   bottomBar: {
     paddingHorizontal: 20,
@@ -617,13 +617,13 @@ const styles = StyleSheet.create({
     paddingBottom: 22,
     backgroundColor: '#12182B',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(243, 238, 226, 0.07)'
+    borderTopColor: 'rgba(253, 249, 239, 0.11)'
   },
   lockBallotBtn: {
     width: '100%',
     paddingVertical: 14,
     borderRadius: 12,
-    backgroundColor: '#C99A5B',
+    backgroundColor: '#F0B24A',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -639,7 +639,7 @@ const styles = StyleSheet.create({
   bottomSubtext: {
     fontFamily: fontUI,
     fontSize: 11,
-    color: '#6B6455',
+    color: '#7A7263',
     textAlign: 'center',
     lineHeight: 16
   }

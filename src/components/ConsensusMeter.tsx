@@ -86,7 +86,7 @@ export const ConsensusMeter: React.FC<ConsensusMeterProps> = ({
             styles.thresholdMarker,
             {
               left: `${threshold}%`,
-              backgroundColor: isPassing ? '#FFFFFF' : '#A9A08C'
+              backgroundColor: isPassing ? '#FFFFFF' : '#C3BAA6'
             }
           ]}
         />

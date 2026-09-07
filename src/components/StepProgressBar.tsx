@@ -48,9 +48,9 @@ export const StepProgressBar: React.FC<StepProgressBarProps> = ({
         styles.container,
         {
           backgroundColor: '#0E1424',
-          borderBottomColor: '#262E48',
+          borderBottomColor: '#2B3552',
           borderTopWidth: 1,
-          borderTopColor: '#262E48'
+          borderTopColor: '#2B3552'
         }
       ]}
     >
@@ -72,36 +72,36 @@ export const StepProgressBar: React.FC<StepProgressBarProps> = ({
                   style={[
                     styles.circle,
                     isCurrent && {
-                      backgroundColor: '#C99A5B',
-                      borderColor: '#C99A5B',
-                      shadowColor: '#C99A5B',
+                      backgroundColor: '#F0B24A',
+                      borderColor: '#F0B24A',
+                      shadowColor: '#F0B24A',
                       shadowOffset: { width: 0, height: 0 },
                       shadowOpacity: 0.45,
                       shadowRadius: 6,
                       elevation: 3
                     },
                     isCompleted && !isCurrent && {
-                      backgroundColor: '#58A68C',
-                      borderColor: '#58A68C'
+                      backgroundColor: '#25C9A0',
+                      borderColor: '#25C9A0'
                     },
                     !isCompleted && !isCurrent && {
-                      backgroundColor: '#1F2840',
-                      borderColor: '#303A55'
+                      backgroundColor: '#242E4A',
+                      borderColor: '#384262'
                     }
                   ]}
                 >
                   {isCompleted && !isCurrent ? (
-                    <Check size={10} color="#16301E" strokeWidth={3} />
+                    <Check size={10} color="#0A2A1F" strokeWidth={3} />
                   ) : (
                     <Text
                       style={[
                         styles.stepNumber,
                         {
                           color: isCurrent
-                            ? '#FFFFFF'
+                            ? '#2A1A05'
                             : isCompleted
-                            ? '#16301E'
-                            : '#A9A08C'
+                            ? '#0A2A1F'
+                            : '#C3BAA6'
                         }
                       ]}
                     >
@@ -115,10 +115,10 @@ export const StepProgressBar: React.FC<StepProgressBarProps> = ({
                     styles.label,
                     {
                       color: isCurrent
-                        ? '#F3EEE2'
+                        ? '#FDF9EF'
                         : isCompleted
-                        ? '#58A68C'
-                        : '#A9A08C',
+                        ? '#25C9A0'
+                        : '#C3BAA6',
                       fontWeight: isCurrent ? '800' : '600'
                     }
                   ]}
@@ -135,8 +135,8 @@ export const StepProgressBar: React.FC<StepProgressBarProps> = ({
                     {
                       backgroundColor:
                         s.step < currentStep
-                          ? '#58A68C'
-                          : '#262E48'
+                          ? '#25C9A0'
+                          : '#2B3552'
                     }
                   ]}
                 />

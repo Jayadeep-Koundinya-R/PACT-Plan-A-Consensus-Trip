@@ -113,10 +113,10 @@ export default function PactTripBrief() {
 
             <TouchableOpacity onPress={handleShareWhatsApp} activeOpacity={0.7} style={styles.shareTopBtn}>
               <Svg width="13" height="13" viewBox="0 0 13 13">
-                <Circle cx="10" cy="2.8" r="1.6" fill="none" stroke="#F3EEE2" strokeWidth="1.1" />
-                <Circle cx="3" cy="6.5" r="1.6" fill="none" stroke="#F3EEE2" strokeWidth="1.1" />
-                <Circle cx="10" cy="10.2" r="1.6" fill="none" stroke="#F3EEE2" strokeWidth="1.1" />
-                <Path d="M4.4 5.7l4.2-2.1M4.4 7.3l4.2 2.1" stroke="#F3EEE2" strokeWidth="1.1" />
+                <Circle cx="10" cy="2.8" r="1.6" fill="none" stroke="#FDF9EF" strokeWidth="1.1" />
+                <Circle cx="3" cy="6.5" r="1.6" fill="none" stroke="#FDF9EF" strokeWidth="1.1" />
+                <Circle cx="10" cy="10.2" r="1.6" fill="none" stroke="#FDF9EF" strokeWidth="1.1" />
+                <Path d="M4.4 5.7l4.2-2.1M4.4 7.3l4.2 2.1" stroke="#FDF9EF" strokeWidth="1.1" />
               </Svg>
               <Text style={styles.shareTopBtnText}>Share</Text>
             </TouchableOpacity>
@@ -130,7 +130,7 @@ export default function PactTripBrief() {
             <ConsensusGauge
               value={100}
               size={84}
-              strokeColor="#58A68C"
+              strokeColor="#25C9A0"
               centerText="100%"
               centerSubtext="locked"
               style={{ marginBottom: 12 }}
@@ -183,7 +183,7 @@ export default function PactTripBrief() {
               style={styles.whatsAppBriefBtn}
             >
               <Svg width="15" height="15" viewBox="0 0 15 15">
-                <Path d="M7.5 1.3A6.2 6.2 0 0 0 2.2 10.8L1.3 13.7l3-1a6.2 6.2 0 1 0 3.2-11.4z" fill="#1E3A30" />
+                <Path d="M7.5 1.3A6.2 6.2 0 0 0 2.2 10.8L1.3 13.7l3-1a6.2 6.2 0 1 0 3.2-11.4z" fill="#0B3327" />
               </Svg>
               <Text style={styles.whatsAppBriefBtnText}>Send WhatsApp group brief</Text>
             </TouchableOpacity>
@@ -194,8 +194,8 @@ export default function PactTripBrief() {
               style={styles.secondaryActionBtn}
             >
               <Svg width="15" height="15" viewBox="0 0 15 15">
-                <Rect x="1.5" y="2.7" width="12" height="10.5" rx="1.5" fill="none" stroke="#A9A08C" strokeWidth="1.1" />
-                <Path d="M1.5 5.5h12M4.3 1.3v2.3M10.7 1.3v2.3" stroke="#A9A08C" strokeWidth="1.1" strokeLinecap="round" />
+                <Rect x="1.5" y="2.7" width="12" height="10.5" rx="1.5" fill="none" stroke="#C3BAA6" strokeWidth="1.1" />
+                <Path d="M1.5 5.5h12M4.3 1.3v2.3M10.7 1.3v2.3" stroke="#C3BAA6" strokeWidth="1.1" strokeLinecap="round" />
               </Svg>
               <Text style={styles.secondaryActionBtnText}>Add to Apple / Google calendar</Text>
             </TouchableOpacity>
@@ -206,9 +206,9 @@ export default function PactTripBrief() {
               style={styles.secondaryActionBtn}
             >
               <Svg width="15" height="15" viewBox="0 0 15 15">
-                <Rect x="1.5" y="1.5" width="12" height="12" rx="3.5" fill="none" stroke="#C99A5B" strokeWidth="1.1" />
-                <Circle cx="7.5" cy="7.5" r="3" fill="none" stroke="#C99A5B" strokeWidth="1.1" />
-                <Circle cx="10.8" cy="4.2" r="0.7" fill="#C99A5B" />
+                <Rect x="1.5" y="1.5" width="12" height="12" rx="3.5" fill="none" stroke="#F0B24A" strokeWidth="1.1" />
+                <Circle cx="7.5" cy="7.5" r="3" fill="none" stroke="#F0B24A" strokeWidth="1.1" />
+                <Circle cx="10.8" cy="4.2" r="0.7" fill="#F0B24A" />
               </Svg>
               <Text style={styles.secondaryActionBtnText}>Export story card (Instagram / Snap)</Text>
             </TouchableOpacity>
@@ -234,7 +234,7 @@ export default function PactTripBrief() {
               onPress={() => router.push(`/circle/${currentGroup.id}/vault` as any)}
               style={styles.quickNavTile}
             >
-              <FolderArchive size={16} color="#C99A5B" />
+              <FolderArchive size={16} color="#F0B24A" />
               <Text style={styles.quickNavTileText}>Trip Vault</Text>
             </TouchableOpacity>
 
@@ -243,7 +243,7 @@ export default function PactTripBrief() {
               onPress={() => router.push(`/circle/${currentGroup.id}/memories` as any)}
               style={styles.quickNavTile}
             >
-              <ImageIcon size={16} color="#58A68C" />
+              <ImageIcon size={16} color="#25C9A0" />
               <Text style={styles.quickNavTileText}>Memories</Text>
             </TouchableOpacity>
 
@@ -252,7 +252,7 @@ export default function PactTripBrief() {
               onPress={() => router.push('/paywall' as any)}
               style={styles.quickNavTile}
             >
-              <Sparkles size={16} color="#E0C286" />
+              <Sparkles size={16} color="#FFD98A" />
               <Text style={styles.quickNavTileText}>PACT Pro</Text>
             </TouchableOpacity>
           </View>
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#12182B',
     borderWidth: Platform.OS === 'web' ? 1 : 0,
-    borderColor: 'rgba(243, 238, 226, 0.07)',
+    borderColor: 'rgba(253, 249, 239, 0.11)',
     borderRadius: Platform.OS === 'web' ? 40 : 0,
     overflow: 'hidden',
     position: 'relative'
@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
   briefCodeTitle: {
     fontFamily: fontUIBold,
     fontSize: 13,
-    color: '#A9A08C',
+    color: '#C3BAA6',
     flex: 1
   },
   shareTopBtn: {
@@ -332,17 +332,17 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 12.5,
     fontWeight: '600',
-    color: '#F3EEE2'
+    color: '#FDF9EF'
   },
   consensusBanner: {
     position: 'relative',
-    backgroundColor: 'rgba(88, 166, 140,0.12)',
-    shadowColor: '#58A68C',
+    backgroundColor: 'rgba(37, 201, 160,0.12)',
+    shadowColor: '#25C9A0',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 18,
     borderWidth: 1,
-    borderColor: 'rgba(88, 166, 140,0.45)',
+    borderColor: 'rgba(37, 201, 160,0.45)',
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 13,
@@ -358,12 +358,12 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 13,
     fontWeight: '600',
-    color: '#58A68C'
+    color: '#25C9A0'
   },
   consensusSub: {
     fontFamily: fontUI,
     fontSize: 12,
-    color: '#8FB8A4',
+    color: '#6FD8B8',
     marginTop: 3
   },
   sealedTicketContainer: {
@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
     right: 4,
     transform: [{ rotate: '-9deg' }],
     borderWidth: 2,
-    borderColor: '#58A68C',
+    borderColor: '#25C9A0',
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 5,
@@ -387,13 +387,13 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 10,
     fontWeight: '700',
-    color: '#58A68C',
+    color: '#25C9A0',
     letterSpacing: 0.5
   },
   ticketBody: {
-    backgroundColor: '#1A2138',
+    backgroundColor: '#1E2742',
     borderWidth: 1,
-    borderColor: 'rgba(243, 238, 226, 0.1)',
+    borderColor: 'rgba(253, 249, 239, 0.14)',
     borderRadius: 18,
     overflow: 'hidden',
     paddingTop: 22
@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
     fontFamily: fontDisplay,
     fontWeight: '700',
     fontSize: 26,
-    color: '#F3EEE2',
+    color: '#FDF9EF',
     marginBottom: 18
   },
   detailsList: {
@@ -416,14 +416,14 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 10.5,
     fontWeight: '700',
-    color: '#8B8474',
+    color: '#9C947F',
     letterSpacing: 0.6,
     marginBottom: 3
   },
   detailValue: {
     fontFamily: fontUIBold,
     fontSize: 13,
-    color: '#F3EEE2'
+    color: '#FDF9EF'
   },
   perforationWrapper: {
     position: 'relative',
@@ -439,7 +439,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: '#12182B',
     borderWidth: 1,
-    borderColor: 'rgba(243, 238, 226, 0.07)'
+    borderColor: 'rgba(253, 249, 239, 0.11)'
   },
   notchRight: {
     position: 'absolute',
@@ -450,12 +450,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: '#12182B',
     borderWidth: 1,
-    borderColor: 'rgba(243, 238, 226, 0.07)'
+    borderColor: 'rgba(253, 249, 239, 0.11)'
   },
   dashedLine: {
     borderTopWidth: 1.5,
     borderStyle: 'dashed',
-    borderTopColor: 'rgba(243, 238, 226, 0.18)',
+    borderTopColor: 'rgba(253, 249, 239, 0.22)',
     marginHorizontal: 22
   },
   ticketFooter: {
@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
   ticketFooterText: {
     fontFamily: fontUIBold,
     fontSize: 10.5,
-    color: '#6B6455',
+    color: '#7A7263',
     letterSpacing: 0.8
   },
   actionsStack: {
@@ -487,15 +487,15 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 14,
     fontWeight: '700',
-    color: '#1E3A30'
+    color: '#0B3327'
   },
   secondaryActionBtn: {
     width: '100%',
     paddingVertical: 13,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(243, 238, 226, 0.14)',
-    backgroundColor: '#1A2138',
+    borderColor: 'rgba(253, 249, 239, 0.18)',
+    backgroundColor: '#1E2742',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -505,12 +505,12 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 14,
     fontWeight: '600',
-    color: '#F3EEE2'
+    color: '#FDF9EF'
   },
   itineraryCard: {
-    backgroundColor: '#1A2138',
+    backgroundColor: '#1E2742',
     borderWidth: 1,
-    borderColor: 'rgba(243, 238, 226, 0.1)',
+    borderColor: 'rgba(253, 249, 239, 0.14)',
     borderRadius: 18,
     padding: 18,
     marginBottom: 16
@@ -519,7 +519,7 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 13.5,
     fontWeight: '600',
-    color: '#F3EEE2',
+    color: '#FDF9EF',
     marginBottom: 14
   },
   itineraryList: {
@@ -533,13 +533,13 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 11.5,
     fontWeight: '700',
-    color: '#C99A5B',
+    color: '#F0B24A',
     minWidth: 42
   },
   dayText: {
     fontFamily: fontUI,
     fontSize: 12.5,
-    color: '#C9C0AC',
+    color: '#D8D0BC',
     lineHeight: 18,
     flex: 1
   },
@@ -550,9 +550,9 @@ const styles = StyleSheet.create({
   },
   quickNavTile: {
     flex: 1,
-    backgroundColor: '#1A2138',
+    backgroundColor: '#1E2742',
     borderWidth: 1,
-    borderColor: 'rgba(243, 238, 226, 0.1)',
+    borderColor: 'rgba(253, 249, 239, 0.14)',
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
@@ -562,7 +562,7 @@ const styles = StyleSheet.create({
   quickNavTileText: {
     fontFamily: fontUIBold,
     fontSize: 11.5,
-    color: '#F3EEE2'
+    color: '#FDF9EF'
   },
   bottomBar: {
     paddingHorizontal: 20,
@@ -570,13 +570,13 @@ const styles = StyleSheet.create({
     paddingBottom: 22,
     backgroundColor: '#12182B',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(243, 238, 226, 0.07)'
+    borderTopColor: 'rgba(253, 249, 239, 0.11)'
   },
   primaryCtaBtn: {
     width: '100%',
     paddingVertical: 14,
     borderRadius: 12,
-    backgroundColor: '#C99A5B',
+    backgroundColor: '#F0B24A',
     alignItems: 'center',
     justifyContent: 'center'
   },

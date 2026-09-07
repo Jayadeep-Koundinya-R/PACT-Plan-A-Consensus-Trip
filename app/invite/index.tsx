@@ -124,7 +124,7 @@ export default function InviteIndexScreen() {
             ]}
           >
             <Text style={styles.submitBtnText}>Join Circle</Text>
-            <ArrowRight size={16} color="#FFFFFF" />
+            <ArrowRight size={16} color="#3A2A10" />
           </TouchableOpacity>
         </View>
 
@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
     width: '100%'
   },
   submitBtnText: {
-    color: '#FFFFFF',
+    color: '#3A2A10',
     fontSize: 14.5,
     fontWeight: '800'
   },

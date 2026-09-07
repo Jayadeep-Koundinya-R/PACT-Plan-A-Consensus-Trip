@@ -249,9 +249,9 @@ export default function PactLandingScreen() {
                 ]}
               >
                 <Svg width="24" height="24" viewBox="0 0 24 24">
-                  <Circle cx="12" cy="12" r="10" fill="#6B6455" stroke="#6B6455" strokeWidth="1" />
-                  <Path d="M8 10v-3a4 4 0 0 1 8 0v3" fill="none" stroke="#A9A08C" strokeWidth="1.2" />
-                  <Rect x="7" y="9.5" width="10" height="7" rx="1.5" fill="#A9A08C" />
+                  <Circle cx="12" cy="12" r="10" fill="#7A7263" stroke="#7A7263" strokeWidth="1" />
+                  <Path d="M8 10v-3a4 4 0 0 1 8 0v3" fill="none" stroke="#C3BAA6" strokeWidth="1.2" />
+                  <Rect x="7" y="9.5" width="10" height="7" rx="1.5" fill="#C3BAA6" />
                 </Svg>
               </Animated.View>
 
@@ -270,9 +270,9 @@ export default function PactLandingScreen() {
                 ]}
               >
                 <Svg width="24" height="24" viewBox="0 0 24 24">
-                  <Circle cx="12" cy="12" r="10" fill="#6B6455" stroke="#6B6455" strokeWidth="1" />
-                  <Path d="M8 10v-3a4 4 0 0 1 8 0v3" fill="none" stroke="#A9A08C" strokeWidth="1.2" />
-                  <Rect x="7" y="9.5" width="10" height="7" rx="1.5" fill="#A9A08C" />
+                  <Circle cx="12" cy="12" r="10" fill="#7A7263" stroke="#7A7263" strokeWidth="1" />
+                  <Path d="M8 10v-3a4 4 0 0 1 8 0v3" fill="none" stroke="#C3BAA6" strokeWidth="1.2" />
+                  <Rect x="7" y="9.5" width="10" height="7" rx="1.5" fill="#C3BAA6" />
                 </Svg>
               </Animated.View>
 
@@ -290,9 +290,9 @@ export default function PactLandingScreen() {
                 ]}
               >
                 <Svg width="24" height="24" viewBox="0 0 24 24">
-                  <Circle cx="12" cy="12" r="10" fill="#6B6455" stroke="#6B6455" strokeWidth="1" />
-                  <Path d="M8 10v-3a4 4 0 0 1 8 0v3" fill="none" stroke="#A9A08C" strokeWidth="1.2" />
-                  <Rect x="7" y="9.5" width="10" height="7" rx="1.5" fill="#A9A08C" />
+                  <Circle cx="12" cy="12" r="10" fill="#7A7263" stroke="#7A7263" strokeWidth="1" />
+                  <Path d="M8 10v-3a4 4 0 0 1 8 0v3" fill="none" stroke="#C3BAA6" strokeWidth="1.2" />
+                  <Rect x="7" y="9.5" width="10" height="7" rx="1.5" fill="#C3BAA6" />
                 </Svg>
               </Animated.View>
 
@@ -314,16 +314,16 @@ export default function PactLandingScreen() {
                     cx="70"
                     cy="60"
                     r="32"
-                    fill="#16301E"
+                    fill="#0A2A1F"
                     fillOpacity="0.8"
-                    stroke="#58A68C"
+                    stroke="#25C9A0"
                     strokeWidth="2.5"
                     strokeDasharray="4 3"
                   />
                   <Path
                     d="M57 60l9 9 17-19"
                     fill="none"
-                    stroke="#58A68C"
+                    stroke="#25C9A0"
                     strokeWidth="3.4"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -334,7 +334,7 @@ export default function PactLandingScreen() {
                     textAnchor="middle"
                     fontSize="11"
                     fontWeight="700"
-                    fill="#58A68C"
+                    fill="#25C9A0"
                     letterSpacing="0.5"
                   >
                     100% match
@@ -363,7 +363,7 @@ export default function PactLandingScreen() {
                 <Path
                   d="M1 1l8 7 8-7"
                   fill="none"
-                  stroke="#6B6455"
+                  stroke="#7A7263"
                   strokeWidth="1.6"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -428,7 +428,7 @@ export default function PactLandingScreen() {
             onPress={handleInstantDemo}
             style={styles.demoCtaBtn}
           >
-            <Sparkles size={15} color="#F3EEE2" />
+            <Sparkles size={15} color="#FDF9EF" />
             <Text style={styles.demoCtaBtnText}>Explore Demo Mode (5 Members)</Text>
           </TouchableOpacity>
 
@@ -454,7 +454,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: '#0E1424',
     borderWidth: 1,
-    borderColor: '#262E48',
+    borderColor: '#2B3552',
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -462,7 +462,7 @@ const styles = StyleSheet.create({
     fontFamily: fontDisplay,
     fontSize: 22,
     fontWeight: '800',
-    color: '#C99A5B',
+    color: '#F0B24A',
     letterSpacing: 1
   },
   phoneFrame: {
@@ -471,7 +471,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#12182B',
     borderWidth: Platform.OS === 'web' ? 1 : 0,
-    borderColor: 'rgba(243, 238, 226, 0.07)',
+    borderColor: 'rgba(253, 249, 239, 0.11)',
     borderRadius: Platform.OS === 'web' ? 40 : 0,
     overflow: 'hidden',
     position: 'relative'
@@ -492,25 +492,25 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 22,
     letterSpacing: 0.3,
-    color: '#C99A5B'
+    color: '#F0B24A'
   },
   howItWorksPill: {
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#262E48',
-    backgroundColor: '#1A2138'
+    borderColor: '#2B3552',
+    backgroundColor: '#1E2742'
   },
   howItWorksText: {
     fontSize: 12,
-    color: '#A9A08C',
+    color: '#C3BAA6',
     fontWeight: '600'
   },
   heroCard: {
-    backgroundColor: '#1A2138',
+    backgroundColor: '#1E2742',
     borderWidth: 1,
-    borderColor: '#262E48',
+    borderColor: '#2B3552',
     borderRadius: 20,
     padding: 24,
     alignItems: 'center',
@@ -537,14 +537,14 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 26,
     lineHeight: 32,
-    color: '#F3EEE2',
+    color: '#FDF9EF',
     textAlign: 'center',
     letterSpacing: -0.3,
     marginBottom: 8
   },
   heroSubheading: {
     fontSize: 13,
-    color: '#A9A08C',
+    color: '#C3BAA6',
     textAlign: 'center',
     lineHeight: 18
   },
@@ -554,9 +554,9 @@ const styles = StyleSheet.create({
     marginBottom: 10
   },
   stepsSection: {
-    backgroundColor: '#1A2138',
+    backgroundColor: '#1E2742',
     borderWidth: 1,
-    borderColor: '#262E48',
+    borderColor: '#2B3552',
     borderRadius: 20,
     padding: 20,
     marginBottom: 16
@@ -565,7 +565,7 @@ const styles = StyleSheet.create({
     fontFamily: fontDisplay,
     fontWeight: '700',
     fontSize: 15,
-    color: '#F3EEE2',
+    color: '#FDF9EF',
     marginBottom: 14
   },
   stepRow: {
@@ -574,13 +574,13 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingVertical: 12,
     borderTopWidth: 1,
-    borderTopColor: '#262E48'
+    borderTopColor: '#2B3552'
   },
   stepNumber: {
     fontFamily: fontDisplay,
     fontSize: 15,
     fontWeight: '700',
-    color: '#C99A5B',
+    color: '#F0B24A',
     width: 18,
     marginTop: 1
   },
@@ -590,12 +590,12 @@ const styles = StyleSheet.create({
   stepTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#F3EEE2',
+    color: '#FDF9EF',
     marginBottom: 3
   },
   stepDesc: {
     fontSize: 12,
-    color: '#A9A08C',
+    color: '#C3BAA6',
     lineHeight: 16
   },
   bottomCtaBar: {
@@ -604,7 +604,7 @@ const styles = StyleSheet.create({
     paddingBottom: Platform.OS === 'ios' ? 24 : 16,
     backgroundColor: '#12182B',
     borderTopWidth: 1,
-    borderTopColor: '#262E48',
+    borderTopColor: '#2B3552',
     gap: 8
   },
   primaryCtaBtn: {
@@ -612,7 +612,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
-    backgroundColor: '#C99A5B',
+    backgroundColor: '#F0B24A',
     paddingVertical: 14,
     borderRadius: 14
   },
@@ -627,20 +627,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#1A2138',
+    backgroundColor: '#1E2742',
     borderWidth: 1,
-    borderColor: '#262E48',
+    borderColor: '#2B3552',
     paddingVertical: 12,
     borderRadius: 14
   },
   demoCtaBtnText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#F3EEE2'
+    color: '#FDF9EF'
   },
   termsFooterText: {
     fontSize: 10,
-    color: '#6B6455',
+    color: '#7A7263',
     textAlign: 'center',
     marginTop: 4
   }

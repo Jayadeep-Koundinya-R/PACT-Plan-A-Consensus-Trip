@@ -60,21 +60,21 @@ export default function PactMemoryLibrary() {
       uri: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=800',
       by: 'Alex',
       caption: 'Goa Sunset Beach',
-      bg: '#1F2840'
+      bg: '#242E4A'
     },
     {
       id: 'p2',
       uri: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=800',
       by: 'Maya',
       caption: 'Luxury South Goa Villa',
-      bg: '#1F2840'
+      bg: '#242E4A'
     },
     {
       id: 'p3',
       uri: 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=800',
       by: 'Sam',
       caption: 'Coastal Scooter Ride',
-      bg: '#16301E'
+      bg: '#0A2A1F'
     },
     {
       id: 'p4',
@@ -121,8 +121,8 @@ export default function PactMemoryLibrary() {
                 onPress={handleSyncMemories}
                 style={[styles.shareBtn, { paddingHorizontal: 10, width: 'auto', gap: 5, flexDirection: 'row' }]}
               >
-                <RefreshCw size={12} color="#A9A08C" />
-                <Text style={{ fontFamily: fontUI, fontSize: 11, color: '#A9A08C' }}>Sync</Text>
+                <RefreshCw size={12} color="#C3BAA6" />
+                <Text style={{ fontFamily: fontUI, fontSize: 11, color: '#C3BAA6' }}>Sync</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -131,10 +131,10 @@ export default function PactMemoryLibrary() {
                 style={styles.shareBtn}
               >
                 <Svg width="14" height="14" viewBox="0 0 14 14">
-                  <Circle cx="10.5" cy="3" r="1.8" fill="none" stroke="#A9A08C" strokeWidth="1.1" />
-                  <Circle cx="3" cy="7" r="1.8" fill="none" stroke="#A9A08C" strokeWidth="1.1" />
-                  <Circle cx="10.5" cy="11" r="1.8" fill="none" stroke="#A9A08C" strokeWidth="1.1" />
-                  <Path d="M4.6 6.1l4.3-2.2M4.6 7.9l4.3 2.2" stroke="#A9A08C" strokeWidth="1.1" />
+                  <Circle cx="10.5" cy="3" r="1.8" fill="none" stroke="#C3BAA6" strokeWidth="1.1" />
+                  <Circle cx="3" cy="7" r="1.8" fill="none" stroke="#C3BAA6" strokeWidth="1.1" />
+                  <Circle cx="10.5" cy="11" r="1.8" fill="none" stroke="#C3BAA6" strokeWidth="1.1" />
+                  <Path d="M4.6 6.1l4.3-2.2M4.6 7.9l4.3 2.2" stroke="#C3BAA6" strokeWidth="1.1" />
                 </Svg>
               </TouchableOpacity>
             </View>
@@ -176,7 +176,7 @@ export default function PactMemoryLibrary() {
                       haptics.tap();
                       Alert.alert(p.caption || 'Shared Memory', `Captured by ${p.by} during the trip.`);
                     }}
-                    style={[styles.photoTile, { backgroundColor: p.bg || '#1A2138' }]}
+                    style={[styles.photoTile, { backgroundColor: p.bg || '#1E2742' }]}
                   >
                     {p.uri ? (
                       <Image
@@ -225,14 +225,14 @@ export default function PactMemoryLibrary() {
                     onPress={handleCopy}
                     style={[
                       styles.aiCopyBtn,
-                      copied ? { backgroundColor: '#3E7D63' } : { backgroundColor: '#E0C286' }
+                      copied ? { backgroundColor: '#0FA47F' } : { backgroundColor: '#FFD98A' }
                     ]}
                   >
-                    {copied ? <Check size={13} color="#D3E4DA" /> : <Copy size={13} color="#3A2C12" />}
+                    {copied ? <Check size={13} color="#C8F2E4" /> : <Copy size={13} color="#4A3A14" />}
                     <Text
                       style={[
                         styles.aiCopyBtnText,
-                        copied ? { color: '#D3E4DA' } : { color: '#3A2C12' }
+                        copied ? { color: '#C8F2E4' } : { color: '#4A3A14' }
                       ]}
                     >
                       {copied ? 'Copied!' : 'Copy recap to clipboard'}
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#12182B',
     borderWidth: Platform.OS === 'web' ? 1 : 0,
-    borderColor: 'rgba(243, 238, 226, 0.07)',
+    borderColor: 'rgba(253, 249, 239, 0.11)',
     borderRadius: Platform.OS === 'web' ? 40 : 0,
     overflow: 'hidden',
     position: 'relative'
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
     fontFamily: fontDisplay,
     fontWeight: '700',
     fontSize: 16,
-    color: '#F3EEE2',
+    color: '#FDF9EF',
     flex: 1
   },
   shareBtn: {
@@ -322,9 +322,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   countCard: {
-    backgroundColor: '#1A2138',
+    backgroundColor: '#1E2742',
     borderWidth: 1,
-    borderColor: 'rgba(243, 238, 226, 0.1)',
+    borderColor: 'rgba(253, 249, 239, 0.14)',
     borderRadius: 14,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -333,12 +333,12 @@ const styles = StyleSheet.create({
   countText: {
     fontFamily: fontUI,
     fontSize: 12.5,
-    color: '#A9A08C'
+    color: '#C3BAA6'
   },
   countBold: {
     fontFamily: fontUIBold,
     fontWeight: '600',
-    color: '#F3EEE2'
+    color: '#FDF9EF'
   },
   photoGrid: {
     flexDirection: 'row',
@@ -364,7 +364,7 @@ const styles = StyleSheet.create({
     fontFamily: fontUI,
     fontSize: 9.5,
     fontWeight: '600',
-    color: '#F3EEE2'
+    color: '#FDF9EF'
   },
   photoTile: {
     width: '48%',
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
   photoTagText: {
     fontFamily: fontUI,
     fontSize: 10,
-    color: '#C9C0AC'
+    color: '#D8D0BC'
   },
   addPhotosBtn: {
     borderWidth: 1,
@@ -405,13 +405,13 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 13,
     fontWeight: '600',
-    color: '#A9A08C'
+    color: '#C3BAA6'
   },
   aiDigestOuter: {
     marginBottom: 20
   },
   aiDigestInner: {
-    backgroundColor: '#1A2138',
+    backgroundColor: '#1E2742',
     borderWidth: 1,
     borderColor: 'rgba(212,175,55,0.25)',
     borderRadius: 18,
@@ -427,11 +427,11 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 13.5,
     fontWeight: '600',
-    color: '#F3EEE2',
+    color: '#FDF9EF',
     flex: 1
   },
   aiGoldTag: {
-    backgroundColor: '#E0C286',
+    backgroundColor: '#FFD98A',
     borderRadius: 8,
     paddingHorizontal: 7,
     paddingVertical: 2
@@ -440,13 +440,13 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 9,
     fontWeight: '700',
-    color: '#3A2C12',
+    color: '#4A3A14',
     letterSpacing: 0.5
   },
   aiDigestText: {
     fontFamily: fontUI,
     fontSize: 13,
-    color: '#C9C0AC',
+    color: '#D8D0BC',
     lineHeight: 19,
     marginBottom: 14
   },
@@ -470,13 +470,13 @@ const styles = StyleSheet.create({
     paddingBottom: 22,
     backgroundColor: '#12182B',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(243, 238, 226, 0.07)'
+    borderTopColor: 'rgba(253, 249, 239, 0.11)'
   },
   downloadFullBtn: {
     width: '100%',
     paddingVertical: 14,
     borderRadius: 12,
-    backgroundColor: '#C99A5B',
+    backgroundColor: '#F0B24A',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

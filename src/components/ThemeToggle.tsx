@@ -15,13 +15,13 @@ export const ThemeToggle: React.FC = () => {
       style={[
         styles.button,
         {
-          backgroundColor: isDarkMode ? 'rgba(243, 238, 226, 0.07)' : 'rgba(0,0,0,0.05)',
+          backgroundColor: isDarkMode ? 'rgba(253, 249, 239, 0.11)' : 'rgba(0,0,0,0.05)',
           borderColor: theme.border
         }
       ]}
     >
       {isDarkMode ? (
-        <Sun size={18} color="#E3B25E" />
+        <Sun size={18} color="#FFC55C" />
       ) : (
         <Moon size={18} color="#12182B" />
       )}

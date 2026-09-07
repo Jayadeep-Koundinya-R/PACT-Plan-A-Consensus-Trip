@@ -128,11 +128,11 @@ export const SyncBadge: React.FC<SyncBadgeProps> = ({
       <View style={styles.badgePill}>
         {/* Pulsing Amber Dot */}
         <Animated.View style={[styles.amberDot, { opacity: dotPulse }]} />
-        <WifiOff size={13} color="#D99A3F" style={styles.icon} />
+        <WifiOff size={13} color="#FFB224" style={styles.icon} />
         <Text style={styles.badgeText}>Offline — Changes saved locally</Text>
         {onRetry && (
           <TouchableOpacity onPress={onRetry} activeOpacity={0.7} style={styles.retryBtn}>
-            <RefreshCw size={11} color="#D99A3F" />
+            <RefreshCw size={11} color="#FFB224" />
           </TouchableOpacity>
         )}
       </View>
@@ -153,13 +153,13 @@ const styles = StyleSheet.create({
   badgePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1F2840',
+    backgroundColor: '#242E4A',
     paddingHorizontal: 14,
     paddingVertical: 7,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(217, 154, 63, 0.35)',
-    shadowColor: '#D99A3F',
+    borderColor: 'rgba(255, 178, 36, 0.35)',
+    shadowColor: '#FFB224',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.25,
     shadowRadius: 8
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
     width: 7,
     height: 7,
     borderRadius: 4,
-    backgroundColor: '#D99A3F',
+    backgroundColor: '#FFB224',
     marginRight: 6
   },
   icon: {
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
   badgeText: {
     fontFamily: fontUIBold,
     fontSize: 12,
-    color: '#F3EEE2',
+    color: '#FDF9EF',
     letterSpacing: 0.2
   },
   retryBtn: {

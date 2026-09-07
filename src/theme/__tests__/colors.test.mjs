@@ -28,25 +28,25 @@ function token(mode, name) {
   return valueMatch[1];
 }
 
-// DESIGN_SYSTEM.md palette (source of truth)
+// DESIGN_SYSTEM.md palette — sharpened accents (2026-09-07): vivid gold, vivid teal, vermilion.
 const DARK = {
   background: '#12182B',   // Ink
-  surface: '#1A2138',
-  primary: '#C99A5B',      // Brass (lightened for dark bg)
-  secondary: '#58A68C',    // Petrol, lightened for dark-bg readability
-  success: '#58A68C',
-  danger: '#C1503F',       // Sealing Red
-  seal: '#C1503F',         // Dual meaning with danger is intentional
-  textPrimary: '#F3EEE2',
-  textSecondary: '#A9A08C'
+  surface: '#1E2742',
+  primary: '#F0B24A',      // vivid gold
+  secondary: '#25C9A0',    // vivid teal
+  success: '#25C9A0',
+  danger: '#E14733',       // vermilion
+  seal: '#E14733',         // dual meaning with danger is intentional
+  textPrimary: '#FDF9EF',
+  textSecondary: '#C3BAA6'
 };
 const LIGHT = {
   background: '#F6EFDE',   // Parchment
-  primary: '#A97C3D',      // Brass
-  secondary: '#1E5C58',    // Petrol
-  success: '#4B7A51',      // Moss
-  danger: '#A63D2F',       // Sealing Red
-  seal: '#A63D2F',
+  primary: '#C88A1F',      // bright gold for parchment
+  secondary: '#0FA47F',    // vivid teal
+  success: '#0FA47F',
+  danger: '#D6432B',       // vermilion
+  seal: '#D6432B',
   textPrimary: '#1E1A14'
 };
 

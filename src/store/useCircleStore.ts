@@ -54,6 +54,8 @@ interface CircleState {
   syncFromLegacy: (groups: any[], activeGroupId: string) => void;
   setCircleProStatus: (circleId: string, hasPro: boolean) => void;
   isCirclePro: (circleId: string) => boolean;
+  loadDemoCircle: () => void;
+  clearCircles: () => void;
 }
 
 const DEMO_MEMBERS: CircleMember[] = [
@@ -152,6 +154,18 @@ export const useCircleStore = create<CircleState>((set, get) => ({
       )
     })),
 
+  loadDemoCircle: () => {
+    set({
+      circles: [DEMO_CIRCLE],
+      activeCircleId: DEMO_CIRCLE.id
+    });
+  },
+  clearCircles: () => {
+    set({
+      circles: [],
+      activeCircleId: null
+    });
+  },
   isCirclePro: (circleId) => {
     const circle = get().circles.find((c) => c.id === circleId);
     return Boolean(circle?.hasPro);

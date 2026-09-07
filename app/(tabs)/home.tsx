@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -41,55 +41,20 @@ export default function MyCirclesScreen() {
   const { circles = [], activeCircleId, setActiveCircle, archiveCircle, unarchiveCircle } = useCircleStore();
   const [circleTab, setCircleTab] = useState<'active' | 'archived'>('active');
   const { profile, subscriptionPlan } = useUserStore();
-  const { groups = [] } = useGatherlyStore();
+  const { groups = [], fetchUserGroupsFromCloud, currentUserId } = useGatherlyStore();
+
+  useEffect(() => {
+    if (currentUserId) {
+      fetchUserGroupsFromCloud();
+    }
+  }, [currentUserId]);
 
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
-  // Combine circles from useCircleStore and gatherlyStore to ensure full coverage
-  const allCircles = circles.length > 0 ? circles : [
-    {
-      id: 'circle-college-reunion-2026',
-      name: 'Goa Beach Escape 2026',
-      inviteCode: 'GOA-4F82',
-      organizerId: 'user-maya-001',
-      organizerName: 'Alex Rivers',
-      status: 'voting' as const,
-      totalMembersCount: 5,
-      members: [
-        { userId: 'user-maya-001', name: 'Alex', status: 'locked' as const, nudgedAt: null },
-        { userId: 'user-jake-002', name: 'You', status: 'locked' as const, nudgedAt: null },
-        { userId: 'user-priya-003', name: 'Sam', status: 'locked' as const, nudgedAt: null },
-        { userId: 'user-alex-004', name: 'Jordan', status: 'waiting' as const, nudgedAt: null },
-        { userId: 'user-sam-005', name: 'Maya', status: 'waiting' as const, nudgedAt: null }
-      ],
-      createdAt: new Date().toISOString()
-    }
-  ];
-
-  // Ensure baseline circles with default archived flag
-  const baseCircles = allCircles.length === 1 ? [
-    ...allCircles,
-    {
-      id: 'circle-kyoto-2027',
-      name: 'Kyoto Spring 2027',
-      inviteCode: 'KYO-9X21',
-      organizerId: 'user-kenji-099',
-      organizerName: 'Kenji Sato',
-      status: 'collecting' as const,
-      totalMembersCount: 4,
-      archived: false,
-      members: [
-        { userId: 'user-kenji-099', name: 'Kenji', status: 'locked' as const, nudgedAt: null },
-        { userId: 'user-maya-001', name: 'Alex', status: 'waiting' as const, nudgedAt: null },
-        { userId: 'user-lisa-102', name: 'Lisa', status: 'waiting' as const, nudgedAt: null },
-        { userId: 'user-tomo-103', name: 'Tomo', status: 'waiting' as const, nudgedAt: null }
-      ],
-      createdAt: new Date().toISOString()
-    }
-  ] : allCircles;
-
-  const activeCircles = baseCircles.filter((c) => !c.archived);
-  const archivedCircles = baseCircles.filter((c) => !!c.archived);
+  // Pure live circles from store (populated from Supabase or empty)
+  const allCircles = circles;
+  const activeCircles = allCircles.filter((c) => !c.archived);
+  const archivedCircles = allCircles.filter((c) => !!c.archived);
   const displayCircles = circleTab === 'active' ? activeCircles : archivedCircles;
 
   const handleCopy = async (code: string) => {
@@ -142,7 +107,7 @@ export default function MyCirclesScreen() {
           <View style={styles.headerRow}>
             <View style={styles.brandRow}>
               <View style={styles.logoBadge}>
-                <Compass size={18} color="#C99A5B" strokeWidth={2.5} />
+                <Compass size={18} color="#F0B24A" strokeWidth={2.5} />
               </View>
               <View>
                 <Text style={styles.brandTitle}>PACT</Text>
@@ -173,12 +138,12 @@ export default function MyCirclesScreen() {
             </View>
             <View style={styles.metricDivider} />
             <View style={styles.metricItem}>
-              <Text style={[styles.metricValue, { color: '#58A68C' }]}>80%</Text>
+              <Text style={[styles.metricValue, { color: '#25C9A0' }]}>80%</Text>
               <Text style={styles.metricLabel}>SUPERMAJORITY</Text>
             </View>
             <View style={styles.metricDivider} />
             <View style={styles.metricItem}>
-              <Text style={[styles.metricValue, { color: '#C99A5B' }]}>100%</Text>
+              <Text style={[styles.metricValue, { color: '#F0B24A' }]}>100%</Text>
               <Text style={styles.metricLabel}>SEALED PRIVACY</Text>
             </View>
           </View>
@@ -205,7 +170,7 @@ export default function MyCirclesScreen() {
               }}
               style={styles.secondaryActionBtn}
             >
-              <KeyRound size={15} color="#F3EEE2" />
+              <KeyRound size={15} color="#FDF9EF" />
               <Text style={styles.secondaryActionBtnText}>Join Code</Text>
             </TouchableOpacity>
           </View>
@@ -239,7 +204,7 @@ export default function MyCirclesScreen() {
                 style={[styles.tabButton, circleTab === 'archived' && styles.tabButtonActive]}
                 accessibilityLabel={`Archived circles, ${archivedCircles.length} available`}
               >
-                <Archive size={11} color={circleTab === 'archived' ? '#C99A5B' : '#A9A08C'} />
+                <Archive size={11} color={circleTab === 'archived' ? '#F0B24A' : '#C3BAA6'} />
                 <Text style={[styles.tabButtonText, circleTab === 'archived' && styles.tabButtonTextActive]}>
                   Archived ({archivedCircles.length})
                 </Text>
@@ -249,15 +214,43 @@ export default function MyCirclesScreen() {
 
           {displayCircles.length === 0 && (
             <View style={styles.emptyTabCard}>
-              <FolderArchive size={28} color="#303A55" />
+              <FolderArchive size={28} color="#384262" />
               <Text style={styles.emptyTabTitle}>
                 {circleTab === 'archived' ? 'No Archived Circles' : 'No Active Circles'}
               </Text>
               <Text style={styles.emptyTabDesc}>
                 {circleTab === 'archived'
                   ? 'Trips you archive will be stored here for future reference.'
-                  : 'Start a new circle or join with an invite code.'}
+                  : 'Start a new trip circle or join one with an invite code to begin consensus planning.'}
               </Text>
+
+              {circleTab === 'active' && (
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    haptics.success();
+                    useGatherlyStore.getState().resetDemoState();
+                    useCircleStore.getState().loadDemoCircle();
+                  }}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 6,
+                    marginTop: 16,
+                    paddingVertical: 10,
+                    paddingHorizontal: 16,
+                    borderRadius: 8,
+                    backgroundColor: 'rgba(240, 178, 74, 0.12)',
+                    borderWidth: 1,
+                    borderColor: 'rgba(240, 178, 74, 0.3)'
+                  }}
+                >
+                  <Sparkles size={14} color="#F0B24A" />
+                  <Text style={{ color: '#F0B24A', fontSize: 13, fontWeight: '700' }}>
+                    Load Demo Circle (Goa Beach)
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           )}
 
@@ -306,13 +299,13 @@ export default function MyCirclesScreen() {
                       <View style={styles.statusPill}>
                         {circle.status === 'voting' ? (
                           <>
-                            <Sparkles size={11} color="#C99A5B" />
-                            <Text style={[styles.statusPillText, { color: '#C99A5B' }]}>Voting Open</Text>
+                            <Sparkles size={11} color="#F0B24A" />
+                            <Text style={[styles.statusPillText, { color: '#F0B24A' }]}>Voting Open</Text>
                           </>
                         ) : (
                           <>
-                            <Clock size={11} color="#D99A3F" />
-                            <Text style={[styles.statusPillText, { color: '#D99A3F' }]}>Collecting</Text>
+                            <Clock size={11} color="#FFB224" />
+                            <Text style={[styles.statusPillText, { color: '#FFB224' }]}>Collecting</Text>
                           </>
                         )}
                       </View>
@@ -328,11 +321,11 @@ export default function MyCirclesScreen() {
                       accessibilityLabel={`Copy invite code ${circle.inviteCode}`}
                     >
                       {copiedCode === circle.inviteCode ? (
-                        <Check size={11} color="#58A68C" />
+                        <Check size={11} color="#25C9A0" />
                       ) : (
-                        <Copy size={11} color="#A9A08C" />
+                        <Copy size={11} color="#C3BAA6" />
                       )}
-                      <Text style={[styles.invitePillText, copiedCode === circle.inviteCode && { color: '#58A68C' }]}>
+                      <Text style={[styles.invitePillText, copiedCode === circle.inviteCode && { color: '#25C9A0' }]}>
                         {copiedCode === circle.inviteCode ? 'COPIED' : circle.inviteCode}
                       </Text>
                     </TouchableOpacity>
@@ -353,11 +346,11 @@ export default function MyCirclesScreen() {
                       accessibilityLabel={circle.archived ? 'Restore circle from archive' : 'Archive circle'}
                     >
                       {circle.archived ? (
-                        <RotateCcw size={11} color="#58A68C" />
+                        <RotateCcw size={11} color="#25C9A0" />
                       ) : (
-                        <Archive size={11} color="#A9A08C" />
+                        <Archive size={11} color="#C3BAA6" />
                       )}
-                      <Text style={[styles.archiveBtnText, circle.archived && { color: '#58A68C' }]}>
+                      <Text style={[styles.archiveBtnText, circle.archived && { color: '#25C9A0' }]}>
                         {circle.archived ? 'Restore' : 'Archive'}
                       </Text>
                     </TouchableOpacity>
@@ -378,7 +371,7 @@ export default function MyCirclesScreen() {
                         styles.meterFill,
                         {
                           width: `${progressPercent}%`,
-                          backgroundColor: progressPercent >= 80 ? '#58A68C' : progressPercent >= 40 ? '#D99A3F' : '#4FA39B'
+                          backgroundColor: progressPercent >= 80 ? '#25C9A0' : progressPercent >= 40 ? '#FFB224' : '#35C4A5'
                         }
                       ]}
                     />
@@ -394,7 +387,7 @@ export default function MyCirclesScreen() {
                         style={[
                           styles.memberMiniDot,
                           {
-                            backgroundColor: m.status === 'locked' ? '#58A68C' : '#303A55',
+                            backgroundColor: m.status === 'locked' ? '#25C9A0' : '#384262',
                             zIndex: 10 - idx
                           }
                         ]}
@@ -411,7 +404,7 @@ export default function MyCirclesScreen() {
 
                   <View style={styles.openLinkRow}>
                     <Text style={styles.openLinkText}>Open Hub</Text>
-                    <ArrowRight size={13} color="#C99A5B" />
+                    <ArrowRight size={13} color="#F0B24A" />
                   </View>
                 </View>
                 </View>
@@ -421,7 +414,7 @@ export default function MyCirclesScreen() {
 
           {/* Privacy Guarantee Note */}
           <View style={styles.privacyNoteBox}>
-            <ShieldCheck size={16} color="#58A68C" />
+            <ShieldCheck size={16} color="#25C9A0" />
             <Text style={styles.privacyNoteText}>
               All participant constraints and vetoes are mathematically sealed with zero group peer pressure.
             </Text>
@@ -441,11 +434,11 @@ const styles = StyleSheet.create({
   tabSwitcher: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1A2138',
+    backgroundColor: '#1E2742',
     borderRadius: 8,
     padding: 2,
     borderWidth: 1,
-    borderColor: '#262E48',
+    borderColor: '#2B3552',
     gap: 2
   },
   tabButton: {
@@ -457,18 +450,18 @@ const styles = StyleSheet.create({
     borderRadius: 6
   },
   tabButtonActive: {
-    backgroundColor: 'rgba(201, 154, 91, 0.15)',
+    backgroundColor: 'rgba(240, 178, 74, 0.15)',
     borderWidth: 1,
-    borderColor: 'rgba(201, 154, 91, 0.35)'
+    borderColor: 'rgba(240, 178, 74, 0.35)'
   },
   tabButtonText: {
     fontFamily: fontUIBold,
     fontSize: 11,
-    color: '#A9A08C',
+    color: '#C3BAA6',
     letterSpacing: 0.2
   },
   tabButtonTextActive: {
-    color: '#C99A5B'
+    color: '#F0B24A'
   },
   cardHeaderActions: {
     flexDirection: 'row',
@@ -482,18 +475,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
-    backgroundColor: '#1F2840',
+    backgroundColor: '#242E4A',
     borderWidth: 1,
-    borderColor: '#2A3350'
+    borderColor: '#323C5A'
   },
   archiveBtnRestoring: {
-    borderColor: 'rgba(88, 166, 140, 0.3)',
-    backgroundColor: 'rgba(88, 166, 140, 0.08)'
+    borderColor: 'rgba(37, 201, 160, 0.3)',
+    backgroundColor: 'rgba(37, 201, 160, 0.08)'
   },
   archiveBtnText: {
     fontFamily: fontUIBold,
     fontSize: 10,
-    color: '#A9A08C',
+    color: '#C3BAA6',
     letterSpacing: 0.2
   },
   emptyTabCard: {
@@ -504,21 +497,21 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: '#0E1424',
     borderWidth: 1,
-    borderColor: '#262E48',
+    borderColor: '#2B3552',
     marginBottom: 16
   },
   emptyTabTitle: {
     fontFamily: fontDisplay,
     fontSize: 15,
     fontWeight: '700',
-    color: '#F3EEE2',
+    color: '#FDF9EF',
     marginTop: 10,
     marginBottom: 4
   },
   emptyTabDesc: {
     fontFamily: fontUI,
     fontSize: 12,
-    color: '#A9A08C',
+    color: '#C3BAA6',
     textAlign: 'center',
     lineHeight: 18,
     maxWidth: 260
@@ -529,7 +522,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#12182B',
     borderWidth: Platform.OS === 'web' ? 1 : 0,
-    borderColor: '#262E48'
+    borderColor: '#2B3552'
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -551,24 +544,24 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 10,
-    backgroundColor: 'rgba(201, 154, 91, 0.12)',
+    backgroundColor: 'rgba(240, 178, 74, 0.12)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(201, 154, 91, 0.25)'
+    borderColor: 'rgba(240, 178, 74, 0.25)'
   },
   brandTitle: {
     fontFamily: fontDisplay,
     fontSize: 20,
     fontWeight: '800',
-    color: '#C99A5B',
+    color: '#F0B24A',
     letterSpacing: 0.5
   },
   brandSubtitle: {
     fontFamily: fontUI,
     fontSize: 9,
     fontWeight: '700',
-    color: '#A9A08C',
+    color: '#C3BAA6',
     letterSpacing: 0.8
   },
   profilePill: {
@@ -578,15 +571,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 5,
     borderRadius: 20,
-    backgroundColor: '#1A2138',
+    backgroundColor: '#1E2742',
     borderWidth: 1,
-    borderColor: '#262E48'
+    borderColor: '#2B3552'
   },
   avatarMini: {
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: '#C99A5B',
+    backgroundColor: '#F0B24A',
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -606,14 +599,14 @@ const styles = StyleSheet.create({
   proMiniBadgeText: {
     fontSize: 9,
     fontWeight: '800',
-    color: '#E0C286'
+    color: '#FFD98A'
   },
   metricsBar: {
     flexDirection: 'row',
-    backgroundColor: '#1A2138',
+    backgroundColor: '#1E2742',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#262E48',
+    borderColor: '#2B3552',
     paddingVertical: 12,
     paddingHorizontal: 8,
     marginBottom: 16,
@@ -627,19 +620,19 @@ const styles = StyleSheet.create({
   metricValue: {
     fontSize: 17,
     fontWeight: '800',
-    color: '#F3EEE2',
+    color: '#FDF9EF',
     marginBottom: 2
   },
   metricLabel: {
     fontSize: 9,
     fontWeight: '700',
-    color: '#A9A08C',
+    color: '#C3BAA6',
     letterSpacing: 0.4
   },
   metricDivider: {
     width: 1,
     height: 24,
-    backgroundColor: '#262E48'
+    backgroundColor: '#2B3552'
   },
   quickActionRow: {
     flexDirection: 'row',
@@ -652,7 +645,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#C99A5B',
+    backgroundColor: '#F0B24A',
     paddingVertical: 12,
     borderRadius: 12
   },
@@ -667,16 +660,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: '#1A2138',
+    backgroundColor: '#1E2742',
     borderWidth: 1,
-    borderColor: '#262E48',
+    borderColor: '#2B3552',
     paddingVertical: 12,
     borderRadius: 12
   },
   secondaryActionBtnText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#F3EEE2'
+    color: '#FDF9EF'
   },
   sectionHeaderRow: {
     flexDirection: 'row',
@@ -687,7 +680,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#A9A08C',
+    color: '#C3BAA6',
     letterSpacing: 0.8
   },
   sectionTitleRow: {
@@ -698,13 +691,13 @@ const styles = StyleSheet.create({
   sectionCount: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#C99A5B'
+    color: '#F0B24A'
   },
   circleCard: {
-    backgroundColor: '#1A2138',
+    backgroundColor: '#1E2742',
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: '#262E48',
+    borderColor: '#2B3552',
     overflow: 'hidden',
     marginBottom: 16,
     shadowColor: '#000',
@@ -717,7 +710,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 130,
     position: 'relative',
-    backgroundColor: '#1F2840'
+    backgroundColor: '#242E4A'
   },
   cardCoverImage: {
     width: '100%',
@@ -736,12 +729,12 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: 'rgba(243, 238, 226, 0.17)'
+    borderColor: 'rgba(253, 249, 239, 0.21)'
   },
   coverTagText: {
     fontFamily: fontUIBold,
     fontSize: 9.5,
-    color: '#58A68C',
+    color: '#25C9A0',
     letterSpacing: 0.8
   },
   cardContentPadding: {
@@ -760,7 +753,7 @@ const styles = StyleSheet.create({
   circleName: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#F3EEE2',
+    color: '#FDF9EF',
     marginBottom: 6
   },
   metaBadgeRow: {
@@ -778,30 +771,30 @@ const styles = StyleSheet.create({
     fontWeight: '700'
   },
   organizerBadge: {
-    backgroundColor: 'rgba(201, 154, 91, 0.12)',
+    backgroundColor: 'rgba(240, 178, 74, 0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(201, 154, 91, 0.25)'
+    borderColor: 'rgba(240, 178, 74, 0.25)'
   },
   organizerBadgeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#C99A5B'
+    color: '#F0B24A'
   },
   memberBadge: {
-    backgroundColor: 'rgba(88, 166, 140, 0.1)',
+    backgroundColor: 'rgba(37, 201, 160, 0.1)',
     borderWidth: 1,
-    borderColor: 'rgba(88, 166, 140, 0.2)'
+    borderColor: 'rgba(37, 201, 160, 0.2)'
   },
   memberBadgeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#58A68C'
+    color: '#25C9A0'
   },
   statusPill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#1F2840',
+    backgroundColor: '#242E4A',
     paddingHorizontal: 7,
     paddingVertical: 2,
     borderRadius: 6
@@ -814,9 +807,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#1F2840',
+    backgroundColor: '#242E4A',
     borderWidth: 1,
-    borderColor: '#303A55',
+    borderColor: '#384262',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8
@@ -824,7 +817,7 @@ const styles = StyleSheet.create({
   invitePillText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#A9A08C',
+    color: '#C3BAA6',
     letterSpacing: 0.5
   },
   meterContainer: {
@@ -837,16 +830,16 @@ const styles = StyleSheet.create({
   },
   meterLabelText: {
     fontSize: 11,
-    color: '#A9A08C'
+    color: '#C3BAA6'
   },
   meterValueText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#F3EEE2'
+    color: '#FDF9EF'
   },
   meterTrack: {
     height: 6,
-    backgroundColor: '#262E48',
+    backgroundColor: '#2B3552',
     borderRadius: 3,
     overflow: 'hidden'
   },
@@ -860,7 +853,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#262E48'
+    borderTopColor: '#2B3552'
   },
   membersAvatarStrip: {
     flexDirection: 'row',
@@ -874,7 +867,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: -6,
     borderWidth: 1.5,
-    borderColor: '#1A2138'
+    borderColor: '#1E2742'
   },
   memberMiniDotText: {
     fontSize: 8,
@@ -883,7 +876,7 @@ const styles = StyleSheet.create({
   },
   membersCountText: {
     fontSize: 11,
-    color: '#A9A08C',
+    color: '#C3BAA6',
     marginLeft: 12
   },
   openLinkRow: {
@@ -894,15 +887,15 @@ const styles = StyleSheet.create({
   openLinkText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#C99A5B'
+    color: '#F0B24A'
   },
   privacyNoteBox: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: 'rgba(88, 166, 140, 0.06)',
+    backgroundColor: 'rgba(37, 201, 160, 0.06)',
     borderWidth: 1,
-    borderColor: 'rgba(88, 166, 140, 0.15)',
+    borderColor: 'rgba(37, 201, 160, 0.15)',
     borderRadius: 12,
     padding: 12,
     marginTop: 8
@@ -910,7 +903,7 @@ const styles = StyleSheet.create({
   privacyNoteText: {
     fontSize: 11,
     lineHeight: 16,
-    color: '#A9A08C',
+    color: '#C3BAA6',
     flex: 1
   }
 });

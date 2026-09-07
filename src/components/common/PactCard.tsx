@@ -22,7 +22,7 @@ export interface PactCardProps {
 
 /**
  * PactCard - Reusable core card container for PACT design system
- * Features #1A2138 background, rounded card corners, and subtle border token.
+ * Features #1E2742 background, rounded card corners, and subtle border token.
  */
 export const PactCard: React.FC<PactCardProps> = ({
   children,
@@ -64,23 +64,23 @@ export const PactCard: React.FC<PactCardProps> = ({
 
 const styles = StyleSheet.create({
   base: {
-    backgroundColor: '#1A2138',
+    backgroundColor: '#1E2742',
     borderRadius: radius.card,
     borderWidth: 1,
-    borderColor: 'rgba(243, 238, 226, 0.1)',
+    borderColor: 'rgba(253, 249, 239, 0.14)',
     padding: 16
   },
   elevated: {
-    backgroundColor: '#222B45',
+    backgroundColor: '#28324F',
     ...shadows.md
   },
   subtle: {
-    backgroundColor: '#161D33',
-    borderColor: 'rgba(243, 238, 226, 0.06)'
+    backgroundColor: '#182036',
+    borderColor: 'rgba(253, 249, 239, 0.1)'
   },
   dashed: {
     borderStyle: 'dashed',
-    borderColor: 'rgba(243, 238, 226, 0.18)'
+    borderColor: 'rgba(253, 249, 239, 0.22)'
   },
   noPadding: {
     padding: 0

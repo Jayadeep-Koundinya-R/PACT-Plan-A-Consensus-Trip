@@ -102,7 +102,7 @@ export const PactChip: React.FC<PactChipProps> = ({
           <Svg width="8" height="8" viewBox="0 0 10 8" fill="none">
             <Path
               d="M1 4.2L3.8 7L9 1"
-              stroke={variant === 'neutral' ? '#12182B' : '#1E3A30'}
+              stroke={variant === 'neutral' ? '#12182B' : '#0B3327'}
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -132,19 +132,19 @@ const styles = StyleSheet.create({
     gap: 6
   },
   inactive: {
-    backgroundColor: 'rgba(243, 238, 226, 0.05)',
-    borderColor: 'rgba(243, 238, 226, 0.1)'
+    backgroundColor: 'rgba(253, 249, 239, 0.08)',
+    borderColor: 'rgba(253, 249, 239, 0.14)'
   },
   active_emerald: {
-    backgroundColor: 'rgba(88, 166, 140, 0.12)',
-    borderColor: '#58A68C'
+    backgroundColor: 'rgba(37, 201, 160, 0.12)',
+    borderColor: '#25C9A0'
   },
   active_coral: {
-    backgroundColor: 'rgba(201, 154, 91, 0.12)',
-    borderColor: '#C99A5B'
+    backgroundColor: 'rgba(240, 178, 74, 0.12)',
+    borderColor: '#F0B24A'
   },
   active_neutral: {
-    backgroundColor: 'rgba(243, 238, 226, 0.16)',
+    backgroundColor: 'rgba(253, 249, 239, 0.2)',
     borderColor: 'rgba(255, 255, 255, 0.35)'
   },
   baseText: {
@@ -158,15 +158,15 @@ const styles = StyleSheet.create({
   },
   inactiveText: {
     fontFamily: fontUI,
-    color: '#A9A08C'
+    color: '#C3BAA6'
   },
   activeText_emerald: {
     fontFamily: fontUIBold,
-    color: '#F3EEE2'
+    color: '#FDF9EF'
   },
   activeText_coral: {
     fontFamily: fontUIBold,
-    color: '#F3EEE2'
+    color: '#FDF9EF'
   },
   activeText_neutral: {
     fontFamily: fontUIBold,
@@ -187,13 +187,13 @@ const styles = StyleSheet.create({
     marginLeft: 2
   },
   checkBadgeEmerald: {
-    backgroundColor: '#58A68C'
+    backgroundColor: '#25C9A0'
   },
   checkBadgeCoral: {
-    backgroundColor: '#C99A5B'
+    backgroundColor: '#F0B24A'
   },
   checkBadgeNeutral: {
-    backgroundColor: '#F3EEE2'
+    backgroundColor: '#FDF9EF'
   },
   disabled: {
     opacity: 0.45

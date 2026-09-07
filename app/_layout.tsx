@@ -16,6 +16,7 @@ import {
 import { useGatherlyStore } from '../src/store/useGatherlyStore';
 import { colors, radius, shadows } from '../src/theme/colors';
 import { initPurchases } from '../src/lib/purchases/config';
+import { supabase } from '../src/lib/supabase/client';
 import { SyncBadge } from '../src/components/common';
 import { Compass, RefreshCw, AlertTriangle } from 'lucide-react-native';
 

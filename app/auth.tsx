@@ -260,7 +260,7 @@ export default function AuthScreen() {
               ]}
             >
               <View style={styles.pillarCardHeader}>
-                <View style={[styles.pillarIconBox, { backgroundColor: isDarkMode ? '#2A3350' : '#F0E3C8' }]}>
+                <View style={[styles.pillarIconBox, { backgroundColor: isDarkMode ? '#323C5A' : '#FFEFC9' }]}>
                   <ActiveIcon size={20} color={theme.primary} />
                 </View>
                 <View style={styles.pillarTextCol}>
@@ -335,7 +335,7 @@ export default function AuthScreen() {
               <View
                 style={[
                   styles.errorBox,
-                  { backgroundColor: isDarkMode ? '#3A241E' : '#FEE2E2', borderColor: '#D06B58' }
+                  { backgroundColor: isDarkMode ? '#3A241E' : '#FEE2E2', borderColor: '#E96A50' }
                 ]}
               >
                 <AlertCircle size={16} color={theme.danger} />
@@ -500,7 +500,7 @@ export default function AuthScreen() {
                     { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }
                   ]}
                 >
-                  <View style={[styles.avatarCircle, { backgroundColor: isDarkMode ? '#2A3350' : '#F0E3C8' }]}>
+                  <View style={[styles.avatarCircle, { backgroundColor: isDarkMode ? '#323C5A' : '#FFEFC9' }]}>
                     <Text style={[styles.avatarLetter, { color: theme.primary }]}>
                       {m.userName ? m.userName.charAt(0) : 'U'}
                     </Text>
@@ -714,7 +714,7 @@ const styles = StyleSheet.create({
     marginBottom: 10
   },
   submitBtnText: {
-    color: '#FFFFFF',
+    color: '#3A2A10',
     fontSize: 14,
     fontWeight: '800'
   },

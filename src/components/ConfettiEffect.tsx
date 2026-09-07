@@ -4,13 +4,13 @@ import { View, StyleSheet, Dimensions } from 'react-native';
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const CONFETTI_COLORS = [
-  '#58A68C', // PACT Emerald
-  '#C99A5B', // Coral
-  '#D99A3F', // Warm Amber
-  '#4FA39B', // Sky Blue
-  '#8A6A33', // Violet
-  '#C1503F', // Rose Pink
-  '#E0C286', // Gold
+  '#25C9A0', // PACT Emerald
+  '#F0B24A', // Coral
+  '#FFB224', // Warm Amber
+  '#35C4A5', // Sky Blue
+  '#B58722', // Violet
+  '#E14733', // Rose Pink
+  '#FFD98A', // Gold
   '#FFFFFF'  // White Sparkle
 ];
 

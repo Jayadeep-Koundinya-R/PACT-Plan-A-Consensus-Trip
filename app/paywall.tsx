@@ -81,7 +81,7 @@ export default function PactPaywall() {
           {/* Header Row */}
           <View style={styles.headerRow}>
             <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7} style={styles.closeBtn}>
-              <X size={20} color="#A9A08C" />
+              <X size={20} color="#C3BAA6" />
             </TouchableOpacity>
             <View style={styles.proPillBadge}>
               <Text style={styles.proPillText}>PACT PRO</Text>
@@ -93,7 +93,7 @@ export default function PactPaywall() {
             <View style={styles.heroTop}>
               <Text style={styles.heroTitle}>Unlock PACT Pro</Text>
               <Text style={styles.heroSub}>
-                Only <Text style={{ color: '#E0C286', fontWeight: '700' }}>one</Text> person needs Pro. Your entire trip circle gets all Pro benefits for free.
+                Only <Text style={{ color: '#FFD98A', fontWeight: '700' }}>one</Text> person needs Pro. Your entire trip circle gets all Pro benefits for free.
               </Text>
             </View>
 
@@ -120,7 +120,7 @@ export default function PactPaywall() {
                     <Path
                       d="M7 1.3l1.6 3.9 4.1.4-3.1 2.8.9 4.1L7 10.4l-3.5 2.1.9-4.1-3.1-2.8 4.1-.4z"
                       fill="none"
-                      stroke="#E0C286"
+                      stroke="#FFD98A"
                       strokeWidth="1"
                       strokeLinejoin="round"
                     />
@@ -157,7 +157,7 @@ export default function PactPaywall() {
                   <View
                     style={[
                       styles.radioOuter,
-                      plan === 'annual' && { borderColor: '#C99A5B', borderWidth: 5 }
+                      plan === 'annual' && { borderColor: '#F0B24A', borderWidth: 5 }
                     ]}
                   />
                   <Text style={styles.planNameText}>Annual organizer pass</Text>
@@ -188,7 +188,7 @@ export default function PactPaywall() {
                   <View
                     style={[
                       styles.radioOuter,
-                      plan === 'single' && { borderColor: '#C99A5B', borderWidth: 5 }
+                      plan === 'single' && { borderColor: '#F0B24A', borderWidth: 5 }
                     ]}
                   />
                   <Text style={styles.planNameText}>Single trip pass</Text>
@@ -202,7 +202,7 @@ export default function PactPaywall() {
           <View style={styles.testimonialCard}>
             <View style={styles.starsRow}>
               {[0, 1, 2, 3, 4].map((i) => (
-                <Star key={i} size={13} fill="#E0C286" color="#E0C286" style={{ marginRight: 2 }} />
+                <Star key={i} size={13} fill="#FFD98A" color="#FFD98A" style={{ marginRight: 2 }} />
               ))}
             </View>
             <Text style={styles.testimonialQuote}>
@@ -217,7 +217,7 @@ export default function PactPaywall() {
           {isWeb ? (
             <View style={styles.webNoticeContainer}>
               <View style={styles.webNoticeHeader}>
-                <Smartphone size={16} color="#58A68C" />
+                <Smartphone size={16} color="#25C9A0" />
                 <Text style={styles.webNoticeTitle}>Pro purchases available in the iOS/Android app</Text>
               </View>
               <Text style={styles.webNoticeDesc}>
@@ -228,7 +228,7 @@ export default function PactPaywall() {
                 onPress={handleWebDemoUnlock}
                 style={styles.webDemoUnlockBtn}
               >
-                <Sparkles size={15} color="#16301E" />
+                <Sparkles size={15} color="#0A2A1F" />
                 <Text style={styles.webDemoUnlockBtnText}>Preview PACT Pro in Web Demo</Text>
               </TouchableOpacity>
             </View>
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#12182B',
     borderWidth: Platform.OS === 'web' ? 1 : 0,
-    borderColor: 'rgba(243, 238, 226, 0.07)',
+    borderColor: 'rgba(253, 249, 239, 0.11)',
     borderRadius: Platform.OS === 'web' ? 40 : 0,
     overflow: 'hidden',
     position: 'relative'
@@ -298,11 +298,11 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 11.5,
     fontWeight: '700',
-    color: '#E0C286',
+    color: '#FFD98A',
     letterSpacing: 0.5
   },
   heroCard: {
-    backgroundColor: '#1A2138',
+    backgroundColor: '#1E2742',
     borderWidth: 1,
     borderColor: 'rgba(212,175,55,0.3)',
     borderRadius: 18,
@@ -319,13 +319,13 @@ const styles = StyleSheet.create({
     fontFamily: fontDisplay,
     fontSize: 25,
     fontWeight: '700',
-    color: '#F3EEE2',
+    color: '#FDF9EF',
     marginBottom: 10
   },
   heroSub: {
     fontFamily: fontUI,
     fontSize: 12.5,
-    color: '#C9C0AC',
+    color: '#D8D0BC',
     lineHeight: 19,
     textAlign: 'center'
   },
@@ -366,7 +366,7 @@ const styles = StyleSheet.create({
   heroPassLabel: {
     fontFamily: fontUIBold,
     fontSize: 10,
-    color: '#8A6A33',
+    color: '#B58722',
     letterSpacing: 0.8
   },
   featuresList: {
@@ -392,12 +392,12 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 13.5,
     fontWeight: '600',
-    color: '#F3EEE2'
+    color: '#FDF9EF'
   },
   featureDesc: {
     fontFamily: fontUI,
     fontSize: 12,
-    color: '#8B8474',
+    color: '#9C947F',
     lineHeight: 18,
     marginTop: 3
   },
@@ -406,14 +406,14 @@ const styles = StyleSheet.create({
     marginBottom: 18
   },
   planCard: {
-    backgroundColor: '#1A2138',
+    backgroundColor: '#1E2742',
     borderRadius: 16,
     padding: 16,
     position: 'relative'
   },
   planCardActive: {
     borderWidth: 1.5,
-    borderColor: '#C99A5B'
+    borderColor: '#F0B24A'
   },
   planCardInactive: {
     borderWidth: 1,
@@ -423,7 +423,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -10,
     left: 16,
-    backgroundColor: '#C99A5B',
+    backgroundColor: '#F0B24A',
     borderRadius: 20,
     paddingHorizontal: 10,
     paddingVertical: 3
@@ -457,7 +457,7 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 14,
     fontWeight: '600',
-    color: '#F3EEE2'
+    color: '#FDF9EF'
   },
   planRight: {
     alignItems: 'flex-end'
@@ -466,24 +466,24 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 14.5,
     fontWeight: '700',
-    color: '#F3EEE2'
+    color: '#FDF9EF'
   },
   planMonthlyRate: {
     fontFamily: fontUI,
     fontSize: 10.5,
-    color: '#8B8474'
+    color: '#9C947F'
   },
   trialNote: {
     fontFamily: fontUIBold,
     fontSize: 11.5,
-    color: '#58A68C',
+    color: '#25C9A0',
     marginTop: 10,
     marginLeft: 28
   },
   testimonialCard: {
-    backgroundColor: '#1A2138',
+    backgroundColor: '#1E2742',
     borderWidth: 1,
-    borderColor: 'rgba(243, 238, 226, 0.1)',
+    borderColor: 'rgba(253, 249, 239, 0.14)',
     borderRadius: 16,
     padding: 16,
     marginBottom: 20
@@ -495,7 +495,7 @@ const styles = StyleSheet.create({
   testimonialQuote: {
     fontFamily: fontUI,
     fontSize: 13,
-    color: '#C9C0AC',
+    color: '#D8D0BC',
     lineHeight: 20,
     fontStyle: 'italic',
     marginBottom: 8
@@ -503,12 +503,12 @@ const styles = StyleSheet.create({
   testimonialAuthor: {
     fontFamily: fontUI,
     fontSize: 12,
-    color: '#8B8474'
+    color: '#9C947F'
   },
   webNoticeContainer: {
-    backgroundColor: '#1A2138',
+    backgroundColor: '#1E2742',
     borderWidth: 1,
-    borderColor: 'rgba(88, 166, 140, 0.3)',
+    borderColor: 'rgba(37, 201, 160, 0.3)',
     borderRadius: 14,
     padding: 14,
     marginBottom: 4
@@ -522,18 +522,18 @@ const styles = StyleSheet.create({
   webNoticeTitle: {
     fontFamily: fontUIBold,
     fontSize: 13,
-    color: '#58A68C',
+    color: '#25C9A0',
     fontWeight: '700'
   },
   webNoticeDesc: {
     fontFamily: fontUI,
     fontSize: 11.5,
-    color: '#A9A08C',
+    color: '#C3BAA6',
     lineHeight: 16,
     marginBottom: 12
   },
   webDemoUnlockBtn: {
-    backgroundColor: '#58A68C',
+    backgroundColor: '#25C9A0',
     borderRadius: 10,
     paddingVertical: 11,
     flexDirection: 'row',
@@ -544,7 +544,7 @@ const styles = StyleSheet.create({
   webDemoUnlockBtnText: {
     fontFamily: fontUIBold,
     fontSize: 13,
-    color: '#16301E',
+    color: '#0A2A1F',
     fontWeight: '700'
   },
   bottomBar: {
@@ -553,13 +553,13 @@ const styles = StyleSheet.create({
     paddingBottom: 22,
     backgroundColor: '#12182B',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(243, 238, 226, 0.07)'
+    borderTopColor: 'rgba(253, 249, 239, 0.11)'
   },
   proUnlockBtn: {
     width: '100%',
     paddingVertical: 14,
     borderRadius: 12,
-    backgroundColor: '#C99A5B',
+    backgroundColor: '#F0B24A',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8
@@ -573,7 +573,7 @@ const styles = StyleSheet.create({
   billingFooterText: {
     fontFamily: fontUI,
     fontSize: 10.5,
-    color: '#6B6455',
+    color: '#7A7263',
     textAlign: 'center',
     lineHeight: 15
   }
