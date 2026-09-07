@@ -1,3 +1,6 @@
+import { useNotificationStore } from '../../src/store/useNotificationStore';
+import { NotificationCenterModal } from '../../src/components/NotificationCenterModal';
+import { NotificationToast } from '../../src/components/NotificationToast';
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -24,6 +27,7 @@ import {
   Users,
   ShieldCheck,
   ArrowRight,
+  Bell,
   Sparkles,
   KeyRound,
   CheckCircle2,
@@ -40,6 +44,8 @@ export default function MyCirclesScreen() {
   const haptics = usePactHaptics();
 
   const { circles = [], activeCircleId, setActiveCircle, archiveCircle, unarchiveCircle } = useCircleStore();
+  const { openNotificationCenter, notifications } = useNotificationStore();
+  const unreadCount = notifications.filter((n) => !n.read).length;
   const [circleTab, setCircleTab] = useState<'active' | 'archived'>('active');
   const { profile, subscriptionPlan } = useUserStore();
   const { groups = [], fetchUserGroupsFromCloud, currentUserId } = useGatherlyStore();
@@ -136,12 +142,25 @@ export default function MyCirclesScreen() {
               </View>
             </View>
 
-            {/* Profile Avatar Pill */}
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => router.push('/(tabs)/settings')}
-              style={styles.profilePill}
-            >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => {
+                  haptics.tap();
+                  openNotificationCenter();
+                }}
+                style={styles.notifBellBtn}
+              >
+                <Bell size={18} color="#F0B24A" />
+                {unreadCount > 0 && <View style={styles.notifDot} />}
+              </TouchableOpacity>
+
+              {/* Profile Avatar Pill */}
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => router.push('/(tabs)/settings')}
+                style={styles.profilePill}
+              >
               <View style={styles.avatarMini}>
                 <Text style={styles.avatarMiniText}>{profile?.displayName ? profile.displayName.slice(0, 2).toUpperCase() : 'ME'}</Text>
               </View>
@@ -151,6 +170,7 @@ export default function MyCirclesScreen() {
                 </Text>
               </View>
             </TouchableOpacity>
+            </View>
           </View>
 
           {/* Quick Metrics Bar */}
@@ -443,12 +463,32 @@ export default function MyCirclesScreen() {
             </Text>
           </View>
         </ScrollView>
+        <NotificationCenterModal />
+        <NotificationToast />
       </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  notifBellBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: 'rgba(240, 178, 74, 0.12)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative'
+  },
+  notifDot: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#C1503F'
+  },
   outerContainer: {
     flex: 1,
     backgroundColor: '#0C1120',

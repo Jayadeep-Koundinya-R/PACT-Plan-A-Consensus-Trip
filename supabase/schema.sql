@@ -436,11 +436,13 @@ $$;
 grant execute on function public.get_option_vote_count(uuid) to authenticated;
 
 -- 4. Group Lifecycle DELETE Policies
+drop policy if exists "Members can leave groups" on public.group_members;
 create policy "Members can leave groups"
   on public.group_members for delete
   to authenticated
   using (user_id = auth.uid());
 
+drop policy if exists "Organizers can remove group members" on public.group_members;
 create policy "Organizers can remove group members"
   on public.group_members for delete
   to authenticated
@@ -452,6 +454,7 @@ create policy "Organizers can remove group members"
     )
   );
 
+drop policy if exists "Organizers can delete groups" on public.groups;
 create policy "Organizers can delete groups"
   on public.groups for delete
   to authenticated
@@ -474,6 +477,7 @@ before insert on public.group_members
 for each row execute function public.check_group_member_limit();
 
 -- 6. Safe Profiles Insert
+drop policy if exists "Users can insert own profile" on public.profiles;
 create policy "Users can insert own profile"
   on public.profiles for insert
   to authenticated

@@ -195,12 +195,14 @@ grant execute on function public.get_option_vote_count(uuid) to authenticated;
 -- 4. [MEDIUM 6] Missing DELETE & INSERT Policies for Group Lifecycle
 -- ----------------------------------------------------------------------------
 -- Members can leave group
+drop policy if exists "Members can leave groups" on public.group_members;
 create policy "Members can leave groups"
   on public.group_members for delete
   to authenticated
   using (user_id = auth.uid());
 
 -- Organizers can remove members
+drop policy if exists "Organizers can remove group members" on public.group_members;
 create policy "Organizers can remove group members"
   on public.group_members for delete
   to authenticated
@@ -213,6 +215,7 @@ create policy "Organizers can remove group members"
   );
 
 -- Organizers can delete group
+drop policy if exists "Organizers can delete groups" on public.groups;
 create policy "Organizers can delete groups"
   on public.groups for delete
   to authenticated
@@ -240,6 +243,7 @@ for each row execute function public.check_group_member_limit();
 -- ----------------------------------------------------------------------------
 -- 6. [MEDIUM 5] PII Protection: Profiles Safe Insert Policy
 -- ----------------------------------------------------------------------------
+drop policy if exists "Users can insert own profile" on public.profiles;
 create policy "Users can insert own profile"
   on public.profiles for insert
   to authenticated

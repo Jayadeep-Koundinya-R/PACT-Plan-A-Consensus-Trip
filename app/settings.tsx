@@ -1,3 +1,6 @@
+import { useNotificationStore } from '../src/store/useNotificationStore';
+import { NotificationCenterModal } from '../src/components/NotificationCenterModal';
+import { NotificationToast } from '../src/components/NotificationToast';
 import { useUserStore } from '../src/store/useUserStore';
 import { useCircleStore } from '../src/store/useCircleStore';
 import React, { useState } from 'react';
@@ -17,11 +20,23 @@ import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../src/store/useGatherlyStore';
 import { colors, radius } from '../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../src/theme/typography';
-import { ArrowLeft, Shield, MoreVertical, Plus, Check } from 'lucide-react-native';
+import { ArrowLeft, Shield, MoreVertical, Plus, Check, Sun, Moon, Bell, Sparkles } from 'lucide-react-native';
 
 export default function PactSettings() {
   const router = useRouter();
-  const { groups = [], currentUserId = 'user-maya-001' } = useGatherlyStore();
+  const { groups = [], currentUserId = 'user-maya-001', isDarkMode, toggleDarkMode } = useGatherlyStore();
+  const { toggleDarkMode: toggleUserDarkMode } = useUserStore();
+  const { openNotificationCenter, notifications, simulateAINotification } = useNotificationStore();
+  const unreadCount = notifications.filter((n) => !n.read).length;
+  const theme = isDarkMode ? colors.dark : colors.light;
+
+  const handleToggleTheme = () => {
+    triggerHaptic();
+    toggleDarkMode();
+    try {
+      toggleUserDarkMode();
+    } catch (e) {}
+  };
   const { profile, subscriptionPlan, logout } = useUserStore();
   const { circles = [] } = useCircleStore();
   const allCircles = circles.length > 0 ? circles : groups.map((g: any) => ({ id: g.id, name: g.name, inviteCode: g.inviteCode, archived: false, members: [] }));
@@ -76,16 +91,32 @@ export default function PactSettings() {
               <Text style={styles.headerTitle}>Settings & circles</Text>
             </View>
 
-            <View style={styles.shieldIconBox}>
-              <Svg width="14" height="14" viewBox="0 0 14 14">
-                <Path
-                  d="M7 1.3l5 1.8v3.7c0 3-2 5.3-5 6-3-.7-5-3-5-6V3.1z"
-                  fill="none"
-                  stroke="#C3BAA6"
-                  strokeWidth="1.1"
-                  strokeLinejoin="round"
-                />
-              </Svg>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <TouchableOpacity
+                onPress={() => {
+                  triggerHaptic();
+                  openNotificationCenter();
+                }}
+                activeOpacity={0.7}
+                style={[styles.notifHeaderBtn, { backgroundColor: isDarkMode ? 'rgba(240, 178, 74, 0.12)' : '#FFEFC9' }]}
+              >
+                <Bell size={17} color="#F0B24A" />
+                {unreadCount > 0 && (
+                  <View style={styles.notifBadgeDot} />
+                )}
+              </TouchableOpacity>
+
+              <View style={styles.shieldIconBox}>
+                <Svg width="14" height="14" viewBox="0 0 14 14">
+                  <Path
+                    d="M7 1.3l5 1.8v3.7c0 3-2 5.3-5 6-3-.7-5-3-5-6V3.1z"
+                    fill="none"
+                    stroke="#C3BAA6"
+                    strokeWidth="1.1"
+                    strokeLinejoin="round"
+                  />
+                </Svg>
+              </View>
             </View>
           </View>
 
@@ -109,6 +140,28 @@ export default function PactSettings() {
                 </Svg>
                 <Text style={styles.proStatusPillText}>{subscriptionPlan !== 'free' ? 'PACT Pro organizer pass active' : 'Free tier (Up to 3 members)'}</Text>
               </View>
+            </View>
+          </View>
+
+
+          {/* Appearance & Theme Section */}
+          <Text style={[styles.sectionHeading, { color: isDarkMode ? '#A9A08C' : '#6B6252' }]}>Appearance & theme</Text>
+          <View style={[styles.settingsGroupCard, { backgroundColor: isDarkMode ? '#192038' : '#FFFFFF', borderColor: isDarkMode ? 'rgba(253, 249, 239, 0.11)' : 'rgba(0,0,0,0.08)' }]}>
+            <View style={styles.settingRow}>
+              <View style={styles.settingTextCol}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 2 }}>
+                  {isDarkMode ? <Moon size={15} color="#F0B24A" /> : <Sun size={15} color="#D4952B" />}
+                  <Text style={[styles.settingLabel, { color: isDarkMode ? '#FDF9EF' : '#1E1A14' }]}>
+                    {isDarkMode ? 'Dark theme (Ink & Brass)' : 'Light theme (Parchment & Gold)'}
+                  </Text>
+                </View>
+                <Text style={[styles.settingDesc, { color: isDarkMode ? '#9C947F' : '#6B6252' }]}>
+                  {isDarkMode
+                    ? 'Deep midnight blue background with warm brass accents and gold CTAs.'
+                    : 'Classic warm parchment paper aesthetic with vintage ink typography.'}
+                </Text>
+              </View>
+              <ToggleSwitch on={isDarkMode} onPress={handleToggleTheme} />
             </View>
           </View>
 
@@ -194,6 +247,32 @@ export default function PactSettings() {
               <Text style={styles.settingLabel}>Voting deadline reminders</Text>
               <Text style={styles.remindersSub}>Push & SMS</Text>
             </View>
+            <View style={[styles.settingRow, styles.settingRowBorder]}>
+              <View style={styles.settingTextCol}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Sparkles size={14} color="#F0B24A" />
+                  <Text style={styles.settingLabel}>AI Advisor notifications</Text>
+                </View>
+                <Text style={styles.settingDesc}>
+                  Receive real-time compromise tips & consensus unlock alerts.
+                </Text>
+              </View>
+              <ToggleSwitch on={toggles.aiNotifs !== false} onPress={() => flip('aiNotifs')} />
+            </View>
+
+            <View style={[styles.settingRow, styles.settingRowBorder]}>
+              <TouchableOpacity
+                onPress={() => {
+                  triggerHaptic();
+                  simulateAINotification();
+                }}
+                activeOpacity={0.8}
+                style={styles.testAiBtn}
+              >
+                <Sparkles size={14} color="#0C1120" />
+                <Text style={styles.testAiBtnText}>Test incoming AI notification</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Account & Plan Section */}
@@ -232,12 +311,47 @@ export default function PactSettings() {
             </View>
           </View>
         </ScrollView>
+        <NotificationCenterModal />
+        <NotificationToast />
       </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  notifHeaderBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative'
+  },
+  notifBadgeDot: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#C1503F'
+  },
+  testAiBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#F0B24A',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    width: '100%'
+  },
+  testAiBtnText: {
+    color: '#0C1120',
+    fontSize: 13,
+    fontWeight: '700'
+  },
   outerContainer: {
     flex: 1,
     backgroundColor: '#0C1120',

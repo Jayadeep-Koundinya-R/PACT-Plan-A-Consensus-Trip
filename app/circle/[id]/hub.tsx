@@ -1,3 +1,6 @@
+import { useNotificationStore } from '../../../src/store/useNotificationStore';
+import { NotificationCenterModal } from '../../../src/components/NotificationCenterModal';
+import { NotificationToast } from '../../../src/components/NotificationToast';
 import { CircleRouteGuard } from '../../../src/components/common';
 import React, { useState, useEffect, useRef } from 'react';
 import {
@@ -32,6 +35,7 @@ import {
   Sparkles,
   SlidersHorizontal,
   ChevronRight,
+  Bell,
   Settings,
   Zap,
   Send,
@@ -72,6 +76,8 @@ export default function PactCirclesHub() {
   const [nudged, setNudged] = useState<Record<string, boolean>>({});
   const [bulkNudged, setBulkNudged] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
+  const { openNotificationCenter, notifications } = useNotificationStore();
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   // Pulse animation for awaiting dot
   const pulseAnim = useRef(new Animated.Value(0.4)).current;
@@ -240,6 +246,18 @@ export default function PactCirclesHub() {
               <View style={styles.headerRightActions}>
                 <TouchableOpacity onPress={handleCopyCode} activeOpacity={0.7} style={styles.inviteCodeBadge}>
                   <Text style={styles.inviteCodeText}>{copiedCode ? 'COPIED!' : currentGroup.inviteCode || 'GOA-4F82'}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => {
+                    haptics.tap();
+                    openNotificationCenter();
+                  }}
+                  activeOpacity={0.7}
+                  style={[styles.settingsBtn, { position: 'relative' }]}
+                >
+                  <Bell size={16} color="#F0B24A" />
+                  {unreadCount > 0 && <View style={styles.hubNotifDot} />}
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -501,6 +519,8 @@ export default function PactCirclesHub() {
             <ChevronRight size={16} color="#9C947F" />
           </TouchableOpacity>
         </ScrollView>
+        <NotificationCenterModal />
+        <NotificationToast />
 
         {/* Bottom Sticky Action Bar */}
         <View style={styles.bottomBar}>
@@ -520,6 +540,15 @@ export default function PactCirclesHub() {
 }
 
 const styles = StyleSheet.create({
+  hubNotifDot: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: '#C1503F'
+  },
   outerContainer: {
     flex: 1,
     backgroundColor: '#0C1120',
