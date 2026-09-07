@@ -44,11 +44,15 @@ create table if not exists public.preferences (
   id uuid primary key default gen_random_uuid(),
   group_id uuid references public.groups(id) on delete cascade not null,
   user_id uuid references public.profiles(id) on delete cascade not null,
-  date_ranges jsonb not null, -- e.g., [{"start": "2026-07-10", "end": "2026-07-15"}]
+  start_date date,
+  end_date date,
+  date_ranges jsonb default '[]'::jsonb, -- e.g., [{"start": "2026-07-10", "end": "2026-07-15"}]
   budget_min integer not null check (budget_min >= 0),
   budget_max integer not null check (budget_max >= budget_min),
+  preferred_tags text[] not null default '{}',
   tags text[] not null default '{}',
   dealbreakers text[] default '{}',
+  is_flexible boolean default true,
   submitted_at timestamptz default now() not null,
   unique(group_id, user_id)
 );
@@ -58,10 +62,15 @@ create table if not exists public.trip_options (
   id uuid primary key default gen_random_uuid(),
   group_id uuid references public.groups(id) on delete cascade not null,
   name text not null,
+  title text, -- Alias for code queries
   destination_type text not null,
+  destination text, -- Alias for code queries
   date_start date not null,
+  start_date date, -- Alias for code queries
   date_end date not null check (date_end >= date_start),
+  end_date date, -- Alias for code queries
   budget_per_person integer not null check (budget_per_person >= 0),
+  price_per_person integer, -- Alias for code queries
   tags text[] not null default '{}',
   description text,
   score jsonb, -- Cached consensus score result
@@ -71,12 +80,14 @@ create table if not exists public.trip_options (
 -- 6. Votes (Silent Voting - individual votes are NEVER exposed in reader queries)
 create table if not exists public.votes (
   id uuid primary key default gen_random_uuid(),
+  group_id uuid references public.groups(id) on delete cascade,
   option_id uuid references public.trip_options(id) on delete cascade not null,
   user_id uuid references public.profiles(id) on delete cascade not null,
   approved boolean default true not null,
   voted_at timestamptz default now() not null,
   unique(option_id, user_id)
 );
+create index if not exists idx_votes_group_id on public.votes(group_id);
 
 -- 7. Trip Briefs (Generated when consensus is reached/finalized)
 create table if not exists public.trip_briefs (

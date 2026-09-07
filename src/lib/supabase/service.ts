@@ -19,9 +19,24 @@ export interface SupabaseGroup {
 }
 
 // --- Invite Code Generator ---
-// Clean 6-character alphanumeric code (e.g. "X7K2QM")
-function generateInviteCode(): string {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
+// Clean 6-character cryptographic alphanumeric code (e.g. "GOA-4F82" or "X7K2QM")
+export function generateInviteCode(prefix?: string): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const array = new Uint8Array(6);
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    crypto.getRandomValues(array);
+  } else {
+    for (let i = 0; i < 6; i++) array[i] = Math.floor(Math.random() * 256);
+  }
+  let code = '';
+  for (let i = 0; i < 6; i++) {
+    code += chars[array[i] % chars.length];
+  }
+  if (prefix) {
+    const cleanPrefix = prefix.slice(0, 3).replace(/[^A-Z0-9]/gi, 'X').toUpperCase();
+    return `${cleanPrefix}-${code.slice(0, 4)}`;
+  }
+  return code;
 }
 
 const MAX_GROUP_MEMBERS = 10;
@@ -70,23 +85,36 @@ export async function getActiveSession() {
 // ============================================================
 
 export async function createSupabaseGroup(name: string, organizerId: string): Promise<SupabaseGroup> {
-  const inviteCode = generateInviteCode();
-  
-  const { data: groupData, error: groupError } = await supabase
-    .from('groups')
-    .insert({ name, invite_code: inviteCode, organizer_id: organizerId, status: 'collecting' })
-    .select()
-    .single();
+  const maxRetries = 5;
+  let lastError: any = null;
 
-  if (groupError) throw groupError;
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const inviteCode = generateInviteCode(name);
+    
+    const { data: groupData, error: groupError } = await supabase
+      .from('groups')
+      .insert({ name, invite_code: inviteCode, organizer_id: organizerId, status: 'collecting' })
+      .select()
+      .single();
 
-  const { error: memberError } = await supabase
-    .from('group_members')
-    .insert({ group_id: groupData.id, user_id: organizerId });
-  if (memberError) console.warn('Error adding creator to group_members:', memberError);
+    if (!groupError && groupData) {
+      const { error: memberError } = await supabase
+        .from('group_members')
+        .insert({ group_id: groupData.id, user_id: organizerId });
+      if (memberError) console.warn('Error adding creator to group_members:', memberError);
 
-  await seedDefaultTripOptions(groupData.id);
-  return groupData;
+      await seedDefaultTripOptions(groupData.id);
+      return groupData;
+    }
+
+    lastError = groupError;
+    // Retry on unique constraint violation (invite_code collision)
+    if (groupError?.code !== '23505') {
+      throw groupError;
+    }
+  }
+
+  throw lastError;
 }
 
 export interface GroupPreview {

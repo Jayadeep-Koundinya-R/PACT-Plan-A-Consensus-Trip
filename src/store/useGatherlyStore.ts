@@ -12,6 +12,7 @@ import { DEMO_MEMBERS, DEMO_TRIP_OPTIONS, DEMO_GROUP_ID } from '../lib/consensus
 import { assertOrganizerCanFinalize } from '../lib/security/accessControl';
 import {
   createSupabaseGroup,
+  generateInviteCode,
   fetchUserGroups,
   joinGroupWithCode,
   savePreferencesToSupabase,
@@ -146,7 +147,16 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
         set({
           currentUserId: data.user.id,
           userEmail: data.user.email || null,
-          userName: data.user.user_metadata?.display_name || data.user.email?.split('@')[0] || null
+          userName: data.user.user_metadata?.display_name || data.user.email?.split('@')[0] || null,
+          groups: [],
+          activeGroupId: '',
+          members: [],
+          tripOptions: [],
+          preferenceDrafts: {},
+          votes: {},
+          finalizedBrief: null,
+          vaultDocuments: {},
+          memoryPhotos: {}
         });
         await get().fetchUserGroupsFromCloud();
       }
@@ -165,16 +175,40 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
         options: { data: { display_name: displayName } }
       });
       if (error) throw error;
-      if (data.user) {
-        set({
-          currentUserId: data.user.id,
-          userEmail: data.user.email || null,
-          userName: displayName || data.user.email?.split('@')[0] || null
-        });
-      }
+      const uid = data.user ? data.user.id : `user-real-${Date.now()}`;
+      // Fresh user isolation: Clean empty state, Maya's demo trip is NOT shown
+      set({
+        currentUserId: uid,
+        userEmail: email,
+        userName: displayName || email.split('@')[0] || 'Traveler',
+        groups: [],
+        activeGroupId: '',
+        members: [],
+        tripOptions: [],
+        preferenceDrafts: {},
+        votes: {},
+        finalizedBrief: null,
+        vaultDocuments: {},
+        memoryPhotos: {}
+      });
       return { data, error: null };
     } catch (err: any) {
-      console.warn('Register error:', err);
+      console.warn('Register error, falling back to isolated offline account:', err);
+      const fallbackId = `user-real-${Date.now()}`;
+      set({
+        currentUserId: fallbackId,
+        userEmail: email,
+        userName: displayName || email.split('@')[0] || 'Traveler',
+        groups: [],
+        activeGroupId: '',
+        members: [],
+        tripOptions: [],
+        preferenceDrafts: {},
+        votes: {},
+        finalizedBrief: null,
+        vaultDocuments: {},
+        memoryPhotos: {}
+      });
       return { data: null, error: err };
     }
   },
@@ -187,6 +221,8 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
       'user-alex-004': 'Alex',
       'user-sam-005': 'Sam'
     };
+    // Seed full demo data exclusively for demo personas
+    get().resetDemoState();
     set({
       currentUserId: userId,
       userEmail: `${userId.replace('user-', '')}@pact.app`,
@@ -293,9 +329,18 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
         set({
           currentUserId: data.session.user.id,
           userEmail: data.session.user.email || null,
-          userName: data.session.user.user_metadata?.display_name || null
+          userName: data.session.user.user_metadata?.display_name || null,
+          groups: [],
+          activeGroupId: '',
+          members: [],
+          tripOptions: [],
+          preferenceDrafts: {},
+          votes: {},
+          finalizedBrief: null,
+          vaultDocuments: {},
+          memoryPhotos: {}
         });
-        get().fetchUserGroupsFromCloud();
+        await get().fetchUserGroupsFromCloud();
       }
     } catch (e) {
       console.warn('Error checking Supabase session:', e);
@@ -424,7 +469,7 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
         };
       } catch (e) {
         console.warn('Supabase createGroup failed, falling back to local:', e);
-        const code = cleanName.slice(0, 4).replace(/[^A-Z0-9]/gi, 'X').toUpperCase() + '-' + Math.floor(1000 + Math.random() * 9000);
+        const code = generateInviteCode(cleanName);
         newGroup = {
           id: `group-${Date.now()}`,
           name: cleanName,
@@ -435,7 +480,7 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
         };
       }
     } else {
-      const code = cleanName.slice(0, 4).replace(/[^A-Z0-9]/gi, 'X').toUpperCase() + '-' + Math.floor(1000 + Math.random() * 9000);
+      const code = generateInviteCode(cleanName);
       newGroup = {
         id: `group-${Date.now()}`,
         name: cleanName,

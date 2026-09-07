@@ -14,7 +14,10 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.pact.app",
-      "buildNumber": "2"
+      "buildNumber": "2",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "PACT requires photo library access to upload photos to your shared trip vault and memories collection."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -50,7 +53,13 @@
     },
     "plugins": [
       "expo-router",
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "PACT requires photo library access to upload photos to your shared trip vault and memories collection."
+        }
+      ]
     ],
     "scheme": "pact"
   }

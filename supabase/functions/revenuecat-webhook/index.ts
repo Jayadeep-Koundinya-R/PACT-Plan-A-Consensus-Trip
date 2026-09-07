@@ -45,11 +45,18 @@ serve(async (req: Request) => {
     });
   }
 
-  // Verify auth header for webhook security
+  // Verify auth header for webhook security (Fail-closed: reject if unconfigured or unauthorized)
   const authHeader = req.headers.get('Authorization');
   const webhookSecret = Deno.env.get('REVENUECAT_WEBHOOK_AUTH');
-  if (webhookSecret && authHeader !== `Bearer ${webhookSecret}`) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+  if (!webhookSecret) {
+    console.error('REVENUECAT_WEBHOOK_AUTH secret is not configured in the environment.');
+    return new Response(JSON.stringify({ error: 'Server configuration error: webhook auth unconfigured' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+  if (authHeader !== `Bearer ${webhookSecret}`) {
+    return new Response(JSON.stringify({ error: 'Unauthorized: invalid webhook secret' }), {
       status: 401,
       headers: { 'Content-Type': 'application/json' },
     });

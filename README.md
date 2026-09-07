@@ -20,7 +20,7 @@
 2. **Deterministically scores and ranks destinations** using a mathematical formula where ghost members never poison averages.
 3. **Resolves deadlocks with AI** through an **AI Compromise Whisperer** operating strictly on anonymized, aggregated bucket data.
 4. **Conducts Silent Voting** with an authentic wax seal stamp animation where individual ballots remain strictly secret.
-5. **Locks 100% consensus** and generates an exportable **Trip Brief** shareable back to WhatsApp in one tap.
+5. **Locks consensus** (70% supermajority threshold required to finalize; 100% unanimous agreement unlocks golden payoff celebration) and generates an exportable **Trip Brief** shareable back to WhatsApp in one tap.
 
 ---
 
@@ -128,6 +128,13 @@ PACT incorporates a sustainable, fair monetization model powered by RevenueCat:
 ### Prerequisites:
 - Node.js 18+ installed on your machine.
 - Git.
+
+### Environment Configuration (Optional)
+PACT runs immediately in resilient demo mode out-of-the-box. To connect your own Supabase instance or RevenueCat sandbox:
+```bash
+cp .env.example .env
+# Edit .env with your EXPO_PUBLIC_SUPABASE_URL, ANON_KEY, and RC keys
+```
 
 ### Step 1: Clone and Install Dependencies
 ```bash
