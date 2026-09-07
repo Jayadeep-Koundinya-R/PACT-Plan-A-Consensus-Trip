@@ -1,4 +1,4 @@
-﻿{
+{
   "expo": {
     "name": "PACT",
     "slug": "pact",
@@ -19,7 +19,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#FAF8F5"
+        "backgroundColor": "#0C0F18"
       },
       "package": "com.pact.app",
       "versionCode": 2,
@@ -27,10 +27,19 @@
         {
           "action": "VIEW",
           "data": [
-            { "scheme": "pact", "host": "join" },
-            { "scheme": "pact", "host": "invite" }
+            {
+              "scheme": "pact",
+              "host": "join"
+            },
+            {
+              "scheme": "pact",
+              "host": "invite"
+            }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
