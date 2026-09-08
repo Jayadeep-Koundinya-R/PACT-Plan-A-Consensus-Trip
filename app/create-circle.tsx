@@ -1,3 +1,4 @@
+import { useTheme } from '../src/hooks/useTheme';
 import React, { useState } from 'react';
 import {
   View,
@@ -21,6 +22,7 @@ import { ArrowLeft, ChevronRight, Plus, Users, Sparkles, X } from 'lucide-react-
 
 export default function PactCreateJoinScreen() {
   const router = useRouter();
+  const { theme, isDarkMode } = useTheme();
   const { createGroup, joinGroupByCode } = useGatherlyStore();
 
   const [code, setCode] = useState('');
@@ -105,8 +107,8 @@ export default function PactCreateJoinScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.outerContainer}>
-      <View style={styles.phoneFrame}>
+    <SafeAreaView style={[styles.outerContainer, { backgroundColor: theme.backgroundDeep }]}>
+      <View style={[styles.phoneFrame, { backgroundColor: theme.background, borderColor: theme.border }]}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           {/* Header Navigation */}
           <View style={styles.navHeader}>
@@ -118,12 +120,12 @@ export default function PactCreateJoinScreen() {
             >
               <ArrowLeft size={18} color="#C3BAA6" />
             </TouchableOpacity>
-            <Text style={styles.navTitle}>Start planning</Text>
+            <Text style={[styles.navTitle, { color: theme.textPrimary }]}>Start planning</Text>
           </View>
 
           {/* Heading */}
-          <Text style={styles.mainTitle}>Who's this trip for?</Text>
-          <Text style={styles.mainSubtitle}>
+          <Text style={[styles.mainTitle, { color: theme.textPrimary }]}>Who's this trip for?</Text>
+          <Text style={[styles.mainSubtitle, { color: theme.textSecondary }]}>
             Start a new trip poll, or join one a friend already sent you.
           </Text>
 
@@ -131,7 +133,7 @@ export default function PactCreateJoinScreen() {
           <TouchableOpacity
             activeOpacity={0.85}
             onPress={handleCreateNewTrip}
-            style={styles.createCard}
+            style={[styles.createCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
           >
             <View style={styles.createIconBox}>
               <Svg width="20" height="20" viewBox="0 0 20 20">
@@ -139,14 +141,14 @@ export default function PactCreateJoinScreen() {
               </Svg>
             </View>
             <View style={styles.cardTextCol}>
-              <Text style={styles.cardHeading}>Create a new trip</Text>
-              <Text style={styles.cardSubtext}>You'll set it up and invite the group</Text>
+              <Text style={[styles.cardHeading, { color: theme.textPrimary }]}>Create a new trip</Text>
+              <Text style={[styles.cardSubtext, { color: theme.textSecondary }]}>You'll set it up and invite the group</Text>
             </View>
             <Text style={styles.cardChevron}>›</Text>
           </TouchableOpacity>
 
           {/* Option 2: Join with a code Card */}
-          <View style={styles.joinCard}>
+          <View style={[styles.joinCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <View style={styles.joinHeaderRow}>
               <View style={styles.joinIconBox}>
                 <Svg width="20" height="20" viewBox="0 0 20 20">
@@ -160,14 +162,15 @@ export default function PactCreateJoinScreen() {
                 </Svg>
               </View>
               <View>
-                <Text style={styles.cardHeading}>Join with a code</Text>
-                <Text style={styles.cardSubtext}>Ask the trip organizer for their code</Text>
+                <Text style={[styles.cardHeading, { color: theme.textPrimary }]}>Join with a code</Text>
+                <Text style={[styles.cardSubtext, { color: theme.textSecondary }]}>Ask the trip organizer for their code</Text>
               </View>
             </View>
 
             <TextInput
               style={[
                 styles.codeInput,
+                { backgroundColor: theme.surfaceSubtle, color: theme.textPrimary, borderColor: theme.border },
                 error ? { borderColor: '#D99836' } : {}
               ]}
               value={code}
@@ -214,7 +217,7 @@ export default function PactCreateJoinScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>New Trip Circle</Text>
+              <Text style={[styles.modalTitle, { color: theme.textPrimary }]}>New Trip Circle</Text>
               <TouchableOpacity
                 onPress={() => setIsCreateModalOpen(false)}
                 style={styles.modalCloseBtn}
@@ -223,18 +226,18 @@ export default function PactCreateJoinScreen() {
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.modalLabel}>Trip name</Text>
+            <Text style={[styles.modalLabel, { color: theme.textSecondary }]}>Trip name</Text>
             <TextInput
-              style={styles.modalInput}
+              style={[styles.modalInput, { backgroundColor: theme.surfaceSubtle, color: theme.textPrimary, borderColor: theme.border }]}
               value={tripName}
               onChangeText={setTripName}
               placeholder="e.g. Goa Beach Escape 2026"
               placeholderTextColor="#7A7263"
             />
 
-            <Text style={styles.modalLabel}>Estimated travelers</Text>
+            <Text style={[styles.modalLabel, { color: theme.textSecondary }]}>Estimated travelers</Text>
             <TextInput
-              style={styles.modalInput}
+              style={[styles.modalInput, { backgroundColor: theme.surfaceSubtle, color: theme.textPrimary, borderColor: theme.border }]}
               value={memberCount}
               onChangeText={setMemberCount}
               keyboardType="number-pad"

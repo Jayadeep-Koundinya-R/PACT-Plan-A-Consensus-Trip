@@ -2,17 +2,20 @@ import React from 'react';
 import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
 import { Compass, PlusCircle, Sparkles, Settings } from 'lucide-react-native';
+import { useTheme } from '../../src/hooks/useTheme';
 
 export default function TabLayout() {
+  const { theme, isDarkMode } = useTheme();
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#F0B24A',
-        tabBarInactiveTintColor: '#C3BAA6',
+        tabBarActiveTintColor: theme.primary,
+        tabBarInactiveTintColor: isDarkMode ? '#C3BAA6' : '#5C5445',
         tabBarStyle: {
-          backgroundColor: '#0E1424',
-          borderTopColor: '#2B3552',
+          backgroundColor: isDarkMode ? '#0E1424' : '#F6EFDE',
+          borderTopColor: theme.border,
           borderTopWidth: 1,
           height: Platform.OS === 'ios' ? 84 : 64,
           paddingBottom: Platform.OS === 'ios' ? 24 : 10,

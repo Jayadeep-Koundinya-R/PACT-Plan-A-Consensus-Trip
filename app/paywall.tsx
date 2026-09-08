@@ -1,3 +1,4 @@
+import { useTheme } from '../src/hooks/useTheme';
 import React, { useState } from 'react';
 import {
   View,
@@ -20,6 +21,7 @@ import { useUserStore } from '../src/store/useUserStore';
 
 export default function PactPaywall() {
   const router = useRouter();
+  const { theme, isDarkMode } = useTheme();
   const [plan, setPlan] = useState<'annual' | 'single'>('annual');
   const [isPurchasing, setIsPurchasing] = useState(false);
 
@@ -75,8 +77,8 @@ export default function PactPaywall() {
   };
 
   return (
-    <SafeAreaView style={styles.outerContainer}>
-      <View style={styles.phoneFrame}>
+    <SafeAreaView style={[styles.outerContainer, { backgroundColor: theme.backgroundDeep }]}>
+      <View style={[styles.phoneFrame, { backgroundColor: theme.background, borderColor: theme.border }]}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           {/* Header Row */}
           <View style={styles.headerRow}>
@@ -89,10 +91,10 @@ export default function PactPaywall() {
           </View>
 
           {/* Pro Hero Card */}
-          <View style={styles.heroCard}>
+          <View style={[styles.heroCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <View style={styles.heroTop}>
-              <Text style={styles.heroTitle}>Unlock PACT Pro</Text>
-              <Text style={styles.heroSub}>
+              <Text style={[styles.heroTitle, { color: theme.textPrimary }]}>Unlock PACT Pro</Text>
+              <Text style={[styles.heroSub, { color: theme.textSecondary }]}>
                 Only <Text style={{ color: '#FFD98A', fontWeight: '700' }}>one</Text> person needs Pro. Your entire trip circle gets all Pro benefits for free.
               </Text>
             </View>
@@ -127,8 +129,8 @@ export default function PactPaywall() {
                   </Svg>
                 </View>
                 <View style={styles.featureTextCol}>
-                  <Text style={styles.featureTitle}>{f.title}</Text>
-                  <Text style={styles.featureDesc}>{f.desc}</Text>
+                  <Text style={[styles.featureTitle, { color: theme.textPrimary }]}>{f.title}</Text>
+                  <Text style={[styles.featureDesc, { color: theme.textSecondary }]}>{f.desc}</Text>
                 </View>
               </View>
             ))}
@@ -145,7 +147,7 @@ export default function PactPaywall() {
               }}
               style={[
                 styles.planCard,
-                plan === 'annual' ? styles.planCardActive : styles.planCardInactive
+                plan === 'annual' ? styles.planCardActive : [styles.planCardInactive, { backgroundColor: theme.surface, borderColor: theme.border }]
               ]}
             >
               <View style={styles.popularTag}>
@@ -160,11 +162,11 @@ export default function PactPaywall() {
                       plan === 'annual' && { borderColor: '#F0B24A', borderWidth: 5 }
                     ]}
                   />
-                  <Text style={styles.planNameText}>Annual organizer pass</Text>
+                  <Text style={[styles.planNameText, { color: theme.textPrimary }]}>Annual organizer pass</Text>
                 </View>
 
                 <View style={styles.planRight}>
-                  <Text style={styles.planPriceText}>$29.99</Text>
+                  <Text style={[styles.planPriceText, { color: theme.textPrimary }]}>$29.99</Text>
                   <Text style={styles.planMonthlyRate}>$2.50/mo</Text>
                 </View>
               </View>
@@ -180,7 +182,7 @@ export default function PactPaywall() {
               }}
               style={[
                 styles.planCard,
-                plan === 'single' ? styles.planCardActive : styles.planCardInactive
+                plan === 'single' ? styles.planCardActive : [styles.planCardInactive, { backgroundColor: theme.surface, borderColor: theme.border }]
               ]}
             >
               <View style={styles.planCardContent}>
@@ -191,9 +193,9 @@ export default function PactPaywall() {
                       plan === 'single' && { borderColor: '#F0B24A', borderWidth: 5 }
                     ]}
                   />
-                  <Text style={styles.planNameText}>Single trip pass</Text>
+                  <Text style={[styles.planNameText, { color: theme.textPrimary }]}>Single trip pass</Text>
                 </View>
-                <Text style={styles.planPriceText}>$3.99</Text>
+                <Text style={[styles.planPriceText, { color: theme.textPrimary }]}>$3.99</Text>
               </View>
             </TouchableOpacity>
           </View>

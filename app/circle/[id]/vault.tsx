@@ -1,3 +1,4 @@
+import { useTheme } from '../../../src/hooks/useTheme';
 import { CircleRouteGuard } from '../../../src/components/common';
 import React, { useState } from 'react';
 import {
@@ -24,6 +25,7 @@ import { ArrowLeft, FileText, Home, Shield, Copy, Check, Plus, RefreshCw } from 
 import { VaultDocSkeleton } from '../../../src/components/SkeletonLoader';
 
 export default function PactTripVault() {
+  const { theme, isDarkMode } = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   if (!id || id === 'undefined' || id === '[id]') {
@@ -251,7 +253,7 @@ export default function PactTripVault() {
               description="Upload flight confirmations, hotel vouchers, and booking PDFs here for your circle to access."
               actionLabel="Upload first document"
               onAction={handleUploadDocument}
-              isDarkMode={true}
+              isDarkMode={isDarkMode}
             />
           ) : (
             <>

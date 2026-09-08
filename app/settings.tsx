@@ -1,3 +1,4 @@
+import { useTheme } from '../src/hooks/useTheme';
 import { useNotificationStore } from '../src/store/useNotificationStore';
 import { NotificationCenterModal } from '../src/components/NotificationCenterModal';
 import { NotificationToast } from '../src/components/NotificationToast';
@@ -24,18 +25,13 @@ import { ArrowLeft, Shield, MoreVertical, Plus, Check, Sun, Moon, Bell, Sparkles
 
 export default function PactSettings() {
   const router = useRouter();
-  const { groups = [], currentUserId = 'user-maya-001', isDarkMode, toggleDarkMode, currency, currencySymbol, setCurrency } = useGatherlyStore();
-  const { toggleDarkMode: toggleUserDarkMode } = useUserStore();
+  const { theme, isDarkMode, toggleDarkMode } = useTheme();
   const { openNotificationCenter, notifications, simulateAINotification } = useNotificationStore();
   const unreadCount = notifications.filter((n) => !n.read).length;
-  const theme = isDarkMode ? colors.dark : colors.light;
-
+  const { groups = [], currentUserId = 'user-maya-001', currency, currencySymbol, setCurrency } = useGatherlyStore();
   const handleToggleTheme = () => {
     triggerHaptic();
     toggleDarkMode();
-    try {
-      toggleUserDarkMode();
-    } catch (e) {}
   };
   const { profile, subscriptionPlan, logout } = useUserStore();
   const { circles = [] } = useCircleStore();
@@ -79,8 +75,8 @@ export default function PactSettings() {
   );
 
   return (
-    <SafeAreaView style={styles.outerContainer}>
-      <View style={styles.phoneFrame}>
+    <SafeAreaView style={[styles.outerContainer, { backgroundColor: theme.backgroundDeep }]}>
+      <View style={[styles.phoneFrame, { backgroundColor: theme.background, borderColor: theme.border }]}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           {/* Header Row */}
           <View style={styles.headerRow}>
@@ -121,7 +117,7 @@ export default function PactSettings() {
           </View>
 
           {/* Profile Card */}
-          <View style={styles.profileCard}>
+          <View style={[styles.profileCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <View style={styles.avatarContainer}>
               <View style={styles.avatarBox}>
                 <Text style={styles.avatarInitials}>{profile?.displayName ? profile.displayName.slice(0, 2).toUpperCase() : 'ME'}</Text>
@@ -132,8 +128,8 @@ export default function PactSettings() {
             </View>
 
             <View style={styles.profileTextCol}>
-              <Text style={styles.profileName}>{profile?.displayName || 'Alex Rivers (Demo)'}</Text>
-              <Text style={styles.profileHandle}>{profile?.email || '@alex_travels'}</Text>
+              <Text style={[styles.profileName, { color: theme.textPrimary }]}>{profile?.displayName || 'Alex Rivers (Demo)'}</Text>
+              <Text style={[styles.profileHandle, { color: theme.textSecondary }]}>{profile?.email || '@alex_travels'}</Text>
               <View style={styles.proStatusPill}>
                 <Svg width="10" height="10" viewBox="0 0 10 10">
                   <Path d="M1 3.5l2 1.5 2-3 2 3 2-1.5-.7 4.5H1.7z" fill="#FFD98A" />
@@ -207,16 +203,16 @@ export default function PactSettings() {
           </View>
 
           {/* Active Trip Circles Section */}
-          <Text style={styles.sectionHeading}>Active trip circles ({activeCircles.length})</Text>
+          <Text style={[styles.sectionHeading, { color: theme.textSecondary }]}>Active trip circles ({activeCircles.length})</Text>
           <View style={styles.circlesList}>
             {/* Circle 1 */}
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => router.push('/circle/circle-college-reunion-2026/hub' as any)}
-              style={styles.circleItemCard}
+              style={[styles.circleItemCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
             >
               <View style={styles.circleHeaderRow}>
-                <Text style={styles.circleTitle}>Goa beach escape 2026</Text>
+                <Text style={[styles.circleTitle, { color: theme.textPrimary }]}>Goa beach escape 2026</Text>
                 <MoreVertical size={16} color="#9C947F" />
               </View>
               <View style={styles.circleMetaRow}>
@@ -231,9 +227,9 @@ export default function PactSettings() {
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => router.push('/circle/circle-college-reunion-2026/hub' as any)}
-              style={styles.circleItemCard}
+              style={[styles.circleItemCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
             >
-              <Text style={styles.circleTitle}>Kyoto spring 2027</Text>
+              <Text style={[styles.circleTitle, { color: theme.textPrimary }]}>Kyoto spring 2027</Text>
               <View style={styles.circleMetaRow}>
                 <Text style={styles.circleStatusAmber}>Voting open</Text>
                 <View style={styles.roleBadge}>
@@ -247,18 +243,18 @@ export default function PactSettings() {
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => router.push('/create-circle' as any)}
-            style={styles.createCircleBtn}
+            style={[styles.createCircleBtn, { backgroundColor: isDarkMode ? '#12182B' : '#EFE7D4', borderColor: theme.border }]}
           >
             <Text style={styles.createCircleBtnText}>+ Create new circle</Text>
           </TouchableOpacity>
 
           {/* Privacy Shield Defaults */}
-          <Text style={styles.sectionHeading}>Privacy shield defaults</Text>
-          <View style={styles.settingsGroupCard}>
+          <Text style={[styles.sectionHeading, { color: theme.textSecondary }]}>Privacy shield defaults</Text>
+          <View style={[styles.settingsGroupCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <View style={styles.settingRow}>
               <View style={styles.settingTextCol}>
-                <Text style={styles.settingLabel}>Mask exact budget numbers</Text>
-                <Text style={styles.settingDesc}>
+                <Text style={[styles.settingLabel, { color: theme.textPrimary }]}>Mask exact budget numbers</Text>
+                <Text style={[styles.settingDesc, { color: theme.textSecondary }]}>
                   Only the engine sees your cap; group never sees your raw budget.
                 </Text>
               </View>
@@ -267,17 +263,17 @@ export default function PactSettings() {
 
             <View style={[styles.settingRow, styles.settingRowBorder]}>
               <View style={styles.settingTextCol}>
-                <Text style={styles.settingLabel}>Auto-delete veto history after vote</Text>
+                <Text style={[styles.settingLabel, { color: theme.textPrimary }]}>Auto-delete veto history after vote</Text>
               </View>
               <ToggleSwitch on={toggles.autoDelete} onPress={() => flip('autoDelete')} />
             </View>
           </View>
 
           {/* Circle Nudges Section */}
-          <Text style={styles.sectionHeading}>Circle nudges</Text>
-          <View style={styles.settingsGroupCard}>
+          <Text style={[styles.sectionHeading, { color: theme.textSecondary }]}>Circle nudges</Text>
+          <View style={[styles.settingsGroupCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <View style={styles.settingRow}>
-              <Text style={styles.settingLabel}>WhatsApp nudges</Text>
+              <Text style={[styles.settingLabel, { color: theme.textPrimary }]}>WhatsApp nudges</Text>
               <View style={styles.connectedRow}>
                 <Check size={12} color="#25C9A0" />
                 <Text style={styles.connectedText}>Connected</Text>
@@ -285,16 +281,16 @@ export default function PactSettings() {
             </View>
 
             <View style={[styles.settingRow, styles.settingRowBorder]}>
-              <Text style={styles.settingLabel}>Voting deadline reminders</Text>
+              <Text style={[styles.settingLabel, { color: theme.textPrimary }]}>Voting deadline reminders</Text>
               <Text style={styles.remindersSub}>Push & SMS</Text>
             </View>
             <View style={[styles.settingRow, styles.settingRowBorder]}>
               <View style={styles.settingTextCol}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                   <Sparkles size={14} color="#F0B24A" />
-                  <Text style={styles.settingLabel}>AI Advisor notifications</Text>
+                  <Text style={[styles.settingLabel, { color: theme.textPrimary }]}>AI Advisor notifications</Text>
                 </View>
-                <Text style={styles.settingDesc}>
+                <Text style={[styles.settingDesc, { color: theme.textSecondary }]}>
                   Receive real-time compromise tips & consensus unlock alerts.
                 </Text>
               </View>
@@ -318,13 +314,13 @@ export default function PactSettings() {
 
           {/* Account & Plan Section */}
           <Text style={styles.sectionHeading}>Account & plan</Text>
-          <View style={styles.settingsGroupCard}>
+          <View style={[styles.settingsGroupCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <View style={styles.planInfoRow}>
-              <Text style={styles.settingLabel}>{subscriptionPlan !== 'free' ? 'PACT Pro active ($29.99/yr)' : 'Free tier'}</Text>
+              <Text style={[styles.settingLabel, { color: theme.textPrimary }]}>{subscriptionPlan !== 'free' ? 'PACT Pro active ($29.99/yr)' : 'Free tier'}</Text>
               <Text style={styles.renewsDate}>{subscriptionPlan !== 'free' ? 'Renews annually' : 'Upgrade to PACT Pro'}</Text>
             </View>
 
-            <View style={styles.dangerBox}>
+            <View style={[styles.dangerBox, { backgroundColor: theme.surface, borderColor: theme.border }]}>
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={() => {

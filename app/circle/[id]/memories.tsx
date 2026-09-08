@@ -1,3 +1,4 @@
+import { useTheme } from '../../../src/hooks/useTheme';
 import * as ImagePicker from 'expo-image-picker';
 import { CircleRouteGuard } from '../../../src/components/common';
 import React, { useState } from 'react';
@@ -24,6 +25,7 @@ import { ArrowLeft, Share2, Plus, Download, Sparkles, Image as ImageIcon, Check,
 import { MemoryPhotoSkeleton } from '../../../src/components/SkeletonLoader';
 
 export default function PactMemoryLibrary() {
+  const { theme, isDarkMode } = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   if (!id || id === 'undefined' || id === '[id]') {
@@ -214,7 +216,7 @@ export default function PactMemoryLibrary() {
               description="Once your trip wraps up, upload photos and clips here to build your shared memory album."
               actionLabel="Add first photo"
               onAction={handleAddPhotos}
-              isDarkMode={true}
+              isDarkMode={isDarkMode}
             />
           ) : (
             <>

@@ -1,3 +1,4 @@
+import { useTheme } from '../../../src/hooks/useTheme';
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform, SafeAreaView } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter, usePathname } from 'expo-router';
@@ -12,6 +13,7 @@ import { ArrowLeft, Lock, Image as ImageIcon, Sparkles } from 'lucide-react-nati
 import { CircleRouteGuard } from '../../../src/components/common';
 
 export default function CircleDetailLayout() {
+  const { theme, isDarkMode } = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const pathname = usePathname();
@@ -38,9 +40,9 @@ export default function CircleDetailLayout() {
 
   return (
     <CircleRouteGuard id={id}>
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Top Header Bar */}
-      <SafeAreaView style={styles.safeHeader}>
+      <SafeAreaView style={[styles.safeHeader, { backgroundColor: isDarkMode ? '#0E1424' : '#F6EFDE', borderBottomColor: theme.border }]}>
         <View style={styles.headerBar}>
           {/* Header Left: "← My Circles" */}
           <TouchableOpacity
@@ -58,7 +60,7 @@ export default function CircleDetailLayout() {
 
           {/* Header Center: Displays circle name */}
           <View style={styles.centerCol}>
-            <Text numberOfLines={1} style={styles.circleTitle}>
+            <Text numberOfLines={1} style={[styles.circleTitle, { color: theme.textPrimary }]}>
               {circleName}
             </Text>
           </View>
@@ -104,7 +106,7 @@ export default function CircleDetailLayout() {
           <StepProgressBar
             currentStep={currentStep}
             groupId={circleId}
-            isDarkMode={true}
+            isDarkMode={isDarkMode}
           />
         )}
 
@@ -117,7 +119,7 @@ export default function CircleDetailLayout() {
         screenOptions={{
           headerShown: false,
           animation: 'fade_from_bottom',
-          contentStyle: { backgroundColor: '#12182B' }
+          contentStyle: { backgroundColor: theme.background }
         }}
       />
     </View>

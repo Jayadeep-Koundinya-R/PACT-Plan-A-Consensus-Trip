@@ -149,7 +149,7 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   currentUserId: '',
   userEmail: null,
   userName: null,
-  isDarkMode: false,
+  isDarkMode: true,
   currency: 'USD',
   currencySymbol: '$',
   setCurrency: (currency: CurrencyCode) => {

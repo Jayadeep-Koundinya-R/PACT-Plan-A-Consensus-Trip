@@ -1,3 +1,4 @@
+import { useTheme } from '../hooks/useTheme';
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
@@ -26,7 +27,7 @@ const QUICK_PROMPTS = [
 
 export const PactAIChatModal: React.FC = () => {
   const { isOpen, closeAIChat, messages, isLoading, sendMessage, clearChat } = useAIChatStore();
-  const isDarkMode = useGatherlyStore((s) => s.isDarkMode);
+  const { theme, isDarkMode } = useTheme();
   const [inputText, setInputText] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
 
