@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import { View, Text, StyleSheet, Animated , Platform } from 'react-native';
 import { Shield } from 'lucide-react-native';
 import { fontDisplay, fontUIBold } from '../theme/typography';
 
@@ -23,19 +23,19 @@ export const WaxSealStamp: React.FC<WaxSealStampProps> = ({
       Animated.timing(opacityAnim, {
         toValue: 1,
         duration: 70,
-        useNativeDriver: true
+        useNativeDriver: Platform.OS !== 'web'
       }),
       Animated.spring(scaleAnim, {
         toValue: 1,
         tension: 150,
         friction: 5,
-        useNativeDriver: true
+        useNativeDriver: Platform.OS !== 'web'
       }),
       Animated.spring(rotateAnim, {
         toValue: -10,
         tension: 130,
         friction: 6,
-        useNativeDriver: true
+        useNativeDriver: Platform.OS !== 'web'
       })
     ]).start();
   }, []);

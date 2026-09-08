@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import { View, Text, StyleSheet, Animated , Platform } from 'react-native';
 import { Award, Check, Shield } from 'lucide-react-native';
 import { colors, radius } from '../theme/colors';
 
@@ -26,18 +26,18 @@ export function SealStamp({ isDarkMode = false, onAnimationComplete, sealedDate 
       Animated.timing(opacityAnim, {
         toValue: 1,
         duration: 150,
-        useNativeDriver: true
+        useNativeDriver: Platform.OS !== 'web'
       }),
       Animated.spring(scaleAnim, {
         toValue: 1,
         friction: 4,
         tension: 80,
-        useNativeDriver: true
+        useNativeDriver: Platform.OS !== 'web'
       }),
       Animated.timing(rotateAnim, {
         toValue: -6,
         duration: 350,
-        useNativeDriver: true
+        useNativeDriver: Platform.OS !== 'web'
       })
     ]).start(() => {
       if (onAnimationComplete) {

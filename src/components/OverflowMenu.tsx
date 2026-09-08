@@ -8,7 +8,7 @@ import {
   Animated,
   StyleSheet,
   Alert
-} from 'react-native';
+, Platform } from 'react-native';
 import { MoreHorizontal } from 'lucide-react-native';
 import { colors, radius } from '../theme/colors';
 import { fontUI, fontUIBold } from '../theme/typography';
@@ -35,7 +35,7 @@ export const OverflowMenu: React.FC<OverflowMenuProps> = ({ actions, isDarkMode 
     Animated.timing(slideAnim, {
       toValue: 0,
       duration: 250,
-      useNativeDriver: true
+      useNativeDriver: Platform.OS !== 'web'
     }).start();
   };
 
@@ -43,7 +43,7 @@ export const OverflowMenu: React.FC<OverflowMenuProps> = ({ actions, isDarkMode 
     Animated.timing(slideAnim, {
       toValue: 300,
       duration: 200,
-      useNativeDriver: true
+      useNativeDriver: Platform.OS !== 'web'
     }).start(() => setVisible(false));
   };
 

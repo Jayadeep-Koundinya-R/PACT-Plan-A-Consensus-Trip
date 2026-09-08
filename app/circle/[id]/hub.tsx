@@ -88,12 +88,12 @@ export default function PactCirclesHub() {
         Animated.timing(pulseAnim, {
           toValue: 1,
           duration: 900,
-          useNativeDriver: true
+          useNativeDriver: Platform.OS !== 'web'
         }),
         Animated.timing(pulseAnim, {
           toValue: 0.4,
           duration: 900,
-          useNativeDriver: true
+          useNativeDriver: Platform.OS !== 'web'
         })
       ])
     );

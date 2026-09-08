@@ -65,14 +65,14 @@ export const SyncBadge: React.FC<SyncBadgeProps> = ({
       Animated.parallel([
         Animated.spring(translateY, {
           toValue: 0,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
           tension: 80,
           friction: 10
         }),
         Animated.timing(opacity, {
           toValue: 1,
           duration: 200,
-          useNativeDriver: true
+          useNativeDriver: Platform.OS !== 'web'
         })
       ]).start();
 
@@ -82,12 +82,12 @@ export const SyncBadge: React.FC<SyncBadgeProps> = ({
           Animated.timing(dotPulse, {
             toValue: 0.35,
             duration: 700,
-            useNativeDriver: true
+            useNativeDriver: Platform.OS !== 'web'
           }),
           Animated.timing(dotPulse, {
             toValue: 1,
             duration: 700,
-            useNativeDriver: true
+            useNativeDriver: Platform.OS !== 'web'
           })
         ])
       );
@@ -99,12 +99,12 @@ export const SyncBadge: React.FC<SyncBadgeProps> = ({
         Animated.timing(translateY, {
           toValue: -60,
           duration: 250,
-          useNativeDriver: true
+          useNativeDriver: Platform.OS !== 'web'
         }),
         Animated.timing(opacity, {
           toValue: 0,
           duration: 200,
-          useNativeDriver: true
+          useNativeDriver: Platform.OS !== 'web'
         })
       ]).start();
     }

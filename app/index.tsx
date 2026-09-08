@@ -61,7 +61,7 @@ export default function PactLandingScreen() {
         toValue: 1,
         duration: 2600,
         easing: Easing.bezier(0.4, 0, 0.2, 1),
-        useNativeDriver: true
+        useNativeDriver: Platform.OS !== 'web'
       })
     );
     loop.start();
@@ -73,13 +73,13 @@ export default function PactLandingScreen() {
           toValue: 1,
           duration: 800,
           easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true
+          useNativeDriver: Platform.OS !== 'web'
         }),
         Animated.timing(chevronAnim, {
           toValue: 0,
           duration: 800,
           easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true
+          useNativeDriver: Platform.OS !== 'web'
         })
       ])
     );

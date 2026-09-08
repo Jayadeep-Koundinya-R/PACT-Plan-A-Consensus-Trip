@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, ReactNode } from 'react';
-import { View, StyleSheet, StyleProp, ViewStyle, Animated, Easing } from 'react-native';
+import { View, StyleSheet, StyleProp, ViewStyle, Animated, Easing , Platform } from 'react-native';
 import { colors, radius } from '../theme/colors';
 
 export interface ShimmerViewProps {
@@ -31,13 +31,13 @@ export const ShimmerView: React.FC<ShimmerViewProps> = ({
           toValue: maxOpacity,
           duration: durationMs,
           easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true
+          useNativeDriver: Platform.OS !== 'web'
         }),
         Animated.timing(opacity, {
           toValue: minOpacity,
           duration: durationMs,
           easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true
+          useNativeDriver: Platform.OS !== 'web'
         })
       ])
     );

@@ -23,14 +23,14 @@ export const NotificationToast: React.FC = () => {
       Animated.parallel([
         Animated.spring(slideAnim, {
           toValue: 12,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
           tension: 80,
           friction: 9
         }),
         Animated.timing(opacityAnim, {
           toValue: 1,
           duration: 200,
-          useNativeDriver: true
+          useNativeDriver: Platform.OS !== 'web'
         })
       ]).start();
 
@@ -47,12 +47,12 @@ export const NotificationToast: React.FC = () => {
       Animated.timing(slideAnim, {
         toValue: -100,
         duration: 250,
-        useNativeDriver: true
+        useNativeDriver: Platform.OS !== 'web'
       }),
       Animated.timing(opacityAnim, {
         toValue: 0,
         duration: 200,
-        useNativeDriver: true
+        useNativeDriver: Platform.OS !== 'web'
       })
     ]).start(() => {
       dismissToast();

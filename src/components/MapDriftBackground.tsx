@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { StyleSheet, Animated, Dimensions } from 'react-native';
+import { StyleSheet, Animated, Dimensions , Platform } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { colors } from '../theme/colors';
 
@@ -32,12 +32,12 @@ export function MapDriftBackground({ isDarkMode }: MapDriftBackgroundProps) {
         Animated.timing(driftAnim, {
           toValue: 1,
           duration: 35000,   // 35s forward
-          useNativeDriver: true
+          useNativeDriver: Platform.OS !== 'web'
         }),
         Animated.timing(driftAnim, {
           toValue: 0,
           duration: 35000,   // 35s back — total ~70s loop
-          useNativeDriver: true
+          useNativeDriver: Platform.OS !== 'web'
         })
       ])
     );
