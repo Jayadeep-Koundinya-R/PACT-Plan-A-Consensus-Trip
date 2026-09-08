@@ -1,5 +1,7 @@
+import { NotificationToast } from '../../../src/components/NotificationToast';
+import { useNotificationStore } from '../../../src/store/useNotificationStore';
 import { CircleRouteGuard } from '../../../src/components/common';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -9,7 +11,8 @@ import {
   SafeAreaView,
   Platform,
   Share,
-  Alert
+  Alert,
+  Linking
 } from 'react-native';
 import { ConsensusGauge, ParticleBurst } from '../../../src/components/common';
 import { ConfettiEffect } from '../../../src/components/ConfettiEffect';
@@ -29,7 +32,7 @@ export default function PactTripBrief() {
     return <CircleRouteGuard id={id}><View /></CircleRouteGuard>;
   }
   const router = useRouter();
-  const { groups = [] } = useGatherlyStore();
+  const { groups = [], formatCurrency, currency, currencySymbol } = useGatherlyStore();
 
   const currentGroup =
     groups.find((g) => g && g.id === id) ||
@@ -40,6 +43,8 @@ export default function PactTripBrief() {
     };
 
   const haptics = usePactHaptics();
+  const [confettiKey, setConfettiKey] = useState(0);
+  const { addNotification } = useNotificationStore();
 
   useEffect(() => {
     // 3-stage rhythmic celebration haptics for consensus payoff
@@ -62,7 +67,7 @@ export default function PactTripBrief() {
 
   const details = [
     { label: 'DATES', value: 'Oct 14 - Oct 19, 2026' },
-    { label: 'TARGET BUDGET', value: '~$540 / person' },
+    { label: 'TARGET BUDGET', value: `~${formatCurrency ? formatCurrency(540) : '$540'} / person` },
     { label: 'ATTENDEES', value: 'Alex, Sam, Jordan, Maya, You' },
     { label: 'STAY TYPE', value: 'Private beach villa (fits 5)' }
   ];
@@ -78,6 +83,19 @@ export default function PactTripBrief() {
       try {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       } catch (e) {}
+    }
+  };
+
+    const handleOpenGoogleCalendar = () => {
+    triggerHaptic();
+    const title = encodeURIComponent((currentGroup.name || 'Goa Beach Escape 2026') + ' (PACT Consensus)');
+    const dest = encodeURIComponent(currentGroup.name || 'Goa, India');
+    const details = encodeURIComponent('100% Consensus reached by all 5 members on PACT!\n\nView trip brief & vouchers: https://pact.app/circle/' + currentGroup.id + '/brief');
+    const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=20261014/20261020&details=${details}&location=${dest}`;
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      window.open(gcalUrl, '_blank');
+    } else {
+      Linking.openURL(gcalUrl);
     }
   };
 

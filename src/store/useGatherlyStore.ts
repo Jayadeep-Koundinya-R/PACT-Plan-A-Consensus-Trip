@@ -27,6 +27,15 @@ import {
 } from '../lib/supabase/service';
 import { supabase } from '../lib/supabase/client';
 
+export type CurrencyCode = 'USD' | 'EUR' | 'INR' | 'GBP';
+
+export const CURRENCIES: Record<CurrencyCode, { code: CurrencyCode; symbol: string; name: string; rate: number }> = {
+  USD: { code: 'USD', symbol: '$', name: 'US Dollar', rate: 1 },
+  EUR: { code: 'EUR', symbol: '€', name: 'Euro', rate: 0.92 },
+  INR: { code: 'INR', symbol: '₹', name: 'Indian Rupee', rate: 83.5 },
+  GBP: { code: 'GBP', symbol: '£', name: 'British Pound', rate: 0.79 },
+};
+
 export interface Group {
   id: string;
   name: string;
@@ -71,6 +80,10 @@ interface GatherlyState {
   userEmail: string | null;
   userName: string | null;
   isDarkMode: boolean;
+  currency: CurrencyCode;
+  currencySymbol: string;
+  setCurrency: (currency: CurrencyCode) => void;
+  formatCurrency: (amountInUSD: number) => string;
   subscriptionPlan: SubscriptionPlan;
   isCheckingEntitlement: boolean;
   purchaseError: string | null;
@@ -136,6 +149,21 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   userEmail: null,
   userName: null,
   isDarkMode: false,
+  currency: 'USD',
+  currencySymbol: '$',
+  setCurrency: (currency: CurrencyCode) => {
+    const config = CURRENCIES[currency] || CURRENCIES.USD;
+    set({ currency, currencySymbol: config.symbol });
+  },
+  formatCurrency: (amountInUSD: number) => {
+    const state = get();
+    const config = CURRENCIES[state.currency] || CURRENCIES.USD;
+    const converted = Math.round((amountInUSD * config.rate) / 5) * 5;
+    if (state.currency === 'INR') {
+      return `₹${converted.toLocaleString('en-IN')}`;
+    }
+    return `${config.symbol}${converted.toLocaleString()}`;
+  },
   subscriptionPlan: 'free',
   isCheckingEntitlement: false,
   purchaseError: null,

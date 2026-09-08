@@ -24,7 +24,7 @@ import { ArrowLeft, Shield, MoreVertical, Plus, Check, Sun, Moon, Bell, Sparkles
 
 export default function PactSettings() {
   const router = useRouter();
-  const { groups = [], currentUserId = 'user-maya-001', isDarkMode, toggleDarkMode } = useGatherlyStore();
+  const { groups = [], currentUserId = 'user-maya-001', isDarkMode, toggleDarkMode, currency, currencySymbol, setCurrency } = useGatherlyStore();
   const { toggleDarkMode: toggleUserDarkMode } = useUserStore();
   const { openNotificationCenter, notifications, simulateAINotification } = useNotificationStore();
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -162,6 +162,47 @@ export default function PactSettings() {
                 </Text>
               </View>
               <ToggleSwitch on={isDarkMode} onPress={handleToggleTheme} />
+            </View>
+          </View>
+
+
+          {/* Currency & Localization Section */}
+          <Text style={[styles.sectionHeading, { color: isDarkMode ? '#A9A08C' : '#6B6252' }]}>Currency & localization</Text>
+          <View style={[styles.settingsGroupCard, { backgroundColor: isDarkMode ? '#192038' : '#FFFFFF', borderColor: isDarkMode ? 'rgba(253, 249, 239, 0.11)' : 'rgba(0,0,0,0.08)' }]}>
+            <View style={{ padding: 14 }}>
+              <Text style={[styles.settingLabel, { color: isDarkMode ? '#FDF9EF' : '#1E1A14', marginBottom: 4 }]}>
+                Display currency ({currencySymbol || '$'} {currency || 'USD'})
+              </Text>
+              <Text style={[styles.settingDesc, { color: isDarkMode ? '#9C947F' : '#6B6252', marginBottom: 12 }]}>
+                Prices, budget ranges, and market guidance will be converted to your preferred currency.
+              </Text>
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                {(['USD', 'EUR', 'INR', 'GBP'] as const).map((curr) => {
+                  const isSelected = (currency || 'USD') === curr;
+                  const symbols = { USD: '$', EUR: '€', INR: '₹', GBP: '£' };
+                  return (
+                    <TouchableOpacity
+                      key={curr}
+                      onPress={() => {
+                        triggerHaptic();
+                        setCurrency(curr);
+                      }}
+                      activeOpacity={0.75}
+                      style={[
+                        styles.currencyTab,
+                        isSelected ? styles.currencyTabActive : { backgroundColor: isDarkMode ? '#12182B' : '#F6EFDE', borderColor: isDarkMode ? 'rgba(253, 249, 239, 0.12)' : 'rgba(0,0,0,0.08)' }
+                      ]}
+                    >
+                      <Text style={[styles.currencyTabSymbol, isSelected && { color: '#0C1120' }]}>
+                        {symbols[curr]}
+                      </Text>
+                      <Text style={[styles.currencyTabCode, isSelected && { color: '#0C1120', fontWeight: '700' }]}>
+                        {curr}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
             </View>
           </View>
 
@@ -319,6 +360,30 @@ export default function PactSettings() {
 }
 
 const styles = StyleSheet.create({
+  currencyTab: {
+    flex: 1,
+    paddingVertical: 9,
+    paddingHorizontal: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  currencyTabActive: {
+    backgroundColor: '#F0B24A',
+    borderColor: '#F0B24A'
+  },
+  currencyTabSymbol: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#F0B24A',
+    marginBottom: 2
+  },
+  currencyTabCode: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#A9A08C'
+  },
   notifHeaderBtn: {
     width: 36,
     height: 36,

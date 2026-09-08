@@ -1,17 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Dimensions } from 'react-native';
+import { View, StyleSheet, useWindowDimensions } from 'react-native';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-
-const CONFETTI_COLORS = [
-  '#25C9A0', // PACT Emerald
-  '#F0B24A', // Coral
-  '#FFB224', // Warm Amber
-  '#35C4A5', // Sky Blue
-  '#B58722', // Violet
-  '#E14733', // Rose Pink
-  '#FFD98A', // Gold
-  '#FFFFFF'  // White Sparkle
+const LUXURY_GOLD_COLORS = [
+  '#F0B24A', // Vibrant Gold
+  '#C99A5B', // Warm Brass
+  '#FFDF88', // Pale Champagne
+  '#FDF9EF', // Warm White Sparkle
+  '#D4952B', // Deep Amber Gold
+  '#C1503F', // Sealing Wax Red
+  '#E6BE75', // Golden Sand
+  '#B8860B'  // Rich Bronze
 ];
 
 interface Particle {
@@ -25,28 +23,33 @@ interface Particle {
   rotation: number;
   rotSpeed: number;
   opacity: number;
+  isCircle: boolean;
 }
 
-export const ConfettiEffect: React.FC<{ durationMs?: number; count?: number }> = ({
+export const ConfettiEffect: React.FC<{ durationMs?: number; count?: number; triggerKey?: any }> = ({
   durationMs = 4500,
-  count = 65
+  count = 65,
+  triggerKey
 }) => {
+  const { width: windowWidth } = useWindowDimensions();
   const [particles, setParticles] = useState<Particle[]>([]);
   const [isActive, setIsActive] = useState(true);
 
   useEffect(() => {
-    const width = SCREEN_WIDTH && SCREEN_WIDTH > 0 ? SCREEN_WIDTH : 420;
+    setIsActive(true);
+    const width = windowWidth && windowWidth > 0 ? windowWidth : 480;
     const initialParticles: Particle[] = Array.from({ length: count }, (_, i) => ({
       id: i,
       x: Math.random() * width,
-      y: -25 - Math.random() * 120,
-      size: 6 + Math.random() * 9,
-      color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
-      speedY: 2.2 + Math.random() * 4.8,
-      speedX: (Math.random() - 0.5) * 3.6,
+      y: -20 - Math.random() * 120,
+      size: 6 + Math.random() * 8,
+      color: LUXURY_GOLD_COLORS[Math.floor(Math.random() * LUXURY_GOLD_COLORS.length)],
+      speedY: 2.2 + Math.random() * 4.5,
+      speedX: (Math.random() - 0.5) * 3.4,
       rotation: Math.random() * 360,
-      rotSpeed: (Math.random() - 0.5) * 14,
-      opacity: 1
+      rotSpeed: (Math.random() - 0.5) * 12,
+      opacity: 1,
+      isCircle: Math.random() > 0.65
     }));
 
     setParticles(initialParticles);
@@ -65,9 +68,9 @@ export const ConfettiEffect: React.FC<{ durationMs?: number; count?: number }> =
         prev.map((p) => ({
           ...p,
           y: p.y + p.speedY,
-          x: p.x + p.speedX + Math.sin((p.y + p.id * 10) / 25) * 1.1,
+          x: p.x + p.speedX + Math.sin((p.y + p.id * 8) / 28) * 1.2,
           rotation: p.rotation + p.rotSpeed,
-          opacity: Math.max(0, 1 - (elapsed / durationMs) * 0.95)
+          opacity: Math.max(0, 1 - (elapsed / durationMs) * 0.92)
         }))
       );
 
@@ -84,7 +87,7 @@ export const ConfettiEffect: React.FC<{ durationMs?: number; count?: number }> =
       cancelAnimationFrame(animationFrameId);
       clearTimeout(timer);
     };
-  }, [durationMs, count]);
+  }, [durationMs, count, triggerKey, windowWidth]);
 
   if (!isActive) return null;
 
@@ -99,7 +102,8 @@ export const ConfettiEffect: React.FC<{ durationMs?: number; count?: number }> =
               left: p.x,
               top: p.y,
               width: p.size,
-              height: p.size * 1.5,
+              height: p.isCircle ? p.size : p.size * 1.6,
+              borderRadius: p.isCircle ? p.size / 2 : 2,
               backgroundColor: p.color,
               opacity: p.opacity,
               transform: [{ rotate: `${p.rotation}deg` }]
@@ -119,10 +123,9 @@ const styles = StyleSheet.create({
   },
   particle: {
     position: 'absolute',
-    borderRadius: 3,
-    shadowColor: '#000',
+    shadowColor: '#F0B24A',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.25,
     shadowRadius: 2
   }
 });
