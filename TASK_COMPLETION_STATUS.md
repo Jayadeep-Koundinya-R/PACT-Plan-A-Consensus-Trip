@@ -1,8 +1,8 @@
 # 🏆 PACT — Task Completion Status & Submission Readiness Report
 
-> **Last Updated**: 2026-09-07  
-> **Target Branch**: `pre-submission-review` *(main kept untouched per safety boundary)*  
-> **Automated Test Suite**: **89/93 tests passing** (20 suites)  
+> **Last Updated**: 2026-09-08  
+> **Target Branch**: `main` *(fully committed & synchronized with origin/main)*  
+> **Automated Test Suite**: **93/93 tests passing** (21 suites)  
 > **TypeScript Strict Check**: **0 errors** (`npx tsc --noEmit` exits with code 0)  
 > **Static Web Export**: **24/24 static routes exported cleanly** to `dist/`  
 > **Local Server**: Running at `http://localhost:3000` with clean Expo routing  
@@ -161,6 +161,43 @@ The following tasks have been fully implemented, unit-tested, verified on localh
 
 ---
 
+
+### 16. 🔔 Interactive Notifications & AI Advisor Simulation
+- **Changes**:
+  - Created `src/store/useNotificationStore.ts` with strict PACT Privacy Rule enforcement (automatically redacts/blocks any notification containing private dollar amounts, budget numbers, or individual vetoes).
+  - Created `src/components/NotificationToast.tsx` with spring entrance animation, category badges (`AI ADVISOR`, `CIRCLE UPDATE`), and 4.5s auto-dismiss.
+  - Created `src/components/NotificationCenterModal.tsx` with filter tabs (*All*, *AI Insights*, *Circle Updates*), individual dismiss, mark all read, and embedded interactive simulators:
+    - `+ AI Advisor Insight`: triggers actionable compromise nudges.
+    - `+ Circle Response`: triggers simulated member lock-ins.
+  - Added header Bell icons with live unread badge counters across **Home** (`app/(tabs)/home.tsx`), **Circle Hub** (`app/circle/[id]/hub.tsx`), and **Settings** (`app/settings.tsx`).
+- **Verification**: Verified live via browser; simulator triggers live toasts and increments badge counter.
+- **Files Modified**: `src/store/useNotificationStore.ts`, `src/components/NotificationToast.tsx`, `src/components/NotificationCenterModal.tsx`, `app/(tabs)/home.tsx`, `app/circle/[id]/hub.tsx`, `app/settings.tsx`.
+
+---
+
+### 17. 🌓 Settings Theme Switcher (Dark & Light Mode)
+- **Changes**:
+  - Added **Appearance & theme** section in `app/settings.tsx`.
+  - Interactive switch between **Dark theme (Ink & Brass)** (`#0C1120`) and **Light theme (Parchment & Gold)** (`#F6EFDE`).
+  - Toggling synchronizes both `useGatherlyStore` and `useUserStore` states instantly.
+  - Added AI notification preference toggle and a direct test trigger button in Settings.
+- **Verification**: Clean UI toggle, responsive state change, verified with TypeScript strict check.
+- **Files Modified**: `app/settings.tsx`.
+
+---
+
+### 18. 🛠️ Idempotent SQL Migration Policies (ERROR 42710 Fix)
+- **Problem**: Running the audit fixes in Supabase SQL editor failed with `ERROR: 42710: policy "Members can leave groups" for table "group_members" already exists`.
+- **Resolution**: Prepend `drop policy if exists` guards for all lifecycle policies in `supabase/migrations/20260907_backend_audit_fixes.sql` and `supabase/schema.sql`:
+  - `Members can leave groups` on `public.group_members`
+  - `Organizers can remove group members` on `public.group_members`
+  - `Organizers can delete groups` on `public.groups`
+  - `Users can insert own profile` on `public.profiles`
+- **Verification**: Script can now be re-executed repeatedly in Supabase without policy name collisions.
+- **Files Modified**: `supabase/migrations/20260907_backend_audit_fixes.sql`, `supabase/schema.sql`.
+
+---
+
 ## 🟡 PART 2: REMAINING & ASSIGNED TASKS (NOT COMPLETED / PENDING ACTION)
 
 The tasks below fall into two clear groups:
@@ -216,8 +253,7 @@ The tasks below fall into two clear groups:
 - **Action Needed**: Record screen + voiceover demonstrating PACT's privacy-first consensus engine, RevenueCat Pro tier, and AI Compromise Whisperer.
 
 #### 10. Review & Merge `pre-submission-review` → `main`
-- **Status**: **Pending Jayadeep**
-- **Action Needed**: Review the clean commit history on `pre-submission-review` branch, verify all checks pass, and merge into `main` for final submission.
+- **Status**: ✅ **COMPLETED & PUSHED TO MAIN** (Commit `30c96cb` pushed to `origin/main`).
 
 #### 11. Devpost Submission
 - **Status**: **Pending Jayadeep**
