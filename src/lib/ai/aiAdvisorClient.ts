@@ -74,7 +74,7 @@ async function queryGeminiDirect(prompt: string): Promise<any | null> {
   if (!directGeminiKey) return null;
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${directGeminiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${directGeminiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
