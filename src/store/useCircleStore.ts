@@ -80,8 +80,8 @@ const DEMO_CIRCLE: Circle = {
 };
 
 export const useCircleStore = create<CircleState>((set, get) => ({
-  circles: [DEMO_CIRCLE],
-  activeCircleId: DEMO_CIRCLE.id,
+  circles: [],
+  activeCircleId: null,
 
   getCircle: (id) => get().circles.find((c) => c.id === id),
 

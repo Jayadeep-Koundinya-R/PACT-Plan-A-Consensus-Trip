@@ -43,12 +43,12 @@ export default function MyCirclesScreen() {
   const router = useRouter();
   const haptics = usePactHaptics();
 
-  const { circles = [], activeCircleId, setActiveCircle, archiveCircle, unarchiveCircle } = useCircleStore();
+  const { circles = [], activeCircleId, setActiveCircle, archiveCircle, unarchiveCircle, loadDemoCircle, clearCircles } = useCircleStore();
   const { openNotificationCenter, notifications } = useNotificationStore();
   const unreadCount = notifications.filter((n) => !n.read).length;
   const [circleTab, setCircleTab] = useState<'active' | 'archived'>('active');
   const { profile, subscriptionPlan } = useUserStore();
-  const { groups = [], fetchUserGroupsFromCloud, currentUserId } = useGatherlyStore();
+  const { groups = [], fetchUserGroupsFromCloud, currentUserId, resetDemoState } = useGatherlyStore();
 
   useEffect(() => {
     if (currentUserId) {
@@ -488,6 +488,94 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: '#C1503F'
+  },
+  emptyContainer: {
+    backgroundColor: '#192038',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(253, 249, 239, 0.1)',
+    padding: 24,
+    alignItems: 'center',
+    marginBottom: 20
+  },
+  emptyIconBox: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(240, 178, 74, 0.12)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 14
+  },
+  emptyTitle: {
+    fontSize: 19,
+    fontFamily: fontDisplay,
+    fontWeight: '700',
+    color: '#FDF9EF',
+    marginBottom: 8,
+    textAlign: 'center'
+  },
+  emptySubtitle: {
+    fontSize: 13,
+    color: '#A9A08C',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 20,
+    maxWidth: 320
+  },
+  emptyBtnRow: {
+    flexDirection: 'row',
+    gap: 10,
+    width: '100%',
+    marginBottom: 16
+  },
+  emptyPrimaryBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#F0B24A',
+    paddingVertical: 12,
+    borderRadius: 10
+  },
+  emptyPrimaryBtnText: {
+    color: '#0C1120',
+    fontSize: 13,
+    fontWeight: '700'
+  },
+  emptySecondaryBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#12182B',
+    borderWidth: 1,
+    borderColor: 'rgba(240, 178, 74, 0.3)',
+    paddingVertical: 12,
+    borderRadius: 10
+  },
+  emptySecondaryBtnText: {
+    color: '#F0B24A',
+    fontSize: 13,
+    fontWeight: '600'
+  },
+  demoStoryPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    backgroundColor: 'rgba(240, 178, 74, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(240, 178, 74, 0.2)'
+  },
+  demoStoryPillText: {
+    color: '#F0B24A',
+    fontSize: 12,
+    fontWeight: '600'
   },
   outerContainer: {
     flex: 1,

@@ -1,3 +1,4 @@
+import { useCircleStore } from './useCircleStore';
 import { synthesizeAICompromise, CompromiseProposal } from '../lib/ai/compromiseEngine';
 import { SubscriptionPlan } from '../lib/purchases/customerInfo';
 import { create } from 'zustand';
@@ -783,6 +784,10 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
 
   setPendingInviteCode: (code: string | null) => set({ pendingInviteCode: code }),
 
+  loadDemoData: () => {
+    useCircleStore.getState().loadDemoCircle();
+    get().resetDemoState();
+  },
   setDemoScenario: (scenario: string) => {
     const freshOptions: TripOption[] = JSON.parse(JSON.stringify(DEMO_TRIP_OPTIONS));
     const freshMembers: MemberPreference[] = JSON.parse(JSON.stringify(DEMO_MEMBERS));
