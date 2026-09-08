@@ -1,7 +1,7 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
-import { Compass, PlusCircle, Sparkles, Settings } from 'lucide-react-native';
+import { Compass, PlusCircle, Settings } from 'lucide-react-native';
 import { useTheme } from '../../src/hooks/useTheme';
 
 export default function TabLayout() {
@@ -55,16 +55,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="pro"
-        options={{
-          title: 'PACT Pro',
-          tabBarLabel: 'PACT Pro',
-          tabBarIcon: ({ color, size }) => (
-            <Sparkles size={size || 22} color={color} strokeWidth={2.2} />
-          )
-        }}
-      />
-      <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',
@@ -72,6 +62,13 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <Settings size={size || 22} color={color} strokeWidth={2.2} />
           )
+        }}
+      />
+      {/* Hidden from bottom navigation bar per user request — accessible via Settings & Home buttons */}
+      <Tabs.Screen
+        name="pro"
+        options={{
+          href: null
         }}
       />
     </Tabs>

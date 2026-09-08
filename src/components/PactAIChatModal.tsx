@@ -13,9 +13,11 @@ import {
   KeyboardAvoidingView,
   Platform
 } from 'react-native';
-import { Sparkles, X, Send, Bot, Trash2, ArrowRight } from 'lucide-react-native';
+import { Sparkles, X, Send, Bot, Trash2, ArrowRight, Crown } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 import { useAIChatStore } from '../store/useAIChatStore';
 import { useGatherlyStore } from '../store/useGatherlyStore';
+import { FREE_DAILY_PROMPT_LIMIT, remainingPrompts } from '../lib/ai/dailyQuota';
 import { fontDisplay } from '../theme/typography';
 
 const QUICK_PROMPTS = [
@@ -26,10 +28,16 @@ const QUICK_PROMPTS = [
 ];
 
 export const PactAIChatModal: React.FC = () => {
-  const { isOpen, closeAIChat, messages, isLoading, sendMessage, clearChat } = useAIChatStore();
+  const router = useRouter();
+  const { isOpen, closeAIChat, messages, isLoading, sendMessage, clearChat, promptsUsedToday } = useAIChatStore();
   const { theme, isDarkMode } = useTheme();
+  const { subscriptionPlan } = useGatherlyStore();
   const [inputText, setInputText] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
+
+  const isPro = subscriptionPlan !== 'free';
+  const quotaRemaining = remainingPrompts(promptsUsedToday, subscriptionPlan);
+  const quotaReached = !isPro && quotaRemaining <= 0;
 
   useEffect(() => {
     if (isOpen) {
@@ -40,15 +48,21 @@ export const PactAIChatModal: React.FC = () => {
   }, [isOpen, messages]);
 
   const handleSend = () => {
-    if (!inputText.trim() || isLoading) return;
+    if (!inputText.trim() || isLoading || quotaReached) return;
     const q = inputText;
     setInputText('');
     sendMessage(q);
   };
 
   const handleChip = (promptText: string) => {
+    if (quotaReached) return;
     const cleanText = promptText.replace(/^[^\w]+/, '').trim();
     sendMessage(cleanText);
+  };
+
+  const goUpgrade = () => {
+    closeAIChat();
+    router.push('/paywall');
   };
 
   return (
@@ -77,7 +91,15 @@ export const PactAIChatModal: React.FC = () => {
                     </Text>
                     <View style={styles.onlineDot} />
                   </View>
-                  <Text style={styles.headerSubtitle}>Powered by Google Gemini 1.5 / 3.6 Flash</Text>
+                  {isPro ? (
+                    <Text style={styles.headerSubtitle}>Powered by Gemini · Pro: unlimited AI</Text>
+                  ) : (
+                    <Text style={[styles.headerSubtitle, { color: quotaReached ? '#D99836' : '#A9A08C' }]}>
+                      {quotaReached
+                        ? `${FREE_DAILY_PROMPT_LIMIT}/${FREE_DAILY_PROMPT_LIMIT} used — daily limit reached`
+                        : `Powered by Gemini · ${quotaRemaining} free prompts left today`}
+                    </Text>
+                  )}
                 </View>
               </View>
 
@@ -107,7 +129,8 @@ export const PactAIChatModal: React.FC = () => {
                   <TouchableOpacity
                     key={idx}
                     onPress={() => handleChip(chip)}
-                    style={[styles.chipPill, { backgroundColor: isDarkMode ? '#192038' : '#EDE4D0', borderColor: isDarkMode ? 'rgba(240, 178, 74, 0.2)' : 'rgba(0,0,0,0.1)' }]}
+                    disabled={quotaReached}
+                    style={[styles.chipPill, { backgroundColor: isDarkMode ? '#192038' : '#EDE4D0', borderColor: isDarkMode ? 'rgba(240, 178, 74, 0.2)' : 'rgba(0,0,0,0.1)' }, quotaReached && { opacity: 0.45 }]}
                     activeOpacity={0.75}
                   >
                     <Text style={[styles.chipText, { color: isDarkMode ? '#FDF9EF' : '#1E1A14' }]}>
@@ -146,7 +169,12 @@ export const PactAIChatModal: React.FC = () => {
                         styles.messageBubble,
                         isUser
                           ? styles.bubbleUser
-                          : [styles.bubbleModel, { backgroundColor: isDarkMode ? '#192038' : '#FFFFFF', borderColor: isDarkMode ? 'rgba(253, 249, 239, 0.1)' : 'rgba(0,0,0,0.08)' }]
+                          : [
+                              styles.bubbleModel,
+                              { backgroundColor: isDarkMode ? '#192038' : '#FFFFFF', borderColor: isDarkMode ? 'rgba(253, 249, 239, 0.1)' : 'rgba(0,0,0,0.08)' },
+                              (m.isError || m.quotaBlocked) && styles.bubbleWarning,
+                              m.truncated && styles.bubbleTruncated
+                            ]
                       ]}
                     >
                       <Text
@@ -185,22 +213,39 @@ export const PactAIChatModal: React.FC = () => {
               )}
             </ScrollView>
 
+            {quotaReached && (
+              <View style={[styles.quotaBanner, { backgroundColor: isDarkMode ? 'rgba(240, 178, 74, 0.12)' : '#FFF3D6', borderTopColor: isDarkMode ? 'rgba(253, 249, 239, 0.1)' : 'rgba(0,0,0,0.08)' }]}>
+                <Text style={[styles.quotaBannerText, { color: isDarkMode ? '#FDF9EF' : '#6A4A12' }]}>
+                  You've used all {FREE_DAILY_PROMPT_LIMIT} free AI prompts today.
+                </Text>
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={goUpgrade}
+                  style={styles.upgradeChip}
+                >
+                  <Crown size={14} color="#0C1120" />
+                  <Text style={styles.upgradeChipText}>Upgrade for unlimited</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
             {/* Input Bar */}
             <View style={[styles.inputBar, { backgroundColor: isDarkMode ? '#12182B' : '#EAE0CB', borderTopColor: isDarkMode ? 'rgba(253, 249, 239, 0.1)' : 'rgba(0,0,0,0.08)' }]}>
               <TextInput
                 style={[styles.textInput, { backgroundColor: isDarkMode ? '#192038' : '#FFFFFF', color: isDarkMode ? '#FDF9EF' : '#1E1A14' }]}
-                placeholder="Ask Gemini anything about your trip..."
+                placeholder={quotaReached ? 'Daily limit reached — upgrade to continue' : 'Ask Gemini anything about your trip...'}
                 placeholderTextColor="#A9A08C"
                 value={inputText}
                 onChangeText={setInputText}
                 onSubmitEditing={handleSend}
                 returnKeyType="send"
                 multiline={false}
+                editable={!quotaReached}
               />
               <TouchableOpacity
                 onPress={handleSend}
-                disabled={!inputText.trim() || isLoading}
-                style={[styles.sendBtn, (!inputText.trim() || isLoading) && { opacity: 0.5 }]}
+                disabled={!inputText.trim() || isLoading || quotaReached}
+                style={[styles.sendBtn, (!inputText.trim() || isLoading || quotaReached) && { opacity: 0.5 }]}
                 activeOpacity={0.8}
               >
                 <Send size={16} color="#0C1120" strokeWidth={2.5} />
@@ -367,5 +412,42 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0B24A',
     justifyContent: 'center',
     alignItems: 'center'
+  },
+  bubbleWarning: {
+    borderColor: 'rgba(211, 80, 63, 0.55)',
+    borderWidth: 1
+  },
+  bubbleTruncated: {
+    borderColor: 'rgba(240, 178, 74, 0.65)',
+    borderWidth: 1
+  },
+  quotaBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderTopWidth: 1
+  },
+  quotaBannerText: {
+    flex: 1,
+    fontSize: 12.5,
+    fontWeight: '600',
+    lineHeight: 17
+  },
+  upgradeChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#F0B24A',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10
+  },
+  upgradeChipText: {
+    color: '#0C1120',
+    fontSize: 12,
+    fontWeight: '800'
   }
 });

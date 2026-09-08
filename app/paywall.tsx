@@ -1,4 +1,3 @@
-import { useTheme } from '../src/hooks/useTheme';
 import React, { useState } from 'react';
 import {
   View,
@@ -8,41 +7,49 @@ import {
   StyleSheet,
   SafeAreaView,
   Platform,
-  Alert
+  Alert,
+  Modal,
+  Linking
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import Svg, { Path, Circle } from 'react-native-svg';
+import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import { colors, radius } from '../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../src/theme/typography';
-import { X, Sparkles, Check, Star, Smartphone, ExternalLink, ShieldCheck } from 'lucide-react-native';
-import { useGatherlyStore } from '../src/store/useGatherlyStore';
+import { useTheme } from '../src/hooks/useTheme';
+import { useGatherlyStore, CurrencyCode, CURRENCIES } from '../src/store/useGatherlyStore';
 import { useUserStore } from '../src/store/useUserStore';
+import {
+  GROUP_TIERS,
+  GroupTierId,
+  getTierForMemberCount,
+  formatTierPrice,
+  getOperatorEmailLink
+} from '../src/lib/pricing/groupPricing';
+import {
+  X,
+  Sparkles,
+  Check,
+  Star,
+  Users,
+  Building2,
+  Mail,
+  Copy,
+  ExternalLink,
+  ShieldCheck,
+  ChevronRight,
+  ArrowLeft
+} from 'lucide-react-native';
 
 export default function PactPaywall() {
   const router = useRouter();
   const { theme, isDarkMode } = useTheme();
-  const [plan, setPlan] = useState<'annual' | 'single'>('annual');
-  const [isPurchasing, setIsPurchasing] = useState(false);
-
-  const features = [
-    {
-      title: 'AI Compromise Whisperer',
-      desc: 'Automatically resolves budget & date deadlocks.'
-    },
-    {
-      title: 'Unlimited trip circles',
-      desc: 'Organize multiple group trips simultaneously.'
-    },
-    {
-      title: 'Integrated group expense sync',
-      desc: 'Convert trip brief into split payment tracking.'
-    },
-    {
-      title: 'Custom dealbreaker tags',
-      desc: 'Add hyper-specific veto rules for your circle.'
-    }
-  ];
+  const { currency, setCurrency } = useGatherlyStore();
+  const [billingPeriod, setBillingPeriod] = useState<'single' | 'annual'>('single');
+  const [selectedTier, setSelectedTier] = useState<GroupTierId>('tier_10');
+  const [isOperatorModalOpen, setIsOperatorModalOpen] = useState(false);
+  const [copiedEmail, setCopiedEmail] = useState(false);
 
   const triggerHaptic = () => {
     if (Platform.OS !== 'web') {
@@ -52,206 +59,309 @@ export default function PactPaywall() {
     }
   };
 
-  const isWeb = Platform.OS === 'web';
-
-  const handleWebDemoUnlock = () => {
+  const handleCopyEmail = async () => {
     triggerHaptic();
-    useGatherlyStore.getState().setSubscriptionPlan('premium_monthly');
-    useUserStore.getState().setSubscriptionPlan('premium_monthly');
-    Alert.alert('PACT Pro Demo Mode', 'Pro features unlocked for web evaluation!');
-    router.back();
+    try {
+      if (Clipboard && Clipboard.setStringAsync) {
+        await Clipboard.setStringAsync('concierge@pact.travel');
+      }
+    } catch {}
+    setCopiedEmail(true);
+    setTimeout(() => setCopiedEmail(false), 2000);
   };
 
-  const handleSubscribe = () => {
+  const handleOpenEmail = () => {
     triggerHaptic();
-    if (isWeb) {
-      handleWebDemoUnlock();
+    const mailto = getOperatorEmailLink('Community Trip', 60);
+    Linking.openURL(mailto).catch(() => {
+      Alert.alert('Email Concierge', 'Please write to: concierge@pact.travel');
+    });
+  };
+
+  const handleActivatePass = (tierId: GroupTierId) => {
+    triggerHaptic();
+    if (tierId === 'tier_community') {
+      setIsOperatorModalOpen(true);
       return;
     }
-    setIsPurchasing(true);
-    setTimeout(() => {
-      setIsPurchasing(false);
-      Alert.alert('PACT Pro Activated', 'Your 7-day free trial has started! All circles are unlocked.');
-      router.back();
-    }, 1200);
+    useGatherlyStore.getState().setSubscriptionPlan('premium_monthly');
+    useUserStore.getState().setSubscriptionPlan('premium_monthly');
+    Alert.alert(
+      'Pass Activated!',
+      `${GROUP_TIERS[tierId].name} unlocked! Only you pay — all your friends join 100% free.`,
+      [{ text: 'Continue Planning', onPress: () => router.back() }]
+    );
   };
+
+  const tiersList: GroupTierId[] = ['free', 'tier_10', 'tier_19', 'tier_50', 'tier_community'];
 
   return (
     <SafeAreaView style={[styles.outerContainer, { backgroundColor: theme.backgroundDeep }]}>
       <View style={[styles.phoneFrame, { backgroundColor: theme.background, borderColor: theme.border }]}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          {/* Header Row */}
+          {/* Header Navigation */}
           <View style={styles.headerRow}>
-            <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7} style={styles.closeBtn}>
-              <X size={20} color="#C3BAA6" />
+            <TouchableOpacity
+              onPress={() => router.back()}
+              activeOpacity={0.7}
+              style={[styles.closeBtn, { backgroundColor: theme.surfaceSubtle }]}
+              accessibilityLabel="Go back"
+            >
+              <ArrowLeft size={18} color={theme.textPrimary} />
             </TouchableOpacity>
-            <View style={styles.proPillBadge}>
-              <Text style={styles.proPillText}>PACT PRO</Text>
+            <View style={[styles.proPillBadge, { backgroundColor: isDarkMode ? 'rgba(240, 178, 74, 0.15)' : '#FFF3D6' }]}>
+              <Sparkles size={12} color="#F0B24A" />
+              <Text style={styles.proPillText}>GROUP PASSES & TIERS</Text>
             </View>
           </View>
 
-          {/* Pro Hero Card */}
+          {/* Golden Hero Card */}
           <View style={[styles.heroCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <View style={styles.heroTop}>
-              <Text style={[styles.heroTitle, { color: theme.textPrimary }]}>Unlock PACT Pro</Text>
-              <Text style={[styles.heroSub, { color: theme.textSecondary }]}>
-                Only <Text style={{ color: '#FFD98A', fontWeight: '700' }}>one</Text> person needs Pro. Your entire trip circle gets all Pro benefits for free.
-              </Text>
-            </View>
-
-            {/* Perforation */}
-            <View style={styles.perforationWrapper}>
-              <View style={styles.notchLeft} />
-              <View style={styles.notchRight} />
-              <View style={styles.dashedLine} />
-            </View>
-
-            <View style={styles.heroBottom}>
-              <Text style={styles.heroPassLabel}>
-                One pass · whole circle covered
-              </Text>
-            </View>
-          </View>
-
-          {/* Features List */}
-          <View style={styles.featuresList}>
-            {features.map((f) => (
-              <View key={f.title} style={styles.featureRow}>
-                <View style={styles.starIconBox}>
-                  <Svg width="14" height="14" viewBox="0 0 14 14">
-                    <Path
-                      d="M7 1.3l1.6 3.9 4.1.4-3.1 2.8.9 4.1L7 10.4l-3.5 2.1.9-4.1-3.1-2.8 4.1-.4z"
-                      fill="none"
-                      stroke="#FFD98A"
-                      strokeWidth="1"
-                      strokeLinejoin="round"
-                    />
-                  </Svg>
-                </View>
-                <View style={styles.featureTextCol}>
-                  <Text style={[styles.featureTitle, { color: theme.textPrimary }]}>{f.title}</Text>
-                  <Text style={[styles.featureDesc, { color: theme.textSecondary }]}>{f.desc}</Text>
-                </View>
-              </View>
-            ))}
-          </View>
-
-          {/* Plan Options Selector */}
-          <View style={styles.plansContainer}>
-            {/* Annual Plan Card */}
-            <TouchableOpacity
-              activeOpacity={0.88}
-              onPress={() => {
-                triggerHaptic();
-                setPlan('annual');
-              }}
-              style={[
-                styles.planCard,
-                plan === 'annual' ? styles.planCardActive : [styles.planCardInactive, { backgroundColor: theme.surface, borderColor: theme.border }]
-              ]}
-            >
-              <View style={styles.popularTag}>
-                <Text style={styles.popularTagText}>Most popular — save 50%</Text>
-              </View>
-
-              <View style={styles.planCardContent}>
-                <View style={styles.planLeft}>
-                  <View
-                    style={[
-                      styles.radioOuter,
-                      plan === 'annual' && { borderColor: '#F0B24A', borderWidth: 5 }
-                    ]}
-                  />
-                  <Text style={[styles.planNameText, { color: theme.textPrimary }]}>Annual organizer pass</Text>
-                </View>
-
-                <View style={styles.planRight}>
-                  <Text style={[styles.planPriceText, { color: theme.textPrimary }]}>$29.99</Text>
-                  <Text style={styles.planMonthlyRate}>$2.50/mo</Text>
-                </View>
-              </View>
-              <Text style={styles.trialNote}>Includes 7-day free trial</Text>
-            </TouchableOpacity>
-
-            {/* Single Trip Pass Card */}
-            <TouchableOpacity
-              activeOpacity={0.88}
-              onPress={() => {
-                triggerHaptic();
-                setPlan('single');
-              }}
-              style={[
-                styles.planCard,
-                plan === 'single' ? styles.planCardActive : [styles.planCardInactive, { backgroundColor: theme.surface, borderColor: theme.border }]
-              ]}
-            >
-              <View style={styles.planCardContent}>
-                <View style={styles.planLeft}>
-                  <View
-                    style={[
-                      styles.radioOuter,
-                      plan === 'single' && { borderColor: '#F0B24A', borderWidth: 5 }
-                    ]}
-                  />
-                  <Text style={[styles.planNameText, { color: theme.textPrimary }]}>Single trip pass</Text>
-                </View>
-                <Text style={[styles.planPriceText, { color: theme.textPrimary }]}>$3.99</Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-
-          {/* Testimonial Card */}
-          <View style={styles.testimonialCard}>
-            <View style={styles.starsRow}>
-              {[0, 1, 2, 3, 4].map((i) => (
-                <Star key={i} size={13} fill="#FFD98A" color="#FFD98A" style={{ marginRight: 2 }} />
-              ))}
-            </View>
-            <Text style={styles.testimonialQuote}>
-              "PACT saved our 6-person group from giving up on our annual beach trip."
+            <Text style={[styles.heroTitle, { color: theme.textPrimary }]}>Only 1 Person Pays.</Text>
+            <Text style={[styles.heroHighlight, { color: '#F0B24A' }]}>Everyone Else Joins 100% Free.</Text>
+            <Text style={[styles.heroSub, { color: theme.textSecondary }]}>
+              Invite 5, 10, 19, or 50+ friends. Only the trip organizer activates the group pass — all participants enter constraints and vote with zero paywalls.
             </Text>
-            <Text style={styles.testimonialAuthor}>— Sarah T.</Text>
+          </View>
+
+          {/* Currency Selector Bar */}
+          <View style={styles.currencySection}>
+            <Text style={[styles.currencyLabel, { color: theme.textSecondary }]}>SELECT YOUR CURRENCY</Text>
+            <View style={[styles.currencyBar, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}>
+              {(['USD', 'EUR', 'INR', 'GBP'] as CurrencyCode[]).map((c) => {
+                const isSelected = currency === c;
+                const symbols = { USD: '$', EUR: '€', INR: '₹', GBP: '£' };
+                return (
+                  <TouchableOpacity
+                    key={c}
+                    onPress={() => {
+                      triggerHaptic();
+                      setCurrency(c);
+                    }}
+                    activeOpacity={0.8}
+                    style={[
+                      styles.currencyTab,
+                      isSelected && { backgroundColor: theme.primary, borderColor: theme.primary }
+                    ]}
+                  >
+                    <Text style={[styles.currencyTabSymbol, isSelected ? { color: '#0C1120' } : { color: theme.primary }]}>
+                      {symbols[c]}
+                    </Text>
+                    <Text style={[styles.currencyTabCode, isSelected ? { color: '#0C1120', fontWeight: '800' } : { color: theme.textSecondary }]}>
+                      {c}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+
+          {/* Billing Switcher (Single Trip vs Annual Pass) */}
+          <View style={[styles.billingSwitcher, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}>
+            <TouchableOpacity
+              onPress={() => {
+                triggerHaptic();
+                setBillingPeriod('single');
+              }}
+              activeOpacity={0.8}
+              style={[
+                styles.billingTab,
+                billingPeriod === 'single' && [styles.billingTabActive, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]
+              ]}
+            >
+              <Text style={[styles.billingTabText, { color: theme.textSecondary }, billingPeriod === 'single' && { color: theme.textPrimary, fontWeight: '700' }]}>
+                Single Trip Pass
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                triggerHaptic();
+                setBillingPeriod('annual');
+              }}
+              activeOpacity={0.8}
+              style={[
+                styles.billingTab,
+                billingPeriod === 'annual' && [styles.billingTabActive, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]
+              ]}
+            >
+              <View style={styles.saveTag}>
+                <Text style={styles.saveTagText}>SAVE 50%</Text>
+              </View>
+              <Text style={[styles.billingTabText, { color: theme.textSecondary }, billingPeriod === 'annual' && { color: theme.textPrimary, fontWeight: '700' }]}>
+                Annual Unlimited
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Group Tiers List */}
+          <View style={styles.tiersContainer}>
+            {tiersList.map((tierId) => {
+              const tier = GROUP_TIERS[tierId];
+              const isSelected = selectedTier === tierId;
+              const priceDisplay = formatTierPrice(tier, currency, billingPeriod);
+
+              return (
+                <TouchableOpacity
+                  key={tierId}
+                  activeOpacity={0.9}
+                  onPress={() => {
+                    triggerHaptic();
+                    setSelectedTier(tierId);
+                  }}
+                  style={[
+                    styles.tierCard,
+                    { backgroundColor: theme.surface, borderColor: theme.border },
+                    isSelected && { borderColor: '#F0B24A', borderWidth: 2 }
+                  ]}
+                >
+                  {/* Top Badge & Capacity */}
+                  <View style={styles.tierHeader}>
+                    <View style={styles.tierNameCol}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        {tierId === 'tier_community' ? (
+                          <Building2 size={16} color="#25C9A0" />
+                        ) : (
+                          <Users size={16} color="#F0B24A" />
+                        )}
+                        <Text style={[styles.tierName, { color: theme.textPrimary }]}>{tier.name}</Text>
+                      </View>
+                      <Text style={[styles.capacityTag, { color: theme.textSecondary }]}>{tier.capacityLabel}</Text>
+                    </View>
+
+                    <View style={styles.tierPriceCol}>
+                      <Text style={[styles.tierPrice, { color: tierId === 'free' ? '#25C9A0' : '#F0B24A' }]}>
+                        {priceDisplay}
+                      </Text>
+                      <Text style={[styles.tierPriceSub, { color: theme.textSecondary }]}>
+                        {tier.isCustomQuote ? 'Invoiced' : billingPeriod === 'single' ? 'per trip' : 'per year'}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <Text style={[styles.recommendedText, { color: theme.textSecondary }]}>
+                    • Ideal for: {tier.recommendedFor}
+                  </Text>
+
+                  {/* Features list */}
+                  <View style={styles.tierFeatures}>
+                    {tier.features.map((feat, idx) => (
+                      <View key={idx} style={styles.featureItem}>
+                        <Check size={13} color="#25C9A0" strokeWidth={2.5} />
+                        <Text style={[styles.featureText, { color: theme.textPrimary }]}>{feat}</Text>
+                      </View>
+                    ))}
+                  </View>
+
+                  {/* Action Button */}
+                  <TouchableOpacity
+                    activeOpacity={0.85}
+                    onPress={() => handleActivatePass(tierId)}
+                    style={[
+                      styles.tierActionBtn,
+                      tierId === 'tier_community'
+                        ? { backgroundColor: '#1E2742', borderWidth: 1, borderColor: '#25C9A0' }
+                        : tierId === 'free'
+                        ? { backgroundColor: theme.surfaceSubtle, borderWidth: 1, borderColor: theme.border }
+                        : { backgroundColor: '#F0B24A' }
+                    ]}
+                  >
+                    {tierId === 'tier_community' ? (
+                      <>
+                        <Mail size={15} color="#25C9A0" />
+                        <Text style={[styles.tierActionBtnText, { color: '#25C9A0' }]}>Contact Operator</Text>
+                      </>
+                    ) : tierId === 'free' ? (
+                      <Text style={[styles.tierActionBtnText, { color: theme.textPrimary }]}>Current Free Tier (≤5)</Text>
+                    ) : (
+                      <>
+                        <Sparkles size={15} color="#0C1120" />
+                        <Text style={[styles.tierActionBtnText, { color: '#0C1120' }]}>
+                          Activate {tier.name} Pass
+                        </Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          {/* Privacy & Operator Guarantee */}
+          <View style={[styles.guaranteeCard, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}>
+            <ShieldCheck size={18} color="#25C9A0" />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.guaranteeTitle, { color: theme.textPrimary }]}>No Per-Person Seat Fees</Text>
+              <Text style={[styles.guaranteeDesc, { color: theme.textSecondary }]}>
+                Unlike conventional planning software, PACT charges a single flat group pass. Invited guests never encounter paywalls, ads, or seat upcharges.
+              </Text>
+            </View>
           </View>
         </ScrollView>
 
-        {/* Bottom Sticky Action Bar */}
-        <View style={styles.bottomBar}>
-          {isWeb ? (
-            <View style={styles.webNoticeContainer}>
-              <View style={styles.webNoticeHeader}>
-                <Smartphone size={16} color="#25C9A0" />
-                <Text style={styles.webNoticeTitle}>Pro purchases available in the iOS/Android app</Text>
+        {/* Community Operator Modal */}
+        <Modal
+          visible={isOperatorModalOpen}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setIsOperatorModalOpen(false)}
+        >
+          <View style={styles.modalBackdrop}>
+            <View style={[styles.operatorModalCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <View style={styles.modalHeader}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <Building2 size={20} color="#25C9A0" />
+                  <Text style={[styles.modalHeaderTitle, { color: theme.textPrimary }]}>
+                    Building & Community Concierge
+                  </Text>
+                </View>
+                <TouchableOpacity onPress={() => setIsOperatorModalOpen(false)} style={styles.modalCloseBtn}>
+                  <X size={18} color={theme.textSecondary} />
+                </TouchableOpacity>
               </View>
-              <Text style={styles.webNoticeDesc}>
-                Native StoreKit & Google Play billing operate in mobile app builds. For web evaluation, preview all Pro features below.
+
+              <Text style={[styles.modalDesc, { color: theme.textSecondary }]}>
+                For residential apartment societies, company offsites, or 50+ member communities, our dedicated operator provides customized multi-coach logistics, building committee voting protocols, and bespoke invoicing.
               </Text>
-              <TouchableOpacity
-                activeOpacity={0.88}
-                onPress={handleWebDemoUnlock}
-                style={styles.webDemoUnlockBtn}
-              >
-                <Sparkles size={15} color="#0A2A1F" />
-                <Text style={styles.webDemoUnlockBtnText}>Preview PACT Pro in Web Demo</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <>
-              <TouchableOpacity
-                activeOpacity={0.88}
-                onPress={handleSubscribe}
-                disabled={isPurchasing}
-                style={styles.proUnlockBtn}
-              >
-                <Text style={styles.proUnlockBtnText}>
-                  {isPurchasing ? 'Unlocking PACT Pro...' : 'Start 7-day free trial & unlock circle'}
+
+              <View style={[styles.operatorEmailBox, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}>
+                <Mail size={16} color="#F0B24A" />
+                <Text style={[styles.operatorEmailText, { color: theme.textPrimary }]}>
+                  concierge@pact.travel
                 </Text>
-              </TouchableOpacity>
-              <Text style={styles.billingFooterText}>
-                Recurring billing. Cancel anytime in App Store settings.
-              </Text>
-            </>
-          )}
-        </View>
+                <TouchableOpacity onPress={handleCopyEmail} activeOpacity={0.7} style={styles.copyBtn}>
+                  <Text style={{ color: copiedEmail ? '#25C9A0' : '#F0B24A', fontSize: 12, fontWeight: '700' }}>
+                    {copiedEmail ? 'Copied!' : 'Copy'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={handleOpenEmail}
+                  style={styles.primaryEmailBtn}
+                >
+                  <Mail size={16} color="#0C1120" />
+                  <Text style={styles.primaryEmailBtnText}>Open Email to Operator</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    setIsOperatorModalOpen(false);
+                    Alert.alert('Inquiry Registered', 'Our concierge operator will contact you via email within 2 hours!');
+                  }}
+                  style={[styles.secondaryConfirmBtn, { borderColor: theme.border }]}
+                >
+                  <Text style={[styles.secondaryConfirmBtnText, { color: theme.textPrimary }]}>
+                    Request Callback in App
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </View>
     </SafeAreaView>
   );
@@ -266,7 +376,7 @@ const styles = StyleSheet.create({
   },
   phoneFrame: {
     width: '100%',
-    maxWidth: 420,
+    maxWidth: 480,
     flex: 1,
     backgroundColor: '#12182B',
     borderWidth: Platform.OS === 'web' ? 1 : 0,
@@ -278,305 +388,292 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 22,
-    paddingBottom: 24
+    paddingBottom: 40
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 18
+    marginBottom: 16
   },
   closeBtn: {
-    padding: 4
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   proPillBadge: {
-    borderWidth: 1,
-    borderColor: 'rgba(212,175,55,0.35)',
-    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     paddingHorizontal: 12,
-    paddingVertical: 5
+    paddingVertical: 6,
+    borderRadius: 20
   },
   proPillText: {
     fontFamily: fontUIBold,
-    fontSize: 11.5,
-    fontWeight: '700',
-    color: '#FFD98A',
-    letterSpacing: 0.5
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#F0B24A',
+    letterSpacing: 0.8
   },
   heroCard: {
-    backgroundColor: '#1E2742',
-    borderWidth: 1,
-    borderColor: 'rgba(212,175,55,0.3)',
     borderRadius: 18,
-    overflow: 'hidden',
-    marginBottom: 20
-  },
-  heroTop: {
-    paddingHorizontal: 20,
-    paddingTop: 22,
-    paddingBottom: 18,
-    alignItems: 'center'
+    padding: 20,
+    borderWidth: 1,
+    marginBottom: 16
   },
   heroTitle: {
     fontFamily: fontDisplay,
-    fontSize: 25,
-    fontWeight: '700',
-    color: '#FDF9EF',
-    marginBottom: 10
+    fontSize: 22,
+    fontWeight: '800',
+    lineHeight: 28
+  },
+  heroHighlight: {
+    fontFamily: fontDisplay,
+    fontSize: 20,
+    fontWeight: '800',
+    marginBottom: 8
   },
   heroSub: {
-    fontFamily: fontUI,
-    fontSize: 12.5,
-    color: '#D8D0BC',
-    lineHeight: 19,
-    textAlign: 'center'
-  },
-  perforationWrapper: {
-    position: 'relative',
-    height: 1,
-    justifyContent: 'center'
-  },
-  notchLeft: {
-    position: 'absolute',
-    left: -10,
-    top: -10,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: '#12182B'
-  },
-  notchRight: {
-    position: 'absolute',
-    right: -10,
-    top: -10,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: '#12182B'
-  },
-  dashedLine: {
-    borderTopWidth: 1.5,
-    borderStyle: 'dashed',
-    borderTopColor: 'rgba(212,175,55,0.3)',
-    marginHorizontal: 22
-  },
-  heroBottom: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    alignItems: 'center'
-  },
-  heroPassLabel: {
-    fontFamily: fontUIBold,
-    fontSize: 10,
-    color: '#B58722',
-    letterSpacing: 0.8
-  },
-  featuresList: {
-    gap: 14,
-    marginBottom: 22
-  },
-  featureRow: {
-    flexDirection: 'row',
-    gap: 12
-  },
-  starIconBox: {
-    width: 30,
-    height: 30,
-    borderRadius: 9,
-    backgroundColor: 'rgba(212,175,55,0.12)',
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  featureTextCol: {
-    flex: 1
-  },
-  featureTitle: {
-    fontFamily: fontUIBold,
-    fontSize: 13.5,
-    fontWeight: '600',
-    color: '#FDF9EF'
-  },
-  featureDesc: {
-    fontFamily: fontUI,
-    fontSize: 12,
-    color: '#9C947F',
-    lineHeight: 18,
-    marginTop: 3
-  },
-  plansContainer: {
-    gap: 10,
-    marginBottom: 18
-  },
-  planCard: {
-    backgroundColor: '#1E2742',
-    borderRadius: 16,
-    padding: 16,
-    position: 'relative'
-  },
-  planCardActive: {
-    borderWidth: 1.5,
-    borderColor: '#F0B24A'
-  },
-  planCardInactive: {
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)'
-  },
-  popularTag: {
-    position: 'absolute',
-    top: -10,
-    left: 16,
-    backgroundColor: '#F0B24A',
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 3
-  },
-  popularTagText: {
-    fontFamily: fontUIBold,
-    fontSize: 9.5,
-    fontWeight: '700',
-    color: '#231A0C',
-    letterSpacing: 0.3
-  },
-  planCardContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 4
-  },
-  planLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10
-  },
-  radioOuter: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.25)'
-  },
-  planNameText: {
-    fontFamily: fontUIBold,
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#FDF9EF'
-  },
-  planRight: {
-    alignItems: 'flex-end'
-  },
-  planPriceText: {
-    fontFamily: fontUIBold,
-    fontSize: 14.5,
-    fontWeight: '700',
-    color: '#FDF9EF'
-  },
-  planMonthlyRate: {
-    fontFamily: fontUI,
-    fontSize: 10.5,
-    color: '#9C947F'
-  },
-  trialNote: {
-    fontFamily: fontUIBold,
-    fontSize: 11.5,
-    color: '#25C9A0',
-    marginTop: 10,
-    marginLeft: 28
-  },
-  testimonialCard: {
-    backgroundColor: '#1E2742',
-    borderWidth: 1,
-    borderColor: 'rgba(253, 249, 239, 0.14)',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 20
-  },
-  starsRow: {
-    flexDirection: 'row',
-    marginBottom: 8
-  },
-  testimonialQuote: {
-    fontFamily: fontUI,
     fontSize: 13,
-    color: '#D8D0BC',
-    lineHeight: 20,
-    fontStyle: 'italic',
-    marginBottom: 8
+    lineHeight: 18
   },
-  testimonialAuthor: {
-    fontFamily: fontUI,
-    fontSize: 12,
-    color: '#9C947F'
+  currencySection: {
+    marginBottom: 14
   },
-  webNoticeContainer: {
-    backgroundColor: '#1E2742',
-    borderWidth: 1,
-    borderColor: 'rgba(37, 201, 160, 0.3)',
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 4
-  },
-  webNoticeHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  currencyLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.8,
     marginBottom: 6
   },
-  webNoticeTitle: {
-    fontFamily: fontUIBold,
-    fontSize: 13,
-    color: '#25C9A0',
-    fontWeight: '700'
+  currencyBar: {
+    flexDirection: 'row',
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 4,
+    gap: 4
   },
-  webNoticeDesc: {
-    fontFamily: fontUI,
-    fontSize: 11.5,
-    color: '#C3BAA6',
-    lineHeight: 16,
-    marginBottom: 12
-  },
-  webDemoUnlockBtn: {
-    backgroundColor: '#F0B24A',
-    borderRadius: 10,
-    paddingVertical: 11,
+  currencyTab: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8
+    gap: 4,
+    paddingVertical: 8,
+    borderRadius: 8
   },
-  webDemoUnlockBtnText: {
-    fontFamily: fontUIBold,
-    fontSize: 13,
-    color: '#2A1A05',
-    fontWeight: '700'
+  currencyTabSymbol: {
+    fontSize: 14,
+    fontWeight: '800'
   },
-  bottomBar: {
-    paddingHorizontal: 20,
-    paddingTop: 14,
-    paddingBottom: 22,
-    backgroundColor: '#12182B',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(253, 249, 239, 0.11)'
+  currencyTabCode: {
+    fontSize: 12,
+    fontWeight: '600'
   },
-  proUnlockBtn: {
-    width: '100%',
-    paddingVertical: 14,
+  billingSwitcher: {
+    flexDirection: 'row',
     borderRadius: 12,
-    backgroundColor: '#F0B24A',
+    borderWidth: 1,
+    padding: 4,
+    marginBottom: 16,
+    gap: 4
+  },
+  billingTab: {
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: 8,
+    gap: 6,
+    position: 'relative'
+  },
+  billingTabActive: {
+    borderWidth: 1
+  },
+  billingTabText: {
+    fontSize: 13,
+    fontWeight: '600'
+  },
+  saveTag: {
+    backgroundColor: '#25C9A0',
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    borderRadius: 4
+  },
+  saveTagText: {
+    color: '#0C1120',
+    fontSize: 9,
+    fontWeight: '800'
+  },
+  tiersContainer: {
+    gap: 14,
+    marginBottom: 20
+  },
+  tierCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 16
+  },
+  tierHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: 8
   },
-  proUnlockBtnText: {
-    fontFamily: fontUIBold,
-    fontSize: 14.5,
-    fontWeight: '700',
-    color: '#2A1A05'
+  tierNameCol: {
+    flex: 1
   },
-  billingFooterText: {
-    fontFamily: fontUI,
-    fontSize: 10.5,
-    color: '#7A7263',
-    textAlign: 'center',
+  tierName: {
+    fontFamily: fontDisplay,
+    fontSize: 17,
+    fontWeight: '700'
+  },
+  capacityTag: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 2
+  },
+  tierPriceCol: {
+    alignItems: 'flex-end'
+  },
+  tierPrice: {
+    fontFamily: fontDisplay,
+    fontSize: 19,
+    fontWeight: '800'
+  },
+  tierPriceSub: {
+    fontSize: 10,
+    fontWeight: '600'
+  },
+  recommendedText: {
+    fontSize: 12,
+    marginBottom: 12,
+    fontStyle: 'italic'
+  },
+  tierFeatures: {
+    gap: 6,
+    marginBottom: 14
+  },
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8
+  },
+  featureText: {
+    fontSize: 12,
+    lineHeight: 16
+  },
+  tierActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 11,
+    borderRadius: 10
+  },
+  tierActionBtnText: {
+    fontSize: 13,
+    fontWeight: '800'
+  },
+  guaranteeCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 14
+  },
+  guaranteeTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    marginBottom: 2
+  },
+  guaranteeDesc: {
+    fontSize: 11,
     lineHeight: 15
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20
+  },
+  operatorModalCard: {
+    width: '100%',
+    maxWidth: 420,
+    borderRadius: 20,
+    borderWidth: 1,
+    padding: 20,
+    gap: 14
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  modalHeaderTitle: {
+    fontFamily: fontDisplay,
+    fontSize: 16,
+    fontWeight: '700'
+  },
+  modalCloseBtn: {
+    padding: 4
+  },
+  modalDesc: {
+    fontSize: 13,
+    lineHeight: 18
+  },
+  operatorEmailBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    padding: 12,
+    borderRadius: 10,
+    borderWidth: 1
+  },
+  operatorEmailText: {
+    fontFamily: fontUIBold,
+    fontSize: 13,
+    flex: 1
+  },
+  copyBtn: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    backgroundColor: 'rgba(240, 178, 74, 0.15)'
+  },
+  modalActions: {
+    gap: 10,
+    marginTop: 6
+  },
+  primaryEmailBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#F0B24A',
+    paddingVertical: 12,
+    borderRadius: 10
+  },
+  primaryEmailBtnText: {
+    color: '#0C1120',
+    fontSize: 14,
+    fontWeight: '800'
+  },
+  secondaryConfirmBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 11,
+    borderRadius: 10,
+    borderWidth: 1
+  },
+  secondaryConfirmBtnText: {
+    fontSize: 13,
+    fontWeight: '600'
   }
 });

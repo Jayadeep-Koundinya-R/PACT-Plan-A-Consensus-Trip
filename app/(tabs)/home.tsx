@@ -160,7 +160,10 @@ export default function MyCirclesScreen() {
               {/* Profile Avatar Pill */}
               <TouchableOpacity
                 activeOpacity={0.8}
-                onPress={() => router.push('/(tabs)/settings')}
+                onPress={() => {
+                  haptics.tap();
+                  router.push('/(tabs)/settings');
+                }}
                 style={styles.profilePill}
               >
               <View style={styles.avatarMini}>
@@ -168,7 +171,7 @@ export default function MyCirclesScreen() {
               </View>
               <View style={[styles.proMiniBadge, subscriptionPlan === 'free' && { backgroundColor: 'rgba(255,255,255,0.1)' }]}>
                 <Text style={[styles.proMiniBadgeText, subscriptionPlan === 'free' && { color: '#C3BAA6' }]}>
-                  {subscriptionPlan !== 'free' ? 'PRO' : 'FREE'}
+                  {subscriptionPlan !== 'free' ? 'PASS' : 'FREE ≤5'}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -217,6 +220,19 @@ export default function MyCirclesScreen() {
             >
               <KeyRound size={15} color="#FDF9EF" />
               <Text style={[styles.secondaryActionBtnText, { color: theme.textPrimary }]}>Join Code</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => {
+                haptics.tap();
+                router.push('/paywall');
+              }}
+              style={[styles.secondaryActionBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
+              accessibilityLabel="View group passes and pricing"
+            >
+              <Sparkles size={14} color="#F0B24A" />
+              <Text style={[styles.secondaryActionBtnText, { color: theme.textPrimary }]}>Passes</Text>
             </TouchableOpacity>
           </View>
 
@@ -1060,3 +1076,5 @@ const styles = StyleSheet.create({
     flex: 1
   }
 });
+
+

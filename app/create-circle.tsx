@@ -1,3 +1,4 @@
+import { getTierForMemberCount } from '../src/lib/pricing/groupPricing';
 import { useTheme } from '../src/hooks/useTheme';
 import React, { useState } from 'react';
 import {
@@ -23,7 +24,7 @@ import { ArrowLeft, ChevronRight, Plus, Users, Sparkles, X } from 'lucide-react-
 export default function PactCreateJoinScreen() {
   const router = useRouter();
   const { theme, isDarkMode } = useTheme();
-  const { createGroup, joinGroupByCode } = useGatherlyStore();
+  const { createGroup, joinGroupByCode, subscriptionPlan, groups, currentUserId } = useGatherlyStore();
 
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
@@ -31,6 +32,10 @@ export default function PactCreateJoinScreen() {
   const [tripName, setTripName] = useState('');
   const [memberCount, setMemberCount] = useState('5');
   const [createError, setCreateError] = useState('');
+
+  const liveTotal = parseInt(memberCount, 10) || 5;
+  const liveTier = getTierForMemberCount(liveTotal);
+  const needsUpgrade = subscriptionPlan === 'free' && liveTotal > 5;
 
   const triggerHaptic = () => {
     if (Platform.OS !== 'web') {
@@ -72,6 +77,21 @@ export default function PactCreateJoinScreen() {
     const name = tripName.trim() || 'Goa Beach Escape 2026';
     const total = parseInt(memberCount, 10) || 5;
 
+    // Free-tier member-cap guard: block and ask for an upgrade instead of creating.
+    if (subscriptionPlan === 'free' && total > 5) {
+      const tierForTotal = getTierForMemberCount(total);
+      setCreateError(`The Free tier supports up to 5 members. This trip needs the ${tierForTotal.name} pass (${tierForTotal.capacityLabel}) — tap "Upgrade" below to continue.`);
+      return;
+    }
+    // Free-tier single-active-circle guard (demo personas are exempt so the demo
+    // tour can still spin up extra circles for testing).
+    const isDemoUser = !currentUserId || currentUserId.startsWith('user-');
+    if (subscriptionPlan === 'free' && !isDemoUser && groups.length >= 1) {
+      setCreateError('The Free tier includes 1 active trip circle. Upgrade to a group pass to organize more circles.');
+      return;
+    }
+
+    setCreateError('');
     setIsCreateModalOpen(false);
     try {
       const newGroup = await createGroup({
@@ -245,6 +265,32 @@ export default function PactCreateJoinScreen() {
               placeholderTextColor="#7A7263"
             />
 
+            <View style={[styles.tierInfoBox, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}>
+              <Text style={[styles.tierInfoTitle, { color: theme.textPrimary }]}>
+                {liveTier.name} · {liveTier.capacityLabel}
+              </Text>
+              <Text style={[styles.tierInfoDesc, { color: theme.textSecondary }]}>
+                {needsUpgrade
+                  ? `This size needs the ${liveTier.name} paid pass. The Free tier is limited to 5 members.`
+                  : `${liveTier.recommendedFor}`}
+              </Text>
+              {needsUpgrade && (
+                <View style={{ marginTop: 10 }}>
+                  <TouchableOpacity
+                    activeOpacity={0.75}
+                    onPress={() => { setIsCreateModalOpen(false); router.push('/paywall'); }}
+                    style={styles.viewPassLink}
+                  >
+                    <Text style={styles.viewPassLinkText}>Upgrade → View Group Passes</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+
+            {Boolean(createError) && (
+              <Text style={[styles.errorText, { marginBottom: 12 }]}>{createError}</Text>
+            )}
+
             <TouchableOpacity
               activeOpacity={0.88}
               onPress={handleConfirmCreate}
@@ -261,6 +307,33 @@ export default function PactCreateJoinScreen() {
 }
 
 const styles = StyleSheet.create({
+  tierInfoBox: {
+    borderRadius: 10,
+    borderWidth: 1,
+    padding: 10,
+    marginTop: 8,
+    marginBottom: 16
+  },
+  tierInfoTitle: {
+    fontFamily: fontUIBold,
+    fontSize: 12,
+    fontWeight: '700'
+  },
+  tierInfoDesc: {
+    fontSize: 11,
+    lineHeight: 15
+  },
+  viewPassLink: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    backgroundColor: 'rgba(240, 178, 74, 0.15)'
+  },
+  viewPassLinkText: {
+    color: '#F0B24A',
+    fontSize: 11,
+    fontWeight: '800'
+  },
   outerContainer: {
     flex: 1,
     backgroundColor: '#0C1120',

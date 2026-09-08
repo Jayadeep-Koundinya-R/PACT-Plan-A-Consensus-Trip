@@ -21,19 +21,19 @@ import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../src/store/useGatherlyStore';
 import { colors, radius } from '../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../src/theme/typography';
-import { ArrowLeft, Shield, MoreVertical, Plus, Check, Sun, Moon, Bell, Sparkles } from 'lucide-react-native';
+import { ArrowLeft, Shield, MoreVertical, Plus, Check, Sun, Moon, Bell, Sparkles, CreditCard, ChevronRight, Crown, Zap } from 'lucide-react-native';
 
 export default function PactSettings() {
   const router = useRouter();
   const { theme, isDarkMode, toggleDarkMode } = useTheme();
   const { openNotificationCenter, notifications, simulateAINotification } = useNotificationStore();
   const unreadCount = notifications.filter((n) => !n.read).length;
-  const { groups = [], currentUserId = 'user-maya-001', currency, currencySymbol, setCurrency } = useGatherlyStore();
+  const { groups = [], currentUserId = 'user-maya-001', currency, currencySymbol, setCurrency, subscriptionPlan } = useGatherlyStore();
   const handleToggleTheme = () => {
     triggerHaptic();
     toggleDarkMode();
   };
-  const { profile, subscriptionPlan, logout } = useUserStore();
+  const { profile, logout } = useUserStore();
   const { circles = [] } = useCircleStore();
   const allCircles = circles.length > 0 ? circles : groups.map((g: any) => ({ id: g.id, name: g.name, inviteCode: g.inviteCode, archived: false, members: [] }));
   const activeCircles = allCircles.filter((c: any) => !c.archived);
@@ -134,7 +134,7 @@ export default function PactSettings() {
                 <Svg width="10" height="10" viewBox="0 0 10 10">
                   <Path d="M1 3.5l2 1.5 2-3 2 3 2-1.5-.7 4.5H1.7z" fill="#FFD98A" />
                 </Svg>
-                <Text style={styles.proStatusPillText}>{subscriptionPlan !== 'free' ? 'PACT Pro organizer pass active' : 'Free tier (Up to 3 members)'}</Text>
+                <Text style={styles.proStatusPillText}>{subscriptionPlan !== 'free' ? 'PACT Pro organizer pass active' : 'Free tier (Up to 5 members)'}</Text>
               </View>
             </View>
           </View>
@@ -315,10 +315,84 @@ export default function PactSettings() {
           {/* Account & Plan Section */}
           <Text style={styles.sectionHeading}>Account & plan</Text>
           <View style={[styles.settingsGroupCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            {/* Current Plan Status */}
             <View style={styles.planInfoRow}>
-              <Text style={[styles.settingLabel, { color: theme.textPrimary }]}>{subscriptionPlan !== 'free' ? 'PACT Pro active ($29.99/yr)' : 'Free tier'}</Text>
-              <Text style={styles.renewsDate}>{subscriptionPlan !== 'free' ? 'Renews annually' : 'Upgrade to PACT Pro'}</Text>
+              <View style={styles.planInfoLeft}>
+                <View style={[styles.planBadge, subscriptionPlan !== 'free' ? styles.planBadgePro : styles.planBadgeFree]}>
+                  {subscriptionPlan !== 'free' ? <Crown size={12} color="#0C1120" /> : <Zap size={12} color="#C3BAA6" />}
+                  <Text style={[styles.planBadgeText, subscriptionPlan !== 'free' && { color: '#0C1120' }]}>
+                    {subscriptionPlan !== 'free' ? 'PACT PRO' : 'FREE TIER'}
+                  </Text>
+                </View>
+                <Text style={[styles.settingLabel, { color: theme.textPrimary }]}>
+                  {subscriptionPlan !== 'free' ? 'PACT Organizer Pass Active' : 'Free Tier (Up to 5 members)'}
+                </Text>
+                <Text style={styles.renewsDate}>
+                  {subscriptionPlan !== 'free' ? 'Renews annually · Cancel anytime' : 'Upgrade for 6 to 50+ members'}
+                </Text>
+              </View>
             </View>
+
+            {/* Plan Features List */}
+            <View style={styles.planFeaturesList}>
+              <View style={styles.planFeatureItem}>
+                <Check size={12} color={subscriptionPlan !== 'free' ? '#25C9A0' : '#C3BAA6'} />
+                <Text style={[styles.planFeatureText, { color: theme.textSecondary }]}>
+                  {subscriptionPlan !== 'free' ? 'Unlimited trip circles' : '1 active trip circle'}
+                </Text>
+              </View>
+              <View style={styles.planFeatureItem}>
+                <Check size={12} color={subscriptionPlan !== 'free' ? '#25C9A0' : '#C3BAA6'} />
+                <Text style={[styles.planFeatureText, { color: theme.textSecondary }]}>
+                  {subscriptionPlan !== 'free' ? 'Up to 50+ members per circle' : 'Up to 5 members per circle'}
+                </Text>
+              </View>
+              <View style={styles.planFeatureItem}>
+                <Check size={12} color={subscriptionPlan !== 'free' ? '#25C9A0' : '#C3BAA6'} />
+                <Text style={[styles.planFeatureText, { color: theme.textSecondary }]}>
+                  {subscriptionPlan !== 'free' ? 'Unlimited AI prompts' : '15 AI prompts per day'}
+                </Text>
+              </View>
+            </View>
+
+            {/* Buy / Change Plan Button */}
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => {
+                triggerHaptic();
+                router.push('/paywall');
+              }}
+              style={styles.viewPassesBtn}
+            >
+              <CreditCard size={15} color="#0C1120" />
+              <Text style={styles.viewPassesBtnText}>
+                {subscriptionPlan !== 'free' ? 'Change Plan / Upgrade Tier' : 'Buy a Group Pass'}
+              </Text>
+              <ChevronRight size={14} color="#0C1120" />
+            </TouchableOpacity>
+
+            {/* Manage Subscription (Pro only) */}
+            {subscriptionPlan !== 'free' && (
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => {
+                  triggerHaptic();
+                  Alert.alert(
+                    'Manage Subscription',
+                    'To cancel or change your subscription, visit your App Store / Google Play subscription settings.',
+                    [
+                      { text: 'Cancel', style: 'cancel' },
+                      { text: 'Open Store Settings', onPress: () => {} }
+                    ]
+                  );
+                }}
+                style={styles.manageSubBtn}
+              >
+                <Text style={[styles.manageSubBtnText, { color: theme.textSecondary }]}>
+                  Manage subscription & billing
+                </Text>
+              </TouchableOpacity>
+            )}
 
             <View style={[styles.dangerBox, { backgroundColor: theme.surface, borderColor: theme.border }]}>
               <TouchableOpacity
@@ -356,6 +430,71 @@ export default function PactSettings() {
 }
 
 const styles = StyleSheet.create({
+  planInfoLeft: {
+    flex: 1
+  },
+  planBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
+    marginBottom: 6
+  },
+  planBadgeFree: {
+    backgroundColor: '#2A2F3A'
+  },
+  planBadgePro: {
+    backgroundColor: '#25C9A0'
+  },
+  planBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+    color: '#C3BAA6'
+  },
+  planFeaturesList: {
+    marginTop: 12,
+    marginBottom: 14,
+    gap: 8
+  },
+  planFeatureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8
+  },
+  planFeatureText: {
+    fontSize: 12,
+    fontWeight: '600'
+  },
+  viewPassesBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#F0B24A',
+    paddingVertical: 12,
+    marginHorizontal: 16,
+    marginBottom: 12,
+    borderRadius: 10
+  },
+  manageSubBtn: {
+    alignItems: 'center',
+    paddingVertical: 10,
+    marginTop: 4
+  },
+  manageSubBtnText: {
+    fontSize: 12,
+    fontWeight: '600',
+    textDecorationLine: 'underline'
+  },
+  viewPassesBtnText: {
+    color: '#0C1120',
+    fontSize: 13,
+    fontWeight: '800'
+  },
   currencyTab: {
     flex: 1,
     paddingVertical: 9,

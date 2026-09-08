@@ -1,4 +1,5 @@
 import { useCircleStore } from './useCircleStore';
+import { useUserStore } from './useUserStore';
 import { synthesizeAICompromise, CompromiseProposal } from '../lib/ai/compromiseEngine';
 import { SubscriptionPlan } from '../lib/purchases/customerInfo';
 import { create } from 'zustand';
@@ -368,7 +369,13 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     });
   },
 
-  setSubscriptionPlan: (plan) => set({ subscriptionPlan: plan }),
+  setSubscriptionPlan: (plan) => {
+    // Single source of truth: keep the user-profile store in sync so Home,
+    // Settings, and the Paywall always agree on the active plan.
+    // (Direct setState, not the other store's action, to avoid recursion.)
+    set({ subscriptionPlan: plan });
+    useUserStore.setState({ subscriptionPlan: plan });
+  },
   setIsCheckingEntitlement: (v: boolean) => set({ isCheckingEntitlement: v }),
   setPurchaseError: (msg: string | null) => set({ purchaseError: msg }),
 
@@ -451,7 +458,7 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     }));
   },
   createGroup: async (name: string | { name?: string; organizerName?: string; organizerId?: string; totalMembersCount?: number }) => {
-    const { currentUserId, groups } = get();
+    const { currentUserId, groups, subscriptionPlan } = get();
     const rawName = typeof name === 'object' && name !== null ? name.name : name;
     const cleanName = (typeof rawName === 'string' ? rawName.trim() : '') || 'New Trip Circle';
     const totalCount = (typeof name === 'object' && name !== null && name.totalMembersCount)
@@ -460,6 +467,15 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     const organizer = (typeof name === 'object' && name !== null && name.organizerId)
       ? name.organizerId
       : (currentUserId || 'user-maya-001');
+
+    // Fail-closed plan caps (kept in sync with the create-circle screen so no bypasses).
+    const isDemoPersona = !organizer || organizer.startsWith('user-') || organizer.startsWith('guest-');
+    if (subscriptionPlan === 'free' && totalCount > 5) {
+      throw new Error('Upgrade required: the Free tier supports up to 5 members. Choose a matching group pass to create larger trips.');
+    }
+    if (subscriptionPlan === 'free' && !isDemoPersona && groups.length >= 1) {
+      throw new Error('Upgrade required: the Free tier includes 1 active circle. Upgrade to organize more circles.');
+    }
 
     let newGroup: Group;
     if (organizer && !organizer.startsWith('user-')) {

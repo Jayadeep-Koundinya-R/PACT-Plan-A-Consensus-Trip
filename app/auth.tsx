@@ -20,6 +20,7 @@ import { ScreenHeader } from '../src/components/ScreenHeader';
 import { useUserStore } from '../src/store/useUserStore';
 import { MapDriftBackground } from '../src/components/MapDriftBackground';
 import { SkeletonLoader } from '../src/components/SkeletonLoader';
+import LegalModal, { LegalSection } from '../src/components/LegalModal';
 import { colors, radius, shadows } from '../src/theme/colors';
 import {
   ShieldCheck,
@@ -93,6 +94,7 @@ export default function AuthScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isCheckingSession, setIsCheckingSession] = useState(true);
+  const [legalSection, setLegalSection] = useState<LegalSection | null>(null);
 
   useEffect(() => {
     const check = async () => {
@@ -503,6 +505,50 @@ export default function AuthScreen() {
             </View>
           </View>
 
+          {/* Legal Footer Links */}
+          <View style={styles.legalFooter}>
+            <Text style={[styles.legalFooterTitle, { color: theme.textSecondary }]}>
+              By continuing, you agree to our terms
+            </Text>
+            <View style={styles.legalLinksRow}>
+              <TouchableOpacity
+                onPress={() => {
+                  triggerHaptic();
+                  setLegalSection('privacy');
+                }}
+                style={styles.legalLinkBtn}
+              >
+                <ShieldCheck size={12} color={theme.primary} />
+                <Text style={[styles.legalLinkText, { color: theme.primary }]}>Privacy Policy</Text>
+              </TouchableOpacity>
+              <Text style={[styles.legalDot, { color: theme.textMuted }]}>·</Text>
+              <TouchableOpacity
+                onPress={() => {
+                  triggerHaptic();
+                  setLegalSection('terms');
+                }}
+                style={styles.legalLinkBtn}
+              >
+                <FileCheck2 size={12} color={theme.primary} />
+                <Text style={[styles.legalLinkText, { color: theme.primary }]}>Terms of Service</Text>
+              </TouchableOpacity>
+              <Text style={[styles.legalDot, { color: theme.textMuted }]}>·</Text>
+              <TouchableOpacity
+                onPress={() => {
+                  triggerHaptic();
+                  setLegalSection('rules');
+                }}
+                style={styles.legalLinkBtn}
+              >
+                <Lock size={12} color={theme.primary} />
+                <Text style={[styles.legalLinkText, { color: theme.primary }]}>PACT Rules</Text>
+              </TouchableOpacity>
+            </View>
+            <Text style={[styles.legalFooterSub, { color: theme.textMuted }]}>
+              Your data stays private. Always.
+            </Text>
+          </View>
+
           {/* Quick Demo Personas (Development & Testing) */}
           <View
             style={[
@@ -554,7 +600,11 @@ export default function AuthScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      
+      <LegalModal
+        visible={legalSection !== null}
+        section={legalSection || 'privacy'}
+        onClose={() => setLegalSection(null)}
+      />
     </SafeAreaView>
   );
 }
@@ -825,5 +875,37 @@ const styles = StyleSheet.create({
   personaBudget: {
     fontSize: 10,
     marginTop: 1
+  },
+  legalFooter: {
+    alignItems: 'center',
+    marginBottom: 16,
+    gap: 8
+  },
+  legalFooterTitle: {
+    fontSize: 11,
+    fontWeight: '600'
+  },
+  legalLinksRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8
+  },
+  legalLinkBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4
+  },
+  legalLinkText: {
+    fontSize: 11,
+    fontWeight: '700',
+    textDecorationLine: 'underline'
+  },
+  legalDot: {
+    fontSize: 12,
+    fontWeight: '700'
+  },
+  legalFooterSub: {
+    fontSize: 10,
+    fontWeight: '500'
   }
 });
