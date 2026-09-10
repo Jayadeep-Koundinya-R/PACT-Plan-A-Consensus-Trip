@@ -342,6 +342,25 @@ The following tasks have been fully implemented, unit-tested, verified on localh
 
 ---
 
+### 28. 🚀 Lightweight "Add People" Flow & Unified Share System (`useShareInvite`) (R25 - R30)
+- **Problem**: Build a lightweight invite share sheet on Circle Hub that launches native OS sharing options (WhatsApp, SMS, Email, Copy Link) with pre-filled circle codes and deep links. Audit every WhatsApp and share touchpoint to ensure consistent hook usage, and formally document why central user directories and friend requests are intentionally excluded.
+- **Resolution**:
+  - **Restored Canonical Palette (R25)**: Confirmed restoration of `#090A0F` (Base), `#13151E` (Card), `#FF5A5F` (Coral), `#3DE0A0` (Emerald), and `#D4AF37` (Gold). Validated via 5 color token property tests in `colors.test.mjs` and verified with fresh browser screenshots of Home, Hub, and Paywall.
+  - **Lightweight "Add People" Flow (R26)**: Created `src/components/AddPeopleModal.tsx` and integrated a prominent `+ Add People` button on Circle Hub (`app/circle/[id]/hub.tsx`). Pre-fills direct join links (`https://pact.app/join/{code}`) with 5 native sharing channels (WhatsApp, SMS, Email, Device Share Sheet, In-Person QR Pass).
+  - **Unified Sharing Hook (R27)**: Built `src/hooks/useShareInvite.ts` consolidating all sharing logic (`shareInvite`, `shareToWhatsApp`, `shareViaSMS`, `shareViaEmail`, `shareTripBrief`, `shareNudge`, `copyInviteCode`, `copyInviteLink`).
+  - **Full Codebase Audit & Unification**:
+    - `app/circle/[id]/hub.tsx`: Add People modal, WhatsApp invite, bulk WhatsApp nudge, and copy code unified to `useShareInvite`.
+    - `app/circle/[id]/brief.tsx`: Header Share button and 1-tap WhatsApp group brief unified to `shareTripBrief()`.
+    - `src/components/InviteQRModal.tsx`: Refactored to `copyInviteLink()` and `shareInvite()`.
+    - `src/components/NudgeModal.tsx`: Refactored to `shareNudge()` (guaranteed zero budget/veto leak).
+    - `app/(tabs)/home.tsx`: Refactored circle invite code pill to `copyInviteCode()`.
+  - **Explicit Non-Goals (R28)**: Formally documented in `README.md` Section 8 and verified via automated unit test that user directories, global search, and stranger friend requests are intentionally excluded to protect zero-knowledge cryptographic privacy.
+  - **Pricing & AI Chat Fit (R29, R30)**: Validated multi-currency tier pricing and 15 prompt/day fair quota AI Chat Advisor, aligning with the Shipaton single-core-job recommendation.
+- **Verification**: All **119/119 unit tests pass across 26 suites** (`npm test`), strict TypeScript checks succeed with 0 errors (`npx tsc --noEmit`), and browser testing verified the full Add People flow and QR pass transition.
+- **Files Modified/Created**: `src/hooks/useShareInvite.ts`, `src/components/AddPeopleModal.tsx`, `src/hooks/__tests__/useShareInvite.test.mjs`, `app/circle/[id]/hub.tsx`, `app/circle/[id]/brief.tsx`, `src/components/InviteQRModal.tsx`, `src/components/NudgeModal.tsx`, `app/(tabs)/home.tsx`, `README.md`, `REQUIREMENTS_CHECKLIST.md`.
+
+---
+
 ## 🟡 PART 2: REMAINING & ASSIGNED TASKS (NOT COMPLETED / PENDING ACTION)
 
 The tasks below fall into two clear groups:

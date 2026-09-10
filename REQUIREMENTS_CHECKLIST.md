@@ -54,6 +54,12 @@ Status legend: ✅ Done & verified · 🟡 Built but not verified · ⬜ Not sta
 |---|---|---|---|---|
 | R23 | README documents architecture, feature matrix, judge quick-start | ✅ | Documented in `README.md` with verified quick-start clone command | 2026-09-07 |
 | R24 | "What's Next" section documents explicit non-goals (no user directory, no friend requests) | ✅ | Documented non-goals in `README.md` Section 8 with privacy rationale | 2026-09-10 |
+| R25 | Color palette restored to original Coral/Emerald tokens | ✅ | Restored `#FF5A5F`, `#3DE0A0`, `#090A0F`, `#13151E`, `#D4AF37`; verified in `colors.test.mjs` & fresh screenshots of Home, Hub, Paywall | 2026-09-10 |
+| R26 | Lightweight invite share sheet (WhatsApp/SMS/email/copy link) | ✅ | Built `AddPeopleModal.tsx` on Circle Hub; pre-fills code & 10-sec join link with zero sign-up friction | 2026-09-10 |
+| R27 | All "Share to WhatsApp" & share touchpoints unified under one shared hook | ✅ | Built `useShareInvite()`; unified `hub.tsx`, `brief.tsx`, `InviteQRModal.tsx`, `NudgeModal.tsx`, `home.tsx`; verified in test suite | 2026-09-10 |
+| R28 | User-directory / friend-request system | ❌ Non-Goal | Intentionally excluded to protect zero-knowledge cryptographic privacy; documented in `README.md` Section 8 | 2026-09-10 |
+| R29 | Multi-currency pricing & flat Organizer Pass | ✅ | Implemented in `groupPricing.ts` & `paywall.tsx`; verified in `groupPricing.test.mjs`; pitch recommended as simple Flat Pro pass | 2026-09-10 |
+| R30 | Global AI Chat Advisor & Fair Quota | ✅ | Built in `app/(tabs)/ai-advisor.tsx` with 15 prompt/day free quota; verified in `dailyQuota.test.mjs` & bottom tabs | 2026-09-10 |
 
 ---
 
@@ -61,7 +67,7 @@ Status legend: ✅ Done & verified · 🟡 Built but not verified · ⬜ Not sta
 
 | ID | Requirement | Status | Notes |
 |---|---|---|---|
-| N1 | Dark theme only, consistent tokens (Ink/Parchment/Brass/Petrol/Sealing Red) across all screens | ✅ | Evaluated in `colors.test.mjs` with 10 property tests (Properties 1-10) |
+| N1 | Canonical PACT palette: Base (#090A0F), Card (#13151E), Coral (#FF5A5F), Emerald (#3DE0A0), Gold (#D4AF37) across all screens | ✅ | Evaluated in `colors.test.mjs` with 10 property tests (Properties 6-10) + live browser screenshots |
 | N2 | Haptics on key interactions (lock, seal, success, warning) | ✅ | `usePactHaptics.ts` wrapper with web safe no-op fallbacks |
 | N3 | Full automated test suite passing | ✅ | **119/119 tests passing across 26 suites**; `npx tsc --noEmit` exits with 0 errors |
 | N4 | No git push to `main` or production deploy without explicit approval | ✅ | Strict branch isolation on `pre-submission-review` |
@@ -80,6 +86,7 @@ Status legend: ✅ Done & verified · 🟡 Built but not verified · ⬜ Not sta
 ---
 
 *Change log — AG adds one line here per update session, newest on top:*
+- **2026-09-10 12:45**: Added R25–R30 reflecting strategic Shipaton fit. Verified original Coral/Emerald palette restoration via fresh browser screenshots (Home, Hub, Paywall). Implemented lightweight invite share sheet (`AddPeopleModal`), unified all WhatsApp touchpoints into `useShareInvite()`, verified zero-leak privacy guarantees, and documented explicit non-goals. **119/119 tests passing across 26 suites**.
 - **2026-09-07 20:30**: #15 Completed — Backend Audit Remediation (Issues 1-9). Implemented `get_group_consensus_snapshot` and `lookup_group_by_invite_code` RPCs with `SECURITY DEFINER`, authenticated `ai-advisor` edge function with JWT guard, fixed silent voting veto persistence (`approved: false`), added DELETE policies, sandbox webhook gating, PII email stripping, and DB member cap trigger. **89/89 tests passing across 20 suites**.
 - **2026-09-07 19:15**: Design System & Color Palette Realignment — Aligned `src/theme/colors.ts` and all screens/components to authentic Ink (`#12182B`), Parchment (`#F6EFDE`), Brass (`#C99A5B`), Petrol (`#58A68C`), and Sealing Red (`#C1503F`). Expanded test suite to **85 tests across 19 suites** (all passing). Verified 0 TypeScript errors and clean 24-route web export.
 - **2026-09-07 12:46**: #9 Completed — Consensus Threshold Alignment. Clarified dual-tier model in `README.md`: 70% supermajority enforced by `assertOrganizerCanFinalize` to break deadlock and finalize trips, while 100% represents unanimous alignment celebrated with golden seal stamps and confetti payoff.
