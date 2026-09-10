@@ -87,27 +87,7 @@ export default function PactCirclesHub() {
   const { openNotificationCenter, notifications } = useNotificationStore();
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  // Pulse animation for awaiting dot
-  const pulseAnim = useRef(new Animated.Value(0.4)).current;
-
-  useEffect(() => {
-    const pulseLoop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 900,
-          useNativeDriver: Platform.OS !== 'web'
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 0.4,
-          duration: 900,
-          useNativeDriver: Platform.OS !== 'web'
-        })
-      ])
-    );
-    pulseLoop.start();
-    return () => pulseLoop.stop();
-  }, []);
+  // Awaiting dot is kept calm and steady to prevent visual jitter
 
   // Dynamic circle members connected to live Supabase Realtime & Store
   const storeMembers = circleFromStore?.members?.map(m => ({
@@ -239,9 +219,7 @@ export default function PactCirclesHub() {
 
             {/* Status and Live Event Bar */}
             <View style={styles.headerMetaRow}>
-              <TouchableOpacity
-                activeOpacity={0.75}
-                onPress={toggleDemoSimulation}
+              <View
                 style={[
                   styles.realtimePill,
                   !isConnected && styles.realtimePillOffline
@@ -258,12 +236,13 @@ export default function PactCirclesHub() {
                 ]}>
                   {isConnected ? 'LIVE SYNC' : 'OFFLINE'}
                 </Text>
-              </TouchableOpacity>
+              </View>
 
               {lastEvent && (
                 <View style={styles.realtimeEventBadge}>
+                  <Zap size={11} color="#3DE0A0" />
                   <Text style={styles.realtimeEventText} numberOfLines={1}>
-                    ·· {lastEvent}
+                    {lastEvent}
                   </Text>
                 </View>
               )}
@@ -278,9 +257,7 @@ export default function PactCirclesHub() {
                   <Zap size={13} color="#3DE0A0" fill="#3DE0A0" />
                   <Text style={styles.earlyBirdTagText}>Early bird activated</Text>
                 </View>
-                <TouchableOpacity onPress={toggleDemoSimulation} activeOpacity={0.7}>
-                  <Text style={styles.earlyBirdCountText}>{lockedCount} of {totalCount} locked in</Text>
-                </TouchableOpacity>
+                <Text style={styles.earlyBirdCountText}>{lockedCount} of {totalCount} locked in</Text>
               </View>
 
               <Text style={styles.earlyBirdTitle}>You're leading the charge</Text>
@@ -333,9 +310,7 @@ export default function PactCirclesHub() {
               <View style={styles.statusTextCol}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Text style={styles.statusHeaderLabel}>Group consensus status</Text>
-                  <TouchableOpacity onPress={toggleDemoSimulation} activeOpacity={0.7}>
-                    <Text style={{ fontFamily: fontUI, fontSize: 10, color: '#6C6F7A' }}>toggle</Text>
-                  </TouchableOpacity>
+                  <Text style={{ fontFamily: fontUI, fontSize: 10, color: '#6C6F7A' }}>{lockedCount}/{totalCount} locked</Text>
                 </View>
                 <Text style={styles.statusSubtext}>
                   {lockedCount >= totalCount ? `All ${totalCount} members locked in! Unanimous consensus ready.` : `${lockedCount} of ${totalCount} members locked in! Consensus algorithms active.`}
@@ -396,12 +371,7 @@ export default function PactCirclesHub() {
                     </View>
                   ) : (
                     <View style={styles.statusBadgeRow}>
-                      <Animated.View
-                        style={[
-                          styles.pulseDot,
-                          { opacity: pulseAnim }
-                        ]}
-                      />
+                      <View style={styles.awaitingDot} />
                       <Text style={styles.awaitingStatusText}>Awaiting inputs</Text>
                     </View>
                   )}
@@ -650,6 +620,9 @@ const styles = StyleSheet.create({
     color: '#8B8D98'
   },
   realtimeEventBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
     paddingHorizontal: 8,
     paddingVertical: 3,
@@ -889,11 +862,17 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
     color: '#3DE0A0'
   },
+  awaitingDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#F59E0B'
+  },
   pulseDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#FF5A5F'
+    backgroundColor: '#F59E0B'
   },
   awaitingStatusText: {
     fontFamily: fontUI,

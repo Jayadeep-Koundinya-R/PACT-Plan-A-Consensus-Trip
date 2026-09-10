@@ -4,7 +4,7 @@
  * Wraps expo-haptics with 5 named presets and a throttled slider preset.
  * Falls back silently on web where Haptics is unavailable.
  */
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useMemo } from 'react';
 import { Platform } from 'react-native';
 import * as Haptics from 'expo-haptics';
 
@@ -46,5 +46,5 @@ export function usePactHaptics() {
     try { Haptics.selectionAsync(); } catch {}
   }, []);
 
-  return { tap, action, success, warning, slider };
+  return useMemo(() => ({ tap, action, success, warning, slider }), [tap, action, success, warning, slider]);
 }

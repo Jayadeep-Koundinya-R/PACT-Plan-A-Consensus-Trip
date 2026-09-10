@@ -38,37 +38,110 @@ import {
   UserCheck,
   CheckCircle2,
   Zap,
-  Compass
+  Compass,
+  Share2
 } from 'lucide-react-native';
 
-const VALUE_PILLARS = [
+export interface PactFeature {
+  id: string;
+  category: 'consensus' | 'ai' | 'collab';
+  title: string;
+  tagline: string;
+  badge: string;
+  badgeColor: string;
+  desc: string;
+  solveInsight: string;
+  icon: any;
+}
+
+const PACT_FEATURES: PactFeature[] = [
   {
     id: 'privacy',
-    title: 'Private Shield',
-    tagline: 'Zero peer pressure',
-    desc: 'Your real budget & available dates remain 100% private. Friends only see the resulting overlap.',
+    category: 'consensus',
+    title: 'Zero-Knowledge Private Ballot',
+    tagline: 'Budgets & vetoes 100% confidential',
+    badge: '100% Zero-Leak',
+    badgeColor: '#3DE0A0',
+    desc: 'Enter your real budget & blackout dates in complete privacy. Friends only see the resulting group overlap � never individual numbers.',
+    solveInsight: 'Breaks the budget shame barrier where people silently drop out of trips.',
     icon: ShieldCheck
   },
   {
-    id: 'ai',
-    title: 'AI Consensus',
-    tagline: 'Deterministic scoring',
-    desc: 'Algorithms instantly score hundreds of dates & budgets to pinpoint the exact compromise where everyone wins.',
+    id: 'pareto',
+    category: 'consensus',
+    title: 'Pareto Consensus Engine',
+    tagline: 'Multi-objective win-win algorithm',
+    badge: 'Pareto Frontier',
+    badgeColor: '#D4AF37',
+    desc: 'Mathematical social choice algorithm evaluates dates & budgets to discover destinations where no single member is worse off.',
+    solveInsight: 'Replaces endless WhatsApp polling with deterministic compromise scoring.',
+    icon: Sparkles
+  },
+  {
+    id: 'ai-whisperer',
+    category: 'ai',
+    title: 'AI Compromise Whisperer',
+    tagline: 'Google Gemini 2.5 deadlock mediator',
+    badge: 'Edge AI Function',
+    badgeColor: '#FF5A5F',
+    desc: 'Powered by authenticated Supabase Edge Functions to mediate deadlocks, propose smart date shifts, and resolve tight budget gaps.',
+    solveInsight: 'Confidential mediator that proposes creative compromises when groups stall.',
     icon: BrainCircuit
   },
   {
-    id: 'voting',
-    title: 'Silent Voting',
-    tagline: 'No group chat debates',
-    desc: 'Approve destinations privately. The organizer only sees total aggregate counts, never individual votes.',
+    id: 'whatsapp-share',
+    category: 'collab',
+    title: '1-Tap WhatsApp Group Export',
+    tagline: 'Zero app-install friction',
+    badge: 'Instant Viral Sync',
+    badgeColor: '#3DE0A0',
+    desc: 'Dispatch pre-filled WhatsApp invites, deadline nudges, and formatted itinerary summaries directly into your existing friend group chats.',
+    solveInsight: 'Friends join in 5 seconds via a simple 6-digit code or link � no friend requests.',
+    icon: Share2
+  },
+  {
+    id: 'sealed-pact',
+    category: 'consensus',
+    title: 'Cryptographic Sealed Pact',
+    tagline: 'Verifiable trip commitment',
+    badge: 'SHA-256 Seal',
+    badgeColor: '#D4AF37',
+    desc: 'Lock the final destination and dates with an immutable cryptographic seal and a unanimous celebration confetti reveal.',
+    solveInsight: 'Solidifies social commitment so members actually show up.',
     icon: Lock
   },
   {
-    id: 'brief',
-    title: '1-Tap WhatsApp Brief',
-    tagline: 'Instant alignment',
-    desc: 'Generate a confirmed itinerary summary with calendar .ics download ready to share with friends.',
-    icon: FileCheck2
+    id: 'trip-vault',
+    category: 'collab',
+    title: 'Encrypted Trip Vault',
+    tagline: 'Shared vouchers & offline passes',
+    badge: 'Offline Vault',
+    badgeColor: '#3DE0A0',
+    desc: 'Keep flight tickets, stay vouchers, confirmation codes, and emergency contacts safely stored in an offline-ready shared circle vault.',
+    solveInsight: 'Ends the chaos of hunting through WhatsApp media galleries at airport gates.',
+    icon: Compass
+  },
+  {
+    id: 'realtime-sync',
+    category: 'ai',
+    title: 'Zero-Latency Live Sync',
+    tagline: 'Sub-second multi-device sync',
+    badge: 'WebSocket Realtime',
+    badgeColor: '#3DE0A0',
+    desc: 'Supabase WebSocket channels sync member votes, preferences, and inputs live across all devices with zero blinking or jitter.',
+    solveInsight: 'Live presence gives the organizer instant visibility into who has responded.',
+    icon: Zap
+  },
+  {
+    id: 'fair-pricing',
+    category: 'consensus',
+    title: 'Fair Organizer Pass ($9.99 Flat)',
+    tagline: 'One pass covers all 10 friends',
+    badge: 'No Per-Seat Tax',
+    badgeColor: '#F59E0B',
+    desc: 'Only 1 organizer pays flat $9.99 for up to 10 travelers. No per-seat ticketing, no monthly subscriptions, and no hidden booking markups.',
+    solveInsight: 'Aligned with group economics: native RevenueCat purchasing with instant receipt restore.',
+    icon: CheckCircle2
   }
 ];
 
@@ -181,7 +254,10 @@ export default function AuthScreen() {
     router.replace('/(tabs)/home');
   };
 
-  const ActiveIcon = VALUE_PILLARS[activePillar].icon;
+  const [featureCategory, setFeatureCategory] = useState<string>('all');
+  const filteredFeatures = featureCategory === 'all' ? PACT_FEATURES : PACT_FEATURES.filter(f => f.category === featureCategory);
+  const activeFeature = PACT_FEATURES[activePillar] || PACT_FEATURES[0];
+  const ActiveIcon = activeFeature.icon;
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
@@ -234,46 +310,106 @@ export default function AuthScreen() {
             </Text>
           </View>
 
-          {/* Interactive 4-Pillar Value Showcase */}
+          {/* Comprehensive PACT Feature Showcase */}
           <View style={styles.pillarsContainer}>
-            <Text style={[styles.sectionHeading, { color: theme.textPrimary }]}>
-              Why Groups Plan on PACT
-            </Text>
+            <View style={styles.featureShowcaseHeader}>
+              <View style={styles.featureHeaderBadge}>
+                <Sparkles size={12} color="#D4AF37" />
+                <Text style={styles.featureHeaderBadgeText}>FULL SUITE DISCOVERY</Text>
+              </View>
+              <Text style={[styles.sectionHeading, { color: theme.textPrimary }]}>
+                Every Tool You Need To Lock The Trip
+              </Text>
+              <Text style={[styles.sectionSubheading, { color: theme.textSecondary }]}>
+                Explore the 8 built-in features that take your group from chat indecision to confirmed travel:
+              </Text>
+            </View>
 
-            {/* Pillar Selector Tabs */}
-            <View style={styles.pillarTabsRow}>
-              {VALUE_PILLARS.map((pillar, idx) => {
-                const Icon = pillar.icon;
-                const isSelected = idx === activePillar;
+            {/* Category Filter Pills */}
+            <View style={styles.categoryFilterRow}>
+              {[
+                { id: 'all', label: 'All Features (8)' },
+                { id: 'consensus', label: 'Consensus & Privacy (4)' },
+                { id: 'ai', label: 'AI & Live Sync (2)' },
+                { id: 'collab', label: 'WhatsApp & Vault (2)' }
+              ].map((cat) => {
+                const isActive = featureCategory === cat.id;
                 return (
                   <TouchableOpacity
-                    key={pillar.id}
+                    key={cat.id}
                     onPress={() => {
                       triggerHaptic();
-                      setActivePillar(idx);
+                      setFeatureCategory(cat.id);
                     }}
                     style={[
-                      styles.pillarTabChip,
-                      isSelected
+                      styles.categoryPill,
+                      isActive
                         ? { backgroundColor: theme.primary, borderColor: theme.primary }
                         : { backgroundColor: theme.surface, borderColor: theme.border }
                     ]}
                   >
-                    <Icon size={14} color={isSelected ? '#FFFFFF' : theme.textSecondary} />
                     <Text
                       style={[
-                        styles.pillarTabChipText,
-                        { color: isSelected ? '#FFFFFF' : theme.textSecondary }
+                        styles.categoryPillText,
+                        { color: isActive ? '#FFFFFF' : theme.textSecondary }
                       ]}
                     >
-                      {pillar.title}
+                      {cat.label}
                     </Text>
                   </TouchableOpacity>
                 );
               })}
             </View>
 
-            {/* Active Pillar Card */}
+            {/* Feature Horizontal Grid / Selector */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.featureChipsScroll}
+            >
+              {filteredFeatures.map((feature) => {
+                const Icon = feature.icon;
+                const isSelected = feature.id === activeFeature.id;
+                return (
+                  <TouchableOpacity
+                    key={feature.id}
+                    onPress={() => {
+                      triggerHaptic();
+                      const globalIdx = PACT_FEATURES.findIndex(f => f.id === feature.id);
+                      setActivePillar(globalIdx >= 0 ? globalIdx : 0);
+                    }}
+                    style={[
+                      styles.featureMiniCard,
+                      isSelected
+                        ? { backgroundColor: isDarkMode ? '#1E2130' : '#FFF5F5', borderColor: theme.primary }
+                        : { backgroundColor: theme.surface, borderColor: theme.border }
+                    ]}
+                  >
+                    <View style={styles.featureMiniHeader}>
+                      <View style={[styles.featureMiniIconBox, { backgroundColor: isDarkMode ? '#13151E' : '#FFFFFF' }]}>
+                        <Icon size={14} color={isSelected ? theme.primary : theme.textSecondary} />
+                      </View>
+                      <View style={[styles.featureMiniBadge, { borderColor: feature.badgeColor }]}>
+                        <Text style={[styles.featureMiniBadgeText, { color: feature.badgeColor }]}>
+                          {feature.badge}
+                        </Text>
+                      </View>
+                    </View>
+                    <Text
+                      style={[
+                        styles.featureMiniTitle,
+                        { color: isSelected ? theme.primary : theme.textPrimary }
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {feature.title}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+
+            {/* Active Selected Feature Deep-Dive Card */}
             <View
               style={[
                 styles.pillarCard,
@@ -282,20 +418,65 @@ export default function AuthScreen() {
             >
               <View style={styles.pillarCardHeader}>
                 <View style={[styles.pillarIconBox, { backgroundColor: isDarkMode ? '#262938' : '#FFEFC9' }]}>
-                  <ActiveIcon size={20} color={theme.primary} />
+                  <ActiveIcon size={22} color={theme.primary} />
                 </View>
                 <View style={styles.pillarTextCol}>
-                  <Text style={[styles.pillarTitle, { color: theme.textPrimary }]}>
-                    {VALUE_PILLARS[activePillar].title}
-                  </Text>
+                  <View style={styles.pillarTitleRow}>
+                    <Text style={[styles.pillarTitle, { color: theme.textPrimary }]}>
+                      {activeFeature.title}
+                    </Text>
+                    <View style={[styles.activeFeatureBadge, { borderColor: activeFeature.badgeColor }]}>
+                      <Text style={[styles.activeFeatureBadgeText, { color: activeFeature.badgeColor }]}>
+                        {activeFeature.badge}
+                      </Text>
+                    </View>
+                  </View>
                   <Text style={[styles.pillarTagline, { color: theme.primary }]}>
-                    {VALUE_PILLARS[activePillar].tagline}
+                    {activeFeature.tagline}
                   </Text>
                 </View>
               </View>
+
               <Text style={[styles.pillarDesc, { color: theme.textSecondary }]}>
-                {VALUE_PILLARS[activePillar].desc}
+                {activeFeature.desc}
               </Text>
+
+              <View style={styles.insightBox}>
+                <Text style={styles.insightLabel}>Why It Matters:</Text>
+                <Text style={styles.insightText}>{activeFeature.solveInsight}</Text>
+              </View>
+            </View>
+
+            {/* 3-Step Group Flow Walkthrough */}
+            <View style={[styles.stepFlowCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <Text style={[styles.stepFlowTitle, { color: theme.textPrimary }]}>
+                How PACT Works In 3 Simple Steps
+              </Text>
+              <View style={styles.stepFlowRow}>
+                <View style={styles.stepFlowCol}>
+                  <View style={styles.stepCircle}>
+                    <Text style={styles.stepCircleText}>1</Text>
+                  </View>
+                  <Text style={[styles.stepLabel, { color: theme.textPrimary }]}>Create Circle</Text>
+                  <Text style={[styles.stepSub, { color: theme.textSecondary }]}>Share 1-tap WhatsApp code</Text>
+                </View>
+                <View style={styles.stepDivider} />
+                <View style={styles.stepFlowCol}>
+                  <View style={[styles.stepCircle, { backgroundColor: '#3DE0A0' }]}>
+                    <Text style={[styles.stepCircleText, { color: '#090A0F' }]}>2</Text>
+                  </View>
+                  <Text style={[styles.stepLabel, { color: theme.textPrimary }]}>Secret Inputs</Text>
+                  <Text style={[styles.stepSub, { color: theme.textSecondary }]}>Zero-knowledge budgets & dates</Text>
+                </View>
+                <View style={styles.stepDivider} />
+                <View style={styles.stepFlowCol}>
+                  <View style={[styles.stepCircle, { backgroundColor: '#D4AF37' }]}>
+                    <Text style={[styles.stepCircleText, { color: '#090A0F' }]}>3</Text>
+                  </View>
+                  <Text style={[styles.stepLabel, { color: theme.textPrimary }]}>Consensus</Text>
+                  <Text style={[styles.stepSub, { color: theme.textSecondary }]}>Pareto engine & AI reveal trip</Text>
+                </View>
+              </View>
             </View>
           </View>
 
@@ -610,6 +791,180 @@ export default function AuthScreen() {
 }
 
 const styles = StyleSheet.create({
+  featureShowcaseHeader: {
+    marginBottom: 10
+  },
+  featureHeaderBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+    backgroundColor: 'rgba(212, 175, 55, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.3)',
+    marginBottom: 6
+  },
+  featureHeaderBadgeText: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#D4AF37',
+    letterSpacing: 0.6
+  },
+  sectionSubheading: {
+    fontSize: 12,
+    lineHeight: 16,
+    marginTop: -4,
+    marginBottom: 10
+  },
+  categoryFilterRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 10
+  },
+  categoryPill: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 16,
+    borderWidth: 1
+  },
+  categoryPillText: {
+    fontSize: 11,
+    fontWeight: '700'
+  },
+  featureChipsScroll: {
+    gap: 8,
+    paddingBottom: 8,
+    marginBottom: 4
+  },
+  featureMiniCard: {
+    width: 170,
+    padding: 10,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    gap: 6
+  },
+  featureMiniHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between'
+  },
+  featureMiniIconBox: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  featureMiniBadge: {
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1
+  },
+  featureMiniBadgeText: {
+    fontSize: 8.5,
+    fontWeight: '700'
+  },
+  featureMiniTitle: {
+    fontSize: 11,
+    fontWeight: '700'
+  },
+  pillarTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8
+  },
+  activeFeatureBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+    borderWidth: 1
+  },
+  activeFeatureBadgeText: {
+    fontSize: 9.5,
+    fontWeight: '700'
+  },
+  insightBox: {
+    marginTop: 10,
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderLeftWidth: 3,
+    borderLeftColor: '#3DE0A0'
+  },
+  insightLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#3DE0A0',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 2
+  },
+  insightText: {
+    fontSize: 11.5,
+    color: '#E0E2EC',
+    lineHeight: 16
+  },
+  stepFlowCard: {
+    marginTop: 12,
+    padding: 12,
+    borderRadius: radius.card,
+    borderWidth: 1
+  },
+  stepFlowTitle: {
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 0.2,
+    marginBottom: 10,
+    textAlign: 'center'
+  },
+  stepFlowRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between'
+  },
+  stepFlowCol: {
+    flex: 1,
+    alignItems: 'center',
+    textAlign: 'center'
+  },
+  stepCircle: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#FF5A5F',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4
+  },
+  stepCircleText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#FFFFFF'
+  },
+  stepLabel: {
+    fontSize: 10.5,
+    fontWeight: '700',
+    textAlign: 'center'
+  },
+  stepSub: {
+    fontSize: 9,
+    textAlign: 'center',
+    marginTop: 2
+  },
+  stepDivider: {
+    width: 16,
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    marginHorizontal: 4,
+    marginBottom: 16
+  },
+
   safeArea: {
     flex: 1
   },

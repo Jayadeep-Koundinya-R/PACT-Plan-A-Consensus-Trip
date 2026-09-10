@@ -454,3 +454,36 @@ The tasks below fall into two clear groups:
 ---
 
 *This document is continuously maintained and synchronized directly with the primary codebase on `main` as `TASK_COMPLETION_STATUS.md`.*
+
+---
+
+## ?? Live Sync Stabilization & Auth Feature Showcase (September 10, 2026)
+
+### 1. Live Sync & Hub Jitter Remediation
+- **Fixed Infinite Re-render / Flapping Bug**:
+  - `usePactHaptics` now returns a memoized object (`useMemo`), guaranteeing stable object references across re-renders.
+  - `useCircleRealtime` now uses `useRef` for haptics and Zustand direct state access, scoping the Supabase Realtime channel subscription purely to `[circleId]`.
+  - Removed `onPress={toggleDemoSimulation}` from the `realtimePill` in `hub.tsx`, converting it into a rock-solid, non-interactive live status indicator.
+  - Removed the continuous 900ms pulsing animation loop on web; replaced `pulseDot` with a steady, elegant `awaitingDot` (`#F59E0B`).
+  - Fixed encoding corruptions (`AA` -> `Zap` icon) in `realtimeEventBadge` and stabilized layout with zero header jumping.
+
+### 2. Login Page Full Suite Feature Showcase (`app/auth.tsx`)
+- Added comprehensive **8-Feature Discovery Matrix** to the welcome/login page:
+  1. **Zero-Knowledge Private Ballot** (100% Zero-Leak)
+  2. **Pareto Consensus Engine** (Pareto Frontier)
+  3. **AI Compromise Whisperer** (Google Gemini 2.5 on Edge Functions)
+  4. **1-Tap WhatsApp Group Export** (Instant Viral Sync)
+  5. **Cryptographic Sealed Pact** (SHA-256 Seal)
+  6. **Encrypted Trip Vault** (Offline Vault)
+  7. **Zero-Latency Live Sync** (WebSocket Realtime)
+  8. **Fair Organizer Pass** ($9.99 Flat for up to 10 friends)
+- Added interactive category filter pills (`All Features`, `Consensus & Privacy`, `AI & Live Sync`, `WhatsApp & Vault`).
+- Included active feature deep-dive card with green *"Why It Matters"* real-world problem breakdowns.
+- Added visual 3-step walkthrough: *Create Circle -> Secret Inputs -> Consensus Reveal*.
+
+### 3. Hackathon Research & 10-Day Innovation Roadmap
+- Created `RESEARCH_INNOVATION_10DAY_ROADMAP.md` detailing:
+  - Shipaton and major hackathon judging criteria alignment (Innovation, Execution, Feasibility, Integration).
+  - The 3 root causes of group trip failure (Budget Shame, Date Tetris, Veto Paradox).
+  - 10-day scoped and testable feature sprint (Offline P2P QR Consensus, WhatsApp Smart OpenGraph, Live Flight Reality Guard, Fair Splitwise/UPI Settlement).
+  - Architectural scale blueprint to 100,000 active circles with Supabase RLS and 85%+ gross profit margin.
