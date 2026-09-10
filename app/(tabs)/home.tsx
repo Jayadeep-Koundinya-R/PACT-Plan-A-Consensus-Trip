@@ -1,3 +1,4 @@
+import { ThemeCustomizerModal } from '../../src/components/ThemeCustomizerModal';
 import { PerspectiveCard3D } from '../../src/components/3d/PerspectiveCard3D';
 import { Visual3DConsensusOrb } from '../../src/components/3d/Visual3DConsensusOrb';
 import { useShareInvite } from '../../src/hooks/useShareInvite';
@@ -33,6 +34,7 @@ import {
   ArrowRight,
   Bell,
   Sparkles,
+  Palette,
   KeyRound,
   CheckCircle2,
   Clock,
@@ -46,6 +48,7 @@ import {
 export default function MyCirclesScreen() {
   const router = useRouter();
   const { theme, isDarkMode } = useTheme();
+  const [showThemeModal, setShowThemeModal] = useState(false);
   const haptics = usePactHaptics();
 
   const { circles = [], activeCircleId, setActiveCircle, archiveCircle, unarchiveCircle, loadDemoCircle, clearCircles } = useCircleStore();
@@ -144,6 +147,18 @@ export default function MyCirclesScreen() {
             </View>
 
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => {
+                  haptics.tap();
+                  setShowThemeModal(true);
+                }}
+                style={[styles.notifBellBtn, { borderColor: theme.border }]}
+                accessibilityLabel="Open Theme Customizer"
+              >
+                <Palette size={17} color={theme.primary} />
+              </TouchableOpacity>
+
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={() => {
@@ -508,6 +523,7 @@ export default function MyCirclesScreen() {
         </ScrollView>
         <NotificationCenterModal />
         <NotificationToast />
+        <ThemeCustomizerModal visible={showThemeModal} onClose={() => setShowThemeModal(false)} />
       </View>
     </SafeAreaView>
   );

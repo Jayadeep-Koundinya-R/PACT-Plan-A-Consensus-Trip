@@ -48,7 +48,7 @@ import {
 
 export default function PactSettings() {
   const router = useRouter();
-  const { theme, themeId, themeDefinition, isDarkMode, toggleDarkMode } = useTheme();
+  const { theme, themeId, themeDefinition, allThemes, isDarkMode, setTheme, toggleDarkMode } = useTheme();
   const [showThemeModal, setShowThemeModal] = useState(false);
   const { openNotificationCenter, notifications, simulateAINotification } = useNotificationStore();
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -240,7 +240,7 @@ export default function PactSettings() {
           </View>
 
           {/* Appearance & Theme Section */}
-          <Text style={[styles.sectionHeading, { color: isDarkMode ? '#8B8D98' : '#6B6252' }]}>Appearance & theme</Text>
+          <Text style={[styles.sectionHeading, { color: isDarkMode ? '#8B8D98' : '#6B6252' }]}>Appearance & 4 Curated Themes</Text>
           <View style={[styles.settingsGroupCard, { backgroundColor: isDarkMode ? '#13151E' : '#FFFFFF', borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0,0,0,0.08)' }]}>
             <View style={styles.settingRow}>
               <View style={styles.settingTextCol}>
@@ -257,6 +257,89 @@ export default function PactSettings() {
                 </Text>
               </View>
               <ToggleSwitch on={isDarkMode} onPress={handleToggleTheme} />
+            </View>
+
+            {/* 4 Predefined Themes: 2 Dark, 2 Light */}
+            <View style={{ paddingHorizontal: 16, paddingBottom: 14, paddingTop: 6, borderTopWidth: 1, borderTopColor: isDarkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }}>
+              <Text style={{ fontFamily: fontUIBold, fontSize: 11, color: isDarkMode ? '#8B8D98' : '#6B6252', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                Select Active Theme (2 Dark, 2 Light)
+              </Text>
+
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                {allThemes.map((t) => {
+                  const isSelected = themeId === t.id;
+                  return (
+                    <TouchableOpacity
+                      key={t.id}
+                      onPress={() => {
+                        triggerHaptic();
+                        setTheme(t.id);
+                      }}
+                      activeOpacity={0.8}
+                      style={{
+                        flex: 1,
+                        minWidth: '46%',
+                        padding: 10,
+                        borderRadius: 10,
+                        backgroundColor: isDarkMode ? '#0D0F18' : '#F4F3F0',
+                        borderWidth: isSelected ? 2 : 1,
+                        borderColor: isSelected ? '#FF5A5F' : (isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'),
+                        position: 'relative'
+                      }}
+                      accessibilityLabel={`Select ${t.name} theme`}
+                    >
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                        <Text style={{ fontFamily: fontUIBold, fontSize: 12, color: theme.textPrimary }} numberOfLines={1}>
+                          {t.name}
+                        </Text>
+                        {isSelected && (
+                          <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: '#FF5A5F', alignItems: 'center', justifyContent: 'center' }}>
+                            <Check size={10} color="#FFFFFF" strokeWidth={3} />
+                          </View>
+                        )}
+                      </View>
+
+                      {/* 4-Color Swatch Dots */}
+                      <View style={{ flexDirection: 'row', gap: 4, alignItems: 'center' }}>
+                        <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: t.previewBg, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' }} />
+                        <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: t.previewCard, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' }} />
+                        <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: t.previewPrimary }} />
+                        <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: t.previewSeal }} />
+                        <Text style={{ fontFamily: fontUI, fontSize: 9, color: theme.textSecondary, marginLeft: 'auto', textTransform: 'capitalize' }}>
+                          {t.category}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              {/* Open Full Theme Gallery Modal Button */}
+              <TouchableOpacity
+                onPress={() => {
+                  triggerHaptic();
+                  setShowThemeModal(true);
+                }}
+                activeOpacity={0.8}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  marginTop: 12,
+                  paddingVertical: 10,
+                  borderRadius: 8,
+                  backgroundColor: isDarkMode ? 'rgba(255, 90, 95, 0.12)' : 'rgba(255, 90, 95, 0.08)',
+                  borderWidth: 1,
+                  borderColor: isDarkMode ? 'rgba(255, 90, 95, 0.3)' : 'rgba(255, 90, 95, 0.2)'
+                }}
+                accessibilityLabel="Open Full Theme Customizer & 3D Preview"
+              >
+                <Palette size={14} color="#FF5A5F" />
+                <Text style={{ fontFamily: fontUIBold, fontSize: 12, color: '#FF5A5F' }}>
+                  Open Full Theme Gallery & 3D Preview
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -691,6 +774,7 @@ export default function PactSettings() {
 
         <NotificationCenterModal />
         <NotificationToast />
+        <ThemeCustomizerModal visible={showThemeModal} onClose={() => setShowThemeModal(false)} />
       </View>
     </SafeAreaView>
   );
