@@ -1,4 +1,4 @@
-import { MemberPreference, TripOption } from '../consensus/types';
+﻿import type { MemberPreference, TripOption } from '../consensus/types.ts';
 
 export interface MemberSatisfaction {
   userId: string;
@@ -122,3 +122,92 @@ export function synthesizeAICompromise(
     ]
   };
 }
+export interface DeadlockBreakerProposal {
+  id: string;
+  type: 'date_shift' | 'adjacent_gem' | 'tiered_villa';
+  title: string;
+  subtitle: string;
+  costPerPerson: number;
+  consensusScore: number;
+  tradeOffText: string;
+  unlockedMembersCount: number;
+  targetOption: TripOption;
+}
+
+export function generateDeadlockBreakerPackages(
+  groupId: string,
+  members: MemberPreference[],
+  deadlockedOptions: TripOption[]
+): DeadlockBreakerProposal[] {
+  const budgets = members.map((m) => m.budgetMax || 800);
+  const minBudget = budgets.length > 0 ? Math.min(...budgets) : 500;
+  const count = members.length || 5;
+
+  return [
+    {
+      id: `deadlock-date-shift-${groupId}`,
+      type: 'date_shift',
+      title: 'Shoulder-Season Date Shift (Save 35%)',
+      subtitle: 'Shift 1 weekend later into low-crowd window',
+      costPerPerson: Math.floor(minBudget * 0.92),
+      consensusScore: 98,
+      tradeOffText: `By moving 1 week later, villa and flight rates drop 35%, ensuring all ${count} members are fully within their budget ceiling with 0 compromise on comfort.`,
+      unlockedMembersCount: count,
+      targetOption: {
+        id: `opt-shift-${Date.now()}`,
+        groupId,
+        name: 'Goa South Coast Luxury Villa',
+        destinationType: 'Beachfront Estate',
+        dateStart: '2026-08-12',
+        dateEnd: '2026-08-17',
+        budgetPerPerson: Math.floor(minBudget * 0.92),
+        tags: ['beach', 'relaxed', 'private_chef'],
+        description: 'Private 5-bedroom heritage villa in Benaulim with infinity pool and private chef.',
+      },
+    },
+    {
+      id: `deadlock-adjacent-gem-${groupId}`,
+      type: 'adjacent_gem',
+      title: 'Adjacent Hidden Gem: Gokarna Eco-Resort',
+      subtitle: 'Same stunning coastline, 40% lower cost',
+      costPerPerson: Math.floor(minBudget * 0.85),
+      consensusScore: 95,
+      tradeOffText: 'Transfers 90 minutes south of Goa to Gokarna. Pristine beaches, zero overcrowding, and luxury beachfront cottages fitting all group constraints.',
+      unlockedMembersCount: count,
+      targetOption: {
+        id: `opt-gokarna-${Date.now()}`,
+        groupId,
+        name: 'Gokarna Beachfront Eco-Resort',
+        destinationType: 'Coastal Nature',
+        dateStart: '2026-08-05',
+        dateEnd: '2026-08-10',
+        budgetPerPerson: Math.floor(minBudget * 0.85),
+        tags: ['nature', 'beach', 'sunset_cruise'],
+        description: 'Secluded beachfront cottage resort on Om Beach with cliffside trails and yoga deck.',
+      },
+    },
+    {
+      id: `deadlock-tiered-villa-${groupId}`,
+      type: 'tiered_villa',
+      title: 'Fair Tiered Bedroom Allocation',
+      subtitle: 'Master suites subsidize cozy guest rooms',
+      costPerPerson: minBudget,
+      consensusScore: 92,
+      tradeOffText: 'Members wanting master suites pay a voluntary premium ($850), lowering standard guest room costs to $450 so no one is excluded.',
+      unlockedMembersCount: count,
+      targetOption: {
+        id: `opt-tiered-${Date.now()}`,
+        groupId,
+        name: 'Coorg Coffee Hills Private Estate',
+        destinationType: 'Hill Estate',
+        dateStart: '2026-08-05',
+        dateEnd: '2026-08-10',
+        budgetPerPerson: minBudget,
+        tags: ['mountains', 'bonfire', 'estate'],
+        description: 'Private 300-acre coffee plantation bungalow with private cook, bonfires, and estate jeep safari.',
+      },
+    },
+  ];
+}
+
+

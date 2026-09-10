@@ -1,5 +1,6 @@
-import { AddPeopleModal } from '../../../src/components/AddPeopleModal';
+﻿import { AddPeopleModal } from '../../../src/components/AddPeopleModal';
 import { InviteQRModal } from '../../../src/components/InviteQRModal';
+import { P2PConsensusModal } from '../../../src/components/P2PConsensusModal';
 import { useShareInvite, formatInviteMessage } from '../../../src/hooks/useShareInvite';
 import { useNotificationStore } from '../../../src/store/useNotificationStore';
 import { NotificationCenterModal } from '../../../src/components/NotificationCenterModal';
@@ -44,7 +45,8 @@ import {
   Send,
   Users,
   UserPlus,
-  QrCode
+  QrCode,
+  Radio
 } from 'lucide-react-native';
 
 export default function PactCirclesHub() {
@@ -83,6 +85,7 @@ export default function PactCirclesHub() {
   const [copiedCode, setCopiedCode] = useState(false);
   const [isAddPeopleOpen, setIsAddPeopleOpen] = useState(false);
   const [isQROpen, setIsQROpen] = useState(false);
+  const [isP2POpen, setIsP2POpen] = useState(false);
   const { shareInvite, shareToWhatsApp, shareNudge, copyInviteCode, copyInviteLink } = useShareInvite();
   const { openNotificationCenter, notifications } = useNotificationStore();
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -473,6 +476,17 @@ export default function PactCirclesHub() {
                     <QrCode size={13} color="#D4AF37" />
                     <Text style={[styles.ticketSecondaryBtnText, { color: '#D4AF37' }]}>QR Pass</Text>
                   </TouchableOpacity>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => {
+                      haptics.tap();
+                      setIsP2POpen(true);
+                    }}
+                    style={styles.ticketSecondaryBtn}
+                  >
+                    <Radio size={13} color="#3DE0A0" />
+                    <Text style={[styles.ticketSecondaryBtnText, { color: '#3DE0A0' }]}>P2P Sync</Text>
+                  </TouchableOpacity>
                 </View>
               </View>
             </View>
@@ -526,6 +540,40 @@ export default function PactCirclesHub() {
           groupName={currentGroup.name || 'Trip Circle'}
           inviteCode={currentGroup.inviteCode || 'GOA-4F82'}
           onClose={() => setIsQROpen(false)}
+        />
+
+        {/* In-Person P2P Consensus Modal */}
+        <P2PConsensusModal
+          visible={isP2POpen}
+          circleId={currentGroup.id}
+          circleName={currentGroup.name || 'Trip Circle'}
+          currentUserId={members[0]?.userId || 'user-organizer'}
+          currentUserName={members[0]?.userName || 'You'}
+          userBudget={750}
+          userDates={['2026-10-15', '2026-10-16', '2026-10-17']}
+          userDealbreakers={[]}
+          userApprovals={{ 'dest-goa': true, 'dest-coorg': true }}
+          candidates={[
+            {
+              id: 'dest-goa',
+              name: 'Goa Coastal Villa',
+              estimatedCost: 550,
+              availableDates: ['2026-10-15', '2026-10-16', '2026-10-17'],
+              tags: ['beach', 'nightlife'],
+            },
+            {
+              id: 'dest-coorg',
+              name: 'Coorg Coffee Estate',
+              estimatedCost: 450,
+              availableDates: ['2026-10-15', '2026-10-16'],
+              tags: ['nature', 'mountains'],
+            },
+          ]}
+          isDarkMode={true}
+          onClose={() => setIsP2POpen(false)}
+          onConsensusApplied={() => {
+            haptics.success();
+          }}
         />
       </View>
     </SafeAreaView>
@@ -1082,3 +1130,4 @@ const styles = StyleSheet.create({
     color: '#E8ECF2'
   },
 });
+
