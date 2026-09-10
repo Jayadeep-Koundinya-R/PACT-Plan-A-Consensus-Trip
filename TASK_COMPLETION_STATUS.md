@@ -530,3 +530,35 @@ The tasks below fall into two clear groups:
 ### 7. Verification Summary
 - **Unit & Property Tests**: **138 tests passing across 32 test suites** (0 failures).
 - **TypeScript Compilation**: `npx tsc --noEmit` exits with **0 errors**.
+
+---
+
+## 🎨 3D Visuals & WhatsApp-Style Multi-Theme System (September 10, 2026)
+
+### 1. Persistent Device Theme Architecture (Resolved Theme Reversion Bug)
+- **Problem**: When a user selected dark or light mode, reloading the app or navigating between certain screens could cause theme resets because theme state was stored purely in ephemeral memory.
+- **Resolution**:
+  - Implemented persistent device storage in `src/store/useGatherlyStore.ts` using `@react-native-async-storage/async-storage` (`@pact_theme_id` and `@pact_dark_mode`).
+  - Added `initThemeFromStorage()` triggered on app launch in `app/_layout.tsx`.
+  - Unified `src/hooks/useTheme.ts` to guarantee that whenever a user selects a dark or light theme, that exact theme mode is locked across all screens and retained indefinitely across app reboots.
+
+### 2. Four Curated Themes (2 Dark, 2 Light)
+Defined in `src/theme/colors.ts`:
+1. **Obsidian Midnight (Dark • Default)**: Base `#090A0F`, Card `#13151E`, Coral `#FF5A5F`, Emerald `#3DE0A0`, Gold `#D4AF37`. Classic PACT.
+2. **Cyber Horizon (Dark)**: Deep Space Navy `#080B14`, Card `#111827`, Cyber Cyan `#00F0FF`, Neon Mint `#10B981`, Purple `#8B5CF6`.
+3. **Parchment Luxe (Light)**: Archival Cream `#F4F3F0`, Card `#FFFFFF`, Coral `#FF5A5F`, Sage `#16A34A`, Gold `#B45309`.
+4. **Nordic Glacier (Light)**: Clean Ice `#F0F4F8`, Card `#FFFFFF`, Azure `#0284C7`, Mint `#059669`, Indigo `#D97706`.
+
+### 3. WhatsApp-Style Theme Customizer Modal (`src/components/ThemeCustomizerModal.tsx`)
+- Interactive modal with live 3D phone mockup preview (`perspective: 1000`, `rotateY: -6deg`, `rotateX: 4deg`).
+- Interactive theme cards with category filter pills (`All`, `Dark (2)`, `Light (2)`), 4-swatch color bars, and instant active checkmark.
+- Wired into `app/settings.tsx` with an Appearance & Theme Gallery row.
+
+### 4. 3D Visual Components
+- **`src/components/3d/PerspectiveCard3D.tsx`**: True 3D perspective depth container with bevel specular highlights and offset shadow underlay.
+- **`src/components/3d/Visual3DConsensusOrb.tsx`**: 3D gyroscopic rotating orbital rings with a glowing pulsing core and PACT consensus seal.
+- Embedded as a Hero Consensus Banner in `app/(tabs)/home.tsx`.
+
+### 5. Automated Verification
+- **Total Tests**: **142 automated tests passing across 33 test suites** (0 failures).
+- **TypeScript**: `npx tsc --noEmit` exits with **0 errors**.
