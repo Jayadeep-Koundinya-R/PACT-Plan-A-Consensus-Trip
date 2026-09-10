@@ -1,12 +1,11 @@
-import React from 'react';
+﻿import React from 'react';
 import { TouchableOpacity, StyleSheet } from 'react-native';
-import { useGatherlyStore } from '../store/useGatherlyStore';
-import { colors, radius } from '../theme/colors';
+import { useTheme } from '../hooks/useTheme';
+import { radius } from '../theme/colors';
 import { Sun, Moon } from 'lucide-react-native';
 
 export const ThemeToggle: React.FC = () => {
-  const { isDarkMode, toggleDarkMode } = useGatherlyStore();
-  const theme = isDarkMode ? colors.dark : colors.light;
+  const { theme, isDarkMode, toggleDarkMode } = useTheme();
 
   return (
     <TouchableOpacity
@@ -16,14 +15,14 @@ export const ThemeToggle: React.FC = () => {
         styles.button,
         {
           backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0,0,0,0.05)',
-          borderColor: theme.border
-        }
+          borderColor: theme.border,
+        },
       ]}
     >
       {isDarkMode ? (
         <Sun size={18} color="#F0B547" />
       ) : (
-        <Moon size={18} color="#090A0F" />
+        <Moon size={18} color={theme.textPrimary} />
       )}
     </TouchableOpacity>
   );
@@ -36,6 +35,6 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1
-  }
+    borderWidth: 1,
+  },
 });

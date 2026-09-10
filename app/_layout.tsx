@@ -1,4 +1,4 @@
-import { PactAIChatModal } from '../src/components/PactAIChatModal';
+﻿import { PactAIChatModal } from '../src/components/PactAIChatModal';
 import React, { Component, ReactNode, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { Stack } from 'expo-router';
@@ -105,12 +105,13 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (fontsLoaded) {
+      useGatherlyStore.getState().initThemeFromStorage();
       SplashScreen.hideAsync();
       initPurchases();
     }
   }, [fontsLoaded]);
 
-  // Return null while fonts load — splash screen stays visible
+  // Return null while fonts load â€” splash screen stays visible
   if (!fontsLoaded) return null;
 
   return (

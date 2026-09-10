@@ -1,3 +1,5 @@
+﻿import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ThemeId, pactThemes, DEFAULT_THEME_ID, getThemeById } from '../theme/colors';
 import { useCircleStore } from './useCircleStore';
 import { useUserStore } from './useUserStore';
 import { synthesizeAICompromise, CompromiseProposal } from '../lib/ai/compromiseEngine';
@@ -36,9 +38,9 @@ export type CurrencyCode = 'USD' | 'EUR' | 'INR' | 'GBP';
 
 export const CURRENCIES: Record<CurrencyCode, { code: CurrencyCode; symbol: string; name: string; rate: number }> = {
   USD: { code: 'USD', symbol: '$', name: 'US Dollar', rate: 1 },
-  EUR: { code: 'EUR', symbol: '€', name: 'Euro', rate: 0.92 },
-  INR: { code: 'INR', symbol: '₹', name: 'Indian Rupee', rate: 83.5 },
-  GBP: { code: 'GBP', symbol: '£', name: 'British Pound', rate: 0.79 },
+  EUR: { code: 'EUR', symbol: 'â‚¬', name: 'Euro', rate: 0.92 },
+  INR: { code: 'INR', symbol: 'â‚¹', name: 'Indian Rupee', rate: 83.5 },
+  GBP: { code: 'GBP', symbol: 'Â£', name: 'British Pound', rate: 0.79 },
 };
 
 export interface Group {
@@ -85,6 +87,9 @@ interface GatherlyState {
   userEmail: string | null;
   userName: string | null;
   isDarkMode: boolean;
+  currentThemeId: ThemeId;
+  setTheme: (themeId: ThemeId) => void;
+  initThemeFromStorage: () => Promise<void>;
   currency: CurrencyCode;
   currencySymbol: string;
   setCurrency: (currency: CurrencyCode) => void;
@@ -155,6 +160,7 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   userEmail: null,
   userName: null,
   isDarkMode: true,
+  currentThemeId: 'obsidian_dark' as ThemeId,
   currency: 'USD',
   currencySymbol: '$',
   setCurrency: (currency: CurrencyCode) => {
@@ -166,7 +172,7 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     const config = CURRENCIES[state.currency] || CURRENCIES.USD;
     const converted = Math.round((amountInUSD * config.rate) / 5) * 5;
     if (state.currency === 'INR') {
-      return `₹${converted.toLocaleString('en-IN')}`;
+      return `â‚¹${converted.toLocaleString('en-IN')}`;
     }
     return `${config.symbol}${converted.toLocaleString()}`;
   },
@@ -310,7 +316,38 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     }));
   },
 
-  toggleDarkMode: () => set((state) => ({ isDarkMode: !state.isDarkMode })),
+    setTheme: (themeId: ThemeId) => {
+    const def = getThemeById(themeId);
+    const isDark = def.category === 'dark';
+    set({ currentThemeId: themeId, isDarkMode: isDark });
+    AsyncStorage.setItem('@pact_theme_id', themeId).catch(() => {});
+    AsyncStorage.setItem('@pact_dark_mode', String(isDark)).catch(() => {});
+  },
+
+  toggleDarkMode: () => {
+    const state = get();
+    const newIsDark = !state.isDarkMode;
+    const newThemeId: ThemeId = newIsDark ? 'obsidian_dark' : 'parchment_light';
+    set({ isDarkMode: newIsDark, currentThemeId: newThemeId });
+    AsyncStorage.setItem('@pact_theme_id', newThemeId).catch(() => {});
+    AsyncStorage.setItem('@pact_dark_mode', String(newIsDark)).catch(() => {});
+  },
+
+  initThemeFromStorage: async () => {
+    try {
+      const [savedTheme, savedDark] = await Promise.all([
+        AsyncStorage.getItem('@pact_theme_id'),
+        AsyncStorage.getItem('@pact_dark_mode')
+      ]);
+      if (savedTheme && savedTheme in pactThemes) {
+        const themeDef = pactThemes[savedTheme as ThemeId];
+        set({ currentThemeId: savedTheme as ThemeId, isDarkMode: themeDef.category === 'dark' });
+      } else if (savedDark !== null) {
+        const isDark = savedDark === 'true';
+        set({ isDarkMode: isDark, currentThemeId: isDark ? 'obsidian_dark' : 'parchment_light' });
+      }
+    } catch (_err) {}
+  },
 
   setCurrentUser: (userId: string, email?: string, name?: string) => {
     set({
@@ -799,14 +836,14 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
       {
         section: 'FLIGHTS & TRANSPORT',
         items: [
-          { id: 'v1', name: 'IndiGo_Flight_All5.pdf', meta: 'Uploaded by Alex  •  1.2 MB', type: 'flight', section: 'FLIGHTS & TRANSPORT' },
-          { id: 'v2', name: 'Airport_Transfer_Receipt.pdf', meta: 'Uploaded by Sam  •  450 KB', type: 'transfer', section: 'FLIGHTS & TRANSPORT' }
+          { id: 'v1', name: 'IndiGo_Flight_All5.pdf', meta: 'Uploaded by Alex  â€¢  1.2 MB', type: 'flight', section: 'FLIGHTS & TRANSPORT' },
+          { id: 'v2', name: 'Airport_Transfer_Receipt.pdf', meta: 'Uploaded by Sam  â€¢  450 KB', type: 'transfer', section: 'FLIGHTS & TRANSPORT' }
         ]
       },
       {
         section: 'ACCOMMODATION BOOKINGS',
         items: [
-          { id: 'v3', name: 'South_Goa_Villa_Confirmation.pdf', meta: 'Uploaded by You  •  Code #PACT-9921', type: 'villa', section: 'ACCOMMODATION BOOKINGS' }
+          { id: 'v3', name: 'South_Goa_Villa_Confirmation.pdf', meta: 'Uploaded by You  â€¢  Code #PACT-9921', type: 'villa', section: 'ACCOMMODATION BOOKINGS' }
         ]
       }
     ]
@@ -962,3 +999,4 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     });
   }
 }));
+

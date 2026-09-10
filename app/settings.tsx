@@ -1,4 +1,5 @@
-import { useTheme } from '../src/hooks/useTheme';
+﻿import { useTheme } from '../src/hooks/useTheme';
+import { ThemeCustomizerModal } from '../src/components/ThemeCustomizerModal';
 import { useNotificationStore } from '../src/store/useNotificationStore';
 import { NotificationCenterModal } from '../src/components/NotificationCenterModal';
 import { NotificationToast } from '../src/components/NotificationToast';
@@ -41,12 +42,14 @@ import {
   LogOut,
   AlertTriangle,
   X,
-  RefreshCw
+  RefreshCw,
+  Palette
 } from 'lucide-react-native';
 
 export default function PactSettings() {
   const router = useRouter();
-  const { theme, isDarkMode, toggleDarkMode } = useTheme();
+  const { theme, themeId, themeDefinition, isDarkMode, toggleDarkMode } = useTheme();
+  const [showThemeModal, setShowThemeModal] = useState(false);
   const { openNotificationCenter, notifications, simulateAINotification } = useNotificationStore();
   const unreadCount = notifications.filter((n) => !n.read).length;
   const {
@@ -270,7 +273,7 @@ export default function PactSettings() {
               <View style={{ flexDirection: 'row', gap: 8 }}>
                 {(['USD', 'EUR', 'INR', 'GBP'] as const).map((curr) => {
                   const isSelected = (currency || 'USD') === curr;
-                  const symbols = { USD: '$', EUR: '€', INR: '₹', GBP: '£' };
+                  const symbols = { USD: '$', EUR: 'â‚¬', INR: 'â‚¹', GBP: 'Â£' };
                   return (
                     <TouchableOpacity
                       key={curr}
@@ -1218,3 +1221,4 @@ const styles = StyleSheet.create({
     fontWeight: '700'
   }
 });
+

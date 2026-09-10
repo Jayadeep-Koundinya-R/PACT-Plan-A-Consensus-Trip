@@ -1,3 +1,5 @@
+import { PerspectiveCard3D } from '../../src/components/3d/PerspectiveCard3D';
+import { Visual3DConsensusOrb } from '../../src/components/3d/Visual3DConsensusOrb';
 import { useShareInvite } from '../../src/hooks/useShareInvite';
 import { useTheme } from '../../src/hooks/useTheme';
 import { useNotificationStore } from '../../src/store/useNotificationStore';
@@ -232,6 +234,32 @@ export default function MyCirclesScreen() {
               <Text style={[styles.secondaryActionBtnText, { color: theme.textPrimary }]}>Passes</Text>
             </TouchableOpacity>
           </View>
+
+                    {/* 3D Visual Consensus Engine Hero Card */}
+          <PerspectiveCard3D
+            tiltAngleX={2}
+            tiltAngleY={-3}
+            glowColor={isDarkMode ? 'rgba(255, 90, 95, 0.2)' : 'rgba(2, 132, 199, 0.15)'}
+            style={{ marginBottom: 14 }}
+          >
+            <View style={[styles.hero3DCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <View style={styles.hero3DContent}>
+                <View style={styles.hero3DTagRow}>
+                  <View style={[styles.hero3DTag, { backgroundColor: theme.primaryLight }]}>
+                    <Text style={[styles.hero3DTagText, { color: theme.primary }]}>PARETO 3D ENGINE</Text>
+                  </View>
+                  <Text style={[styles.hero3DSub, { color: theme.textSecondary }]}>Zero-Knowledge Privacy</Text>
+                </View>
+                <Text style={[styles.hero3DTitle, { color: theme.textPrimary }]}>
+                  Conflict-Free Travel Consensus
+                </Text>
+                <Text style={[styles.hero3DDesc, { color: theme.textSecondary }]}>
+                  Secret budgets & dates matched mathematically with 0 peer pressure.
+                </Text>
+              </View>
+              <Visual3DConsensusOrb size={72} primaryColor={theme.primary} sealColor={theme.seal} />
+            </View>
+          </PerspectiveCard3D>
 
           {/* Circles Section with Active / Archived Tabs */}
           <View style={styles.sectionHeaderRow}>
@@ -486,6 +514,48 @@ export default function MyCirclesScreen() {
 }
 
 const styles = StyleSheet.create({
+  hero3DCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderRadius: radius.card,
+    borderWidth: 1,
+  },
+  hero3DContent: {
+    flex: 1,
+    paddingRight: 12,
+  },
+  hero3DTagRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 6,
+  },
+  hero3DTag: {
+    paddingHorizontal: 8,
+    paddingVertical: 2.5,
+    borderRadius: radius.pill,
+  },
+  hero3DTagText: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+  },
+  hero3DSub: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  hero3DTitle: {
+    fontSize: 16,
+    fontWeight: '900',
+    letterSpacing: -0.2,
+    marginBottom: 4,
+  },
+  hero3DDesc: {
+    fontSize: 12,
+    lineHeight: 16,
+  },
   notifBellBtn: {
     width: 36,
     height: 36,

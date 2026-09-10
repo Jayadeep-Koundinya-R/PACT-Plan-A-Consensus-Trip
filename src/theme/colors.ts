@@ -1,4 +1,4 @@
-export const colors = {
+﻿export const colors = {
   dark: {
     background:      '#090A0F',
     backgroundDeep:  '#050608',
@@ -135,3 +135,116 @@ export const shadows = {
     elevation: 3
   }
 } as const;
+
+export type ThemeId = 'obsidian_dark' | 'cyber_dark' | 'parchment_light' | 'nordic_light';
+
+export type ThemePalette = {
+  [K in keyof typeof colors.dark]: string;
+};
+
+export interface PactThemeDefinition {
+  id: ThemeId;
+  name: string;
+  category: 'dark' | 'light';
+  description: string;
+  previewBg: string;
+  previewCard: string;
+  previewPrimary: string;
+  previewSeal: string;
+  colors: ThemePalette;
+}
+
+export const pactThemes: Record<ThemeId, PactThemeDefinition> = {
+  obsidian_dark: {
+    id: 'obsidian_dark',
+    name: 'Obsidian Midnight',
+    category: 'dark',
+    description: 'Deep obsidian black with coral energy and gold seals. The signature PACT aesthetic.',
+    previewBg: '#090A0F',
+    previewCard: '#13151E',
+    previewPrimary: '#FF5A5F',
+    previewSeal: '#3DE0A0',
+    colors: colors.dark
+  },
+  cyber_dark: {
+    id: 'cyber_dark',
+    name: 'Cyber Horizon',
+    category: 'dark',
+    description: 'Futuristic deep space navy with glowing cyber cyan accents and neon emerald pulses.',
+    previewBg: '#080B14',
+    previewCard: '#111827',
+    previewPrimary: '#00F0FF',
+    previewSeal: '#10B981',
+    colors: {
+      ...colors.dark,
+      background: '#080B14',
+      backgroundDeep: '#04060B',
+      surface: '#111827',
+      surfaceElevated: '#1A2234',
+      surfaceSubtle: '#0D1322',
+      card: '#111827',
+      primary: '#00F0FF',
+      primaryDark: '#00C4D4',
+      primaryLight: 'rgba(0, 240, 255, 0.14)',
+      primaryContrast: '#041E26',
+      secondary: '#10B981',
+      secondaryDark: '#059669',
+      secondaryLight: 'rgba(16, 185, 129, 0.14)',
+      seal: '#10B981',
+      gold: '#8B5CF6',
+      border: 'rgba(0, 240, 255, 0.12)',
+      glassBorder: 'rgba(0, 240, 255, 0.16)'
+    }
+  },
+  parchment_light: {
+    id: 'parchment_light',
+    name: 'Parchment Luxe',
+    category: 'light',
+    description: 'Warm archival cream with crisp typography and coral seal marks. Elegant daytime clarity.',
+    previewBg: '#F4F3F0',
+    previewCard: '#FFFFFF',
+    previewPrimary: '#FF5A5F',
+    previewSeal: '#16A34A',
+    colors: colors.light
+  },
+  nordic_light: {
+    id: 'nordic_light',
+    name: 'Nordic Glacier',
+    category: 'light',
+    description: 'Crisp arctic ice white with deep ocean azure and fresh mint accents.',
+    previewBg: '#F0F4F8',
+    previewCard: '#FFFFFF',
+    previewPrimary: '#0284C7',
+    previewSeal: '#059669',
+    colors: {
+      ...colors.light,
+      background: '#F0F4F8',
+      backgroundDeep: '#E2E8F0',
+      surface: '#FFFFFF',
+      surfaceElevated: '#F8FAFC',
+      surfaceSubtle: '#E8EEF5',
+      card: '#FFFFFF',
+      primary: '#0284C7',
+      primaryDark: '#0369A1',
+      primaryLight: 'rgba(2, 132, 199, 0.12)',
+      primaryContrast: '#FFFFFF',
+      secondary: '#059669',
+      secondaryDark: '#047857',
+      secondaryLight: 'rgba(5, 150, 105, 0.12)',
+      seal: '#059669',
+      gold: '#D97706',
+      border: '#D9E2EC',
+      borderSubtle: '#E2E8F0'
+    }
+  }
+};
+
+export const DEFAULT_THEME_ID: ThemeId = 'obsidian_dark';
+
+export function getThemeById(themeId?: string): PactThemeDefinition {
+  if (themeId && themeId in pactThemes) {
+    return pactThemes[themeId as ThemeId];
+  }
+  return pactThemes[DEFAULT_THEME_ID];
+}
+
