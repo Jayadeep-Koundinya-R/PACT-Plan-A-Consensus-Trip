@@ -1,3 +1,4 @@
+import { useShareInvite } from '../../src/hooks/useShareInvite';
 import { useTheme } from '../../src/hooks/useTheme';
 import { useNotificationStore } from '../../src/store/useNotificationStore';
 import { NotificationCenterModal } from '../../src/components/NotificationCenterModal';
@@ -59,6 +60,7 @@ export default function MyCirclesScreen() {
   }, [currentUserId]);
 
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const { copyInviteCode } = useShareInvite();
   const [refreshing, setRefreshing] = useState(false);
 
   const onRefresh = async () => {
@@ -79,12 +81,7 @@ export default function MyCirclesScreen() {
   const displayCircles = circleTab === 'active' ? activeCircles : archivedCircles;
 
   const handleCopy = async (code: string) => {
-    haptics.tap();
-    try {
-      if (Clipboard && Clipboard.setStringAsync) {
-        await Clipboard.setStringAsync(code);
-      }
-    } catch {}
+    await copyInviteCode(code);
     setCopiedCode(code);
     setTimeout(() => setCopiedCode(null), 1800);
   };

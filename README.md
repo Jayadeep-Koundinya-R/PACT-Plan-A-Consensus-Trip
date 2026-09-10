@@ -161,11 +161,28 @@ Open **`http://localhost:8081`** in your browser to test the full consensus expe
 
 ## 🔮 8. What's Next (Roadmap & Explicit Non-Goals)
 
-To preserve PACT's high-trust group consensus mechanics, certain features were **intentionally excluded** from this build:
+### Lightweight "Add People" Invite Flow & Unified Sharing
+PACT replaces cumbersome user searches with a lightweight **Circle Hub Invite Flow**:
+- **Native OS Sharing**: Organizers tap **+ Add People** on the Circle Hub to immediately trigger pre-filled invitations via **WhatsApp**, **Messages (SMS)**, **Email**, or the native **Device Share Sheet** (AirDrop, Slack, Telegram).
+- **Direct Join URLs**: Deep-linked invitations (`https://pact.app/join/{code}`) allow friends to lock in their preferences in under 10 seconds without mandatory registration walls.
+- **Unified Sharing Hook (`useShareInvite`)**: All WhatsApp and share touchpoints across the app (Trip Brief export, Hub invites, bulk group nudges, and QR passes) share a single hardened, privacy-compliant hook.
 
-### 1. Username Search & Add-Friend System (Roadmap)
-- **Why excluded now:** PACT is intentionally built around private, high-trust groups using 6-character cryptographic circle codes (`GOA-4F82`). Public directory lookups and stranger requests introduce social friction and spam that undermine the core privacy guarantee.
-- **Future implementation:** Mutual, double-opt-in contact book matching where both users must mutually accept connection before appearing in friend lists.
+---
+
+### Explicit Architectural Non-Goals (Scope Boundaries)
+
+To preserve PACT's zero-knowledge privacy architecture, the following features were **strictly and intentionally excluded**:
+
+### 1. Central User Directory & Public User Search (Explicit Non-Goal)
+- **Why excluded:** PACT is built as a zero-knowledge consensus engine. Having a searchable central directory or user catalog would expose member identities, travel schedules, and circle affiliations to strangers. Circles are strictly invite-only using 6-character cryptographic codes (`GOA-4F82`).
+- **Roadmap consideration:** Mutual, double-opt-in contact book hashing where both parties must have each other's phone number before any discovery occurs.
+
+### 2. Friend-Request & Social Graph System (Explicit Non-Goal)
+- **Why excluded:** PACT trips are organized among real-world friends, family, and colleagues who already communicate on WhatsApp, iMessage, or Slack. Introducing a social networking graph with friend requests adds unnecessary onboarding friction and spam.
+
+### 3. Public Circle Discovery & Open Stranger Trips (Roadmap)
+- **Why excluded now:** Group travel consensus succeeds because participants navigate shared budgets with mutual goodwill. Opening circles to public internet strangers dilutes ballot authenticity and compromises sealed privacy.
+- **Future implementation:** Curated solo traveler circles with identity-verified deposits and reputation escrow.
 
 ### 2. Public Circle Discovery & Open Stranger Trips (Roadmap)
 - **Why excluded now:** Group travel consensus works because participants are real friends/colleagues navigating shared budgets and genuine constraints. Opening circles to public internet strangers dilutes ballot authenticity and compromises sealed privacy.

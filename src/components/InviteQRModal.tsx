@@ -1,3 +1,4 @@
+import { useShareInvite } from '../hooks/useShareInvite';
 import React, { useState } from 'react';
 import {
   View,
@@ -30,21 +31,21 @@ export const InviteQRModal: React.FC<InviteQRModalProps> = ({
 }) => {
   const theme = isDarkMode ? colors.dark : colors.light;
   const [copied, setCopied] = useState(false);
+  const { copyInviteLink, shareInvite } = useShareInvite();
 
   const inviteLink = `pact://invite/${inviteCode}`;
   const shareText = `ðŸŒ´ You're invited to join "${groupName}" on PACT!\n\nJoin privately to submit your dates, budget, and tags:\nðŸ‘‰ Code: ${inviteCode}\nðŸ‘‰ Link: ${inviteLink}`;
 
   const handleCopyLink = async () => {
-    try {
-      await Clipboard.setStringAsync(inviteCode);
+    const success = await copyInviteLink(inviteCode);
+    if (success) {
       setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
-    } catch (e) {
-      // Fallback to native share
-      try {
-        await Share.share({ message: shareText, title: `Invite to ${groupName}` });
-      } catch (_) {}
+      setTimeout(() => setCopied(false), 2200);
     }
+  };
+
+  const handleNativeShare = async () => {
+    await shareInvite({ groupName, inviteCode });
   };
 
   return (
@@ -130,7 +131,8 @@ export const InviteQRModal: React.FC<InviteQRModalProps> = ({
 
               <TouchableOpacity
                 activeOpacity={0.8}
-                onPress={handleCopyLink}
+                onPress={handleNativeShare}
+                accessibilityLabel="Share invite via device sheet"
                 style={[styles.secondaryActionBtn, { backgroundColor: theme.surfaceSubtle }]}
               >
                 <Share2 size={16} color={theme.textPrimary} />

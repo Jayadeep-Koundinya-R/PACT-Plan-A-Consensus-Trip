@@ -1,3 +1,4 @@
+import { useShareInvite, formatNudgeMessage } from '../hooks/useShareInvite';
 import React, { useState } from 'react';
 import {
   View,
@@ -35,6 +36,7 @@ export const NudgeModal: React.FC<NudgeModalProps> = ({
 }) => {
   const theme = isDarkMode ? colors.dark : colors.light;
   const [copied, setCopied] = useState(false);
+  const { shareNudge } = useShareInvite();
 
   const missingNames = pendingMemberNames.length > 0
     ? pendingMemberNames.join(' & ')
@@ -43,22 +45,15 @@ export const NudgeModal: React.FC<NudgeModalProps> = ({
   const defaultNudgeMessage = `Hey ${missingNames}! 👋\n\n${respondedCount}/${totalCount} of us have submitted our dates & budgets for "${groupName}".\n\nDrop your private constraints in PACT so the consensus engine can rank the best options for everyone:\n👉 Join Code: ${inviteCode}\n👉 App link: https://pact.app/invite/${inviteCode}\n\n(Everything is 100% private — no peer pressure!)`;
 
   const handleCopy = async () => {
-    if (Platform.OS === 'web') {
-      try {
-        await navigator.clipboard.writeText(defaultNudgeMessage);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2500);
-      } catch (e) {
-        alert(defaultNudgeMessage);
-      }
-    } else {
-      try {
-        await Share.share({
-          message: defaultNudgeMessage,
-          title: `Friendly Reminder: ${groupName}`
-        });
-      } catch (e) {}
-    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2400);
+    await shareNudge({
+      groupName,
+      inviteCode,
+      lockedCount: respondedCount,
+      neededCount: Math.max(1, totalCount - respondedCount),
+      memberName: missingNames
+    });
   };
 
   return (

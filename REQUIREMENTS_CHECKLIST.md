@@ -11,7 +11,7 @@ Status legend: ✅ Done & verified · 🟡 Built but not verified · ⬜ Not sta
 | ID | Requirement | Status | Evidence | Last updated |
 |---|---|---|---|---|
 | R1 | Create a new trip circle | ✅ | Verified `createGroup` in store & Supabase fallback; tested in Node test suite | 2026-09-07 |
-| R2 | Join a circle via invite code | ✅ | Verified in `app/invite/[code].tsx` and `joinGroupByCode` | 2026-09-07 |
+| R2 | Join a circle via invite code & lightweight 'Add People' flow | ✅ | Verified in `AddPeopleModal`, `app/circle/[id]/hub.tsx`, and unified `useShareInvite()` hook | 2026-09-10 |
 | R3 | Join via deep link, under 10 sec, no signup wall (guest auth) | 🟡 | Deep links configured (`pact://join`, `pact://invite`) in `app.json`; guest auth handles persona | 2026-09-07 |
 | R4 | Private budget/dates/vibe/dealbreakers — never shown raw to group | ✅ | RLS own-only policy in `supabase/schema.sql`; verified in `security.test.mjs` | 2026-09-07 |
 | R5 | Consensus engine ranks options, shows match % | ✅ | Deterministic consensus algorithm in `src/lib/consensus/engine.ts`; 5 suites pass | 2026-09-07 |
@@ -19,7 +19,7 @@ Status legend: ✅ Done & verified · 🟡 Built but not verified · ⬜ Not sta
 | R7 | AI Budget Advisor — live AI call with fallback | ✅ | `ai-advisor` edge function + market index fallback; 3 tests in `aiAdvisor.test.mjs` | 2026-09-07 |
 | R8 | Silent/sealed voting — hidden until reveal | ✅ | `votes` table has no peer select; aggregate-only RPC `get_option_vote_count` in `schema.sql` | 2026-09-07 |
 | R9 | Consensus reveal celebration (confetti, stamp) | ✅ | Verified in `app/circle/[id]/brief.tsx` + `sealStamp.test.mjs` | 2026-09-07 |
-| R10 | Trip Brief — final details + WhatsApp share | ✅ | Export ICS + WhatsApp share buttons implemented in `brief.tsx` | 2026-09-07 |
+| R10 | Trip Brief — final details + WhatsApp share | ✅ | Export ICS + unified `useShareInvite().shareTripBrief()` in `brief.tsx` | 2026-09-10 |
 | R11 | Trip Vault — shared documents | ✅ | Encrypted document categorization in `vault.tsx` + `phase4SafetyNets.test.mjs` | 2026-09-07 |
 | R12 | Memory Library — photos + AI trip digest | ✅ | Photo grid with likes and captions in `memories.tsx` | 2026-09-07 |
 
@@ -53,7 +53,7 @@ Status legend: ✅ Done & verified · 🟡 Built but not verified · ⬜ Not sta
 | ID | Requirement | Status | Evidence | Last updated |
 |---|---|---|---|---|
 | R23 | README documents architecture, feature matrix, judge quick-start | ✅ | Documented in `README.md` with verified quick-start clone command | 2026-09-07 |
-| R24 | "What's Next" section documents explicit non-goals (username search, stranger discovery) | ✅ | Documented non-goals in `README.md` Section 9 | 2026-09-07 |
+| R24 | "What's Next" section documents explicit non-goals (no user directory, no friend requests) | ✅ | Documented non-goals in `README.md` Section 8 with privacy rationale | 2026-09-10 |
 
 ---
 
@@ -63,7 +63,7 @@ Status legend: ✅ Done & verified · 🟡 Built but not verified · ⬜ Not sta
 |---|---|---|---|
 | N1 | Dark theme only, consistent tokens (Ink/Parchment/Brass/Petrol/Sealing Red) across all screens | ✅ | Evaluated in `colors.test.mjs` with 10 property tests (Properties 1-10) |
 | N2 | Haptics on key interactions (lock, seal, success, warning) | ✅ | `usePactHaptics.ts` wrapper with web safe no-op fallbacks |
-| N3 | Full automated test suite passing | ✅ | **89/89 tests passing across 20 suites**; `npx tsc --noEmit` exits with 0 errors |
+| N3 | Full automated test suite passing | ✅ | **119/119 tests passing across 26 suites**; `npx tsc --noEmit` exits with 0 errors |
 | N4 | No git push to `main` or production deploy without explicit approval | ✅ | Strict branch isolation on `pre-submission-review` |
 
 ---

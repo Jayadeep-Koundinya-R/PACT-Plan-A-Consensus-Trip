@@ -1,3 +1,6 @@
+import { AddPeopleModal } from '../../../src/components/AddPeopleModal';
+import { InviteQRModal } from '../../../src/components/InviteQRModal';
+import { useShareInvite, formatInviteMessage } from '../../../src/hooks/useShareInvite';
 import { useNotificationStore } from '../../../src/store/useNotificationStore';
 import { NotificationCenterModal } from '../../../src/components/NotificationCenterModal';
 import { NotificationToast } from '../../../src/components/NotificationToast';
@@ -39,7 +42,9 @@ import {
   Settings,
   Zap,
   Send,
-  Users
+  Users,
+  UserPlus,
+  QrCode
 } from 'lucide-react-native';
 
 export default function PactCirclesHub() {
@@ -76,6 +81,9 @@ export default function PactCirclesHub() {
   const [nudged, setNudged] = useState<Record<string, boolean>>({});
   const [bulkNudged, setBulkNudged] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
+  const [isAddPeopleOpen, setIsAddPeopleOpen] = useState(false);
+  const [isQROpen, setIsQROpen] = useState(false);
+  const { shareInvite, shareToWhatsApp, shareNudge, copyInviteCode, copyInviteLink } = useShareInvite();
   const { openNotificationCenter, notifications } = useNotificationStore();
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -150,67 +158,26 @@ export default function PactCirclesHub() {
     setBulkNudged(true);
     const code = currentGroup.inviteCode || 'GOA-4F82';
     const needed = Math.max(1, 3 - lockedCount);
-    const message = `Hey team! ✈️ ${lockedCount} of us locked in our trip preferences on PACT. We need ${needed} more to reveal the consensus match!\n\nLock in your dates & budget here (100% private):\npact://join/${code}\nInvite code: ${code}`;
-
-    const waUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-
-    if (Platform.OS === 'web') {
-      try {
-        await Clipboard.setStringAsync(message);
-        window.open(waUrl, '_blank');
-      } catch (e) {
-        Alert.alert('WhatsApp Reminder', message);
-      }
-    } else {
-      try {
-        const canOpen = await Linking.canOpenURL(waUrl);
-        if (canOpen) {
-          await Linking.openURL(waUrl);
-        } else {
-          await Share.share({
-            message,
-            title: `Nudge: ${currentGroup.name} on PACT`
-          });
-        }
-      } catch (e) {
-        Alert.alert('Nudge Copied', message);
-      }
-    }
+    await shareNudge({
+      groupName: currentGroup.name || 'Trip Circle',
+      inviteCode: code,
+      lockedCount,
+      neededCount: needed
+    });
   };
 
   const handleCopyCode = async () => {
-    haptics.tap();
     const code = currentGroup.inviteCode || 'GOA-4F82';
-    try {
-      await Clipboard.setStringAsync(code);
-      setCopiedCode(true);
-      setTimeout(() => setCopiedCode(false), 2000);
-    } catch (e) {
-      setCopiedCode(true);
-      setTimeout(() => setCopiedCode(false), 2000);
-    }
+    await copyInviteCode(code);
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 2000);
   };
 
   const handleShareWhatsApp = async () => {
     haptics.action();
     const code = currentGroup.inviteCode || 'GOA-4F82';
-    const message = `✨ Join our private trip poll on PACT: "${currentGroup.name}"!\n\nEnter code: ${code}\nYour dates and budget stay 100% confidential.`;
-
-    if (Platform.OS === 'web') {
-      try {
-        await navigator.clipboard.writeText(message);
-        Alert.alert('Copied to Clipboard', 'Share link and code copied to clipboard!');
-      } catch (e) {
-        Alert.alert('Invite Code', message);
-      }
-    } else {
-      try {
-        await Share.share({
-          message,
-          title: `Join ${currentGroup.name} on PACT`
-        });
-      } catch (e) {}
-    }
+    const message = formatInviteMessage(currentGroup.name || 'Trip Circle', code);
+    await shareToWhatsApp({ message, inviteCode: code });
   };
 
   const handleProceedToPreferences = () => {
@@ -380,8 +347,22 @@ export default function PactCirclesHub() {
           {/* Members Response List */}
           <View style={styles.membersCard}>
             <View style={styles.membersCardHeader}>
-              <Text style={styles.membersCardTitle}>Member responses</Text>
-              <Text style={styles.membersCardSubtitle}>{totalCount - lockedCount} pending</Text>
+              <View>
+                <Text style={styles.membersCardTitle}>Member responses</Text>
+                <Text style={styles.membersCardSubtitle}>{totalCount - lockedCount} pending</Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => {
+                  haptics.tap();
+                  setIsAddPeopleOpen(true);
+                }}
+                activeOpacity={0.8}
+                style={styles.addPeopleHeaderBtn}
+                accessibilityLabel="Add people to trip circle"
+              >
+                <UserPlus size={13} color="#3DE0A0" />
+                <Text style={styles.addPeopleHeaderBtnText}>+ Add People</Text>
+              </TouchableOpacity>
             </View>
 
             {demoMembers.map((m, i) => (
@@ -497,6 +478,32 @@ export default function PactCirclesHub() {
                   </Svg>
                   <Text style={styles.whatsAppButtonText}>Share to WhatsApp group</Text>
                 </TouchableOpacity>
+
+                <View style={styles.ticketSecondaryActionsRow}>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => {
+                      haptics.tap();
+                      setIsAddPeopleOpen(true);
+                    }}
+                    style={styles.ticketSecondaryBtn}
+                  >
+                    <Share2 size={13} color="#E8ECF2" />
+                    <Text style={styles.ticketSecondaryBtnText}>Invite Sheet</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => {
+                      haptics.tap();
+                      setIsQROpen(true);
+                    }}
+                    style={styles.ticketSecondaryBtn}
+                  >
+                    <QrCode size={13} color="#D4AF37" />
+                    <Text style={[styles.ticketSecondaryBtnText, { color: '#D4AF37' }]}>QR Pass</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
           </View>
@@ -534,6 +541,22 @@ export default function PactCirclesHub() {
             </Text>
           </TouchableOpacity>
         </View>
+        {/* Add People Lightweight Share Sheet */}
+        <AddPeopleModal
+          visible={isAddPeopleOpen}
+          groupName={currentGroup.name || 'Trip Circle'}
+          inviteCode={currentGroup.inviteCode || 'GOA-4F82'}
+          onClose={() => setIsAddPeopleOpen(false)}
+          onOpenQR={() => setIsQROpen(true)}
+        />
+
+        {/* In-Person QR Pass Modal */}
+        <InviteQRModal
+          visible={isQROpen}
+          groupName={currentGroup.name || 'Trip Circle'}
+          inviteCode={currentGroup.inviteCode || 'GOA-4F82'}
+          onClose={() => setIsQROpen(false)}
+        />
       </View>
     </SafeAreaView>
   );
@@ -1036,5 +1059,47 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 13.5,
     color: '#2E0805'
-  }
+  },
+  addPeopleHeaderBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(61, 224, 160, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.28)'
+  },
+  addPeopleHeaderBtnText: {
+    fontFamily: fontUIBold,
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#3DE0A0',
+    letterSpacing: 0.4
+  },
+  ticketSecondaryActionsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 8,
+    width: '100%'
+  },
+  ticketSecondaryBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 9,
+    borderRadius: radius.btn,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)'
+  },
+  ticketSecondaryBtnText: {
+    fontFamily: fontUIBold,
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#E8ECF2'
+  },
 });

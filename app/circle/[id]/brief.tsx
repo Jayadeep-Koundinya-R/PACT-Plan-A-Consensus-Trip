@@ -1,3 +1,4 @@
+import { useShareInvite } from '../../../src/hooks/useShareInvite';
 import { SocialStoryModal } from '../../../src/components/SocialStoryModal';
 import { NotificationToast } from '../../../src/components/NotificationToast';
 import { useNotificationStore } from '../../../src/store/useNotificationStore';
@@ -44,6 +45,7 @@ export default function PactTripBrief() {
     };
 
   const haptics = usePactHaptics();
+  const { shareTripBrief } = useShareInvite();
   const [confettiKey, setConfettiKey] = useState(0);
   const [showStoryModal, setShowStoryModal] = useState(false);
   const { addNotification } = useNotificationStore();
@@ -145,19 +147,14 @@ export default function PactTripBrief() {
   };
 
   const handleShareWhatsApp = async () => {
-    triggerHaptic();
-    const briefMsg = `🏖️ *PACT Consensus Brief: Goa, India*\n🗓️ Oct 14 - Oct 19, 2026\n💰 ~$540 / person\n👥 5 members locked\n📍 Private beach villa\n\nView itinerary & vouchers: https://pact.app/circle/${currentGroup.id}/brief`;
-
-    if (Platform.OS === 'web') {
-      try {
-        await navigator.clipboard.writeText(briefMsg);
-        Alert.alert('Copied!', 'WhatsApp brief copied to clipboard.');
-      } catch (e) {}
-    } else {
-      try {
-        await Share.share({ message: briefMsg, title: 'PACT Trip Brief' });
-      } catch (e) {}
-    }
+    await shareTripBrief({
+      groupName: currentGroup.name || 'Goa Beach Escape 2026',
+      destination: 'Goa, India',
+      dates: 'Oct 14 - Oct 19, 2026',
+      budget: '$540',
+      memberCount: 5,
+      briefUrl: `https://pact.app/circle/${currentGroup.id}/brief`
+    });
   };
 
   return (
