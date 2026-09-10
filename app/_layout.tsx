@@ -1,4 +1,3 @@
-import { FloatingAIChatButton } from '../src/components/FloatingAIChatButton';
 import { PactAIChatModal } from '../src/components/PactAIChatModal';
 import React, { Component, ReactNode, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
@@ -124,7 +123,6 @@ export default function RootLayout() {
           animation: 'fade_from_bottom'
         }}
       />
-      <FloatingAIChatButton />
       <PactAIChatModal />
     </RootErrorBoundary>
   );

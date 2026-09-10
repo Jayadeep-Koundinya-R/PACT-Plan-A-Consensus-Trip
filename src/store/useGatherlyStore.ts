@@ -107,6 +107,7 @@ interface GatherlyState {
   setCurrentUser: (userId: string, email?: string, name?: string) => void;
   initAuthSession: () => Promise<void>;
   logout: () => Promise<void>;
+  deleteAccountAndPurgeData: () => Promise<void>;
   login: (email: string, password: string) => Promise<any>;
   register: (email: string, password: string, displayName?: string) => Promise<any>;
   loginAsPersona: (userId: string) => void;
@@ -366,6 +367,50 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
       finalizedBrief: null,
       vaultDocuments: {},
       memoryPhotos: {}
+    });
+  },
+
+  deleteAccountAndPurgeData: async () => {
+    try {
+      await signOutUser();
+    } catch (e) {
+      console.warn('Sign out error on delete account:', e);
+    }
+    try {
+      const { useCircleStore } = require('./useCircleStore');
+      useCircleStore.getState().clearCircles();
+    } catch (e) {}
+    try {
+      const { useUserStore } = require('./useUserStore');
+      useUserStore.getState().logout();
+    } catch (e) {}
+    try {
+      const { useAIChatStore } = require('./useAIChatStore');
+      useAIChatStore.getState().clearChat();
+    } catch (e) {}
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.clear();
+      }
+    } catch (e) {}
+    try {
+      const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+      await AsyncStorage.clear();
+    } catch (e) {}
+    set({
+      currentUserId: '',
+      userEmail: null,
+      userName: null,
+      groups: [],
+      activeGroupId: '',
+      members: [],
+      tripOptions: [],
+      preferenceDrafts: {},
+      votes: {},
+      finalizedBrief: null,
+      vaultDocuments: {},
+      memoryPhotos: {},
+      subscriptionPlan: 'free'
     });
   },
 

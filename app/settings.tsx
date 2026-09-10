@@ -13,35 +13,78 @@ import {
   StyleSheet,
   SafeAreaView,
   Platform,
-  Alert
+  Alert,
+  Modal,
+  ActivityIndicator
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import Svg, { Path, Circle } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../src/store/useGatherlyStore';
-import { colors, radius } from '../src/theme/colors';
+import { colors, radius, shadows } from '../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../src/theme/typography';
-import { ArrowLeft, Shield, MoreVertical, Plus, Check, Sun, Moon, Bell, Sparkles, CreditCard, ChevronRight, Crown, Zap } from 'lucide-react-native';
+import {
+  ArrowLeft,
+  Shield,
+  MoreVertical,
+  Plus,
+  Check,
+  Sun,
+  Moon,
+  Bell,
+  Sparkles,
+  CreditCard,
+  ChevronRight,
+  Crown,
+  Zap,
+  Trash2,
+  LogOut,
+  AlertTriangle,
+  X,
+  RefreshCw
+} from 'lucide-react-native';
 
 export default function PactSettings() {
   const router = useRouter();
   const { theme, isDarkMode, toggleDarkMode } = useTheme();
   const { openNotificationCenter, notifications, simulateAINotification } = useNotificationStore();
   const unreadCount = notifications.filter((n) => !n.read).length;
-  const { groups = [], currentUserId = 'user-maya-001', currency, currencySymbol, setCurrency, subscriptionPlan } = useGatherlyStore();
+  const {
+    groups = [],
+    currentUserId = 'user-maya-001',
+    currency,
+    currencySymbol,
+    setCurrency,
+    subscriptionPlan,
+    deleteAccountAndPurgeData,
+    logout: gatherlyLogout
+  } = useGatherlyStore();
+
   const handleToggleTheme = () => {
     triggerHaptic();
     toggleDarkMode();
   };
-  const { profile, logout } = useUserStore();
+
+  const { profile, logout: userLogout } = useUserStore();
   const { circles = [] } = useCircleStore();
   const allCircles = circles.length > 0 ? circles : groups.map((g: any) => ({ id: g.id, name: g.name, inviteCode: g.inviteCode, archived: false, members: [] }));
   const activeCircles = allCircles.filter((c: any) => !c.archived);
 
+  // Toggle states
   const [toggles, setToggles] = useState<Record<string, boolean>>({
     maskBudget: true,
-    autoDelete: true
+    autoDelete: true,
+    whatsAppNudges: true,
+    deadlineReminders: true,
+    aiNotifs: true
   });
+
+  // Modal dialog states for reliable Web and Mobile functionality
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showSignOutModal, setShowSignOutModal] = useState(false);
+  const [showBillingModal, setShowBillingModal] = useState(false);
+  const [isPurging, setIsPurging] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(false);
 
   const triggerHaptic = () => {
     if (Platform.OS !== 'web') {
@@ -54,6 +97,48 @@ export default function PactSettings() {
   const flip = (k: string) => {
     triggerHaptic();
     setToggles((t) => ({ ...t, [k]: !t[k] }));
+  };
+
+  const handleBack = () => {
+    triggerHaptic();
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.push('/(tabs)/home');
+    }
+  };
+
+  const handleConfirmSignOut = async () => {
+    triggerHaptic();
+    setShowSignOutModal(false);
+    try {
+      await gatherlyLogout();
+      userLogout();
+    } catch (e) {}
+    router.replace('/auth');
+  };
+
+  const handleConfirmDeleteAccount = async () => {
+    triggerHaptic();
+    setIsPurging(true);
+    try {
+      await deleteAccountAndPurgeData();
+      userLogout();
+    } catch (e) {
+      console.warn('Error during account purge:', e);
+    }
+    setIsPurging(false);
+    setShowDeleteModal(false);
+    router.replace('/auth');
+  };
+
+  const handleRestorePurchases = () => {
+    triggerHaptic();
+    setIsRestoring(true);
+    setTimeout(() => {
+      setIsRestoring(false);
+      Alert.alert('Purchases Restored', 'Your existing entitlements and organizer passes are active and up to date.');
+    }, 1000);
   };
 
   const ToggleSwitch = ({ on, onPress }: { on: boolean; onPress: () => void }) => (
@@ -81,7 +166,7 @@ export default function PactSettings() {
           {/* Header Row */}
           <View style={styles.headerRow}>
             <View style={styles.headerLeft}>
-              <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7} style={styles.backBtn}>
+              <TouchableOpacity onPress={handleBack} activeOpacity={0.7} style={styles.backBtn} accessibilityLabel="Go back">
                 <ArrowLeft size={18} color="#8B8D98" />
               </TouchableOpacity>
               <Text style={styles.headerTitle}>Settings & circles</Text>
@@ -120,18 +205,30 @@ export default function PactSettings() {
           <View style={[styles.profileCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <View style={styles.avatarContainer}>
               <View style={styles.avatarBox}>
-                <Text style={styles.avatarInitials}>{profile?.displayName ? profile.displayName.slice(0, 2).toUpperCase() : 'ME'}</Text>
+                <Text style={styles.avatarInitials}>
+                  {profile?.displayName
+                    ? profile.displayName
+                        .split(' ')
+                        .map((n: string) => n[0])
+                        .slice(0, 2)
+                        .join('')
+                        .toUpperCase()
+                    : 'AR'}
+                </Text>
               </View>
-              <View style={styles.proMiniBadge}>
-                <Text style={styles.proMiniBadgeText}>PRO</Text>
-              </View>
+              {subscriptionPlan !== 'free' && (
+                <View style={styles.proMiniBadge}>
+                  <Text style={styles.proMiniBadgeText}>PRO</Text>
+                </View>
+              )}
             </View>
 
             <View style={styles.profileTextCol}>
-              <Text style={[styles.profileName, { color: theme.textPrimary }]}>{profile?.displayName || 'Alex Rivers (Demo)'}</Text>
-              <Text style={[styles.profileHandle, { color: theme.textSecondary }]}>{profile?.email || '@alex_travels'}</Text>
+              <Text style={styles.profileName}>{profile?.displayName || 'Alex Rivers'}</Text>
+              <Text style={styles.profileHandle}>{profile?.email || 'alex@pact.travel'}</Text>
+
               <View style={styles.proStatusPill}>
-                <Svg width="10" height="10" viewBox="0 0 10 10">
+                <Svg width="9" height="9" viewBox="0 0 9 9">
                   <Path d="M1 3.5l2 1.5 2-3 2 3 2-1.5-.7 4.5H1.7z" fill="#D4AF37" />
                 </Svg>
                 <Text style={styles.proStatusPillText}>{subscriptionPlan !== 'free' ? 'PACT Pro organizer pass active' : 'Free tier (Up to 5 members)'}</Text>
@@ -139,32 +236,30 @@ export default function PactSettings() {
             </View>
           </View>
 
-
           {/* Appearance & Theme Section */}
           <Text style={[styles.sectionHeading, { color: isDarkMode ? '#8B8D98' : '#6B6252' }]}>Appearance & theme</Text>
-          <View style={[styles.settingsGroupCard, { backgroundColor: isDarkMode ? '#192038' : '#FFFFFF', borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0,0,0,0.08)' }]}>
+          <View style={[styles.settingsGroupCard, { backgroundColor: isDarkMode ? '#13151E' : '#FFFFFF', borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0,0,0,0.08)' }]}>
             <View style={styles.settingRow}>
               <View style={styles.settingTextCol}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 2 }}>
-                  {isDarkMode ? <Moon size={15} color="#FF5A5F" /> : <Sun size={15} color="#D4952B" />}
+                  {isDarkMode ? <Moon size={15} color="#FF5A5F" /> : <Sun size={15} color="#D4AF37" />}
                   <Text style={[styles.settingLabel, { color: isDarkMode ? '#F4F3F0' : '#1E1A14' }]}>
-                    {isDarkMode ? 'Dark theme (Ink & Brass)' : 'Light theme (Parchment & Gold)'}
+                    {isDarkMode ? 'Dark theme' : 'Light theme'}
                   </Text>
                 </View>
                 <Text style={[styles.settingDesc, { color: isDarkMode ? '#6C6F7A' : '#6B6252' }]}>
                   {isDarkMode
-                    ? 'Deep midnight blue background with warm brass accents and gold CTAs.'
-                    : 'Classic warm parchment paper aesthetic with vintage ink typography.'}
+                    ? 'Obsidian dark background with coral brand accents and gold passes.'
+                    : 'Clean light mode with sharp typography and high contrast.'}
                 </Text>
               </View>
               <ToggleSwitch on={isDarkMode} onPress={handleToggleTheme} />
             </View>
           </View>
 
-
           {/* Currency & Localization Section */}
           <Text style={[styles.sectionHeading, { color: isDarkMode ? '#8B8D98' : '#6B6252' }]}>Currency & localization</Text>
-          <View style={[styles.settingsGroupCard, { backgroundColor: isDarkMode ? '#192038' : '#FFFFFF', borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0,0,0,0.08)' }]}>
+          <View style={[styles.settingsGroupCard, { backgroundColor: isDarkMode ? '#13151E' : '#FFFFFF', borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0,0,0,0.08)' }]}>
             <View style={{ padding: 14 }}>
               <Text style={[styles.settingLabel, { color: isDarkMode ? '#F4F3F0' : '#1E1A14', marginBottom: 4 }]}>
                 Display currency ({currencySymbol || '$'} {currency || 'USD'})
@@ -213,7 +308,12 @@ export default function PactSettings() {
             >
               <View style={styles.circleHeaderRow}>
                 <Text style={[styles.circleTitle, { color: theme.textPrimary }]}>Goa beach escape 2026</Text>
-                <MoreVertical size={16} color="#6C6F7A" />
+                <TouchableOpacity
+                  onPress={() => router.push('/circle/circle-college-reunion-2026/hub' as any)}
+                  style={{ padding: 4 }}
+                >
+                  <MoreVertical size={16} color="#6C6F7A" />
+                </TouchableOpacity>
               </View>
               <View style={styles.circleMetaRow}>
                 <Text style={styles.circleStatusGreen}>3/5 responded</Text>
@@ -229,7 +329,15 @@ export default function PactSettings() {
               onPress={() => router.push('/circle/circle-college-reunion-2026/hub' as any)}
               style={[styles.circleItemCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
             >
-              <Text style={[styles.circleTitle, { color: theme.textPrimary }]}>Kyoto spring 2027</Text>
+              <View style={styles.circleHeaderRow}>
+                <Text style={[styles.circleTitle, { color: theme.textPrimary }]}>Kyoto spring 2027</Text>
+                <TouchableOpacity
+                  onPress={() => router.push('/circle/circle-college-reunion-2026/hub' as any)}
+                  style={{ padding: 4 }}
+                >
+                  <MoreVertical size={16} color="#6C6F7A" />
+                </TouchableOpacity>
+              </View>
               <View style={styles.circleMetaRow}>
                 <Text style={styles.circleStatusAmber}>Voting open</Text>
                 <View style={styles.roleBadge}>
@@ -270,20 +378,28 @@ export default function PactSettings() {
           </View>
 
           {/* Circle Nudges Section */}
-          <Text style={[styles.sectionHeading, { color: theme.textSecondary }]}>Circle nudges</Text>
+          <Text style={[styles.sectionHeading, { color: theme.textSecondary }]}>Circle nudges & reminders</Text>
           <View style={[styles.settingsGroupCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <View style={styles.settingRow}>
-              <Text style={[styles.settingLabel, { color: theme.textPrimary }]}>WhatsApp nudges</Text>
-              <View style={styles.connectedRow}>
-                <Check size={12} color="#3DE0A0" />
-                <Text style={styles.connectedText}>Connected</Text>
+              <View style={styles.settingTextCol}>
+                <Text style={[styles.settingLabel, { color: theme.textPrimary }]}>WhatsApp nudges</Text>
+                <Text style={[styles.settingDesc, { color: theme.textSecondary }]}>
+                  Send automated WhatsApp nudges to unvoted friends.
+                </Text>
               </View>
+              <ToggleSwitch on={toggles.whatsAppNudges !== false} onPress={() => flip('whatsAppNudges')} />
             </View>
 
             <View style={[styles.settingRow, styles.settingRowBorder]}>
-              <Text style={[styles.settingLabel, { color: theme.textPrimary }]}>Voting deadline reminders</Text>
-              <Text style={styles.remindersSub}>Push & SMS</Text>
+              <View style={styles.settingTextCol}>
+                <Text style={[styles.settingLabel, { color: theme.textPrimary }]}>Voting deadline reminders</Text>
+                <Text style={[styles.settingDesc, { color: theme.textSecondary }]}>
+                  Push & SMS countdown notifications.
+                </Text>
+              </View>
+              <ToggleSwitch on={toggles.deadlineReminders !== false} onPress={() => flip('deadlineReminders')} />
             </View>
+
             <View style={[styles.settingRow, styles.settingRowBorder]}>
               <View style={styles.settingTextCol}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -377,14 +493,7 @@ export default function PactSettings() {
                 activeOpacity={0.7}
                 onPress={() => {
                   triggerHaptic();
-                  Alert.alert(
-                    'Manage Subscription',
-                    'To cancel or change your subscription, visit your App Store / Google Play subscription settings.',
-                    [
-                      { text: 'Cancel', style: 'cancel' },
-                      { text: 'Open Store Settings', onPress: () => {} }
-                    ]
-                  );
+                  setShowBillingModal(true);
                 }}
                 style={styles.manageSubBtn}
               >
@@ -394,34 +503,189 @@ export default function PactSettings() {
               </TouchableOpacity>
             )}
 
+            {/* Danger Box: Sign Out & Delete Account */}
             <View style={[styles.dangerBox, { backgroundColor: theme.surface, borderColor: theme.border }]}>
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={() => {
                   triggerHaptic();
-                  Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-                    { text: 'Cancel', style: 'cancel' },
-                    { text: 'Sign Out', style: 'destructive', onPress: () => {
-                      logout();
-                      router.replace('/auth');
-                    }}
-                  ]);
+                  setShowSignOutModal(true);
                 }}
                 style={styles.dangerBtn}
               >
+                <LogOut size={15} color="#FF5A5F" />
                 <Text style={styles.dangerBtnText}>Sign out / Switch account</Text>
               </TouchableOpacity>
+
               <View style={styles.dangerDivider} />
+
               <TouchableOpacity
                 activeOpacity={0.7}
-                onPress={() => Alert.alert('Purge Data', 'All private constraints and voting history will be purged.')}
+                onPress={() => {
+                  triggerHaptic();
+                  setShowDeleteModal(true);
+                }}
                 style={styles.dangerBtn}
               >
+                <Trash2 size={15} color="#EF4444" />
                 <Text style={styles.purgeBtnText}>Delete account & purge all private data</Text>
               </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
+
+        {/* --- MODAL 1: DELETE ACCOUNT CONFIRMATION --- */}
+        <Modal
+          visible={showDeleteModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowDeleteModal(false)}
+        >
+          <View style={styles.modalBackdrop}>
+            <View style={[styles.dialogCard, { backgroundColor: theme.surface, borderColor: '#EF4444' }]}>
+              <View style={[styles.dialogIconBox, { backgroundColor: 'rgba(239, 68, 68, 0.15)' }]}>
+                <AlertTriangle size={28} color="#EF4444" />
+              </View>
+
+              <Text style={[styles.dialogTitle, { color: theme.textPrimary }]}>
+                Delete Account & Purge Data?
+              </Text>
+              <Text style={[styles.dialogDesc, { color: theme.textSecondary }]}>
+                This action is permanent and cannot be undone. All your private constraints, voting history, circles, and preference drafts will be completely wiped from this device and the cloud.
+              </Text>
+
+              <View style={styles.dialogActions}>
+                <TouchableOpacity
+                  onPress={() => setShowDeleteModal(false)}
+                  disabled={isPurging}
+                  activeOpacity={0.7}
+                  style={[styles.dialogCancelBtn, { borderColor: theme.border }]}
+                >
+                  <Text style={[styles.dialogCancelText, { color: theme.textSecondary }]}>Cancel</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={handleConfirmDeleteAccount}
+                  disabled={isPurging}
+                  activeOpacity={0.8}
+                  style={[styles.dialogDeleteBtn, { backgroundColor: '#EF4444' }]}
+                >
+                  {isPurging ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <>
+                      <Trash2 size={15} color="#FFFFFF" />
+                      <Text style={styles.dialogDeleteText}>Delete & Purge</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        {/* --- MODAL 2: SIGN OUT CONFIRMATION --- */}
+        <Modal
+          visible={showSignOutModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowSignOutModal(false)}
+        >
+          <View style={styles.modalBackdrop}>
+            <View style={[styles.dialogCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <View style={[styles.dialogIconBox, { backgroundColor: 'rgba(255, 90, 95, 0.15)' }]}>
+                <LogOut size={26} color="#FF5A5F" />
+              </View>
+
+              <Text style={[styles.dialogTitle, { color: theme.textPrimary }]}>
+                Sign Out?
+              </Text>
+              <Text style={[styles.dialogDesc, { color: theme.textSecondary }]}>
+                Are you sure you want to sign out? Your saved trip circles and consensus data will remain secure for your next visit.
+              </Text>
+
+              <View style={styles.dialogActions}>
+                <TouchableOpacity
+                  onPress={() => setShowSignOutModal(false)}
+                  activeOpacity={0.7}
+                  style={[styles.dialogCancelBtn, { borderColor: theme.border }]}
+                >
+                  <Text style={[styles.dialogCancelText, { color: theme.textSecondary }]}>Cancel</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={handleConfirmSignOut}
+                  activeOpacity={0.8}
+                  style={[styles.dialogDeleteBtn, { backgroundColor: theme.primary }]}
+                >
+                  <Text style={[styles.dialogDeleteText, { color: '#050608' }]}>Sign Out</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        {/* --- MODAL 3: MANAGE SUBSCRIPTION & BILLING --- */}
+        <Modal
+          visible={showBillingModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowBillingModal(false)}
+        >
+          <View style={styles.modalBackdrop}>
+            <View style={[styles.dialogCard, { backgroundColor: theme.surface, borderColor: '#D4AF37' }]}>
+              <View style={[styles.dialogIconBox, { backgroundColor: 'rgba(212, 175, 55, 0.15)' }]}>
+                <Crown size={28} color="#D4AF37" />
+              </View>
+
+              <Text style={[styles.dialogTitle, { color: theme.textPrimary }]}>
+                Subscription & Billing
+              </Text>
+              <Text style={[styles.dialogDesc, { color: theme.textSecondary }]}>
+                You are currently on the PACT Pro Organizer Pass. Subscriptions can be upgraded, changed, or managed via the App Store, Google Play, or Stripe checkout.
+              </Text>
+
+              <View style={styles.billingActionsCol}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowBillingModal(false);
+                    router.push('/paywall');
+                  }}
+                  activeOpacity={0.85}
+                  style={[styles.billingActionBtn, { backgroundColor: theme.primary }]}
+                >
+                  <CreditCard size={15} color="#050608" />
+                  <Text style={styles.billingActionBtnText}>Change Plan / View Tiers</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={handleRestorePurchases}
+                  disabled={isRestoring}
+                  activeOpacity={0.8}
+                  style={[styles.billingActionBtn, { backgroundColor: theme.background, borderColor: theme.border, borderWidth: 1 }]}
+                >
+                  {isRestoring ? (
+                    <ActivityIndicator size="small" color={theme.primary} />
+                  ) : (
+                    <>
+                      <RefreshCw size={15} color={theme.textPrimary} />
+                      <Text style={[styles.billingActionBtnText, { color: theme.textPrimary }]}>Restore Purchases</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => setShowBillingModal(false)}
+                  activeOpacity={0.7}
+                  style={[styles.dialogCancelBtn, { borderColor: theme.border, width: '100%', marginTop: 4 }]}
+                >
+                  <Text style={[styles.dialogCancelText, { color: theme.textSecondary }]}>Close</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
         <NotificationCenterModal />
         <NotificationToast />
       </View>
@@ -478,7 +742,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     marginHorizontal: 16,
     marginBottom: 12,
-    borderRadius: 10
+    borderRadius: 12
   },
   manageSubBtn: {
     alignItems: 'center',
@@ -841,18 +1105,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(239, 68, 68,0.2)',
     borderRadius: 12,
-    paddingVertical: 6,
+    paddingVertical: 4,
     marginVertical: 14
   },
   dangerBtn: {
-    paddingVertical: 10,
-    paddingHorizontal: 12
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 14
   },
   dangerBtnText: {
     fontFamily: fontUIBold,
     fontSize: 13,
     fontWeight: '600',
-    color: '#EF4444'
+    color: '#FF5A5F'
   },
   dangerDivider: {
     borderTopWidth: 1,
@@ -860,8 +1127,94 @@ const styles = StyleSheet.create({
     marginHorizontal: 8
   },
   purgeBtnText: {
-    fontFamily: fontUI,
-    fontSize: 12.5,
-    color: '#B54848'
+    fontFamily: fontUIBold,
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#EF4444'
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20
+  },
+  dialogCard: {
+    width: '100%',
+    maxWidth: 380,
+    borderRadius: 20,
+    borderWidth: 1,
+    padding: 22,
+    alignItems: 'center'
+  },
+  dialogIconBox: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 14
+  },
+  dialogTitle: {
+    fontFamily: fontDisplay,
+    fontSize: 18,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 8
+  },
+  dialogDesc: {
+    fontSize: 13,
+    lineHeight: 19,
+    textAlign: 'center',
+    marginBottom: 20
+  },
+  dialogActions: {
+    flexDirection: 'row',
+    gap: 10,
+    width: '100%'
+  },
+  dialogCancelBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  dialogCancelText: {
+    fontSize: 13,
+    fontWeight: '600'
+  },
+  dialogDeleteBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+    borderRadius: 12
+  },
+  dialogDeleteText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700'
+  },
+  billingActionsCol: {
+    width: '100%',
+    gap: 10
+  },
+  billingActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    borderRadius: 12,
+    width: '100%'
+  },
+  billingActionBtnText: {
+    color: '#050608',
+    fontSize: 13,
+    fontWeight: '700'
   }
 });

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
-import { Compass, PlusCircle, Settings } from 'lucide-react-native';
+import { Compass, PlusCircle, Settings, Sparkles } from 'lucide-react-native';
 import { useTheme } from '../../src/hooks/useTheme';
 
 export default function TabLayout() {
@@ -12,9 +12,9 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: theme.primary,
-        tabBarInactiveTintColor: isDarkMode ? '#8B8D98' : '#5C5445',
+        tabBarInactiveTintColor: isDarkMode ? '#8B8D98' : '#6C6F7A',
         tabBarStyle: {
-          backgroundColor: isDarkMode ? '#0B0F17' : '#F6EFDE',
+          backgroundColor: theme.card,
           borderTopColor: theme.border,
           borderTopWidth: 1,
           height: Platform.OS === 'ios' ? 84 : 64,
@@ -51,6 +51,16 @@ export default function TabLayout() {
           tabBarLabel: 'New Trip',
           tabBarIcon: ({ color, size }) => (
             <PlusCircle size={size || 22} color={color} strokeWidth={2.2} />
+          )
+        }}
+      />
+      <Tabs.Screen
+        name="ai-advisor"
+        options={{
+          title: 'AI Advisor',
+          tabBarLabel: 'AI Advisor',
+          tabBarIcon: ({ color, size }) => (
+            <Sparkles size={size || 22} color={color} strokeWidth={2.2} />
           )
         }}
       />

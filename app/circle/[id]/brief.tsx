@@ -1,3 +1,4 @@
+import { SocialStoryModal } from '../../../src/components/SocialStoryModal';
 import { NotificationToast } from '../../../src/components/NotificationToast';
 import { useNotificationStore } from '../../../src/store/useNotificationStore';
 import { CircleRouteGuard } from '../../../src/components/common';
@@ -44,6 +45,7 @@ export default function PactTripBrief() {
 
   const haptics = usePactHaptics();
   const [confettiKey, setConfettiKey] = useState(0);
+  const [showStoryModal, setShowStoryModal] = useState(false);
   const { addNotification } = useNotificationStore();
 
   useEffect(() => {
@@ -263,7 +265,7 @@ export default function PactTripBrief() {
 
             <TouchableOpacity
               activeOpacity={0.85}
-              onPress={() => Alert.alert('Story Export', 'High-res Instagram Story card saved to photos!')}
+              onPress={() => { haptics.tap(); setShowStoryModal(true); }}
               style={styles.secondaryActionBtn}
             >
               <Svg width="15" height="15" viewBox="0 0 15 15">
@@ -331,6 +333,17 @@ export default function PactTripBrief() {
             </Text>
           </TouchableOpacity>
         </View>
+              <SocialStoryModal
+          visible={showStoryModal}
+          onClose={() => setShowStoryModal(false)}
+          groupName={currentGroup.name || 'Goa Beach Trip'}
+          destinationName="Goa, India"
+          dates="Oct 12 - Oct 17, 2026"
+          budget="$850"
+          participants={['Alex', 'Maya', 'Jordan', 'Sam', 'Taylor']}
+          tags={['Beach', 'Nightlife', 'Seafood', 'Sunset']}
+          isDarkMode={true}
+        />
       </View>
     </SafeAreaView>
   );

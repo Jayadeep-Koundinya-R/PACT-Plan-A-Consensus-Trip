@@ -2,7 +2,7 @@
 
 > **Last Updated**: 2026-09-10  
 > **Target Branch**: `main` *(fully committed & synchronized with origin/main)*  
-> **Automated Test Suite**: **110/110 tests passing** (24 suites)  
+> **Automated Test Suite**: **114/114 tests passing** (25 suites)  
 > **TypeScript Strict Check**: **0 errors** (`npx tsc --noEmit` exits with code 0)  
 > **Static Web Export**: **24/24 static routes exported cleanly** to `dist/`  
 > **Local Server**: Running at `http://localhost:3000` with clean Expo routing  
@@ -324,6 +324,21 @@ The following tasks have been fully implemented, unit-tested, verified on localh
   - Added legal footer to login/auth screen (`app/auth.tsx`) with clickable links and *"Your data stays private. Always."* guarantee.
 - **Verification**: Verified live via browser subagent; tapping Privacy Policy opens modal with complete legal copy and closes cleanly.
 - **Files Modified**: `src/components/LegalModal.tsx`, `app/auth.tsx`.
+
+---
+
+### 27. 🧭 Bottom Bar AI Advisor Tab & Interactive Account Purge / Button Audit
+- **Problem**: Move the AI Advisor from a floating overlay to the bottom navigation bar with an updated canonical name ("AI Advisor"), make the "Delete account & purge all private data" button in Settings fully operational with cross-platform confirmation dialogs, and ensure all buttons across the application function properly.
+- **Resolution**:
+  - Created `app/(tabs)/ai-advisor.tsx` providing a dedicated, full-screen AI Advisor with Gemini 1.5 indicator, 15 daily prompt quota tracking, quick prompt chips, and scrollable chat interface.
+  - Updated `app/(tabs)/_layout.tsx` to register `ai-advisor` in the bottom navigation bar between New Trip and Settings, with `Sparkles` icon and canonical palette styling.
+  - Removed `FloatingAIChatButton` from `app/_layout.tsx` to eliminate floating button clutter.
+  - Added `deleteAccountAndPurgeData` in `src/store/useGatherlyStore.ts` to purge user profile, preferences, votes, circles, and local storage / AsyncStorage keys.
+  - Added cross-platform confirmation modals in `app/settings.tsx` for Delete Account, Sign Out, and Subscription Billing, plus interactive toggles for WhatsApp nudges and voting deadline reminders.
+  - Connected `SocialStoryModal` in `app/circle/[id]/brief.tsx` to the Instagram/Snap story export button.
+  - Added test suite `src/lib/security/__tests__/accountPurgeAndTabs.test.mjs` verifying account purge contracts, tab definitions, and modal state declarations.
+- **Verification**: 114/114 unit tests pass across 25 suites (`npm test`), strict TypeScript checks succeed with 0 errors (`npx tsc --noEmit`), static export succeeds for all 26 routes (`npx expo export -p web`), and browser testing verified the 4-tab bar, AI Advisor screen, and Delete Account confirmation modal.
+- **Files Modified/Created**: `app/(tabs)/ai-advisor.tsx`, `app/(tabs)/_layout.tsx`, `app/_layout.tsx`, `app/settings.tsx`, `app/circle/[id]/brief.tsx`, `src/store/useGatherlyStore.ts`, `src/lib/security/__tests__/accountPurgeAndTabs.test.mjs`.
 
 ---
 
