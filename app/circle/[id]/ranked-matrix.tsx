@@ -148,7 +148,7 @@ export default function PactConsensusResults() {
           {/* Header Row */}
           <View style={styles.headerRow}>
             <View style={styles.headerLeft}>
-              
+              <TouchableOpacity onPress={() => { haptics.tap(); if (router.canGoBack()) { router.back(); } else { router.push('/circle/' + currentGroup.id + '/hub'); } }} activeOpacity={0.7} style={styles.backBtn} accessibilityLabel="Go back to Circle Hub"><ArrowLeft size={18} color="#F4F3F0" /></TouchableOpacity>
               <Text style={styles.headerTitle}>Consensus results</Text>
             </View>
 

@@ -9,7 +9,7 @@
     "web": "expo start --web -c",
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "test": "node --test src/lib/consensus/__tests__/*.test.mjs src/lib/security/__tests__/*.test.mjs src/lib/purchases/__tests__/*.test.mjs src/lib/supabase/__tests__/*.test.mjs src/components/__tests__/*.test.mjs src/theme/__tests__/*.test.mjs src/lib/ai/__tests__/*.test.mjs src/lib/notifications/__tests__/*.test.mjs src/lib/pricing/__tests__/*.test.mjs src/hooks/__tests__/*.test.mjs src/lib/export/__tests__/*.test.mjs src/lib/travel/__tests__/*.test.mjs src/lib/payments/__tests__/*.test.mjs",
+    "test": "node --test src/lib/consensus/__tests__/*.test.mjs src/lib/security/__tests__/*.test.mjs src/lib/purchases/__tests__/*.test.mjs src/lib/supabase/__tests__/*.test.mjs src/components/__tests__/*.test.mjs src/theme/__tests__/*.test.mjs src/lib/ai/__tests__/*.test.mjs src/lib/notifications/__tests__/*.test.mjs src/lib/pricing/__tests__/*.test.mjs src/hooks/__tests__/*.test.mjs src/lib/export/__tests__/*.test.mjs src/lib/travel/__tests__/*.test.mjs src/lib/payments/__tests__/*.test.mjs src/lib/poll/__tests__/*.test.mjs",
     "verify-demo": "node scripts/run-demo-scoring.mjs"
   },
   "dependencies": {
@@ -48,3 +48,4 @@
   },
   "private": true
 }
+

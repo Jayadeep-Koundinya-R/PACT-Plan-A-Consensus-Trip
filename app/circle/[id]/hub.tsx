@@ -33,6 +33,7 @@ import { usePactHaptics } from '../../../src/hooks/usePactHaptics';
 import { PactButton } from '../../../src/components/common';
 import {
   ArrowLeft,
+  Vote,
   Check,
   Copy,
   Share2,
@@ -189,9 +190,22 @@ export default function PactCirclesHub() {
           {/* Header Row: Dedicated Title Row + Secondary Meta Row */}
           <View style={styles.headerContainer}>
             <View style={styles.headerTopRow}>
-              <Text style={styles.tripTitle} numberOfLines={2}>
-                {currentGroup.name || 'Goa Beach Escape 2026'}
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, marginRight: 8 }}>
+                <TouchableOpacity
+                  onPress={() => {
+                    haptics.tap();
+                    router.push('/(tabs)/home');
+                  }}
+                  activeOpacity={0.7}
+                  style={styles.backHomeBtn}
+                  accessibilityLabel="Back to My Circles"
+                >
+                  <ArrowLeft size={18} color="#F4F3F0" />
+                </TouchableOpacity>
+                <Text style={styles.tripTitle} numberOfLines={2}>
+                  {currentGroup.name || 'Goa Beach Escape 2026'}
+                </Text>
+              </View>
 
               <View style={styles.headerRightActions}>
                 <TouchableOpacity onPress={handleCopyCode} activeOpacity={0.7} style={styles.inviteCodeBadge}>
@@ -492,6 +506,32 @@ export default function PactCirclesHub() {
             </View>
           </View>
 
+          {/* PACT Poll Quick Action Card */}
+          <TouchableOpacity
+            onPress={() => router.push(`/circle/${currentGroup.id}/silent-ballot` as any)}
+            activeOpacity={0.85}
+            style={styles.pactPollCard}
+            accessibilityLabel="Open PACT Poll: Sealed Anti-Herd Voting"
+          >
+            <View style={styles.pactPollLeft}>
+              <View style={styles.pactPollIconBox}>
+                <Vote size={18} color="#3DE0A0" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text style={styles.pactPollTitle}>Active PACT Poll</Text>
+                  <View style={styles.pactPollBadge}>
+                    <Text style={styles.pactPollBadgeText}>SEALED</Text>
+                  </View>
+                </View>
+                <Text style={styles.pactPollSub}>
+                  Cast Love (+2), Down (+1), or Veto (-999) stance without peer pressure
+                </Text>
+              </View>
+            </View>
+            <ChevronRight size={16} color="#3DE0A0" />
+          </TouchableOpacity>
+
           {/* Quick Access to Consensus Matrix Preview */}
           <TouchableOpacity
             onPress={() => router.push(`/circle/${currentGroup.id}/ranked-matrix` as any)}
@@ -581,6 +621,62 @@ export default function PactCirclesHub() {
 }
 
 const styles = StyleSheet.create({
+  backHomeBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  pactPollCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#13151E',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.3)',
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 12
+  },
+  pactPollLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1
+  },
+  pactPollIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: 'rgba(61, 224, 160, 0.12)',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  pactPollTitle: {
+    fontFamily: fontDisplay,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#F4F3F0'
+  },
+  pactPollBadge: {
+    backgroundColor: 'rgba(61, 224, 160, 0.15)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4
+  },
+  pactPollBadgeText: {
+    fontFamily: fontUIBold,
+    fontSize: 9,
+    color: '#3DE0A0'
+  },
+  pactPollSub: {
+    fontFamily: fontUI,
+    fontSize: 11,
+    color: '#8B8D98',
+    marginTop: 2
+  },
   hubNotifDot: {
     position: 'absolute',
     top: 4,
