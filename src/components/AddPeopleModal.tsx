@@ -55,7 +55,7 @@ export const AddPeopleModal: React.FC<AddPeopleModalProps> = ({
   } = useShareInvite();
 
   const [copiedLink, setCopiedLink] = useState(false);
-  const joinUrl = `https://pact.app/join/${inviteCode}`;
+  const joinUrl = `pact://join/${inviteCode}`;
 
   const handleCopyLink = async () => {
     haptics.tap();
@@ -163,7 +163,7 @@ export const AddPeopleModal: React.FC<AddPeopleModalProps> = ({
 
               <View style={styles.linkRow}>
                 <View style={styles.linkTextWrapper}>
-                  <Text style={styles.linkLabel}>DIRECT JOIN LINK</Text>
+                <Text style={styles.linkLabel}>APP LINK (CODE IS THE FALLBACK)</Text>
                   <Text style={styles.linkUrl} numberOfLines={1} ellipsizeMode="middle">
                     {joinUrl}
                   </Text>
@@ -273,9 +273,9 @@ export const AddPeopleModal: React.FC<AddPeopleModalProps> = ({
             <View style={styles.privacyCard}>
               <ShieldCheck size={18} color="#3DE0A0" style={{ marginTop: 1 }} />
               <View style={styles.privacyTextCol}>
-                <Text style={styles.privacyTitle}>Zero-Knowledge Privacy</Text>
+                <Text style={styles.privacyTitle}>Private constraints</Text>
                 <Text style={styles.privacyText}>
-                  Member budgets, dates, and dealbreakers are cryptographically computed in private. No member can see another member&rsquo;s raw numbers.
+                  Member budgets, dates, and dealbreakers are protected by access policies. No member is shown another member&rsquo;s raw numbers.
                 </Text>
               </View>
             </View>

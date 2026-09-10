@@ -25,12 +25,12 @@ export const REVENUECAT_PRODUCTS: Record<SubscriptionPlan, PlanDetails> = {
   },
   premium_monthly: {
     id: 'premium_monthly',
-    name: 'PACT Pro Monthly',
-    priceFormatted: '$4.99',
-    billingPeriod: 'per month',
+    name: 'PACT Organizer Pass',
+    priceFormatted: '$9.99',
+    billingPeriod: 'per trip',
     badge: 'Popular',
     features: [
-      'Unlimited Active Circles & Trips',
+      'One circle up to 10 members',
       'AI-Powered Conflict Explanation Layer',
       'Deep Schedule & Budget Conflict Diagnosis',
       'Custom Styled Trip Brief Themes',
@@ -39,13 +39,12 @@ export const REVENUECAT_PRODUCTS: Record<SubscriptionPlan, PlanDetails> = {
   },
   premium_annual: {
     id: 'premium_annual',
-    name: 'PACT Pro Annual',
-    priceFormatted: '$39.99',
-    billingPeriod: 'per year ($3.33/mo)',
-    badge: 'Save 33%',
+    name: 'PACT Organizer Pass',
+    priceFormatted: '$9.99',
+    billingPeriod: 'per trip',
+    badge: 'Organizer only',
     features: [
-      'Everything in Pro Monthly',
-      '33% Annual Discount',
+      'One circle up to 10 members',
       'Exportable Calendar (.ICS) Generation',
       'Early Access to New Consensus Models'
     ]

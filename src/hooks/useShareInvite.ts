@@ -34,20 +34,22 @@ export interface ShareNudgeOptions {
 
 export function formatInviteMessage(groupName: string, inviteCode: string, customMessage?: string): string {
   if (customMessage) return customMessage;
-  const joinUrl = `https://pact.app/join/${inviteCode}`;
-  return `🌴 Join our private trip circle for "${groupName}" on PACT!\n\nLock in your dates & budget 100% confidentially (your raw budget is never shown to the group).\n\n👉 Join Link: ${joinUrl}\n👉 Invite Code: ${inviteCode}`;
+  const joinUrl = `pact://join/${inviteCode}`;
+  return `🌴 Join our trip circle for "${groupName}" on PACT!\n\nYour raw constraints are protected from other members.\n\n👉 App Link: ${joinUrl}\n👉 Invite Code: ${inviteCode}\n\nIf the app link does not open, enter the invite code in PACT.`;
 }
 
 export function formatTripBriefMessage(options: ShareTripBriefOptions): string {
   const { groupName, destination, dates, budget, memberCount = 5, briefCode = 'PACT-8821', briefUrl } = options;
-  const url = briefUrl || `https://pact.app/brief/${briefCode}`;
-  return `🏖️ *PACT Consensus Brief: ${destination}*\nTrip: ${groupName}\n🗓️ Dates: ${dates}\n💰 Target: ~${budget} / person\n👥 ${memberCount} members locked (100% consensus)\n📍 Stay: Private villa\n\nView confirmed itinerary & vouchers: ${url}`;
+  const viewLine = briefUrl?.startsWith('pact://')
+    ? `Open confirmed itinerary: ${briefUrl}`
+    : `Open PACT to view the confirmed itinerary and vouchers (brief ${briefCode}).`;
+  return `🏖️ *PACT Consensus Brief: ${destination}*\nTrip: ${groupName}\n🗓️ Dates: ${dates}\n💰 Target: ~${budget} / person\n👥 ${memberCount} members locked\n📍 Stay: Private villa\n\n${viewLine}`;
 }
 
 export function formatNudgeMessage(options: ShareNudgeOptions): string {
   const { groupName, inviteCode, lockedCount, neededCount, memberName } = options;
   const greeting = memberName ? `Hey ${memberName}! 👋` : 'Hey team! ✈️';
-  const joinUrl = `https://pact.app/join/${inviteCode}`;
+  const joinUrl = `pact://join/${inviteCode}`;
   return `${greeting} ${lockedCount} of us have locked in trip preferences for "${groupName}" on PACT. We need ${neededCount} more to reveal the consensus match!\n\nLock in your dates & budget here (100% private):\n${joinUrl}\nInvite Code: ${inviteCode}`;
 }
 
@@ -81,7 +83,7 @@ export function useShareInvite() {
   };
 
   const copyInviteLink = async (inviteCode: string): Promise<boolean> => {
-    const joinUrl = `https://pact.app/join/${inviteCode}`;
+    const joinUrl = `pact://join/${inviteCode}`;
     return copyToClipboard(joinUrl, inviteCode);
   };
 
@@ -90,7 +92,7 @@ export function useShareInvite() {
     setIsSharing(true);
     const { groupName, inviteCode, customMessage } = options;
     const message = formatInviteMessage(groupName, inviteCode, customMessage);
-    const joinUrl = `https://pact.app/join/${inviteCode}`;
+    const joinUrl = `pact://join/${inviteCode}`;
     const title = `Join ${groupName} on PACT`;
 
     try {

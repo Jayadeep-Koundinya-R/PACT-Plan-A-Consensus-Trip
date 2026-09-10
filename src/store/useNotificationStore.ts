@@ -129,7 +129,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       type: 'nudge',
       title: 'Circle Response Alert',
       body: `${fromName} just locked in their trip preferences! Group consensus score updated.`,
-      privacyTag: 'Encrypted vote tally'
+      privacyTag: 'Protected vote tally'
     });
   }
 }));

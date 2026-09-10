@@ -94,7 +94,7 @@ export default function PactTripBrief() {
     triggerHaptic();
     const title = encodeURIComponent((currentGroup.name || 'Goa Beach Escape 2026') + ' (PACT Consensus)');
     const dest = encodeURIComponent(currentGroup.name || 'Goa, India');
-    const details = encodeURIComponent('100% Consensus reached by all 5 members on PACT!\n\nView trip brief & vouchers: https://pact.app/circle/' + currentGroup.id + '/brief');
+    const details = encodeURIComponent('Consensus reached on PACT!\n\nOpen PACT and use the invite code to view the confirmed Trip Brief.');
     const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=20261014/20261020&details=${details}&location=${dest}`;
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
       window.open(gcalUrl, '_blank');
@@ -153,7 +153,6 @@ export default function PactTripBrief() {
       dates: 'Oct 14 - Oct 19, 2026',
       budget: '$540',
       memberCount: 5,
-      briefUrl: `https://pact.app/circle/${currentGroup.id}/brief`
     });
   };
 

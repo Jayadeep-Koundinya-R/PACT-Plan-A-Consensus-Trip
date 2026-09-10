@@ -56,7 +56,7 @@ export default function PactSettings() {
     currencySymbol,
     setCurrency,
     subscriptionPlan,
-    deleteAccountAndPurgeData,
+    clearLocalAccountData,
     logout: gatherlyLogout
   } = useGatherlyStore();
 
@@ -122,7 +122,7 @@ export default function PactSettings() {
     triggerHaptic();
     setIsPurging(true);
     try {
-      await deleteAccountAndPurgeData();
+      await clearLocalAccountData();
       userLogout();
     } catch (e) {
       console.warn('Error during account purge:', e);
@@ -444,7 +444,7 @@ export default function PactSettings() {
                   {subscriptionPlan !== 'free' ? 'PACT Organizer Pass Active' : 'Free Tier (Up to 5 members)'}
                 </Text>
                 <Text style={styles.renewsDate}>
-                  {subscriptionPlan !== 'free' ? 'Renews annually · Cancel anytime' : 'Upgrade for 6 to 50+ members'}
+                  {subscriptionPlan !== 'free' ? 'Organizer pass active' : 'Upgrade for 6 to 10 members'}
                 </Text>
               </View>
             </View>
@@ -460,7 +460,7 @@ export default function PactSettings() {
               <View style={styles.planFeatureItem}>
                 <Check size={12} color={subscriptionPlan !== 'free' ? '#3DE0A0' : '#8B8D98'} />
                 <Text style={[styles.planFeatureText, { color: theme.textSecondary }]}>
-                  {subscriptionPlan !== 'free' ? 'Up to 50+ members per circle' : 'Up to 5 members per circle'}
+                  {subscriptionPlan !== 'free' ? 'Up to 10 members per circle' : 'Up to 5 members per circle'}
                 </Text>
               </View>
               <View style={styles.planFeatureItem}>
@@ -503,7 +503,7 @@ export default function PactSettings() {
               </TouchableOpacity>
             )}
 
-            {/* Danger Box: Sign Out & Delete Account */}
+            {/* Danger Box: Sign Out & Clear Local Data */}
             <View style={[styles.dangerBox, { backgroundColor: theme.surface, borderColor: theme.border }]}>
               <TouchableOpacity
                 activeOpacity={0.7}
@@ -528,13 +528,13 @@ export default function PactSettings() {
                 style={styles.dangerBtn}
               >
                 <Trash2 size={15} color="#EF4444" />
-                <Text style={styles.purgeBtnText}>Delete account & purge all private data</Text>
+                <Text style={styles.purgeBtnText}>Clear local account data</Text>
               </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
 
-        {/* --- MODAL 1: DELETE ACCOUNT CONFIRMATION --- */}
+        {/* --- MODAL 1: CLEAR LOCAL DATA CONFIRMATION --- */}
         <Modal
           visible={showDeleteModal}
           transparent
@@ -548,7 +548,7 @@ export default function PactSettings() {
               </View>
 
               <Text style={[styles.dialogTitle, { color: theme.textPrimary }]}>
-                Delete Account & Purge Data?
+                Clear Local Account Data?
               </Text>
               <Text style={[styles.dialogDesc, { color: theme.textSecondary }]}>
                 This action is permanent and cannot be undone. All your private constraints, voting history, circles, and preference drafts will be completely wiped from this device and the cloud.

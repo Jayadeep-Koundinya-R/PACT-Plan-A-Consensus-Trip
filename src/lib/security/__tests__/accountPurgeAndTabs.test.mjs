@@ -5,7 +5,7 @@ import path from 'node:path';
 
 describe('Account Purge and Tab Navigation Verification', () => {
   // 1. Account Deletion and Purge Data Contract
-  test('deleteAccountAndPurgeData resets user profile, groups, preferences, and votes', () => {
+  test('clearLocalAccountData resets local profile, groups, preferences, and votes', () => {
     // Mock store state representing an active user with populated data
     let state = {
       currentUserId: 'user-maya-001',
@@ -107,7 +107,7 @@ describe('Account Purge and Tab Navigation Verification', () => {
     assert.ok(content.includes('showBillingModal'), 'Billing modal state must be declared');
 
     // Function calls
-    assert.ok(content.includes('deleteAccountAndPurgeData'), 'Must call deleteAccountAndPurgeData');
+    assert.ok(content.includes('clearLocalAccountData'), 'Must call clearLocalAccountData');
     assert.ok(content.includes('gatherlyLogout') || content.includes('userLogout'), 'Must call logout on sign out');
 
     // Interactive toggles

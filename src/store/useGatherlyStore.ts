@@ -25,6 +25,9 @@ import {
   deleteSupabaseGroup,
   transferGroupOwnership,
   fetchGroupVotesFromSupabase,
+  fetchGroupConsensusSnapshot,
+  saveTripBriefToSupabase,
+  fetchTripBriefFromSupabase,
   signOutUser
 } from '../lib/supabase/service';
 import { supabase } from '../lib/supabase/client';
@@ -107,7 +110,7 @@ interface GatherlyState {
   setCurrentUser: (userId: string, email?: string, name?: string) => void;
   initAuthSession: () => Promise<void>;
   logout: () => Promise<void>;
-  deleteAccountAndPurgeData: () => Promise<void>;
+  clearLocalAccountData: () => Promise<void>;
   login: (email: string, password: string) => Promise<any>;
   register: (email: string, password: string, displayName?: string) => Promise<any>;
   loginAsPersona: (userId: string) => void;
@@ -370,11 +373,11 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     });
   },
 
-  deleteAccountAndPurgeData: async () => {
+  clearLocalAccountData: async () => {
     try {
       await signOutUser();
     } catch (e) {
-      console.warn('Sign out error on delete account:', e);
+      console.warn('Sign out error after local data clear:', e);
     }
     try {
       const { useCircleStore } = require('./useCircleStore');
@@ -457,16 +460,19 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   fetchGroupDataFromCloud: async (groupId: string) => {
     if (!groupId || groupId === DEMO_GROUP_ID) return;
     try {
-      const [cloudPrefs, cloudOptions, cloudVotes] = await Promise.all([
+      const [cloudPrefs, cloudOptions, cloudVotes, snapshot, cloudBrief] = await Promise.all([
         fetchGroupPreferencesFromSupabase(groupId),
         fetchTripOptionsFromSupabase(groupId),
-        fetchGroupVotesFromSupabase(groupId)
+        fetchGroupVotesFromSupabase(groupId),
+        fetchGroupConsensusSnapshot(groupId),
+        fetchTripBriefFromSupabase(groupId)
       ]);
 
       set((state) => ({
         members: cloudPrefs.length > 0 ? cloudPrefs : state.members,
         tripOptions: cloudOptions.length > 0 ? cloudOptions : state.tripOptions,
-        votes: { ...state.votes, ...cloudVotes }
+        votes: { ...state.votes, ...cloudVotes },
+        finalizedBrief: cloudBrief || state.finalizedBrief
       }));
     } catch (e) {
       console.warn('Error fetching group data from Supabase:', e);
@@ -757,6 +763,14 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
       totalBudgetRange: `$${Math.min(...members.map((m) => m.budgetMin))} - $${Math.max(...members.map((m) => m.budgetMax))}`,
       travelWindow: `${consensus.winningOption.option.dateStart} to ${consensus.winningOption.option.dateEnd}`
     };
+
+    if (activeGroupId && !activeGroupId.startsWith('circle-college-reunion')) {
+      saveTripBriefToSupabase(
+        activeGroupId,
+        consensus.winningOption.option.id,
+        brief
+      ).catch(() => {});
+    }
 
     set((state) => ({
       finalizedBrief: brief,

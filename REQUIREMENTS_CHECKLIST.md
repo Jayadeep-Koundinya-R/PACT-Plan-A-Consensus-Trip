@@ -10,6 +10,11 @@ Status legend: ✅ Done & verified · 🟡 Built but not verified · ⬜ Not sta
 
 | ID | Requirement | Status | Evidence | Last updated |
 |---|---|---|---|---|
+| S1 | Gemini API key is server-only; all AI calls require authenticated Edge Function | 🟡 | Removed `EXPO_PUBLIC_GEMINI_API_KEY` from `.env`, `.env.example`, and client source; `aiAdvisorClient` and `aiChatClient` now call only `ai-advisor`. New server-side `chat` action validates the Supabase JWT. Google AI Studio key rotation and deployed Edge Function verification remain pending external/provider action. | 2026-09-10 |
+| S2 | Account settings describe local clearing honestly | ✅ | Renamed `deleteAccountAndPurgeData` to `clearLocalAccountData`; Settings now says it clears local data and signs out, with no server-deletion claim. | 2026-09-10 |
+| S3 | Privacy copy matches RLS/access-policy implementation | ✅ | Removed end-to-end encryption, cryptographic computation, zero-knowledge, and impossible-inference claims from user-facing copy. | 2026-09-10 |
+| S4 | Invite code is reliable fallback when HTTPS domain is unavailable | ✅ | Share copy now uses `pact://join/{code}` only as an installed-app hint and always includes the invite code; no runtime `pact.app` invite URL remains. | 2026-09-10 |
+| S5 | README reflects current test count and flat pass | ✅ | README now documents 116 tests across 26 suites and one organizer pass up to 10 members. | 2026-09-10 |
 | R1 | Create a new trip circle | ✅ | Verified `createGroup` in store & Supabase fallback; tested in Node test suite | 2026-09-07 |
 | R2 | Join a circle via invite code & lightweight 'Add People' flow | ✅ | Verified in `AddPeopleModal`, `app/circle/[id]/hub.tsx`, and unified `useShareInvite()` hook | 2026-09-10 |
 | R3 | Join via deep link, under 10 sec, no signup wall (guest auth) | 🟡 | Deep links configured (`pact://join`, `pact://invite`) in `app.json`; guest auth handles persona | 2026-09-07 |
@@ -20,7 +25,7 @@ Status legend: ✅ Done & verified · 🟡 Built but not verified · ⬜ Not sta
 | R8 | Silent/sealed voting — hidden until reveal | ✅ | `votes` table has no peer select; aggregate-only RPC `get_option_vote_count` in `schema.sql` | 2026-09-07 |
 | R9 | Consensus reveal celebration (confetti, stamp) | ✅ | Verified in `app/circle/[id]/brief.tsx` + `sealStamp.test.mjs` | 2026-09-07 |
 | R10 | Trip Brief — final details + WhatsApp share | ✅ | Export ICS + unified `useShareInvite().shareTripBrief()` in `brief.tsx` | 2026-09-10 |
-| R11 | Trip Vault — shared documents | ✅ | Encrypted document categorization in `vault.tsx` + `phase4SafetyNets.test.mjs` | 2026-09-07 |
+| R11 | Trip Vault — local document categorization | 🟡 | UI categorizes documents locally; server persistence is not yet verified | 2026-09-10 |
 | R12 | Memory Library — photos + AI trip digest | ✅ | Photo grid with likes and captions in `memories.tsx` | 2026-09-07 |
 
 ## Monetization
@@ -57,8 +62,8 @@ Status legend: ✅ Done & verified · 🟡 Built but not verified · ⬜ Not sta
 | R25 | Color palette restored to original Coral/Emerald tokens | ✅ | Restored `#FF5A5F`, `#3DE0A0`, `#090A0F`, `#13151E`, `#D4AF37`; verified in `colors.test.mjs` & fresh screenshots of Home, Hub, Paywall | 2026-09-10 |
 | R26 | Lightweight invite share sheet (WhatsApp/SMS/email/copy link) | ✅ | Built `AddPeopleModal.tsx` on Circle Hub; pre-fills code & 10-sec join link with zero sign-up friction | 2026-09-10 |
 | R27 | All "Share to WhatsApp" & share touchpoints unified under one shared hook | ✅ | Built `useShareInvite()`; unified `hub.tsx`, `brief.tsx`, `InviteQRModal.tsx`, `NudgeModal.tsx`, `home.tsx`; verified in test suite | 2026-09-10 |
-| R28 | User-directory / friend-request system | ❌ Non-Goal | Intentionally excluded to protect zero-knowledge cryptographic privacy; documented in `README.md` Section 8 | 2026-09-10 |
-| R29 | Multi-currency pricing & flat Organizer Pass | ✅ | Implemented in `groupPricing.ts` & `paywall.tsx`; verified in `groupPricing.test.mjs`; pitch recommended as simple Flat Pro pass | 2026-09-10 |
+| R28 | User-directory / friend-request system | ❌ Non-Goal | Intentionally excluded to protect private, invite-only circles; documented in `README.md` Section 8 | 2026-09-10 |
+| R29 | One flat Organizer Pass, maximum 10 members | ✅ | Removed 19/50/community tiers; `groupPricing.ts`, create-circle guard, and paywall now agree on free up to 5 and one pass up to 10. Native purchase verification remains separate. | 2026-09-10 |
 | R30 | Global AI Chat Advisor & Fair Quota | ✅ | Built in `app/(tabs)/ai-advisor.tsx` with 15 prompt/day free quota; verified in `dailyQuota.test.mjs` & bottom tabs | 2026-09-10 |
 
 ---
@@ -86,6 +91,8 @@ Status legend: ✅ Done & verified · 🟡 Built but not verified · ⬜ Not sta
 ---
 
 *Change log — AG adds one line here per update session, newest on top:*
+- **2026-09-10**: Completed scope/truthfulness pass: reduced pricing to one organizer pass capped at 10, renamed account action to local data clearing, corrected privacy claims, made invite codes the reliable fallback, and refreshed README test/pricing documentation.
+- **2026-09-10**: Item 1 security pass completed in code: removed `EXPO_PUBLIC_GEMINI_API_KEY` from the local/template configuration and all client runtime paths, routed advisor/chat calls through authenticated `ai-advisor`, added server-side chat validation, and added a key-hygiene regression test. Google AI Studio rotation and deployed Edge Function proof remain pending external/provider access.
 - **2026-09-10 12:45**: Added R25–R30 reflecting strategic Shipaton fit. Verified original Coral/Emerald palette restoration via fresh browser screenshots (Home, Hub, Paywall). Implemented lightweight invite share sheet (`AddPeopleModal`), unified all WhatsApp touchpoints into `useShareInvite()`, verified zero-leak privacy guarantees, and documented explicit non-goals. **119/119 tests passing across 26 suites**.
 - **2026-09-07 20:30**: #15 Completed — Backend Audit Remediation (Issues 1-9). Implemented `get_group_consensus_snapshot` and `lookup_group_by_invite_code` RPCs with `SECURITY DEFINER`, authenticated `ai-advisor` edge function with JWT guard, fixed silent voting veto persistence (`approved: false`), added DELETE policies, sandbox webhook gating, PII email stripping, and DB member cap trigger. **89/89 tests passing across 20 suites**.
 - **2026-09-07 19:15**: Design System & Color Palette Realignment — Aligned `src/theme/colors.ts` and all screens/components to authentic Ink (`#12182B`), Parchment (`#F6EFDE`), Brass (`#C99A5B`), Petrol (`#58A68C`), and Sealing Red (`#C1503F`). Expanded test suite to **85 tests across 19 suites** (all passing). Verified 0 TypeScript errors and clean 24-route web export.

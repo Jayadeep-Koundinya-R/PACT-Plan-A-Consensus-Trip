@@ -421,16 +421,39 @@ $$;
 
 grant execute on function public.get_group_consensus_snapshot(uuid) to authenticated;
 
--- 3. Enhanced Silent Voting Function & Grant
+-- 3. Enhanced Silent Voting Function & Grant (With Membership Guard)
 create or replace function public.get_option_vote_count(p_option_id uuid)
 returns table(total_votes bigint, approved_votes bigint, veto_votes bigint)
-language sql security definer as $$
+language plpgsql security definer
+set search_path = public
+as $$
+declare
+  v_group_id uuid;
+  v_is_member boolean;
+begin
+  select group_id into v_group_id from public.trip_options where id = p_option_id;
+  if v_group_id is null then
+    return;
+  end if;
+
+  select exists (
+    select 1 from public.group_members where group_id = v_group_id and user_id = auth.uid()
+  ) or exists (
+    select 1 from public.groups where id = v_group_id and organizer_id = auth.uid()
+  ) into v_is_member;
+
+  if not v_is_member then
+    raise exception 'Unauthorized: Caller is not a member of this option''s circle';
+  end if;
+
+  return query
   select
     count(*) as total_votes,
     count(*) filter (where approved = true) as approved_votes,
     count(*) filter (where approved = false) as veto_votes
   from public.votes
   where option_id = p_option_id;
+end;
 $$;
 
 grant execute on function public.get_option_vote_count(uuid) to authenticated;

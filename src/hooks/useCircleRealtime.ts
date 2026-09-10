@@ -67,6 +67,7 @@ export function useCircleRealtime(circleId?: string): RealtimeSyncStatus {
         const userId = newRecord?.user_id;
         if (userId) {
           setMemberStatus(circleId, userId, 'locked');
+          useGatherlyStore.getState().fetchGroupDataFromCloud(circleId);
           haptics.action();
           setLastEvent('A member submitted preferences live via WebSocket');
           setLastUpdated(new Date().toLocaleTimeString());
@@ -93,6 +94,7 @@ export function useCircleRealtime(circleId?: string): RealtimeSyncStatus {
               [key]: Boolean(newVote.approved)
             }
           }));
+          useGatherlyStore.getState().fetchGroupDataFromCloud(circleId);
           haptics.action();
           setLastEvent('Vote cast live on ballot');
           setLastUpdated(new Date().toLocaleTimeString());
@@ -112,6 +114,7 @@ export function useCircleRealtime(circleId?: string): RealtimeSyncStatus {
       (payload) => {
         const newMember = payload.new as any;
         if (newMember?.user_id) {
+          useGatherlyStore.getState().fetchGroupDataFromCloud(circleId);
           haptics.action();
           setLastEvent('New member joined circle live');
           setLastUpdated(new Date().toLocaleTimeString());

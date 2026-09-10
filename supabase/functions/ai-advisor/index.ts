@@ -27,7 +27,13 @@ interface BudgetAdvisorRequest {
   tripDurationDays?: number;
 }
 
-type AIAdvisorRequest = WhispererRequest | BudgetAdvisorRequest;
+interface ChatRequest {
+  action: 'chat';
+  prompt: string;
+  conversationHistory?: Array<{ role: 'user' | 'model'; text: string }>;
+}
+
+type AIAdvisorRequest = WhispererRequest | BudgetAdvisorRequest | ChatRequest;
 
 // Local Curated Fallbacks
 const DESTINATION_BUDGET_FALLBACKS: Record<string, { min: number; max: number; desc: string }> = {
@@ -96,6 +102,66 @@ serve(async (req: Request) => {
   try {
     const body: AIAdvisorRequest = await req.json();
     const apiKey = Deno.env.get('GEMINI_API_KEY');
+
+    if (body.action === 'chat') {
+      const prompt = typeof body.prompt === 'string' ? body.prompt.trim() : '';
+      if (!prompt || prompt.length > 4000) {
+        return new Response(JSON.stringify({ error: 'Prompt must be between 1 and 4000 characters' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      if (!apiKey) {
+        return new Response(JSON.stringify({ ok: false, reason: 'missing_key', text: 'Live AI is not configured on the server.' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      const history = (body.conversationHistory || []).slice(-12).filter((message) =>
+        (message.role === 'user' || message.role === 'model') &&
+        typeof message.text === 'string' && message.text.length <= 4000
+      );
+      const systemInstruction = 'You are the PACT AI Travel Advisor, powered by Google Gemini. PACT is a privacy-first group travel consensus app. Provide concise, structured group travel advice about budgets, itineraries, diplomatic compromises, packing, and logistics. Never request or reveal individual private budgets, dates, or dealbreakers.';
+      const contents = [
+        { role: 'user', parts: [{ text: systemInstruction }] },
+        { role: 'model', parts: [{ text: 'Understood. I will provide concise, privacy-preserving travel guidance.' }] },
+        ...history.map((message) => ({ role: message.role, parts: [{ text: message.text }] })),
+        { role: 'user', parts: [{ text: prompt }] }
+      ];
+
+      try {
+        const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+          body: JSON.stringify({ contents, generationConfig: { temperature: 0.4, maxOutputTokens: 8192 } })
+        });
+        if (!response.ok) {
+          const reason = response.status === 401 || response.status === 403
+            ? 'invalid_key'
+            : response.status === 429 ? 'quota_exceeded' : 'network_error';
+          return new Response(JSON.stringify({ ok: false, reason, text: 'The AI service is temporarily unavailable.' }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+        const result = await response.json();
+        const candidate = result?.candidates?.[0];
+        const text = candidate?.content?.parts?.[0]?.text?.trim();
+        if (!text) {
+          return new Response(JSON.stringify({ ok: false, reason: 'no_response', text: 'The AI service returned no answer.' }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+        return new Response(JSON.stringify({ ok: true, text, truncated: candidate?.finishReason === 'MAX_TOKENS' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      } catch (error) {
+        console.error('Gemini chat request failed:', error);
+        return new Response(JSON.stringify({ ok: false, reason: 'network_error', text: 'The AI service is temporarily unavailable.' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+    }
 
     if (body.action === 'budget_advisor') {
       const { destination, tripDurationDays = 5 } = body;

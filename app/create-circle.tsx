@@ -1,4 +1,4 @@
-import { getTierForMemberCount } from '../src/lib/pricing/groupPricing';
+import { getTierForMemberCount, isValidGroupSize, MAX_GROUP_MEMBERS } from '../src/lib/pricing/groupPricing';
 import { useTheme } from '../src/hooks/useTheme';
 import React, { useState } from 'react';
 import {
@@ -35,7 +35,8 @@ export default function PactCreateJoinScreen() {
 
   const liveTotal = parseInt(memberCount, 10) || 5;
   const liveTier = getTierForMemberCount(liveTotal);
-  const needsUpgrade = subscriptionPlan === 'free' && liveTotal > 5;
+  const exceedsCapacity = liveTotal > MAX_GROUP_MEMBERS;
+  const needsUpgrade = subscriptionPlan === 'free' && liveTotal > 5 && !exceedsCapacity;
 
   const triggerHaptic = () => {
     if (Platform.OS !== 'web') {
@@ -77,10 +78,15 @@ export default function PactCreateJoinScreen() {
     const name = tripName.trim() || 'Goa Beach Escape 2026';
     const total = parseInt(memberCount, 10) || 5;
 
-    // Free-tier member-cap guard: block and ask for an upgrade instead of creating.
+    if (!isValidGroupSize(total)) {
+      setCreateError(`PACT circles currently support up to ${MAX_GROUP_MEMBERS} members.`);
+      return;
+    }
+
+    // Free-tier member-cap guard: block and ask for the one organizer pass.
     if (subscriptionPlan === 'free' && total > 5) {
       const tierForTotal = getTierForMemberCount(total);
-      setCreateError(`The Free tier supports up to 5 members. This trip needs the ${tierForTotal.name} pass (${tierForTotal.capacityLabel}) — tap "Upgrade" below to continue.`);
+      setCreateError(`The Free tier supports up to 5 members. This trip needs the ${tierForTotal.name} (${tierForTotal.capacityLabel}).`);
       return;
     }
     // Free-tier single-active-circle guard (demo personas are exempt so the demo
@@ -270,11 +276,13 @@ export default function PactCreateJoinScreen() {
                 {liveTier.name} · {liveTier.capacityLabel}
               </Text>
               <Text style={[styles.tierInfoDesc, { color: theme.textSecondary }]}>
-                {needsUpgrade
-                  ? `This size needs the ${liveTier.name} paid pass. The Free tier is limited to 5 members.`
-                  : `${liveTier.recommendedFor}`}
+                {exceedsCapacity
+                  ? `PACT currently supports up to ${MAX_GROUP_MEMBERS} members per circle.`
+                  : needsUpgrade
+                    ? `This size needs the one organizer pass. The Free tier is limited to 5 members.`
+                    : `${liveTier.recommendedFor}`}
               </Text>
-              {needsUpgrade && (
+              {needsUpgrade && !exceedsCapacity && (
                 <View style={{ marginTop: 10 }}>
                   <TouchableOpacity
                     activeOpacity={0.75}

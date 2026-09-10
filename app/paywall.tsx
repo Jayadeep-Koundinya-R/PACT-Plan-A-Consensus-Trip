@@ -46,10 +46,10 @@ export default function PactPaywall() {
   const router = useRouter();
   const { theme, isDarkMode } = useTheme();
   const { currency, setCurrency } = useGatherlyStore();
-  const [billingPeriod, setBillingPeriod] = useState<'single' | 'annual'>('single');
   const [selectedTier, setSelectedTier] = useState<GroupTierId>('tier_10');
   const [isOperatorModalOpen, setIsOperatorModalOpen] = useState(false);
   const [copiedEmail, setCopiedEmail] = useState(false);
+  const [isPurchasing, setIsPurchasing] = useState(false);
 
   const triggerHaptic = () => {
     if (Platform.OS !== 'web') {
@@ -78,22 +78,77 @@ export default function PactPaywall() {
     });
   };
 
-  const handleActivatePass = (tierId: GroupTierId) => {
+  const handleActivatePass = async (tierId: GroupTierId) => {
     triggerHaptic();
-    if (tierId === 'tier_community') {
-      setIsOperatorModalOpen(true);
+    if (tierId === 'free') {
+      router.back();
       return;
     }
+
+    if (Platform.OS !== 'web') {
+      setIsPurchasing(true);
+      try {
+        const Purchases = require('react-native-purchases').default;
+        const offerings = await Purchases.getOfferings();
+        if (offerings.current && offerings.current.availablePackages?.length > 0) {
+          const pkg = offerings.current.availablePackages[0];
+          const { customerInfo } = await Purchases.purchasePackage(pkg);
+          if (customerInfo?.entitlements?.active?.['pro_access']) {
+            useGatherlyStore.getState().setSubscriptionPlan('premium_monthly');
+            useUserStore.getState().setSubscriptionPlan('premium_monthly');
+            Alert.alert(
+              'Organizer Pass Active!',
+              'Purchase confirmed via RevenueCat. You can now organize circles of up to 10 members.',
+              [{ text: 'Continue Planning', onPress: () => router.back() }]
+            );
+            setIsPurchasing(false);
+            return;
+          }
+        }
+      } catch (e: any) {
+        setIsPurchasing(false);
+        if (!e?.userCancelled) {
+          Alert.alert('Store Note', e?.message || 'Unable to connect to app store billing.');
+        }
+        return;
+      }
+      setIsPurchasing(false);
+    }
+
+    // Web / local preview state
     useGatherlyStore.getState().setSubscriptionPlan('premium_monthly');
     useUserStore.getState().setSubscriptionPlan('premium_monthly');
     Alert.alert(
-      'Pass Activated!',
-      `${GROUP_TIERS[tierId].name} unlocked! Only you pay — all your friends join 100% free.`,
+      'Organizer Pass Active',
+      `${GROUP_TIERS[tierId].name} unlocked for this session. (Native App Store / Play Store purchasing is active on iOS & Android builds via RevenueCat).`,
       [{ text: 'Continue Planning', onPress: () => router.back() }]
     );
   };
 
-  const tiersList: GroupTierId[] = ['free', 'tier_10', 'tier_19', 'tier_50', 'tier_community'];
+  const handleRestorePurchases = async () => {
+    triggerHaptic();
+    if (Platform.OS !== 'web') {
+      try {
+        const Purchases = require('react-native-purchases').default;
+        const customerInfo = await Purchases.restorePurchases();
+        if (customerInfo?.entitlements?.active?.['pro_access']) {
+          useGatherlyStore.getState().setSubscriptionPlan('premium_monthly');
+          useUserStore.getState().setSubscriptionPlan('premium_monthly');
+          Alert.alert('Purchases Restored', 'Your PACT Organizer Pass has been restored.');
+          return;
+        } else {
+          Alert.alert('No Purchases Found', 'No active RevenueCat entitlements were found for this account.');
+          return;
+        }
+      } catch (e: any) {
+        Alert.alert('Restore Failed', e?.message || 'Unable to restore purchases');
+        return;
+      }
+    }
+    Alert.alert('Restore Purchases', 'Restore purchases is supported on physical iOS & Android devices.');
+  };
+
+  const tiersList: GroupTierId[] = ['free', 'tier_10'];
 
   return (
     <SafeAreaView style={[styles.outerContainer, { backgroundColor: theme.backgroundDeep }]}>
@@ -120,7 +175,7 @@ export default function PactPaywall() {
             <Text style={[styles.heroTitle, { color: theme.textPrimary }]}>Only 1 Person Pays.</Text>
             <Text style={[styles.heroHighlight, { color: '#FF5A5F' }]}>Everyone Else Joins 100% Free.</Text>
             <Text style={[styles.heroSub, { color: theme.textSecondary }]}>
-              Invite 5, 10, 19, or 50+ friends. Only the trip organizer activates the group pass — all participants enter constraints and vote with zero paywalls.
+              Invite up to 10 friends. Only the trip organizer activates the one flat pass; all participants enter constraints and vote with zero paywalls.
             </Text>
           </View>
 
@@ -156,50 +211,12 @@ export default function PactPaywall() {
             </View>
           </View>
 
-          {/* Billing Switcher (Single Trip vs Annual Pass) */}
-          <View style={[styles.billingSwitcher, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}>
-            <TouchableOpacity
-              onPress={() => {
-                triggerHaptic();
-                setBillingPeriod('single');
-              }}
-              activeOpacity={0.8}
-              style={[
-                styles.billingTab,
-                billingPeriod === 'single' && [styles.billingTabActive, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]
-              ]}
-            >
-              <Text style={[styles.billingTabText, { color: theme.textSecondary }, billingPeriod === 'single' && { color: theme.textPrimary, fontWeight: '700' }]}>
-                Single Trip Pass
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => {
-                triggerHaptic();
-                setBillingPeriod('annual');
-              }}
-              activeOpacity={0.8}
-              style={[
-                styles.billingTab,
-                billingPeriod === 'annual' && [styles.billingTabActive, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]
-              ]}
-            >
-              <View style={styles.saveTag}>
-                <Text style={styles.saveTagText}>SAVE 50%</Text>
-              </View>
-              <Text style={[styles.billingTabText, { color: theme.textSecondary }, billingPeriod === 'annual' && { color: theme.textPrimary, fontWeight: '700' }]}>
-                Annual Unlimited
-              </Text>
-            </TouchableOpacity>
-          </View>
-
           {/* Group Tiers List */}
           <View style={styles.tiersContainer}>
             {tiersList.map((tierId) => {
               const tier = GROUP_TIERS[tierId];
               const isSelected = selectedTier === tierId;
-              const priceDisplay = formatTierPrice(tier, currency, billingPeriod);
+              const priceDisplay = formatTierPrice(tier, currency);
 
               return (
                 <TouchableOpacity
@@ -219,11 +236,7 @@ export default function PactPaywall() {
                   <View style={styles.tierHeader}>
                     <View style={styles.tierNameCol}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                        {tierId === 'tier_community' ? (
-                          <Building2 size={16} color="#3DE0A0" />
-                        ) : (
-                          <Users size={16} color="#FF5A5F" />
-                        )}
+                        <Users size={16} color="#FF5A5F" />
                         <Text style={[styles.tierName, { color: theme.textPrimary }]}>{tier.name}</Text>
                       </View>
                       <Text style={[styles.capacityTag, { color: theme.textSecondary }]}>{tier.capacityLabel}</Text>
@@ -234,7 +247,7 @@ export default function PactPaywall() {
                         {priceDisplay}
                       </Text>
                       <Text style={[styles.tierPriceSub, { color: theme.textSecondary }]}>
-                        {tier.isCustomQuote ? 'Invoiced' : billingPeriod === 'single' ? 'per trip' : 'per year'}
+                        {tierId === 'free' ? 'forever' : 'per trip'}
                       </Text>
                     </View>
                   </View>
@@ -259,19 +272,12 @@ export default function PactPaywall() {
                     onPress={() => handleActivatePass(tierId)}
                     style={[
                       styles.tierActionBtn,
-                      tierId === 'tier_community'
-                        ? { backgroundColor: '#13151E', borderWidth: 1, borderColor: '#3DE0A0' }
-                        : tierId === 'free'
+                      tierId === 'free'
                         ? { backgroundColor: theme.surfaceSubtle, borderWidth: 1, borderColor: theme.border }
                         : { backgroundColor: '#FF5A5F' }
-                    ]}
-                  >
-                    {tierId === 'tier_community' ? (
-                      <>
-                        <Mail size={15} color="#3DE0A0" />
-                        <Text style={[styles.tierActionBtnText, { color: '#3DE0A0' }]}>Contact Operator</Text>
-                      </>
-                    ) : tierId === 'free' ? (
+                  ]}
+                >
+                    {tierId === 'free' ? (
                       <Text style={[styles.tierActionBtnText, { color: theme.textPrimary }]}>Current Free Tier (≤5)</Text>
                     ) : (
                       <>
@@ -297,6 +303,18 @@ export default function PactPaywall() {
               </Text>
             </View>
           </View>
+
+          {/* Restore Purchases / Billing Support */}
+          <TouchableOpacity
+            onPress={handleRestorePurchases}
+            activeOpacity={0.7}
+            style={styles.restoreBtn}
+            accessibilityLabel="Restore Purchases"
+          >
+            <Text style={[styles.restoreBtnText, { color: theme.textSecondary }]}>
+              Already purchased? Restore Purchases
+            </Text>
+          </TouchableOpacity>
         </ScrollView>
 
         {/* Community Operator Modal */}
@@ -321,7 +339,7 @@ export default function PactPaywall() {
               </View>
 
               <Text style={[styles.modalDesc, { color: theme.textSecondary }]}>
-                For residential apartment societies, company offsites, or 50+ member communities, our dedicated operator provides customized multi-coach logistics, building committee voting protocols, and bespoke invoicing.
+                Groups above 10 members are not supported in the current PACT release. The organizer pass is designed for circles of up to 10.
               </Text>
 
               <View style={[styles.operatorEmailBox, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}>
@@ -591,6 +609,16 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     marginBottom: 2
+  },
+  restoreBtn: {
+    alignItems: 'center',
+    paddingVertical: 16,
+    marginBottom: 24
+  },
+  restoreBtnText: {
+    fontFamily: fontUI,
+    fontSize: 12,
+    textDecorationLine: 'underline'
   },
   guaranteeDesc: {
     fontSize: 11,

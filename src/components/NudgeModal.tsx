@@ -42,7 +42,13 @@ export const NudgeModal: React.FC<NudgeModalProps> = ({
     ? pendingMemberNames.join(' & ')
     : 'friends';
 
-  const defaultNudgeMessage = `Hey ${missingNames}! 👋\n\n${respondedCount}/${totalCount} of us have submitted our dates & budgets for "${groupName}".\n\nDrop your private constraints in PACT so the consensus engine can rank the best options for everyone:\n👉 Join Code: ${inviteCode}\n👉 App link: https://pact.app/invite/${inviteCode}\n\n(Everything is 100% private — no peer pressure!)`;
+  const defaultNudgeMessage = formatNudgeMessage({
+    groupName,
+    inviteCode,
+    lockedCount: respondedCount,
+    neededCount: Math.max(1, totalCount - respondedCount),
+    memberName: missingNames
+  });
 
   const handleCopy = async () => {
     setCopied(true);

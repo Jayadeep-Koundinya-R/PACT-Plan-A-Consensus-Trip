@@ -1,4 +1,4 @@
-import { supabase } from './client';
+import { supabase, isLiveSupabaseConfigured } from './client';
 import { MemberPreference, TripOption, ScoredTripOption, ConsensusResult } from '../consensus/types';
 
 export interface SupabaseProfile {
@@ -18,7 +18,7 @@ export interface SupabaseGroup {
 }
 
 // --- Invite Code Generator ---
-// Clean 6-character cryptographic alphanumeric code (e.g. "GOA-4F82" or "X7K2QM")
+// Short random alphanumeric invite code (e.g. "GOA-4F82" or "X7K2QM")
 export function generateInviteCode(prefix?: string): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   const array = new Uint8Array(6);
@@ -418,6 +418,56 @@ export async function fetchGroupConsensusSnapshot(groupId: string): Promise<Grou
     return data as GroupConsensusSnapshot;
   } catch (e) {
     console.warn('fetchGroupConsensusSnapshot error:', e);
+    return null;
+  }
+}
+
+
+export async function saveTripBriefToSupabase(
+  groupId: string,
+  optionId: string | null,
+  briefData: any
+): Promise<boolean> {
+  if (!isLiveSupabaseConfigured) return false;
+  try {
+    const { error: briefErr } = await supabase
+      .from('trip_briefs')
+      .upsert({
+        group_id: groupId,
+        option_id: optionId || null,
+        brief_data: briefData,
+        generated_at: new Date().toISOString()
+      });
+    if (briefErr) {
+      console.warn('saveTripBriefToSupabase error:', briefErr);
+    }
+    const { error: groupErr } = await supabase
+      .from('groups')
+      .update({ status: 'finalized' })
+      .eq('id', groupId);
+    if (groupErr) {
+      console.warn('updateGroupStatus error:', groupErr);
+    }
+    return !briefErr && !groupErr;
+  } catch (e) {
+    console.warn('saveTripBriefToSupabase exception:', e);
+    return false;
+  }
+}
+
+export async function fetchTripBriefFromSupabase(groupId: string): Promise<any | null> {
+  if (!isLiveSupabaseConfigured) return null;
+  try {
+    const { data, error } = await supabase
+      .from('trip_briefs')
+      .select('*')
+      .eq('group_id', groupId)
+      .order('generated_at', { ascending: false })
+      .limit(1)
+      .single();
+    if (error || !data) return null;
+    return data.brief_data;
+  } catch (e) {
     return null;
   }
 }

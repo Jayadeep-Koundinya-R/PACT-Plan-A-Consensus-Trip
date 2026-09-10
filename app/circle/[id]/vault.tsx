@@ -100,7 +100,7 @@ export default function PactTripVault() {
             });
           });
           haptics.success();
-          Alert.alert('Document Vault', `"${file.name}" encrypted and stored in vault.`);
+          Alert.alert('Document Vault', `"${file.name}" stored in the local vault.`);
         }
       };
       input.click();

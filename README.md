@@ -7,7 +7,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-3178C6.svg?style=flat&logo=typescript)](https://www.typescriptlang.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-Auth%20%2B%20Postgres-3ECF8E.svg?style=flat&logo=supabase)](https://supabase.com)
 [![RevenueCat](https://img.shields.io/badge/RevenueCat-In--App%20Subscriptions-E85D04.svg?style=flat&logo=revenuecat)](https://revenuecat.com)
-[![Tests](https://img.shields.io/badge/Tests-85%2F85%20Passing-brightgreen.svg)](package.json)
+[![Tests](https://img.shields.io/badge/Tests-116%2F116%20Passing-brightgreen.svg)](package.json)
 
 ---
 
@@ -69,7 +69,7 @@
 
 | Feature | Description | Privacy Guarantee |
 |---|---|---|
-| **Cryptographic Invite Codes** | 6-character codes (`GOA-4F82`) for closed, trusted trip circles. | No public stranger discovery. |
+| **Invite Codes** | Short random codes (`GOA-4F82`) for closed, trusted trip circles. | RLS and invite-only membership; the code is the reliable join fallback. |
 | **Sealed Constraints** | Date availability ranges, budget slider, and dealbreaker chips. | Stored privately; never shared with peers. |
 | **AI Budget Advisor** | Dynamic typical destination budget range near slider. | Live Gemini estimate with instant fallback. |
 | **Deterministic Matrix** | Mathematical scoring of candidate destinations with plain-English breakdowns. | Ghost members never poison averages. |
@@ -101,12 +101,12 @@ $$\\text{Member Score} = (\\text{Date Score} \\times 0.35) + (\\text{Budget Scor
 
 PACT incorporates a sustainable, fair monetization model powered by RevenueCat:
 
-- **Free Tier**: Up to 1 active trip circle, standard destination scoring, basic Trip Brief.
-- **PACT Pro** ($4.99/mo or $39.99/yr):
-  - Unlimited active circles.
+- **Free Tier**: Up to 1 active trip circle and 5 members, standard destination scoring, basic Trip Brief.
+- **PACT Organizer Pass** ($9.99 per trip, up to 10 members):
+  - Only the organizer pays; invited members join free.
   - AI Compromise Whisperer & AI Budget Advisor live calls.
   - **Circle Inheritance**: When the organizer has Pro, all invited circle members get Pro features for that trip.
-- **Cross-Platform Resilience**: On mobile builds, native StoreKit and Google Play flows operate seamlessly. On web preview builds, a graceful notice informs users that *"Pro purchases are available in the mobile app"* while providing a 1-tap demo unlock so judges can test all Pro features without errors.
+- **Cross-Platform Resilience**: Web preview explains that purchases are available in the mobile app. Native billing must be verified in the RevenueCat sandbox before calling the purchase flow production-ready.
 
 ---
 
@@ -145,11 +145,11 @@ npm install
 ```
 
 ### Step 2: Run the Automated Regression Test Suite
-Run the 85-test suite validating scoring, privacy guards, webhooks, AI fallbacks, and the design-system tokens:
+Run the 116-test suite validating scoring, privacy guards, webhooks, AI fallbacks, and the design-system tokens:
 ```bash
 npm test
 ```
-*Expected output: 85 passed across 19 suites.*
+*Expected output: 116 passed across 26 suites.*
 
 ### Step 3: Launch Web Preview
 ```bash
@@ -164,17 +164,17 @@ Open **`http://localhost:8081`** in your browser to test the full consensus expe
 ### Lightweight "Add People" Invite Flow & Unified Sharing
 PACT replaces cumbersome user searches with a lightweight **Circle Hub Invite Flow**:
 - **Native OS Sharing**: Organizers tap **+ Add People** on the Circle Hub to immediately trigger pre-filled invitations via **WhatsApp**, **Messages (SMS)**, **Email**, or the native **Device Share Sheet** (AirDrop, Slack, Telegram).
-- **Direct Join URLs**: Deep-linked invitations (`https://pact.app/join/{code}`) allow friends to lock in their preferences in under 10 seconds without mandatory registration walls.
+- **Invite Code Fallback**: The invite code is the reliable join method. The `pact://join/{code}` app link may open an installed app, but no public HTTPS invite domain is assumed.
 - **Unified Sharing Hook (`useShareInvite`)**: All WhatsApp and share touchpoints across the app (Trip Brief export, Hub invites, bulk group nudges, and QR passes) share a single hardened, privacy-compliant hook.
 
 ---
 
 ### Explicit Architectural Non-Goals (Scope Boundaries)
 
-To preserve PACT's zero-knowledge privacy architecture, the following features were **strictly and intentionally excluded**:
+To preserve PACT's private, invite-only architecture, the following features were **strictly and intentionally excluded**:
 
 ### 1. Central User Directory & Public User Search (Explicit Non-Goal)
-- **Why excluded:** PACT is built as a zero-knowledge consensus engine. Having a searchable central directory or user catalog would expose member identities, travel schedules, and circle affiliations to strangers. Circles are strictly invite-only using 6-character cryptographic codes (`GOA-4F82`).
+- **Why excluded:** PACT is built around access-controlled, invite-only circles. Having a searchable central directory or user catalog would expose member identities, travel schedules, and circle affiliations to strangers. Circles use short random invite codes (`GOA-4F82`).
 - **Roadmap consideration:** Mutual, double-opt-in contact book hashing where both parties must have each other's phone number before any discovery occurs.
 
 ### 2. Friend-Request & Social Graph System (Explicit Non-Goal)

@@ -40,7 +40,7 @@ const TIMELINE = [
   {
     time: '1:40 — 2:00',
     title: '5. RevenueCat Pro Monetization',
-    script: '"With RevenueCat, free users get 1 active circle. PACT Pro ($4.99/mo or $39.99/yr) unlocks unlimited circles, calendar exports, and AI-powered natural language conflict diagnoses."'
+    script: '"With RevenueCat, free circles support up to 5 members. One organizer pass supports up to 10 members, while invited members join free."'
   }
 ];
 

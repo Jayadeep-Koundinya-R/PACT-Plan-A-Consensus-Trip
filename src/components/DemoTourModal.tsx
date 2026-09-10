@@ -61,7 +61,7 @@ const TOUR_STEPS = [
     title: 'RevenueCat In-App Monetization',
     icon: Crown,
     color: '#D4AF37',
-    summary: 'Free tier allows 1 active circle. PACT Pro ($4.99/mo or $39.99/yr) unlocks unlimited circles, calendar exports, and AI-powered natural language conflict diagnoses.'
+    summary: 'Free circles support up to 5 members. The organizer pass supports up to 10 members, while invited members join free.'
   }
 ];
 

@@ -361,6 +361,20 @@ The following tasks have been fully implemented, unit-tested, verified on localh
 
 ---
 
+### 29. 🛡️ Release Readiness Audit Remediation (P0 & P1 Resolved)
+- **Problem**: Address findings from the formal `PACT_RELEASE_READINESS_AUDIT_2026-09-10.md` report across security, billing, privacy architecture, and data honesty.
+- **Resolution**:
+  - **Gemini Key Hygiene (P0)**: Removed client-side `EXPO_PUBLIC_GEMINI_API_KEY` usage. All live queries in `aiChatClient.ts` and `aiAdvisorClient.ts` route exclusively through the authenticated Supabase Edge Function (`ai-advisor`) where keys remain server-side. Added automated test `keyHygiene.test.mjs` to block client key leaks.
+  - **Native RevenueCat Purchase & Restore (P0)**: Connected real native `Purchases.getOfferings()`, `purchasePackage()`, and `restorePurchases()` in `app/paywall.tsx` with graceful web/preview fallbacks, user cancel handling, and entitlement confirmation.
+  - **Secure Consensus Snapshot (P0)**: Connected `get_group_consensus_snapshot` RPC into `useGatherlyStore.fetchGroupDataFromCloud` and hooked `useCircleRealtime.ts` to refresh aggregate cloud data on live WebSocket events without client-side ingestion of private peer rows.
+  - **Server-Authoritative Brief Persistence (P0)**: Added `saveTripBriefToSupabase` and `fetchTripBriefFromSupabase` in `src/lib/supabase/service.ts`, wiring cloud persistence into `finalizeTrip`.
+  - **Single Flat Organizer Pass (P1)**: Aligned `groupPricing.ts`, `create-circle.tsx`, `paywall.tsx`, and tests to a single flat $9.99 organizer pass up to 10 members, strictly honoring the database member limit.
+  - **Data Honesty & RPC Security (P1)**: Renamed account deletion to `clearLocalAccountData` in settings and legal copy, unified nudge preview copy in `NudgeModal.tsx`, and secured `get_option_vote_count` RPC in `schema.sql` with a group membership authorization check.
+- **Verification**: All **116/116 unit tests pass across 26 suites** (`npm test`), strict TypeScript checks succeed with 0 errors (`npx tsc --noEmit`), and key hygiene tests verify zero client secret leaks.
+- **Files Modified/Created**: `src/lib/ai/aiChatClient.ts`, `src/lib/ai/aiAdvisorClient.ts`, `src/lib/ai/__tests__/keyHygiene.test.mjs`, `supabase/functions/ai-advisor/index.ts`, `app/paywall.tsx`, `src/lib/supabase/service.ts`, `src/store/useGatherlyStore.ts`, `src/hooks/useCircleRealtime.ts`, `src/components/NudgeModal.tsx`, `supabase/schema.sql`, `PACT_RELEASE_READINESS_AUDIT_2026-09-10.md`.
+
+---
+
 ## 🟡 PART 2: REMAINING & ASSIGNED TASKS (NOT COMPLETED / PENDING ACTION)
 
 The tasks below fall into two clear groups:
@@ -435,7 +449,7 @@ The tasks below fall into two clear groups:
 | **Legal Compliance & Navigation** | 2 | 2 (100%) | 0 | 0 |
 | **Personal Action & Submission Items** | 6 | 0 | 0 | 6 |
 | **Backend Security Remediation** | 1 | 1 (100%) | 0 | 0 |
-| **TOTAL** | **34** | **24 (71%)** | **4 (12%)** | **6 (18%)** |
+| **TOTAL** | **35** | **25 (71%)** | **4 (11%)** | **6 (17%)** |
 
 ---
 

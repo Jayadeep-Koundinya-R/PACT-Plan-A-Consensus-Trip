@@ -1,7 +1,7 @@
 /**
  * PACT AI Advisor Client
- * Connects to Google Gemini 1.5 Flash directly via EXPO_PUBLIC_GEMINI_API_KEY
- * or via Supabase Edge Function 'ai-advisor' with guaranteed <= 3.5s timeout
+ * Connects to Google Gemini only through the authenticated Supabase Edge Function
+ * 'ai-advisor' with guaranteed <= 3.5s timeout
  * and instant local fallback so the user experience is never blocked.
  */
 import { supabase, isLiveSupabaseConfigured } from '../supabase/client.ts';
@@ -66,36 +66,6 @@ export function getLocalWhispererFallback(
 }
 
 /**
- * Direct Google Gemini 1.5 Flash REST API helper
- */
-const directGeminiKey = (typeof process !== 'undefined' && process.env) ? process.env.EXPO_PUBLIC_GEMINI_API_KEY : undefined;
-
-async function queryGeminiDirect(prompt: string): Promise<any | null> {
-  if (!directGeminiKey) return null;
-  try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${directGeminiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.2, responseMimeType: 'application/json' }
-        })
-      }
-    );
-    if (res.ok) {
-      const data = await res.json();
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (text) return JSON.parse(text);
-    }
-  } catch (e) {
-    console.warn('Direct Gemini API fallback:', e);
-  }
-  return null;
-}
-
-/**
  * Fetch typical market budget for destination with 3.5s timeout + fallback
  */
 export async function fetchBudgetAdvisor(
@@ -107,35 +77,7 @@ export async function fetchBudgetAdvisor(
     return advisorCache.get(cacheKey)!;
   }
 
-  // 1. Check Direct Gemini Key (Client-side)
-  if (directGeminiKey) {
-    try {
-      const prompt = `You are the PACT Group Travel Budget Advisor. Estimate a realistic typical budget range per person for a ${days}-day group trip to "${destination}".
-Return STRICT JSON format only:
-{
-  "minBudget": number,
-  "maxBudget": number,
-  "currency": "USD",
-  "formattedRange": "Typical budget for a ${days}-day ${destination} trip: $[min]-$[max]/person",
-  "explanation": "Brief 1-sentence explanation of what this covers."
-}`;
-      const directResult = await queryGeminiDirect(prompt);
-      if (directResult && directResult.formattedRange) {
-        const result: BudgetAdvisorResult = {
-          minBudget: directResult.minBudget || 400,
-          maxBudget: directResult.maxBudget || 600,
-          currency: directResult.currency || 'USD',
-          formattedRange: directResult.formattedRange,
-          explanation: directResult.explanation || 'Covers shared villa and daily dining.',
-          source: 'gemini_live'
-        };
-        advisorCache.set(cacheKey, result);
-        return result;
-      }
-    } catch (e) {}
-  }
-
-  // 2. Check Supabase Edge Function
+  // The only live AI path is the authenticated Edge Function.
   if (isLiveSupabaseConfigured) {
     try {
       const timeoutPromise = new Promise<never>((_, reject) =>
@@ -166,7 +108,7 @@ Return STRICT JSON format only:
     } catch (e) {}
   }
 
-  // 3. Instant Local Market Index Fallback
+  // Instant Local Market Index Fallback
   const fallback = getLocalBudgetFallback(destination, days);
   advisorCache.set(cacheKey, fallback);
   return fallback;
@@ -189,40 +131,7 @@ export async function fetchCompromiseWhisperer(
     return advisorCache.get(cacheKey)!;
   }
 
-  // 1. Direct Gemini Key if present
-  if (directGeminiKey) {
-    try {
-      const prompt = `You are the PACT AI Compromise Whisperer. Your role is to resolve group travel deadlocks with diplomatic, actionable compromises without ever revealing individual secrets.
-Group: ${groupSize} members
-Destination: "${destination}"
-Aggregated Anonymized Data:
-- Budget Distribution: ${JSON.stringify(aggregatedData.budgetBuckets)}
-- Overlapping Dates: "${aggregatedData.commonDates}"
-- Dealbreaker Summary: "${aggregatedData.dealbreakerSummary}"
-
-Strict Privacy Rules:
-- DO NOT mention any individual member's name or assign blame.
-- Suggest a creative compromise that respects everyone (e.g. villa with private ensuite rooms for bathroom privacy, tiered room splits for wide budgets).
-
-Return STRICT JSON only:
-{
-  "compromise": "Actionable 2-sentence compromise recommendation.",
-  "anonymizedSummary": "1-sentence summary of the aggregate balance."
-}`;
-      const directResult = await queryGeminiDirect(prompt);
-      if (directResult && directResult.compromise) {
-        const result: CompromiseWhispererResult = {
-          compromise: directResult.compromise,
-          anonymizedSummary: directResult.anonymizedSummary || 'Aggregated group consensus analyzed.',
-          source: 'gemini_live'
-        };
-        advisorCache.set(cacheKey, result);
-        return result;
-      }
-    } catch (e) {}
-  }
-
-  // 2. Supabase Edge Function
+  // The only live AI path is the authenticated Edge Function.
   if (isLiveSupabaseConfigured) {
     try {
       const timeoutPromise = new Promise<never>((_, reject) =>
@@ -251,7 +160,7 @@ Return STRICT JSON only:
     } catch (e) {}
   }
 
-  // 3. Instant Local Heuristics Fallback
+  // Instant Local Heuristics Fallback
   const fallback = getLocalWhispererFallback(destination, groupSize, aggregatedData);
   advisorCache.set(cacheKey, fallback);
   return fallback;
