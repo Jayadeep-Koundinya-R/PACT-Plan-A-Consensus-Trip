@@ -127,8 +127,8 @@ export default function MyCirclesScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor="#F0B24A"
-              colors={['#F0B24A']}
+              tintColor="#FF5A5F"
+              colors={['#FF5A5F']}
             />
           }
         >
@@ -136,7 +136,7 @@ export default function MyCirclesScreen() {
           <View style={styles.headerRow}>
             <View style={styles.brandRow}>
               <View style={styles.logoBadge}>
-                <Compass size={18} color="#F0B24A" strokeWidth={2.5} />
+                <Compass size={18} color="#FF5A5F" strokeWidth={2.5} />
               </View>
               <View>
                 <Text style={styles.brandTitle}>PACT</Text>
@@ -153,7 +153,7 @@ export default function MyCirclesScreen() {
                 }}
                 style={styles.notifBellBtn}
               >
-                <Bell size={18} color="#F0B24A" />
+                <Bell size={18} color="#FF5A5F" />
                 {unreadCount > 0 && <View style={styles.notifDot} />}
               </TouchableOpacity>
 
@@ -170,7 +170,7 @@ export default function MyCirclesScreen() {
                 <Text style={styles.avatarMiniText}>{profile?.displayName ? profile.displayName.slice(0, 2).toUpperCase() : 'ME'}</Text>
               </View>
               <View style={[styles.proMiniBadge, subscriptionPlan === 'free' && { backgroundColor: 'rgba(255,255,255,0.1)' }]}>
-                <Text style={[styles.proMiniBadgeText, subscriptionPlan === 'free' && { color: '#C3BAA6' }]}>
+                <Text style={[styles.proMiniBadgeText, subscriptionPlan === 'free' && { color: '#8B8D98' }]}>
                   {subscriptionPlan !== 'free' ? 'PASS' : 'FREE ≤5'}
                 </Text>
               </View>
@@ -186,12 +186,12 @@ export default function MyCirclesScreen() {
             </View>
             <View style={[styles.metricDivider, { backgroundColor: theme.border }]} />
             <View style={styles.metricItem}>
-              <Text style={[styles.metricValue, { color: '#25C9A0' }]}>80%</Text>
+              <Text style={[styles.metricValue, { color: '#3DE0A0' }]}>80%</Text>
               <Text style={[styles.metricLabel, { color: theme.textSecondary }]}>Supermajority</Text>
             </View>
             <View style={[styles.metricDivider, { backgroundColor: theme.border }]} />
             <View style={styles.metricItem}>
-              <Text style={[styles.metricValue, { color: '#F0B24A' }]}>100%</Text>
+              <Text style={[styles.metricValue, { color: '#FF5A5F' }]}>100%</Text>
               <Text style={[styles.metricLabel, { color: theme.textSecondary }]}>Sealed privacy</Text>
             </View>
           </View>
@@ -206,7 +206,7 @@ export default function MyCirclesScreen() {
               }}
               style={styles.primaryActionBtn}
             >
-              <Plus size={16} color="#0C1120" strokeWidth={2.5} />
+              <Plus size={16} color="#050608" strokeWidth={2.5} />
               <Text style={styles.primaryActionBtnText}>New Trip Circle</Text>
             </TouchableOpacity>
 
@@ -218,7 +218,7 @@ export default function MyCirclesScreen() {
               }}
               style={[styles.secondaryActionBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
             >
-              <KeyRound size={15} color="#FDF9EF" />
+              <KeyRound size={15} color="#F4F3F0" />
               <Text style={[styles.secondaryActionBtnText, { color: theme.textPrimary }]}>Join Code</Text>
             </TouchableOpacity>
 
@@ -231,7 +231,7 @@ export default function MyCirclesScreen() {
               style={[styles.secondaryActionBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
               accessibilityLabel="View group passes and pricing"
             >
-              <Sparkles size={14} color="#F0B24A" />
+              <Sparkles size={14} color="#FF5A5F" />
               <Text style={[styles.secondaryActionBtnText, { color: theme.textPrimary }]}>Passes</Text>
             </TouchableOpacity>
           </View>
@@ -265,7 +265,7 @@ export default function MyCirclesScreen() {
                 style={[styles.tabButton, circleTab === 'archived' && [styles.tabButtonActive, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]]}
                 accessibilityLabel={`Archived circles, ${archivedCircles.length} available`}
               >
-                <Archive size={11} color={circleTab === 'archived' ? '#F0B24A' : '#C3BAA6'} />
+                <Archive size={11} color={circleTab === 'archived' ? '#FF5A5F' : '#8B8D98'} />
                 <Text style={[styles.tabButtonText, { color: theme.textSecondary }, circleTab === 'archived' && { color: theme.textPrimary, fontWeight: '700' }]}>
                   Archived ({archivedCircles.length})
                 </Text>
@@ -275,7 +275,7 @@ export default function MyCirclesScreen() {
 
           {displayCircles.length === 0 && (
             <View style={[styles.emptyTabCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              <FolderArchive size={28} color="#384262" />
+              <FolderArchive size={28} color="#2D3144" />
               <Text style={[styles.emptyTabTitle, { color: theme.textPrimary }]}>
                 {circleTab === 'archived' ? 'No Archived Circles' : 'No Active Circles'}
               </Text>
@@ -301,13 +301,13 @@ export default function MyCirclesScreen() {
                     paddingVertical: 10,
                     paddingHorizontal: 16,
                     borderRadius: 8,
-                    backgroundColor: 'rgba(240, 178, 74, 0.12)',
+                    backgroundColor: 'rgba(255, 90, 95, 0.12)',
                     borderWidth: 1,
-                    borderColor: 'rgba(240, 178, 74, 0.3)'
+                    borderColor: 'rgba(255, 90, 95, 0.3)'
                   }}
                 >
-                  <Sparkles size={14} color="#F0B24A" />
-                  <Text style={{ color: '#F0B24A', fontSize: 13, fontWeight: '700' }}>
+                  <Sparkles size={14} color="#FF5A5F" />
+                  <Text style={{ color: '#FF5A5F', fontSize: 13, fontWeight: '700' }}>
                     Load Demo Circle (Goa Beach)
                   </Text>
                 </TouchableOpacity>
@@ -360,13 +360,13 @@ export default function MyCirclesScreen() {
                       <View style={styles.statusPill}>
                         {circle.status === 'voting' ? (
                           <>
-                            <Sparkles size={11} color="#F0B24A" />
-                            <Text style={[styles.statusPillText, { color: '#F0B24A' }]}>Voting Open</Text>
+                            <Sparkles size={11} color="#FF5A5F" />
+                            <Text style={[styles.statusPillText, { color: '#FF5A5F' }]}>Voting Open</Text>
                           </>
                         ) : (
                           <>
-                            <Clock size={11} color="#FFB224" />
-                            <Text style={[styles.statusPillText, { color: '#FFB224' }]}>Collecting</Text>
+                            <Clock size={11} color="#F59E0B" />
+                            <Text style={[styles.statusPillText, { color: '#F59E0B' }]}>Collecting</Text>
                           </>
                         )}
                       </View>
@@ -382,11 +382,11 @@ export default function MyCirclesScreen() {
                       accessibilityLabel={`Copy invite code ${circle.inviteCode}`}
                     >
                       {copiedCode === circle.inviteCode ? (
-                        <Check size={11} color="#25C9A0" />
+                        <Check size={11} color="#3DE0A0" />
                       ) : (
-                        <Copy size={11} color="#C3BAA6" />
+                        <Copy size={11} color="#8B8D98" />
                       )}
-                      <Text style={[styles.invitePillText, copiedCode === circle.inviteCode && { color: '#25C9A0' }]}>
+                      <Text style={[styles.invitePillText, copiedCode === circle.inviteCode && { color: '#3DE0A0' }]}>
                         {copiedCode === circle.inviteCode ? 'COPIED' : circle.inviteCode}
                       </Text>
                     </TouchableOpacity>
@@ -407,11 +407,11 @@ export default function MyCirclesScreen() {
                       accessibilityLabel={circle.archived ? 'Restore circle from archive' : 'Archive circle'}
                     >
                       {circle.archived ? (
-                        <RotateCcw size={11} color="#25C9A0" />
+                        <RotateCcw size={11} color="#3DE0A0" />
                       ) : (
-                        <Archive size={11} color="#C3BAA6" />
+                        <Archive size={11} color="#8B8D98" />
                       )}
-                      <Text style={[styles.archiveBtnText, circle.archived && { color: '#25C9A0' }]}>
+                      <Text style={[styles.archiveBtnText, circle.archived && { color: '#3DE0A0' }]}>
                         {circle.archived ? 'Restore' : 'Archive'}
                       </Text>
                     </TouchableOpacity>
@@ -426,13 +426,13 @@ export default function MyCirclesScreen() {
                       {lockedCount}/{totalCount} members ({progressPercent}%)
                     </Text>
                   </View>
-                  <View style={[styles.meterTrack, { backgroundColor: isDarkMode ? '#12182B' : '#E3D9C2' }]}>
+                  <View style={[styles.meterTrack, { backgroundColor: isDarkMode ? '#090A0F' : '#E3D9C2' }]}>
                     <View
                       style={[
                         styles.meterFill,
                         {
                           width: `${progressPercent}%`,
-                          backgroundColor: progressPercent >= 80 ? '#25C9A0' : progressPercent >= 40 ? '#FFB224' : '#35C4A5'
+                          backgroundColor: progressPercent >= 80 ? '#3DE0A0' : progressPercent >= 40 ? '#F59E0B' : '#3DE0A0'
                         }
                       ]}
                     />
@@ -448,7 +448,7 @@ export default function MyCirclesScreen() {
                         style={[
                           styles.memberMiniDot,
                           {
-                            backgroundColor: m.status === 'locked' ? '#25C9A0' : '#384262',
+                            backgroundColor: m.status === 'locked' ? '#3DE0A0' : '#2D3144',
                             zIndex: 10 - idx
                           }
                         ]}
@@ -465,7 +465,7 @@ export default function MyCirclesScreen() {
 
                   <View style={styles.openLinkRow}>
                     <Text style={styles.openLinkText}>Open Hub</Text>
-                    <ArrowRight size={13} color="#F0B24A" />
+                    <ArrowRight size={13} color="#FF5A5F" />
                   </View>
                 </View>
                 </View>
@@ -474,8 +474,8 @@ export default function MyCirclesScreen() {
           })}
 
           {/* Privacy Guarantee Note */}
-          <View style={[styles.privacyNoteBox, { backgroundColor: isDarkMode ? 'rgba(37, 201, 160, 0.08)' : 'rgba(15, 164, 127, 0.1)', borderColor: isDarkMode ? 'rgba(37, 201, 160, 0.2)' : 'rgba(15, 164, 127, 0.25)' }]}>
-            <ShieldCheck size={16} color="#25C9A0" />
+          <View style={[styles.privacyNoteBox, { backgroundColor: isDarkMode ? 'rgba(61, 224, 160, 0.08)' : 'rgba(15, 164, 127, 0.1)', borderColor: isDarkMode ? 'rgba(61, 224, 160, 0.2)' : 'rgba(15, 164, 127, 0.25)' }]}>
+            <ShieldCheck size={16} color="#3DE0A0" />
             <Text style={[styles.privacyNoteText, { color: theme.textSecondary }]}>
               All participant constraints and vetoes are mathematically sealed with zero group peer pressure.
             </Text>
@@ -493,7 +493,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: 'rgba(240, 178, 74, 0.12)',
+    backgroundColor: 'rgba(255, 90, 95, 0.12)',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative'
@@ -505,13 +505,13 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#C1503F'
+    backgroundColor: '#EF4444'
   },
   emptyContainer: {
     backgroundColor: '#192038',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(253, 249, 239, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.1)',
     padding: 24,
     alignItems: 'center',
     marginBottom: 20
@@ -520,7 +520,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: 'rgba(240, 178, 74, 0.12)',
+    backgroundColor: 'rgba(255, 90, 95, 0.12)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 14
@@ -529,13 +529,13 @@ const styles = StyleSheet.create({
     fontSize: 19,
     fontFamily: fontDisplay,
     fontWeight: '700',
-    color: '#FDF9EF',
+    color: '#F4F3F0',
     marginBottom: 8,
     textAlign: 'center'
   },
   emptySubtitle: {
     fontSize: 13,
-    color: '#A9A08C',
+    color: '#8B8D98',
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 20,
@@ -553,12 +553,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: '#F0B24A',
+    backgroundColor: '#FF5A5F',
     paddingVertical: 12,
     borderRadius: 10
   },
   emptyPrimaryBtnText: {
-    color: '#0C1120',
+    color: '#050608',
     fontSize: 13,
     fontWeight: '700'
   },
@@ -568,14 +568,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: '#12182B',
+    backgroundColor: '#090A0F',
     borderWidth: 1,
-    borderColor: 'rgba(240, 178, 74, 0.3)',
+    borderColor: 'rgba(255, 90, 95, 0.3)',
     paddingVertical: 12,
     borderRadius: 10
   },
   emptySecondaryBtnText: {
-    color: '#F0B24A',
+    color: '#FF5A5F',
     fontSize: 13,
     fontWeight: '600'
   },
@@ -586,28 +586,28 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: 20,
-    backgroundColor: 'rgba(240, 178, 74, 0.08)',
+    backgroundColor: 'rgba(255, 90, 95, 0.08)',
     borderWidth: 1,
-    borderColor: 'rgba(240, 178, 74, 0.2)'
+    borderColor: 'rgba(255, 90, 95, 0.2)'
   },
   demoStoryPillText: {
-    color: '#F0B24A',
+    color: '#FF5A5F',
     fontSize: 12,
     fontWeight: '600'
   },
   outerContainer: {
     flex: 1,
-    backgroundColor: '#0C1120',
+    backgroundColor: '#050608',
     alignItems: 'center'
   },
   tabSwitcher: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1E2742',
+    backgroundColor: '#13151E',
     borderRadius: 8,
     padding: 2,
     borderWidth: 1,
-    borderColor: '#2B3552',
+    borderColor: '#262938',
     gap: 2
   },
   tabButton: {
@@ -619,18 +619,18 @@ const styles = StyleSheet.create({
     borderRadius: 6
   },
   tabButtonActive: {
-    backgroundColor: 'rgba(240, 178, 74, 0.15)',
+    backgroundColor: 'rgba(255, 90, 95, 0.15)',
     borderWidth: 1,
-    borderColor: 'rgba(240, 178, 74, 0.35)'
+    borderColor: 'rgba(255, 90, 95, 0.35)'
   },
   tabButtonText: {
     fontFamily: fontUIBold,
     fontSize: 11,
-    color: '#C3BAA6',
+    color: '#8B8D98',
     letterSpacing: 0.2
   },
   tabButtonTextActive: {
-    color: '#F0B24A'
+    color: '#FF5A5F'
   },
   cardHeaderActions: {
     flexDirection: 'row',
@@ -644,18 +644,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
-    backgroundColor: '#242E4A',
+    backgroundColor: '#1B1D27',
     borderWidth: 1,
-    borderColor: '#323C5A'
+    borderColor: '#262938'
   },
   archiveBtnRestoring: {
-    borderColor: 'rgba(37, 201, 160, 0.3)',
-    backgroundColor: 'rgba(37, 201, 160, 0.08)'
+    borderColor: 'rgba(61, 224, 160, 0.3)',
+    backgroundColor: 'rgba(61, 224, 160, 0.08)'
   },
   archiveBtnText: {
     fontFamily: fontUIBold,
     fontSize: 10,
-    color: '#C3BAA6',
+    color: '#8B8D98',
     letterSpacing: 0.2
   },
   emptyTabCard: {
@@ -664,23 +664,23 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
     paddingHorizontal: 20,
     borderRadius: 14,
-    backgroundColor: '#0E1424',
+    backgroundColor: '#0B0F17',
     borderWidth: 1,
-    borderColor: '#2B3552',
+    borderColor: '#262938',
     marginBottom: 16
   },
   emptyTabTitle: {
     fontFamily: fontDisplay,
     fontSize: 15,
     fontWeight: '700',
-    color: '#FDF9EF',
+    color: '#F4F3F0',
     marginTop: 10,
     marginBottom: 4
   },
   emptyTabDesc: {
     fontFamily: fontUI,
     fontSize: 12,
-    color: '#C3BAA6',
+    color: '#8B8D98',
     textAlign: 'center',
     lineHeight: 18,
     maxWidth: 260
@@ -689,9 +689,9 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 440,
     flex: 1,
-    backgroundColor: '#12182B',
+    backgroundColor: '#090A0F',
     borderWidth: Platform.OS === 'web' ? 1 : 0,
-    borderColor: '#2B3552'
+    borderColor: '#262938'
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -713,24 +713,24 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 10,
-    backgroundColor: 'rgba(240, 178, 74, 0.12)',
+    backgroundColor: 'rgba(255, 90, 95, 0.12)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(240, 178, 74, 0.25)'
+    borderColor: 'rgba(255, 90, 95, 0.25)'
   },
   brandTitle: {
     fontFamily: fontDisplay,
     fontSize: 20,
     fontWeight: '800',
-    color: '#F0B24A',
+    color: '#FF5A5F',
     letterSpacing: 0.5
   },
   brandSubtitle: {
     fontFamily: fontUI,
     fontSize: 9,
     fontWeight: '700',
-    color: '#C3BAA6',
+    color: '#8B8D98',
     letterSpacing: 0.8
   },
   profilePill: {
@@ -740,15 +740,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 5,
     borderRadius: 20,
-    backgroundColor: '#1E2742',
+    backgroundColor: '#13151E',
     borderWidth: 1,
-    borderColor: '#2B3552'
+    borderColor: '#262938'
   },
   avatarMini: {
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: '#F0B24A',
+    backgroundColor: '#FF5A5F',
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -768,14 +768,14 @@ const styles = StyleSheet.create({
   proMiniBadgeText: {
     fontSize: 9,
     fontWeight: '800',
-    color: '#FFD98A'
+    color: '#D4AF37'
   },
   metricsBar: {
     flexDirection: 'row',
-    backgroundColor: '#1E2742',
+    backgroundColor: '#13151E',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#2B3552',
+    borderColor: '#262938',
     paddingVertical: 12,
     paddingHorizontal: 8,
     marginBottom: 16,
@@ -789,19 +789,19 @@ const styles = StyleSheet.create({
   metricValue: {
     fontSize: 17,
     fontWeight: '800',
-    color: '#FDF9EF',
+    color: '#F4F3F0',
     marginBottom: 2
   },
   metricLabel: {
     fontSize: 9,
     fontWeight: '700',
-    color: '#C3BAA6',
+    color: '#8B8D98',
     letterSpacing: 0.4
   },
   metricDivider: {
     width: 1,
     height: 24,
-    backgroundColor: '#2B3552'
+    backgroundColor: '#262938'
   },
   quickActionRow: {
     flexDirection: 'row',
@@ -814,14 +814,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#F0B24A',
+    backgroundColor: '#FF5A5F',
     paddingVertical: 12,
     borderRadius: 12
   },
   primaryActionBtnText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#0C1120'
+    color: '#050608'
   },
   secondaryActionBtn: {
     flex: 1,
@@ -829,16 +829,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: '#1E2742',
+    backgroundColor: '#13151E',
     borderWidth: 1,
-    borderColor: '#2B3552',
+    borderColor: '#262938',
     paddingVertical: 12,
     borderRadius: 12
   },
   secondaryActionBtnText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#FDF9EF'
+    color: '#F4F3F0'
   },
   sectionHeaderRow: {
     flexDirection: 'row',
@@ -849,7 +849,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#C3BAA6',
+    color: '#8B8D98',
     letterSpacing: 0.8
   },
   sectionTitleRow: {
@@ -860,13 +860,13 @@ const styles = StyleSheet.create({
   sectionCount: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#F0B24A'
+    color: '#FF5A5F'
   },
   circleCard: {
-    backgroundColor: '#1E2742',
+    backgroundColor: '#13151E',
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: '#2B3552',
+    borderColor: '#262938',
     overflow: 'hidden',
     marginBottom: 16,
     shadowColor: '#000',
@@ -879,7 +879,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 130,
     position: 'relative',
-    backgroundColor: '#242E4A'
+    backgroundColor: '#1B1D27'
   },
   cardCoverImage: {
     width: '100%',
@@ -887,23 +887,23 @@ const styles = StyleSheet.create({
   },
   cardCoverGradient: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(12, 17, 32, 0.35)'
+    backgroundColor: 'rgba(5, 6, 8, 0.35)'
   },
   coverTagRow: {
     position: 'absolute',
     top: 10,
     left: 12,
-    backgroundColor: 'rgba(12, 17, 32, 0.65)',
+    backgroundColor: 'rgba(5, 6, 8, 0.65)',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: 'rgba(253, 249, 239, 0.21)'
+    borderColor: 'rgba(255, 255, 255, 0.21)'
   },
   coverTagText: {
     fontFamily: fontUIBold,
     fontSize: 9.5,
-    color: '#25C9A0',
+    color: '#3DE0A0',
     letterSpacing: 0.8
   },
   cardContentPadding: {
@@ -922,7 +922,7 @@ const styles = StyleSheet.create({
   circleName: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FDF9EF',
+    color: '#F4F3F0',
     marginBottom: 6
   },
   metaBadgeRow: {
@@ -940,30 +940,30 @@ const styles = StyleSheet.create({
     fontWeight: '700'
   },
   organizerBadge: {
-    backgroundColor: 'rgba(240, 178, 74, 0.12)',
+    backgroundColor: 'rgba(255, 90, 95, 0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(240, 178, 74, 0.25)'
+    borderColor: 'rgba(255, 90, 95, 0.25)'
   },
   organizerBadgeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#F0B24A'
+    color: '#FF5A5F'
   },
   memberBadge: {
-    backgroundColor: 'rgba(37, 201, 160, 0.1)',
+    backgroundColor: 'rgba(61, 224, 160, 0.1)',
     borderWidth: 1,
-    borderColor: 'rgba(37, 201, 160, 0.2)'
+    borderColor: 'rgba(61, 224, 160, 0.2)'
   },
   memberBadgeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#25C9A0'
+    color: '#3DE0A0'
   },
   statusPill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#242E4A',
+    backgroundColor: '#1B1D27',
     paddingHorizontal: 7,
     paddingVertical: 2,
     borderRadius: 6
@@ -976,9 +976,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#242E4A',
+    backgroundColor: '#1B1D27',
     borderWidth: 1,
-    borderColor: '#384262',
+    borderColor: '#2D3144',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8
@@ -986,7 +986,7 @@ const styles = StyleSheet.create({
   invitePillText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#C3BAA6',
+    color: '#8B8D98',
     letterSpacing: 0.5
   },
   meterContainer: {
@@ -999,16 +999,16 @@ const styles = StyleSheet.create({
   },
   meterLabelText: {
     fontSize: 11,
-    color: '#C3BAA6'
+    color: '#8B8D98'
   },
   meterValueText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#FDF9EF'
+    color: '#F4F3F0'
   },
   meterTrack: {
     height: 6,
-    backgroundColor: '#2B3552',
+    backgroundColor: '#262938',
     borderRadius: 3,
     overflow: 'hidden'
   },
@@ -1022,7 +1022,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#2B3552'
+    borderTopColor: '#262938'
   },
   membersAvatarStrip: {
     flexDirection: 'row',
@@ -1036,16 +1036,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: -6,
     borderWidth: 1.5,
-    borderColor: '#1E2742'
+    borderColor: '#13151E'
   },
   memberMiniDotText: {
     fontSize: 8,
     fontWeight: '800',
-    color: '#0C1120'
+    color: '#050608'
   },
   membersCountText: {
     fontSize: 11,
-    color: '#C3BAA6',
+    color: '#8B8D98',
     marginLeft: 12
   },
   openLinkRow: {
@@ -1056,15 +1056,15 @@ const styles = StyleSheet.create({
   openLinkText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#F0B24A'
+    color: '#FF5A5F'
   },
   privacyNoteBox: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: 'rgba(37, 201, 160, 0.06)',
+    backgroundColor: 'rgba(61, 224, 160, 0.06)',
     borderWidth: 1,
-    borderColor: 'rgba(37, 201, 160, 0.15)',
+    borderColor: 'rgba(61, 224, 160, 0.15)',
     borderRadius: 12,
     padding: 12,
     marginTop: 8
@@ -1072,7 +1072,7 @@ const styles = StyleSheet.create({
   privacyNoteText: {
     fontSize: 11,
     lineHeight: 16,
-    color: '#C3BAA6',
+    color: '#8B8D98',
     flex: 1
   }
 });

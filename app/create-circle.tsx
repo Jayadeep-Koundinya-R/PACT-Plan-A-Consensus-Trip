@@ -138,7 +138,7 @@ export default function PactCreateJoinScreen() {
               style={styles.backButton}
               accessibilityLabel="Go back"
             >
-              <ArrowLeft size={18} color="#C3BAA6" />
+              <ArrowLeft size={18} color="#8B8D98" />
             </TouchableOpacity>
             <Text style={[styles.navTitle, { color: theme.textPrimary }]}>Start planning</Text>
           </View>
@@ -157,7 +157,7 @@ export default function PactCreateJoinScreen() {
           >
             <View style={styles.createIconBox}>
               <Svg width="20" height="20" viewBox="0 0 20 20">
-                <Path d="M10 3v14M3 10h14" stroke="#F0B24A" strokeWidth="2" strokeLinecap="round" />
+                <Path d="M10 3v14M3 10h14" stroke="#FF5A5F" strokeWidth="2" strokeLinecap="round" />
               </Svg>
             </View>
             <View style={styles.cardTextCol}>
@@ -174,7 +174,7 @@ export default function PactCreateJoinScreen() {
                 <Svg width="20" height="20" viewBox="0 0 20 20">
                   <Path
                     d="M7 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm6 6a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8.5 8.5l3 3"
-                    stroke="#25C9A0"
+                    stroke="#3DE0A0"
                     strokeWidth="1.6"
                     fill="none"
                     strokeLinecap="round"
@@ -191,7 +191,7 @@ export default function PactCreateJoinScreen() {
               style={[
                 styles.codeInput,
                 { backgroundColor: theme.surfaceSubtle, color: theme.textPrimary, borderColor: theme.border },
-                error ? { borderColor: '#D99836' } : {}
+                error ? { borderColor: '#E0484D' } : {}
               ]}
               value={code}
               onChangeText={(t) => {
@@ -199,7 +199,7 @@ export default function PactCreateJoinScreen() {
                 if (error) setError('');
               }}
               placeholder="e.g. GOA-4F82"
-              placeholderTextColor="#7A7263"
+              placeholderTextColor="#454857"
               autoCapitalize="characters"
             />
 
@@ -217,8 +217,8 @@ export default function PactCreateJoinScreen() {
           {/* Privacy Footnote */}
           <View style={styles.privacyRow}>
             <Svg width="14" height="14" viewBox="0 0 14 14">
-              <Circle cx="7" cy="7" r="6.2" fill="none" stroke="#7A7263" strokeWidth="1.2" />
-              <Path d="M7 4v3.3l2.2 1.3" stroke="#7A7263" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+              <Circle cx="7" cy="7" r="6.2" fill="none" stroke="#454857" strokeWidth="1.2" />
+              <Path d="M7 4v3.3l2.2 1.3" stroke="#454857" strokeWidth="1.2" fill="none" strokeLinecap="round" />
             </Svg>
             <Text style={styles.privacyText}>
               Your constraints stay private until everyone's voted
@@ -242,7 +242,7 @@ export default function PactCreateJoinScreen() {
                 onPress={() => setIsCreateModalOpen(false)}
                 style={styles.modalCloseBtn}
               >
-                <X size={18} color="#C3BAA6" />
+                <X size={18} color="#8B8D98" />
               </TouchableOpacity>
             </View>
 
@@ -252,7 +252,7 @@ export default function PactCreateJoinScreen() {
               value={tripName}
               onChangeText={setTripName}
               placeholder="e.g. Goa Beach Escape 2026"
-              placeholderTextColor="#7A7263"
+              placeholderTextColor="#454857"
             />
 
             <Text style={[styles.modalLabel, { color: theme.textSecondary }]}>Estimated travelers</Text>
@@ -262,7 +262,7 @@ export default function PactCreateJoinScreen() {
               onChangeText={setMemberCount}
               keyboardType="number-pad"
               placeholder="5"
-              placeholderTextColor="#7A7263"
+              placeholderTextColor="#454857"
             />
 
             <View style={[styles.tierInfoBox, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}>
@@ -296,7 +296,7 @@ export default function PactCreateJoinScreen() {
               onPress={handleConfirmCreate}
               style={styles.modalCreateBtn}
             >
-              <Sparkles size={16} color="#0C1120" />
+              <Sparkles size={16} color="#050608" />
               <Text style={styles.modalCreateBtnText}>Create Circle & Get Code</Text>
             </TouchableOpacity>
           </View>
@@ -327,16 +327,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 6,
-    backgroundColor: 'rgba(240, 178, 74, 0.15)'
+    backgroundColor: 'rgba(255, 90, 95, 0.15)'
   },
   viewPassLinkText: {
-    color: '#F0B24A',
+    color: '#FF5A5F',
     fontSize: 11,
     fontWeight: '800'
   },
   outerContainer: {
     flex: 1,
-    backgroundColor: '#0C1120',
+    backgroundColor: '#050608',
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -344,9 +344,9 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 420,
     flex: 1,
-    backgroundColor: '#12182B',
+    backgroundColor: '#090A0F',
     borderWidth: Platform.OS === 'web' ? 1 : 0,
-    borderColor: 'rgba(253, 249, 239, 0.11)',
+    borderColor: 'rgba(255, 255, 255, 0.11)',
     borderRadius: Platform.OS === 'web' ? 40 : 0,
     overflow: 'hidden',
     position: 'relative'
@@ -372,27 +372,27 @@ const styles = StyleSheet.create({
     fontFamily: fontDisplay,
     fontWeight: '700',
     fontSize: 15,
-    color: '#FDF9EF'
+    color: '#F4F3F0'
   },
   mainTitle: {
     fontFamily: fontDisplay,
     fontWeight: '700',
     fontSize: 26,
     lineHeight: 32,
-    color: '#FDF9EF',
+    color: '#F4F3F0',
     marginBottom: 8
   },
   mainSubtitle: {
     fontFamily: fontUI,
     fontSize: 14,
-    color: '#C3BAA6',
+    color: '#8B8D98',
     lineHeight: 21,
     marginBottom: 28
   },
   createCard: {
-    backgroundColor: '#1E2742',
+    backgroundColor: '#13151E',
     borderWidth: 1,
-    borderColor: 'rgba(253, 249, 239, 0.14)',
+    borderColor: 'rgba(255, 255, 255, 0.14)',
     borderRadius: 18,
     padding: 20,
     marginBottom: 14,
@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
     width: 46,
     height: 46,
     borderRadius: 12,
-    backgroundColor: 'rgba(240, 178, 74,0.12)',
+    backgroundColor: 'rgba(255, 90, 95,0.12)',
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -415,23 +415,23 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 15,
     fontWeight: '600',
-    color: '#FDF9EF'
+    color: '#F4F3F0'
   },
   cardSubtext: {
     fontFamily: fontUI,
     fontSize: 12.5,
-    color: '#9C947F',
+    color: '#6C6F7A',
     marginTop: 3
   },
   cardChevron: {
-    color: '#7A7263',
+    color: '#454857',
     fontSize: 20,
     fontWeight: '300'
   },
   joinCard: {
-    backgroundColor: '#1E2742',
+    backgroundColor: '#13151E',
     borderWidth: 1,
-    borderColor: 'rgba(253, 249, 239, 0.14)',
+    borderColor: 'rgba(255, 255, 255, 0.14)',
     borderRadius: 18,
     padding: 20,
     marginBottom: 24
@@ -446,7 +446,7 @@ const styles = StyleSheet.create({
     width: 46,
     height: 46,
     borderRadius: 12,
-    backgroundColor: 'rgba(37, 201, 160,0.12)',
+    backgroundColor: 'rgba(61, 224, 160,0.12)',
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -457,8 +457,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
-    backgroundColor: '#12182B',
-    color: '#FDF9EF',
+    backgroundColor: '#090A0F',
+    color: '#F4F3F0',
     fontSize: 14,
     fontFamily: fontUIBold,
     letterSpacing: 1,
@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 12,
-    color: '#D99836',
+    color: '#E0484D',
     marginBottom: 10,
     fontFamily: fontUI
   },
@@ -474,7 +474,7 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingVertical: 12,
     borderRadius: 10,
-    backgroundColor: '#FDF9EF',
+    backgroundColor: '#F4F3F0',
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -482,7 +482,7 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 14,
     fontWeight: '600',
-    color: '#12182B'
+    color: '#090A0F'
   },
   privacyRow: {
     flexDirection: 'row',
@@ -493,11 +493,11 @@ const styles = StyleSheet.create({
   privacyText: {
     fontFamily: fontUI,
     fontSize: 12,
-    color: '#9C947F'
+    color: '#6C6F7A'
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(12, 17, 32,0.85)',
+    backgroundColor: 'rgba(5, 6, 8,0.85)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20
@@ -505,7 +505,7 @@ const styles = StyleSheet.create({
   modalContent: {
     width: '100%',
     maxWidth: 380,
-    backgroundColor: '#1E2742',
+    backgroundColor: '#13151E',
     borderRadius: 20,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
@@ -521,7 +521,7 @@ const styles = StyleSheet.create({
     fontFamily: fontDisplay,
     fontSize: 18,
     fontWeight: '700',
-    color: '#FDF9EF'
+    color: '#F4F3F0'
   },
   modalCloseBtn: {
     padding: 4
@@ -530,24 +530,24 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 10.5,
     fontWeight: '700',
-    color: '#9C947F',
+    color: '#6C6F7A',
     letterSpacing: 0.8,
     marginBottom: 6
   },
   modalInput: {
-    backgroundColor: '#12182B',
+    backgroundColor: '#090A0F',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 11,
-    color: '#FDF9EF',
+    color: '#F4F3F0',
     fontSize: 14,
     fontFamily: fontUI,
     marginBottom: 16
   },
   modalCreateBtn: {
-    backgroundColor: '#F0B24A',
+    backgroundColor: '#FF5A5F',
     borderRadius: 12,
     paddingVertical: 13,
     flexDirection: 'row',
@@ -557,7 +557,7 @@ const styles = StyleSheet.create({
     marginTop: 4
   },
   modalCreateBtnText: {
-    color: '#0C1120',
+    color: '#050608',
     fontSize: 14,
     fontWeight: '700',
     fontFamily: fontUIBold

@@ -48,7 +48,7 @@ export const BottlenecksSection: React.FC<BottlenecksSectionProps> = ({
     <View
       style={[
         styles.container,
-        { backgroundColor: isDarkMode ? '#323C5A' : '#FFF3D9', borderColor: isDarkMode ? 'rgba(234, 88, 12, 0.3)' : '#F5DCA8' },
+        { backgroundColor: isDarkMode ? '#262938' : '#FFF3D9', borderColor: isDarkMode ? 'rgba(234, 88, 12, 0.3)' : '#F5DCA8' },
         shadows.sm
       ]}
     >
@@ -79,11 +79,11 @@ export const BottlenecksSection: React.FC<BottlenecksSectionProps> = ({
           >
             <View style={styles.issueIconCircle}>
               {issue.type === 'budget' ? (
-                <DollarSign size={14} color="#FFB224" />
+                <DollarSign size={14} color="#F59E0B" />
               ) : issue.type === 'dates' ? (
-                <Calendar size={14} color="#35C4A5" />
+                <Calendar size={14} color="#3DE0A0" />
               ) : (
-                <ShieldAlert size={14} color="#E14733" />
+                <ShieldAlert size={14} color="#EF4444" />
               )}
             </View>
             <View style={styles.issueTextCol}>

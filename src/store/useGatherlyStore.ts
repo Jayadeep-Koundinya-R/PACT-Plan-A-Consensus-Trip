@@ -756,7 +756,7 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     'circle-college-reunion-2026': [
       { id: 'p1', bg: '#3A241E', by: 'Alex', caption: 'Sunset at Palolem beach' },
       { id: 'p2', bg: '#403012', by: 'Maya', caption: 'Old Goa cathedral walk' },
-      { id: 'p3', bg: '#0A2A1F', by: 'Sam', caption: 'Scooter convoy morning' },
+      { id: 'p3', bg: '#052E20', by: 'Sam', caption: 'Scooter convoy morning' },
       { id: 'p4', bg: '#1E1A2A', by: 'Jordan', caption: 'Seafood feast dinner' }
     ]
   },

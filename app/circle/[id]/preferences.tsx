@@ -160,7 +160,7 @@ export default function PactConstraintsForm() {
       borderColor: interpolateColor(
         borderFlash.value,
         [0, 1],
-        ['transparent', '#25C9A0']
+        ['transparent', '#3DE0A0']
       )
     };
   });
@@ -192,7 +192,7 @@ export default function PactConstraintsForm() {
       withSpring(1, { damping: 12, stiffness: 200 })
     );
 
-    // 2. Flash card border to Emerald (#25C9A0)
+    // 2. Flash card border to Emerald (#3DE0A0)
     borderFlash.value = withSequence(
       withTiming(1, { duration: 180 }),
       withTiming(0, { duration: 500 })
@@ -250,7 +250,7 @@ export default function PactConstraintsForm() {
           {/* Morphed-in Sealed Checkmark Banner */}
           <Animated.View style={[styles.successCheckmarkBanner, animatedCheckmarkStyle]} pointerEvents="none">
             <View style={styles.successCheckmarkCircle}>
-              <Check size={16} color="#0B3327" />
+              <Check size={16} color="#0B3B22" />
             </View>
             <Text style={styles.successCheckmarkText}>Constraints Locked & Sealed Privately</Text>
           </Animated.View>
@@ -260,8 +260,8 @@ export default function PactConstraintsForm() {
           {/* Privacy Guarantee Banner */}
           <View style={styles.privacyBanner}>
             <Svg width="15" height="15" viewBox="0 0 15 15">
-              <Rect x="3.5" y="6.5" width="8" height="6.5" rx="1.5" fill="none" stroke="#25C9A0" strokeWidth="1.3" />
-              <Path d="M5.2 6.5V4.8a2.3 2.3 0 0 1 4.6 0v1.7" fill="none" stroke="#25C9A0" strokeWidth="1.3" />
+              <Rect x="3.5" y="6.5" width="8" height="6.5" rx="1.5" fill="none" stroke="#3DE0A0" strokeWidth="1.3" />
+              <Path d="M5.2 6.5V4.8a2.3 2.3 0 0 1 4.6 0v1.7" fill="none" stroke="#3DE0A0" strokeWidth="1.3" />
             </Svg>
             <Text style={styles.privacyBannerText}>
               100% private – individual budgets and dates are never shown to the group.
@@ -292,17 +292,17 @@ export default function PactConstraintsForm() {
                   <View style={styles.dateStripTopRow}>
                     {w.active && (
                       <View style={styles.dateCheckCircle}>
-                        <Check size={10} color="#0B3327" />
+                        <Check size={10} color="#0B3B22" />
                       </View>
                     )}
-                    <Text style={[styles.dateStripMonth, w.active && { color: '#25C9A0' }]}>
+                    <Text style={[styles.dateStripMonth, w.active && { color: '#3DE0A0' }]}>
                       {w.label.split(' ')[0]}
                     </Text>
                   </View>
-                  <Text style={[styles.dateStripRange, w.active && { color: '#FDF9EF' }]}>
+                  <Text style={[styles.dateStripRange, w.active && { color: '#F4F3F0' }]}>
                     {w.label}
                   </Text>
-                  <Text style={[styles.dateStripDuration, w.active && { color: '#C3BAA6' }]}>
+                  <Text style={[styles.dateStripDuration, w.active && { color: '#8B8D98' }]}>
                     7 nights
                   </Text>
                 </TouchableOpacity>
@@ -313,7 +313,7 @@ export default function PactConstraintsForm() {
                 activeOpacity={0.7}
                 style={styles.dateStripAdd}
               >
-                <Plus size={16} color="#C3BAA6" />
+                <Plus size={16} color="#8B8D98" />
                 <Text style={styles.dateStripAddText}>Add dates</Text>
               </TouchableOpacity>
             </ScrollView>
@@ -342,16 +342,16 @@ export default function PactConstraintsForm() {
                   >
                     <Text style={styles.bandEmoji}>{band.emoji}</Text>
                     <View>
-                      <Text style={[styles.bandLabel, isActive && { color: '#FDF9EF', fontWeight: '700' }]}>
+                      <Text style={[styles.bandLabel, isActive && { color: '#F4F3F0', fontWeight: '700' }]}>
                         {band.label}
                       </Text>
-                      <Text style={[styles.bandSub, isActive && { color: '#C3BAA6' }]}>
+                      <Text style={[styles.bandSub, isActive && { color: '#8B8D98' }]}>
                         {band.sub}
                       </Text>
                     </View>
                     {isActive && (
                       <View style={styles.bandCheckCircle}>
-                        <Check size={12} color="#0B3327" />
+                        <Check size={12} color="#0B3B22" />
                       </View>
                     )}
                   </TouchableOpacity>
@@ -368,12 +368,12 @@ export default function PactConstraintsForm() {
               }}
               style={styles.fineTuneToggle}
             >
-              <Sliders size={13} color="#C3BAA6" />
+              <Sliders size={13} color="#8B8D98" />
               <Text style={styles.fineTuneText}>Fine-tune exact amount</Text>
               {draft.showFineTune ? (
-                <ChevronUp size={14} color="#C3BAA6" />
+                <ChevronUp size={14} color="#8B8D98" />
               ) : (
-                <ChevronDown size={14} color="#C3BAA6" />
+                <ChevronDown size={14} color="#8B8D98" />
               )}
             </TouchableOpacity>
 
@@ -396,13 +396,13 @@ export default function PactConstraintsForm() {
                       }}
                       style={[
                         styles.budgetPresetChip,
-                        draft.budgetCustom === p && { backgroundColor: '#F0B24A', borderColor: '#F0B24A' }
+                        draft.budgetCustom === p && { backgroundColor: '#FF5A5F', borderColor: '#FF5A5F' }
                       ]}
                     >
                       <Text
                         style={[
                           styles.budgetPresetText,
-                          draft.budgetCustom === p && { color: '#231A0C', fontWeight: '700' }
+                          draft.budgetCustom === p && { color: '#2E0805', fontWeight: '700' }
                         ]}
                       >
                         ${p}
@@ -424,7 +424,7 @@ export default function PactConstraintsForm() {
                 {/* AI Budget Advisor Market Benchmark Hint */}
                 <View style={styles.advisorHintCard}>
                   <View style={styles.advisorHintHeader}>
-                    <Sparkles size={12} color="#F0B24A" />
+                    <Sparkles size={12} color="#FF5A5F" />
                     <Text style={styles.advisorHintBadge}>AI budget advisor</Text>
                     {budgetAdvisor?.source === 'gemini_live' && (
                       <View style={styles.advisorLiveBadge}>
@@ -462,15 +462,15 @@ export default function PactConstraintsForm() {
                   style={[
                     styles.vibeChip,
                     draft.vibes[v] && {
-                      backgroundColor: '#F0B24A',
-                      borderColor: '#F0B24A'
+                      backgroundColor: '#FF5A5F',
+                      borderColor: '#FF5A5F'
                     }
                   ]}
                 >
                   <Text
                     style={[
                       styles.vibeChipText,
-                      draft.vibes[v] && { color: '#231A0C', fontWeight: '700' }
+                      draft.vibes[v] && { color: '#2E0805', fontWeight: '700' }
                     ]}
                   >
                     {v}
@@ -538,7 +538,7 @@ export default function PactConstraintsForm() {
                       >
                         <IconComponent
                           size={18}
-                          color={isVetoed ? '#E14733' : '#25C9A0'}
+                          color={isVetoed ? '#EF4444' : '#3DE0A0'}
                         />
                       </View>
 
@@ -551,9 +551,9 @@ export default function PactConstraintsForm() {
                         ]}
                       >
                         {isVetoed ? (
-                          <Ban size={9} color="#E14733" style={{ marginRight: 3 }} />
+                          <Ban size={9} color="#EF4444" style={{ marginRight: 3 }} />
                         ) : (
-                          <Check size={9} color="#25C9A0" style={{ marginRight: 3 }} />
+                          <Check size={9} color="#3DE0A0" style={{ marginRight: 3 }} />
                         )}
                         <Text
                           style={[
@@ -606,8 +606,8 @@ export default function PactConstraintsForm() {
             style={styles.lockInButton}
           >
             <Svg width="14" height="14" viewBox="0 0 14 14">
-              <Rect x="3" y="6.2" width="8" height="6" rx="1.3" fill="none" stroke="#231A0C" strokeWidth="1.3" />
-              <Path d="M4.5 6.2V4.6a2.1 2.1 0 0 1 4.2 0v1.6" fill="none" stroke="#231A0C" strokeWidth="1.3" />
+              <Rect x="3" y="6.2" width="8" height="6" rx="1.3" fill="none" stroke="#2E0805" strokeWidth="1.3" />
+              <Path d="M4.5 6.2V4.6a2.1 2.1 0 0 1 4.2 0v1.6" fill="none" stroke="#2E0805" strokeWidth="1.3" />
             </Svg>
             <Text style={styles.lockInButtonText}>
               {isSubmitting ? 'Calculating Consensus...' : 'Lock in constraints privately'}
@@ -622,7 +622,7 @@ export default function PactConstraintsForm() {
 const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
-    backgroundColor: '#0C1120',
+    backgroundColor: '#050608',
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -630,9 +630,9 @@ const styles = StyleSheet.create({
     marginTop: 12,
     padding: 10,
     borderRadius: 10,
-    backgroundColor: 'rgba(240, 178, 74, 0.06)',
+    backgroundColor: 'rgba(255, 90, 95, 0.06)',
     borderWidth: 1,
-    borderColor: 'rgba(240, 178, 74, 0.22)'
+    borderColor: 'rgba(255, 90, 95, 0.22)'
   },
   advisorHintHeader: {
     flexDirection: 'row',
@@ -643,39 +643,39 @@ const styles = StyleSheet.create({
   advisorHintBadge: {
     fontFamily: fontUIBold,
     fontSize: 10,
-    color: '#F0B24A',
+    color: '#FF5A5F',
     letterSpacing: 0.6
   },
   advisorLiveBadge: {
     paddingHorizontal: 4,
     paddingVertical: 1,
     borderRadius: 3,
-    backgroundColor: '#25C9A0'
+    backgroundColor: '#3DE0A0'
   },
   advisorLiveBadgeText: {
     fontFamily: fontUIBold,
     fontSize: 8,
-    color: '#0C1120'
+    color: '#050608'
   },
   advisorHintRange: {
     fontFamily: fontUIBold,
     fontSize: 12,
-    color: '#FDF9EF',
+    color: '#F4F3F0',
     marginBottom: 2
   },
   advisorHintExplanation: {
     fontFamily: fontUI,
     fontSize: 11,
-    color: '#C3BAA6',
+    color: '#8B8D98',
     lineHeight: 15
   },
   phoneFrame: {
     width: '100%',
     maxWidth: 420,
     flex: 1,
-    backgroundColor: '#12182B',
+    backgroundColor: '#090A0F',
     borderWidth: Platform.OS === 'web' ? 1 : 0,
-    borderColor: 'rgba(253, 249, 239, 0.11)',
+    borderColor: 'rgba(255, 255, 255, 0.11)',
     borderRadius: Platform.OS === 'web' ? 40 : 0,
     overflow: 'hidden',
     position: 'relative'
@@ -708,7 +708,7 @@ const styles = StyleSheet.create({
     fontFamily: fontDisplay,
     fontWeight: '700',
     fontSize: 16,
-    color: '#FDF9EF',
+    color: '#F4F3F0',
     flex: 1
   },
   stepBadge: {
@@ -722,15 +722,15 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 11,
     fontWeight: '600',
-    color: '#9C947F'
+    color: '#6C6F7A'
   },
   privacyBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: 'rgba(37, 201, 160,0.08)',
+    backgroundColor: 'rgba(61, 224, 160,0.08)',
     borderWidth: 1,
-    borderColor: 'rgba(37, 201, 160,0.2)',
+    borderColor: 'rgba(61, 224, 160,0.2)',
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 11,
@@ -739,14 +739,14 @@ const styles = StyleSheet.create({
   privacyBannerText: {
     fontFamily: fontUI,
     fontSize: 11.5,
-    color: '#25C9A0',
+    color: '#3DE0A0',
     lineHeight: 16,
     flex: 1
   },
   card: {
-    backgroundColor: '#1E2742',
+    backgroundColor: '#13151E',
     borderWidth: 1,
-    borderColor: 'rgba(253, 249, 239, 0.14)',
+    borderColor: 'rgba(255, 255, 255, 0.14)',
     borderRadius: 18,
     padding: 18,
     marginBottom: 14
@@ -755,7 +755,7 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 13.5,
     fontWeight: '600',
-    color: '#FDF9EF',
+    color: '#F4F3F0',
     marginBottom: 12
   },
 
@@ -766,7 +766,7 @@ const styles = StyleSheet.create({
   },
   dateStripCard: {
     width: 130,
-    backgroundColor: '#182036',
+    backgroundColor: '#0F1017',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
     borderRadius: 14,
@@ -774,8 +774,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   dateStripCardActive: {
-    borderColor: '#25C9A0',
-    backgroundColor: 'rgba(37, 201, 160,0.06)'
+    borderColor: '#3DE0A0',
+    backgroundColor: 'rgba(61, 224, 160,0.06)'
   },
   dateStripTopRow: {
     flexDirection: 'row',
@@ -787,7 +787,7 @@ const styles = StyleSheet.create({
     width: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: '#25C9A0',
+    backgroundColor: '#3DE0A0',
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -795,20 +795,20 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 11,
     fontWeight: '700',
-    color: '#9C947F',
+    color: '#6C6F7A',
     letterSpacing: 0.4
   },
   dateStripRange: {
     fontFamily: fontUIBold,
     fontSize: 12,
     fontWeight: '600',
-    color: '#C3BAA6',
+    color: '#8B8D98',
     marginBottom: 2
   },
   dateStripDuration: {
     fontFamily: fontUI,
     fontSize: 10.5,
-    color: '#7A7263'
+    color: '#454857'
   },
   dateStripAdd: {
     width: 100,
@@ -824,7 +824,7 @@ const styles = StyleSheet.create({
   dateStripAddText: {
     fontFamily: fontUI,
     fontSize: 11,
-    color: '#C3BAA6'
+    color: '#8B8D98'
   },
 
   /* === Budget Bands === */
@@ -836,15 +836,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    backgroundColor: '#182036',
+    backgroundColor: '#0F1017',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
     borderRadius: 14,
     padding: 14
   },
   bandChipActive: {
-    borderColor: '#F0B24A',
-    backgroundColor: 'rgba(240, 178, 74,0.08)'
+    borderColor: '#FF5A5F',
+    backgroundColor: 'rgba(255, 90, 95,0.08)'
   },
   bandEmoji: {
     fontSize: 20
@@ -853,19 +853,19 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 13.5,
     fontWeight: '600',
-    color: '#C3BAA6'
+    color: '#8B8D98'
   },
   bandSub: {
     fontFamily: fontUI,
     fontSize: 11,
-    color: '#7A7263',
+    color: '#454857',
     marginTop: 1
   },
   bandCheckCircle: {
     width: 22,
     height: 22,
     borderRadius: 11,
-    backgroundColor: '#F0B24A',
+    backgroundColor: '#FF5A5F',
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 'auto'
@@ -882,7 +882,7 @@ const styles = StyleSheet.create({
   fineTuneText: {
     fontFamily: fontUI,
     fontSize: 12,
-    color: '#C3BAA6',
+    color: '#8B8D98',
     flex: 1
   },
   fineTunePanel: {
@@ -899,12 +899,12 @@ const styles = StyleSheet.create({
     fontFamily: fontDisplay,
     fontSize: 32,
     fontWeight: '700',
-    color: '#FDF9EF'
+    color: '#F4F3F0'
   },
   perPersonSub: {
     fontFamily: fontUI,
     fontSize: 15,
-    color: '#9C947F',
+    color: '#6C6F7A',
     marginLeft: 4
   },
   budgetPresetsRow: {
@@ -917,14 +917,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 11,
     paddingVertical: 6,
     borderRadius: 16,
-    backgroundColor: '#182036',
+    backgroundColor: '#0F1017',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)'
   },
   budgetPresetText: {
     fontFamily: fontUIBold,
     fontSize: 12,
-    color: '#C3BAA6'
+    color: '#8B8D98'
   },
   sliderTrackWrapper: {
     marginBottom: 12
@@ -937,7 +937,7 @@ const styles = StyleSheet.create({
   },
   sliderTrackFill: {
     height: '100%',
-    backgroundColor: '#F0B24A',
+    backgroundColor: '#FF5A5F',
     borderRadius: 3
   },
   budgetRangeRow: {
@@ -948,12 +948,12 @@ const styles = StyleSheet.create({
   rangeLimitText: {
     fontFamily: fontUI,
     fontSize: 10.5,
-    color: '#7A7263'
+    color: '#454857'
   },
   budgetExplainerText: {
     fontFamily: fontUI,
     fontSize: 11.5,
-    color: '#9C947F',
+    color: '#6C6F7A',
     lineHeight: 16,
     marginTop: 4
   },
@@ -970,17 +970,17 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: 'rgba(253, 249, 239, 0.2)'
+    borderColor: 'rgba(255, 255, 255, 0.2)'
   },
   vibeChipText: {
     fontFamily: fontUIBold,
     fontSize: 12.5,
-    color: '#C3BAA6'
+    color: '#8B8D98'
   },
 
   /* === Dealbreakers Icon Tile Grid === */
   dealbreakerCard: {
-    borderColor: 'rgba(225, 71, 51,0.25)',
+    borderColor: 'rgba(239, 68, 68,0.25)',
     marginBottom: 20
   },
   dealbreakerHeaderRow: {
@@ -992,21 +992,21 @@ const styles = StyleSheet.create({
   dealbreakerSub: {
     fontFamily: fontUI,
     fontSize: 11.5,
-    color: '#9C947F',
+    color: '#6C6F7A',
     marginTop: 2
   },
   vetoCountBadge: {
-    backgroundColor: 'rgba(225, 71, 51, 0.12)',
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
     paddingVertical: 3,
     paddingHorizontal: 8,
     borderRadius: radius.pill,
     borderWidth: 1,
-    borderColor: 'rgba(225, 71, 51, 0.25)'
+    borderColor: 'rgba(239, 68, 68, 0.25)'
   },
   vetoCountText: {
     fontFamily: fontUIBold,
     fontSize: 10.5,
-    color: '#E14733',
+    color: '#EF4444',
     letterSpacing: 0.3
   },
   dealbreakerGrid: {
@@ -1022,12 +1022,12 @@ const styles = StyleSheet.create({
     borderWidth: 1.5
   },
   dealbreakerTileVetoed: {
-    backgroundColor: 'rgba(225, 71, 51, 0.12)',
-    borderColor: '#E14733'
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    borderColor: '#EF4444'
   },
   dealbreakerTileAllowed: {
-    backgroundColor: 'rgba(37, 201, 160, 0.08)',
-    borderColor: 'rgba(37, 201, 160, 0.35)'
+    backgroundColor: 'rgba(61, 224, 160, 0.08)',
+    borderColor: 'rgba(61, 224, 160, 0.35)'
   },
   tileHeaderRow: {
     flexDirection: 'row',
@@ -1043,10 +1043,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   tileIconBoxVetoed: {
-    backgroundColor: 'rgba(225, 71, 51, 0.2)'
+    backgroundColor: 'rgba(239, 68, 68, 0.2)'
   },
   tileIconBoxAllowed: {
-    backgroundColor: 'rgba(37, 201, 160, 0.15)'
+    backgroundColor: 'rgba(61, 224, 160, 0.15)'
   },
   tileStatusBadge: {
     flexDirection: 'row',
@@ -1056,10 +1056,10 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill
   },
   tileStatusBadgeVetoed: {
-    backgroundColor: 'rgba(225, 71, 51, 0.25)'
+    backgroundColor: 'rgba(239, 68, 68, 0.25)'
   },
   tileStatusBadgeAllowed: {
-    backgroundColor: 'rgba(37, 201, 160, 0.18)'
+    backgroundColor: 'rgba(61, 224, 160, 0.18)'
   },
   tileStatusText: {
     fontFamily: fontUIBold,
@@ -1067,10 +1067,10 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6
   },
   tileStatusTextVetoed: {
-    color: '#E14733'
+    color: '#EF4444'
   },
   tileStatusTextAllowed: {
-    color: '#25C9A0'
+    color: '#3DE0A0'
   },
   tileTitle: {
     fontFamily: fontUIBold,
@@ -1078,20 +1078,20 @@ const styles = StyleSheet.create({
     marginBottom: 2
   },
   tileTitleVetoed: {
-    color: '#FDF9EF'
+    color: '#F4F3F0'
   },
   tileTitleAllowed: {
-    color: '#FDF9EF'
+    color: '#F4F3F0'
   },
   tileSubtitle: {
     fontFamily: fontUI,
     fontSize: 11
   },
   tileSubtitleVetoed: {
-    color: 'rgba(225, 71, 51, 0.9)'
+    color: 'rgba(239, 68, 68, 0.9)'
   },
   tileSubtitleAllowed: {
-    color: '#C3BAA6'
+    color: '#8B8D98'
   },
 
   /* === Bottom Bar === */
@@ -1099,15 +1099,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 14,
     paddingBottom: 22,
-    backgroundColor: '#12182B',
+    backgroundColor: '#090A0F',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(253, 249, 239, 0.11)'
+    borderTopColor: 'rgba(255, 255, 255, 0.11)'
   },
   lockInButton: {
     width: '100%',
     paddingVertical: 14,
     borderRadius: 12,
-    backgroundColor: '#F0B24A',
+    backgroundColor: '#FF5A5F',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1117,15 +1117,15 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 14.5,
     fontWeight: '700',
-    color: '#231A0C'
+    color: '#2E0805'
   },
   successCheckmarkBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: 'rgba(37, 201, 160, 0.15)',
+    backgroundColor: 'rgba(61, 224, 160, 0.15)',
     borderWidth: 1,
-    borderColor: 'rgba(37, 201, 160, 0.4)',
+    borderColor: 'rgba(61, 224, 160, 0.4)',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -1136,7 +1136,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#25C9A0',
+    backgroundColor: '#3DE0A0',
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -1144,7 +1144,7 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 14,
     fontWeight: '700',
-    color: '#25C9A0'
+    color: '#3DE0A0'
   },
   mainCardWrapper: {
     width: '100%'

@@ -83,7 +83,7 @@ export const ConsensusMatrix: React.FC<ConsensusMatrixProps> = ({
       {/* Split Matrix Columns */}
       <View style={styles.splitRow}>
         {/* Yes Column */}
-        <View style={[styles.columnBox, { backgroundColor: isDarkMode ? '#323C5A' : '#FDF9EF', borderColor: theme.border }]}>
+        <View style={[styles.columnBox, { backgroundColor: isDarkMode ? '#262938' : '#F4F3F0', borderColor: theme.border }]}>
           <View style={styles.colHeaderRow}>
             <View style={[styles.miniCheckCircle, { backgroundColor: theme.success }]}>
               <Check size={10} color="#FFFFFF" strokeWidth={3} />
@@ -101,7 +101,7 @@ export const ConsensusMatrix: React.FC<ConsensusMatrixProps> = ({
                   key={m?.userId || `member-${idx}`}
                   style={[
                     styles.avatarBubble,
-                    { backgroundColor: isDarkMode ? '#3A446A' : '#FFFFFF', borderColor: theme.primary }
+                    { backgroundColor: isDarkMode ? '#2D3144' : '#FFFFFF', borderColor: theme.primary }
                   ]}
                 >
                   <Text style={[styles.avatarText, { color: theme.primary }]}>
@@ -114,7 +114,7 @@ export const ConsensusMatrix: React.FC<ConsensusMatrixProps> = ({
         </View>
 
         {/* Pending Column */}
-        <View style={[styles.columnBox, { backgroundColor: isDarkMode ? '#323C5A' : '#FDF9EF', borderColor: theme.border }]}>
+        <View style={[styles.columnBox, { backgroundColor: isDarkMode ? '#262938' : '#F4F3F0', borderColor: theme.border }]}>
           <View style={styles.colHeaderRow}>
             <HelpCircle size={13} color={theme.textMuted} />
             <Text style={[styles.colTitle, { color: theme.textSecondary }]}>
@@ -150,7 +150,7 @@ export const ConsensusMatrix: React.FC<ConsensusMatrixProps> = ({
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={handleNudgePress}
-              style={[styles.nudgeBtn, { backgroundColor: isDarkMode ? '#3A446A' : '#FFEFC9' }]}
+              style={[styles.nudgeBtn, { backgroundColor: isDarkMode ? '#2D3144' : '#FFEFC9' }]}
             >
               <Text style={[styles.nudgeBtnText, { color: theme.primary }]}>Nudge</Text>
               <BellRing size={12} color={theme.primary} />

@@ -182,8 +182,8 @@ export default function PactTripVault() {
 
   const FlightIcon = () => (
     <Svg width="17" height="17" viewBox="0 0 17 17">
-      <Path d="M4 1.5h6l3 3v11h-9z" fill="none" stroke="#F0B24A" strokeWidth="1.1" strokeLinejoin="round" />
-      <Path d="M10 1.5v3h3" fill="none" stroke="#F0B24A" strokeWidth="1.1" strokeLinejoin="round" />
+      <Path d="M4 1.5h6l3 3v11h-9z" fill="none" stroke="#FF5A5F" strokeWidth="1.1" strokeLinejoin="round" />
+      <Path d="M10 1.5v3h3" fill="none" stroke="#FF5A5F" strokeWidth="1.1" strokeLinejoin="round" />
     </Svg>
   );
 
@@ -192,7 +192,7 @@ export default function PactTripVault() {
       <Path
         d="M1.5 6l1.4-1.4a1.6 1.6 0 0 0 2.3 0l1-1a1.6 1.6 0 0 1 2.3 0l1 1a1.6 1.6 0 0 0 2.3 0L13.2 3l2.3 2.3v6.4L13.2 14l-1.4-1.4a1.6 1.6 0 0 0-2.3 0l-1 1a1.6 1.6 0 0 1-2.3 0l-1-1a1.6 1.6 0 0 0-2.3 0L1.5 14z"
         fill="none"
-        stroke="#F0B24A"
+        stroke="#FF5A5F"
         strokeWidth="1"
         strokeLinejoin="round"
       />
@@ -201,8 +201,8 @@ export default function PactTripVault() {
 
   const VillaIcon = () => (
     <Svg width="17" height="17" viewBox="0 0 17 17">
-      <Path d="M2 8L8.5 2.5 15 8" fill="none" stroke="#F0B24A" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M3.7 6.8V14.5h9.6V6.8" fill="none" stroke="#F0B24A" strokeWidth="1.1" strokeLinejoin="round" />
+      <Path d="M2 8L8.5 2.5 15 8" fill="none" stroke="#FF5A5F" strokeWidth="1.1" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M3.7 6.8V14.5h9.6V6.8" fill="none" stroke="#FF5A5F" strokeWidth="1.1" strokeLinejoin="round" />
     </Svg>
   );
 
@@ -239,7 +239,7 @@ export default function PactTripVault() {
 
           {/* Vault Security Banner */}
           <View style={styles.securityBanner}>
-            <Shield size={15} color="#25C9A0" />
+            <Shield size={15} color="#3DE0A0" />
             <Text style={styles.securityBannerText}>
               Trip vault is shared with your circle only. No one outside can access these files.
             </Text>
@@ -290,14 +290,14 @@ export default function PactTripVault() {
                   onPress={handleCopy}
                   style={[
                     styles.copyBtn,
-                    copied ? { backgroundColor: '#0FA47F' } : { backgroundColor: '#25C9A0' }
+                    copied ? { backgroundColor: '#22C58B' } : { backgroundColor: '#3DE0A0' }
                   ]}
                 >
-                  {copied ? <Check size={14} color="#C8F2E4" /> : <Copy size={14} color="#0A2A1F" />}
+                  {copied ? <Check size={14} color="#CFF3E4" /> : <Copy size={14} color="#052E20" />}
                   <Text
                     style={[
                       styles.copyBtnText,
-                      copied ? { color: '#C8F2E4' } : { color: '#0A2A1F' }
+                      copied ? { color: '#CFF3E4' } : { color: '#052E20' }
                     ]}
                   >
                     {copied ? 'Copied to clipboard' : 'Copy text to clipboard'}
@@ -335,7 +335,7 @@ export default function PactTripVault() {
             {/* Modal Header */}
             <View style={styles.modalHeaderRow}>
               <View style={styles.modalBadge}>
-                <Shield size={12} color="#25C9A0" />
+                <Shield size={12} color="#3DE0A0" />
                 <Text style={styles.modalBadgeText}>Sealed consensus voucher</Text>
               </View>
               <TouchableOpacity
@@ -415,7 +415,7 @@ export default function PactTripVault() {
 const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
-    backgroundColor: '#0C1120',
+    backgroundColor: '#050608',
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -423,9 +423,9 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 420,
     flex: 1,
-    backgroundColor: '#12182B',
+    backgroundColor: '#090A0F',
     borderWidth: Platform.OS === 'web' ? 1 : 0,
-    borderColor: 'rgba(253, 249, 239, 0.11)',
+    borderColor: 'rgba(255, 255, 255, 0.11)',
     borderRadius: Platform.OS === 'web' ? 40 : 0,
     overflow: 'hidden',
     position: 'relative'
@@ -456,7 +456,7 @@ const styles = StyleSheet.create({
     fontFamily: fontDisplay,
     fontWeight: '700',
     fontSize: 16,
-    color: '#FDF9EF'
+    color: '#F4F3F0'
   },
   uploadBtnTop: {
     paddingVertical: 4,
@@ -466,15 +466,15 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 12,
     fontWeight: '600',
-    color: '#F0B24A'
+    color: '#FF5A5F'
   },
   securityBanner: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 10,
-    backgroundColor: 'rgba(37, 201, 160,0.08)',
+    backgroundColor: 'rgba(61, 224, 160,0.08)',
     borderWidth: 1,
-    borderColor: 'rgba(37, 201, 160,0.2)',
+    borderColor: 'rgba(61, 224, 160,0.2)',
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 12,
@@ -483,7 +483,7 @@ const styles = StyleSheet.create({
   securityBannerText: {
     fontFamily: fontUI,
     fontSize: 11.5,
-    color: '#25C9A0',
+    color: '#3DE0A0',
     lineHeight: 16,
     flex: 1
   },
@@ -491,7 +491,7 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 11,
     fontWeight: '700',
-    color: '#9C947F',
+    color: '#6C6F7A',
     letterSpacing: 0.8,
     marginBottom: 10
   },
@@ -500,9 +500,9 @@ const styles = StyleSheet.create({
     marginBottom: 22
   },
   docCard: {
-    backgroundColor: '#1E2742',
+    backgroundColor: '#13151E',
     borderWidth: 1,
-    borderColor: 'rgba(253, 249, 239, 0.14)',
+    borderColor: 'rgba(255, 255, 255, 0.14)',
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 14,
@@ -514,7 +514,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 11,
-    backgroundColor: 'rgba(240, 178, 74,0.1)',
+    backgroundColor: 'rgba(255, 90, 95,0.1)',
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -525,12 +525,12 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 13,
     fontWeight: '600',
-    color: '#FDF9EF'
+    color: '#F4F3F0'
   },
   docMeta: {
     fontFamily: fontUI,
     fontSize: 11,
-    color: '#9C947F',
+    color: '#6C6F7A',
     marginTop: 3
   },
   docChipsRow: {
@@ -540,7 +540,7 @@ const styles = StyleSheet.create({
   },
   docChip: {
     borderWidth: 1,
-    borderColor: 'rgba(253, 249, 239, 0.2)',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
     borderRadius: 20,
     paddingHorizontal: 11,
     paddingVertical: 4
@@ -549,12 +549,12 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 11,
     fontWeight: '600',
-    color: '#FDF9EF'
+    color: '#F4F3F0'
   },
   aiCopyCard: {
-    backgroundColor: '#1E2742',
+    backgroundColor: '#13151E',
     borderWidth: 1,
-    borderColor: 'rgba(253, 249, 239, 0.14)',
+    borderColor: 'rgba(255, 255, 255, 0.14)',
     borderRadius: 18,
     padding: 18,
     marginBottom: 20
@@ -569,12 +569,12 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 13.5,
     fontWeight: '600',
-    color: '#FDF9EF'
+    color: '#F4F3F0'
   },
   aiTextBox: {
-    backgroundColor: '#182036',
+    backgroundColor: '#0F1017',
     borderWidth: 1,
-    borderColor: 'rgba(253, 249, 239, 0.14)',
+    borderColor: 'rgba(255, 255, 255, 0.14)',
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
@@ -583,7 +583,7 @@ const styles = StyleSheet.create({
   aiTextContent: {
     fontFamily: fontUI,
     fontSize: 12.5,
-    color: '#D8D0BC',
+    color: '#B4B6C0',
     lineHeight: 18
   },
   copyBtn: {
@@ -604,15 +604,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 14,
     paddingBottom: 22,
-    backgroundColor: '#12182B',
+    backgroundColor: '#090A0F',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(253, 249, 239, 0.11)'
+    borderTopColor: 'rgba(255, 255, 255, 0.11)'
   },
   uploadFullBtn: {
     width: '100%',
     paddingVertical: 14,
     borderRadius: 12,
-    backgroundColor: '#F0B24A',
+    backgroundColor: '#FF5A5F',
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -620,11 +620,11 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 14.5,
     fontWeight: '700',
-    color: '#231A0C'
+    color: '#2E0805'
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(12, 17, 32, 0.88)',
+    backgroundColor: 'rgba(5, 6, 8, 0.88)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20
@@ -632,10 +632,10 @@ const styles = StyleSheet.create({
   modalContentCard: {
     width: '100%',
     maxWidth: 420,
-    backgroundColor: '#1E2742',
+    backgroundColor: '#13151E',
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: '#384262',
+    borderColor: '#2D3144',
     padding: 22,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 12 },
@@ -653,9 +653,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: 'rgba(37, 201, 160, 0.12)',
+    backgroundColor: 'rgba(61, 224, 160, 0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(37, 201, 160, 0.3)',
+    borderColor: 'rgba(61, 224, 160, 0.3)',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8
@@ -663,19 +663,19 @@ const styles = StyleSheet.create({
   modalBadgeText: {
     fontFamily: fontUIBold,
     fontSize: 9.5,
-    color: '#25C9A0',
+    color: '#3DE0A0',
     letterSpacing: 0.5
   },
   modalCloseBtn: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#2B3552',
+    backgroundColor: '#262938',
     justifyContent: 'center',
     alignItems: 'center'
   },
   modalCloseBtnText: {
-    color: '#C3BAA6',
+    color: '#8B8D98',
     fontSize: 12,
     fontWeight: '700'
   },
@@ -683,13 +683,13 @@ const styles = StyleSheet.create({
     fontFamily: fontDisplay,
     fontSize: 18,
     fontWeight: '700',
-    color: '#FDF9EF',
+    color: '#F4F3F0',
     marginBottom: 4
   },
   modalRefCode: {
     fontFamily: fontUIBold,
     fontSize: 11.5,
-    color: '#F0B24A',
+    color: '#FF5A5F',
     letterSpacing: 0.8,
     marginBottom: 16
   },
@@ -704,16 +704,16 @@ const styles = StyleSheet.create({
     height: 20,
     borderTopRightRadius: 10,
     borderBottomRightRadius: 10,
-    backgroundColor: '#0C1120',
+    backgroundColor: '#050608',
     borderWidth: 1,
-    borderColor: '#384262',
+    borderColor: '#2D3144',
     borderLeftWidth: 0
   },
   modalDashedLine: {
     flex: 1,
     height: 1,
     borderWidth: 1,
-    borderColor: '#384262',
+    borderColor: '#2D3144',
     borderStyle: 'dashed'
   },
   modalNotchRight: {
@@ -721,30 +721,30 @@ const styles = StyleSheet.create({
     height: 20,
     borderTopLeftRadius: 10,
     borderBottomLeftRadius: 10,
-    backgroundColor: '#0C1120',
+    backgroundColor: '#050608',
     borderWidth: 1,
-    borderColor: '#384262',
+    borderColor: '#2D3144',
     borderRightWidth: 0
   },
   modalDetailsBox: {
-    backgroundColor: '#0E1424',
+    backgroundColor: '#0B0F17',
     borderRadius: 14,
     padding: 14,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#2B3552'
+    borderColor: '#262938'
   },
   modalDetailLabel: {
     fontFamily: fontUIBold,
     fontSize: 9.5,
-    color: '#C3BAA6',
+    color: '#8B8D98',
     letterSpacing: 0.5,
     marginBottom: 4
   },
   modalDetailValue: {
     fontFamily: fontUI,
     fontSize: 12.5,
-    color: '#FDF9EF',
+    color: '#F4F3F0',
     lineHeight: 18
   },
   passengerChipsRow: {
@@ -754,7 +754,7 @@ const styles = StyleSheet.create({
     marginTop: 6
   },
   passengerChip: {
-    backgroundColor: '#242E4A',
+    backgroundColor: '#1B1D27',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
@@ -764,16 +764,16 @@ const styles = StyleSheet.create({
   passengerChipText: {
     fontFamily: fontUI,
     fontSize: 10.5,
-    color: '#25C9A0'
+    color: '#3DE0A0'
   },
   qrCodeCard: {
     alignItems: 'center',
-    backgroundColor: '#0E1424',
+    backgroundColor: '#0B0F17',
     borderRadius: 12,
     padding: 12,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#2B3552'
+    borderColor: '#262938'
   },
   simulatedBarcode: {
     flexDirection: 'row',
@@ -784,17 +784,17 @@ const styles = StyleSheet.create({
   },
   bar: {
     height: '100%',
-    backgroundColor: '#FDF9EF',
+    backgroundColor: '#F4F3F0',
     borderRadius: 1
   },
   qrCodeSub: {
     fontFamily: fontUI,
     fontSize: 8.5,
-    color: '#C3BAA6',
+    color: '#8B8D98',
     letterSpacing: 0.5
   },
   modalDoneBtn: {
-    backgroundColor: '#F0B24A',
+    backgroundColor: '#FF5A5F',
     paddingVertical: 13,
     borderRadius: 14,
     alignItems: 'center',
@@ -804,6 +804,6 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 14.5,
     fontWeight: '800',
-    color: '#0C1120'
+    color: '#050608'
   }
 });

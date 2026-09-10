@@ -64,13 +64,13 @@ export const NotificationToast: React.FC = () => {
   const getIcon = () => {
     switch (activeToast.type) {
       case 'ai':
-        return <Sparkles size={16} color="#F0B24A" />;
+        return <Sparkles size={16} color="#FF5A5F" />;
       case 'consensus':
-        return <Zap size={16} color="#25C9A0" />;
+        return <Zap size={16} color="#3DE0A0" />;
       case 'nudge':
-        return <Bell size={16} color="#F0B24A" />;
+        return <Bell size={16} color="#FF5A5F" />;
       default:
-        return <Shield size={16} color="#25C9A0" />;
+        return <Shield size={16} color="#3DE0A0" />;
     }
   };
 
@@ -82,7 +82,7 @@ export const NotificationToast: React.FC = () => {
           transform: [{ translateY: slideAnim }],
           opacity: opacityAnim,
           backgroundColor: isDarkMode ? '#192038' : '#FFFFFF',
-          borderColor: isDarkMode ? 'rgba(240, 178, 74, 0.4)' : 'rgba(212, 149, 43, 0.5)'
+          borderColor: isDarkMode ? 'rgba(255, 90, 95, 0.4)' : 'rgba(212, 149, 43, 0.5)'
         }
       ]}
     >
@@ -94,25 +94,25 @@ export const NotificationToast: React.FC = () => {
         }}
         style={styles.toastContent}
       >
-        <View style={[styles.iconBadge, { backgroundColor: isDarkMode ? 'rgba(240, 178, 74, 0.15)' : '#FFF3D6' }]}>
+        <View style={[styles.iconBadge, { backgroundColor: isDarkMode ? 'rgba(255, 90, 95, 0.15)' : '#FFF3D6' }]}>
           {getIcon()}
         </View>
 
         <View style={styles.textCol}>
           <View style={styles.headerRow}>
-            <Text style={[styles.title, { color: isDarkMode ? '#FDF9EF' : '#1E1A14' }]} numberOfLines={1}>
+            <Text style={[styles.title, { color: isDarkMode ? '#F4F3F0' : '#1E1A14' }]} numberOfLines={1}>
               {activeToast.title}
             </Text>
             <Text style={styles.badgeText}>AI NOTIFY</Text>
           </View>
-          <Text style={[styles.body, { color: isDarkMode ? '#C3BAA6' : '#5C5446' }]} numberOfLines={2}>
+          <Text style={[styles.body, { color: isDarkMode ? '#8B8D98' : '#5C5446' }]} numberOfLines={2}>
             {activeToast.body}
           </Text>
         </View>
       </TouchableOpacity>
 
       <TouchableOpacity onPress={handleDismiss} style={styles.closeBtn} activeOpacity={0.7}>
-        <X size={14} color={isDarkMode ? '#9C947F' : '#8A8068'} />
+        <X size={14} color={isDarkMode ? '#6C6F7A' : '#8A8068'} />
       </TouchableOpacity>
     </Animated.View>
   );
@@ -169,8 +169,8 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: '800',
     letterSpacing: 0.5,
-    color: '#F0B24A',
-    backgroundColor: 'rgba(240, 178, 74, 0.12)',
+    color: '#FF5A5F',
+    backgroundColor: 'rgba(255, 90, 95, 0.12)',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6

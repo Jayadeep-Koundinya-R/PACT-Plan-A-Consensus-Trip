@@ -55,13 +55,13 @@ export const NotificationCenterModal: React.FC = () => {
   const getIcon = (type: PactNotification['type']) => {
     switch (type) {
       case 'ai':
-        return <Sparkles size={16} color="#F0B24A" />;
+        return <Sparkles size={16} color="#FF5A5F" />;
       case 'consensus':
-        return <Zap size={16} color="#25C9A0" />;
+        return <Zap size={16} color="#3DE0A0" />;
       case 'nudge':
-        return <Bell size={16} color="#F0B24A" />;
+        return <Bell size={16} color="#FF5A5F" />;
       default:
-        return <Shield size={16} color="#25C9A0" />;
+        return <Shield size={16} color="#3DE0A0" />;
     }
   };
 
@@ -77,20 +77,20 @@ export const NotificationCenterModal: React.FC = () => {
           style={[
             styles.modalContainer,
             {
-              backgroundColor: isDarkMode ? '#12182B' : '#F6EFDE',
-              borderColor: isDarkMode ? 'rgba(253, 249, 239, 0.15)' : 'rgba(0,0,0,0.1)'
+              backgroundColor: isDarkMode ? '#090A0F' : '#F6EFDE',
+              borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0,0,0,0.1)'
             }
           ]}
         >
           {/* Header */}
-          <View style={[styles.headerRow, { borderBottomColor: isDarkMode ? 'rgba(253, 249, 239, 0.08)' : 'rgba(0,0,0,0.06)' }]}>
+          <View style={[styles.headerRow, { borderBottomColor: isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0,0,0,0.06)' }]}>
             <View style={styles.headerLeft}>
-              <View style={[styles.bellBox, { backgroundColor: isDarkMode ? 'rgba(240, 178, 74, 0.15)' : '#FFEFC9' }]}>
-                <Bell size={18} color="#F0B24A" />
+              <View style={[styles.bellBox, { backgroundColor: isDarkMode ? 'rgba(255, 90, 95, 0.15)' : '#FFEFC9' }]}>
+                <Bell size={18} color="#FF5A5F" />
               </View>
               <View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <Text style={[styles.headerTitle, { color: isDarkMode ? '#FDF9EF' : '#1E1A14' }]}>
+                  <Text style={[styles.headerTitle, { color: isDarkMode ? '#F4F3F0' : '#1E1A14' }]}>
                     Notifications
                   </Text>
                   {unreadCount > 0 && (
@@ -99,7 +99,7 @@ export const NotificationCenterModal: React.FC = () => {
                     </View>
                   )}
                 </View>
-                <Text style={[styles.headerSubtitle, { color: isDarkMode ? '#A9A08C' : '#6B6252' }]}>
+                <Text style={[styles.headerSubtitle, { color: isDarkMode ? '#8B8D98' : '#6B6252' }]}>
                   AI insights, circle updates & gentle nudges
                 </Text>
               </View>
@@ -113,15 +113,15 @@ export const NotificationCenterModal: React.FC = () => {
               style={styles.closeBtn}
               activeOpacity={0.7}
             >
-              <X size={18} color={isDarkMode ? '#C3BAA6' : '#5C5446'} />
+              <X size={18} color={isDarkMode ? '#8B8D98' : '#5C5446'} />
             </TouchableOpacity>
           </View>
 
           {/* Interactive Simulation Bar for Judges & Testers */}
           <View style={[styles.simulationBar, { backgroundColor: isDarkMode ? '#192038' : '#ECE4D0' }]}>
             <View style={styles.simLabelRow}>
-              <Sparkles size={13} color="#F0B24A" />
-              <Text style={[styles.simLabelText, { color: isDarkMode ? '#FDF9EF' : '#1E1A14' }]}>
+              <Sparkles size={13} color="#FF5A5F" />
+              <Text style={[styles.simLabelText, { color: isDarkMode ? '#F4F3F0' : '#1E1A14' }]}>
                 Interactive Demo Triggers
               </Text>
             </View>
@@ -134,7 +134,7 @@ export const NotificationCenterModal: React.FC = () => {
                 style={styles.simBtnPrimary}
                 activeOpacity={0.8}
               >
-                <Sparkles size={12} color="#0C1120" />
+                <Sparkles size={12} color="#050608" />
                 <Text style={styles.simBtnPrimaryText}>+ AI Advisor Insight</Text>
               </TouchableOpacity>
 
@@ -143,11 +143,11 @@ export const NotificationCenterModal: React.FC = () => {
                   haptics.tap();
                   simulateNudgeNotification('Sam');
                 }}
-                style={[styles.simBtnSecondary, { borderColor: isDarkMode ? 'rgba(253, 249, 239, 0.18)' : 'rgba(0,0,0,0.15)' }]}
+                style={[styles.simBtnSecondary, { borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.18)' : 'rgba(0,0,0,0.15)' }]}
                 activeOpacity={0.8}
               >
-                <Zap size={12} color={isDarkMode ? '#FDF9EF' : '#1E1A14'} />
-                <Text style={[styles.simBtnSecondaryText, { color: isDarkMode ? '#FDF9EF' : '#1E1A14' }]}>
+                <Zap size={12} color={isDarkMode ? '#F4F3F0' : '#1E1A14'} />
+                <Text style={[styles.simBtnSecondaryText, { color: isDarkMode ? '#F4F3F0' : '#1E1A14' }]}>
                   + Circle Response
                 </Text>
               </TouchableOpacity>
@@ -170,16 +170,16 @@ export const NotificationCenterModal: React.FC = () => {
                 style={[
                   styles.tabChip,
                   activeTab === tab.key
-                    ? { backgroundColor: '#F0B24A' }
-                    : { backgroundColor: isDarkMode ? 'rgba(253, 249, 239, 0.08)' : 'rgba(0,0,0,0.05)' }
+                    ? { backgroundColor: '#FF5A5F' }
+                    : { backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0,0,0,0.05)' }
                 ]}
               >
                 <Text
                   style={[
                     styles.tabChipText,
                     activeTab === tab.key
-                      ? { color: '#0C1120', fontWeight: '700' }
-                      : { color: isDarkMode ? '#C3BAA6' : '#6B6252' }
+                      ? { color: '#050608', fontWeight: '700' }
+                      : { color: isDarkMode ? '#8B8D98' : '#6B6252' }
                   ]}
                 >
                   {tab.label}
@@ -196,11 +196,11 @@ export const NotificationCenterModal: React.FC = () => {
           >
             {filtered.length === 0 ? (
               <View style={styles.emptyBox}>
-                <Bell size={28} color={isDarkMode ? '#3A4260' : '#C3BAA6'} />
-                <Text style={[styles.emptyTitle, { color: isDarkMode ? '#FDF9EF' : '#1E1A14' }]}>
+                <Bell size={28} color={isDarkMode ? '#3A4260' : '#8B8D98'} />
+                <Text style={[styles.emptyTitle, { color: isDarkMode ? '#F4F3F0' : '#1E1A14' }]}>
                   No notifications
                 </Text>
-                <Text style={[styles.emptySubtitle, { color: isDarkMode ? '#A9A08C' : '#6B6252' }]}>
+                <Text style={[styles.emptySubtitle, { color: isDarkMode ? '#8B8D98' : '#6B6252' }]}>
                   Tap "+ AI Advisor Insight" above to test live AI alerts.
                 </Text>
               </View>
@@ -213,8 +213,8 @@ export const NotificationCenterModal: React.FC = () => {
                     {
                       backgroundColor: isDarkMode ? '#192038' : '#FFFFFF',
                       borderColor: !item.read
-                        ? (isDarkMode ? 'rgba(240, 178, 74, 0.45)' : 'rgba(212, 149, 43, 0.55)')
-                        : (isDarkMode ? 'rgba(253, 249, 239, 0.08)' : 'rgba(0,0,0,0.06)')
+                        ? (isDarkMode ? 'rgba(255, 90, 95, 0.45)' : 'rgba(212, 149, 43, 0.55)')
+                        : (isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0,0,0,0.06)')
                     }
                   ]}
                 >
@@ -225,18 +225,18 @@ export const NotificationCenterModal: React.FC = () => {
                           styles.notifIconBox,
                           {
                             backgroundColor: item.type === 'ai'
-                              ? 'rgba(240, 178, 74, 0.15)'
-                              : 'rgba(37, 201, 160, 0.15)'
+                              ? 'rgba(255, 90, 95, 0.15)'
+                              : 'rgba(61, 224, 160, 0.15)'
                           }
                         ]}
                       >
                         {getIcon(item.type)}
                       </View>
                       <View>
-                        <Text style={[styles.notifTitle, { color: isDarkMode ? '#FDF9EF' : '#1E1A14' }]}>
+                        <Text style={[styles.notifTitle, { color: isDarkMode ? '#F4F3F0' : '#1E1A14' }]}>
                           {item.title}
                         </Text>
-                        <Text style={[styles.notifTimestamp, { color: isDarkMode ? '#A9A08C' : '#8A8068' }]}>
+                        <Text style={[styles.notifTimestamp, { color: isDarkMode ? '#8B8D98' : '#8A8068' }]}>
                           {item.timestamp}
                         </Text>
                       </View>
@@ -245,13 +245,13 @@ export const NotificationCenterModal: React.FC = () => {
                     {!item.read && <View style={styles.unreadDot} />}
                   </View>
 
-                  <Text style={[styles.notifBody, { color: isDarkMode ? '#C3BAA6' : '#473F33' }]}>
+                  <Text style={[styles.notifBody, { color: isDarkMode ? '#8B8D98' : '#473F33' }]}>
                     {item.body}
                   </Text>
 
                   {/* Privacy Badge */}
                   <View style={styles.privacyShieldRow}>
-                    <Shield size={11} color="#25C9A0" />
+                    <Shield size={11} color="#3DE0A0" />
                     <Text style={styles.privacyShieldText}>
                       {item.privacyTag || 'Zero individual budgets disclosed'}
                     </Text>
@@ -262,7 +262,7 @@ export const NotificationCenterModal: React.FC = () => {
           </ScrollView>
 
           {/* Footer Actions */}
-          <View style={[styles.footerRow, { borderTopColor: isDarkMode ? 'rgba(253, 249, 239, 0.08)' : 'rgba(0,0,0,0.06)' }]}>
+          <View style={[styles.footerRow, { borderTopColor: isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0,0,0,0.06)' }]}>
             <TouchableOpacity
               onPress={() => {
                 haptics.tap();
@@ -271,8 +271,8 @@ export const NotificationCenterModal: React.FC = () => {
               style={styles.footerActionBtn}
               activeOpacity={0.7}
             >
-              <CheckCheck size={14} color={isDarkMode ? '#C3BAA6' : '#5C5446'} />
-              <Text style={[styles.footerActionText, { color: isDarkMode ? '#C3BAA6' : '#5C5446' }]}>
+              <CheckCheck size={14} color={isDarkMode ? '#8B8D98' : '#5C5446'} />
+              <Text style={[styles.footerActionText, { color: isDarkMode ? '#8B8D98' : '#5C5446' }]}>
                 Mark all read
               </Text>
             </TouchableOpacity>
@@ -285,8 +285,8 @@ export const NotificationCenterModal: React.FC = () => {
               style={styles.footerActionBtn}
               activeOpacity={0.7}
             >
-              <Trash2 size={14} color="#C1503F" />
-              <Text style={[styles.footerActionText, { color: '#C1503F' }]}>
+              <Trash2 size={14} color="#EF4444" />
+              <Text style={[styles.footerActionText, { color: '#EF4444' }]}>
                 Clear
               </Text>
             </TouchableOpacity>
@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
     marginTop: 1
   },
   unreadCountPill: {
-    backgroundColor: '#F0B24A',
+    backgroundColor: '#FF5A5F',
     paddingHorizontal: 6,
     paddingVertical: 1,
     borderRadius: 8
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
   unreadCountText: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#0C1120'
+    color: '#050608'
   },
   closeBtn: {
     padding: 6
@@ -388,12 +388,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: '#F0B24A',
+    backgroundColor: '#FF5A5F',
     paddingVertical: 8,
     borderRadius: 8
   },
   simBtnPrimaryText: {
-    color: '#0C1120',
+    color: '#050608',
     fontSize: 11,
     fontWeight: '700'
   },
@@ -469,7 +469,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#F0B24A'
+    backgroundColor: '#FF5A5F'
   },
   notifBody: {
     fontSize: 12,
@@ -483,7 +483,7 @@ const styles = StyleSheet.create({
   },
   privacyShieldText: {
     fontSize: 10,
-    color: '#25C9A0',
+    color: '#3DE0A0',
     fontWeight: '500'
   },
   emptyBox: {

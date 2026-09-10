@@ -27,9 +27,9 @@ export interface ConsensusGaugeProps {
   size?: number;
   /** Thickness of the progress ring (default 7) */
   strokeWidth?: number;
-  /** Active stroke color (default #25C9A0) */
+  /** Active stroke color (default #3DE0A0) */
   strokeColor?: string;
-  /** Background track circle color (default rgba(253, 249, 239, 0.14)) */
+  /** Background track circle color (default rgba(255, 255, 255, 0.14)) */
   trackColor?: string;
   /** Animatable or explicit strokeDashoffset prop */
   strokeDashoffset?: number;
@@ -58,8 +58,8 @@ export const ConsensusGauge: React.FC<ConsensusGaugeProps> = ({
   progress,
   size = 84,
   strokeWidth = 7,
-  strokeColor = '#25C9A0',
-  trackColor = 'rgba(253, 249, 239, 0.14)',
+  strokeColor = '#3DE0A0',
+  trackColor = 'rgba(255, 255, 255, 0.14)',
   strokeDashoffset: explicitDashOffset,
   animated = true,
   animationDuration = 800,
@@ -171,14 +171,14 @@ const styles = StyleSheet.create({
   mainText: {
     fontFamily: fontDisplay,
     fontSize: 18,
-    color: '#FDF9EF',
+    color: '#F4F3F0',
     lineHeight: 22,
     textAlign: 'center'
   },
   subText: {
     fontFamily: fontUIBold,
     fontSize: 9.5,
-    color: '#C3BAA6',
+    color: '#8B8D98',
     letterSpacing: 0.5,
     textAlign: 'center',
     textTransform: 'lowercase'

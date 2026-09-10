@@ -63,21 +63,21 @@ export default function PactMemoryLibrary() {
       uri: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=800',
       by: 'Alex',
       caption: 'Goa Sunset Beach',
-      bg: '#242E4A'
+      bg: '#1B1D27'
     },
     {
       id: 'p2',
       uri: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=800',
       by: 'Maya',
       caption: 'Luxury South Goa Villa',
-      bg: '#242E4A'
+      bg: '#1B1D27'
     },
     {
       id: 'p3',
       uri: 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=800',
       by: 'Sam',
       caption: 'Coastal Scooter Ride',
-      bg: '#0A2A1F'
+      bg: '#052E20'
     },
     {
       id: 'p4',
@@ -112,7 +112,7 @@ export default function PactMemoryLibrary() {
                 uri,
                 by: 'You',
                 caption: file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' '),
-                bg: '#1E2742'
+                bg: '#13151E'
               };
               setUploadedPhotos((prev: any[]) => [newPhoto, ...prev]);
               haptics.success();
@@ -141,7 +141,7 @@ export default function PactMemoryLibrary() {
           uri: asset.uri,
           by: 'You',
           caption: 'Trip Memory',
-          bg: '#1E2742'
+          bg: '#13151E'
         };
         setUploadedPhotos((prev: any[]) => [newPhoto, ...prev]);
         haptics.success();
@@ -182,8 +182,8 @@ export default function PactMemoryLibrary() {
                 onPress={handleSyncMemories}
                 style={[styles.shareBtn, { paddingHorizontal: 10, width: 'auto', gap: 5, flexDirection: 'row' }]}
               >
-                <RefreshCw size={12} color="#C3BAA6" />
-                <Text style={{ fontFamily: fontUI, fontSize: 11, color: '#C3BAA6' }}>Sync</Text>
+                <RefreshCw size={12} color="#8B8D98" />
+                <Text style={{ fontFamily: fontUI, fontSize: 11, color: '#8B8D98' }}>Sync</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -192,10 +192,10 @@ export default function PactMemoryLibrary() {
                 style={styles.shareBtn}
               >
                 <Svg width="14" height="14" viewBox="0 0 14 14">
-                  <Circle cx="10.5" cy="3" r="1.8" fill="none" stroke="#C3BAA6" strokeWidth="1.1" />
-                  <Circle cx="3" cy="7" r="1.8" fill="none" stroke="#C3BAA6" strokeWidth="1.1" />
-                  <Circle cx="10.5" cy="11" r="1.8" fill="none" stroke="#C3BAA6" strokeWidth="1.1" />
-                  <Path d="M4.6 6.1l4.3-2.2M4.6 7.9l4.3 2.2" stroke="#C3BAA6" strokeWidth="1.1" />
+                  <Circle cx="10.5" cy="3" r="1.8" fill="none" stroke="#8B8D98" strokeWidth="1.1" />
+                  <Circle cx="3" cy="7" r="1.8" fill="none" stroke="#8B8D98" strokeWidth="1.1" />
+                  <Circle cx="10.5" cy="11" r="1.8" fill="none" stroke="#8B8D98" strokeWidth="1.1" />
+                  <Path d="M4.6 6.1l4.3-2.2M4.6 7.9l4.3 2.2" stroke="#8B8D98" strokeWidth="1.1" />
                 </Svg>
               </TouchableOpacity>
             </View>
@@ -237,7 +237,7 @@ export default function PactMemoryLibrary() {
                       haptics.tap();
                       Alert.alert(p.caption || 'Shared Memory', `Captured by ${p.by} during the trip.`);
                     }}
-                    style={[styles.photoTile, { backgroundColor: p.bg || '#1E2742' }]}
+                    style={[styles.photoTile, { backgroundColor: p.bg || '#13151E' }]}
                   >
                     {p.uri ? (
                       <Image
@@ -283,14 +283,14 @@ export default function PactMemoryLibrary() {
                     onPress={handleCopy}
                     style={[
                       styles.aiCopyBtn,
-                      copied ? { backgroundColor: '#0FA47F' } : { backgroundColor: '#FFD98A' }
+                      copied ? { backgroundColor: '#22C58B' } : { backgroundColor: '#D4AF37' }
                     ]}
                   >
-                    {copied ? <Check size={13} color="#C8F2E4" /> : <Copy size={13} color="#4A3A14" />}
+                    {copied ? <Check size={13} color="#CFF3E4" /> : <Copy size={13} color="#4A3A14" />}
                     <Text
                       style={[
                         styles.aiCopyBtnText,
-                        copied ? { color: '#C8F2E4' } : { color: '#4A3A14' }
+                        copied ? { color: '#CFF3E4' } : { color: '#4A3A14' }
                       ]}
                     >
                       {copied ? 'Copied!' : 'Copy recap to clipboard'}
@@ -312,7 +312,7 @@ export default function PactMemoryLibrary() {
             }}
             style={styles.downloadFullBtn}
           >
-            <Download size={16} color="#231A0C" />
+            <Download size={16} color="#2E0805" />
             <Text style={styles.downloadFullBtnText}>Download entire album (.ZIP)</Text>
           </TouchableOpacity>
         </View>
@@ -324,7 +324,7 @@ export default function PactMemoryLibrary() {
 const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
-    backgroundColor: '#0C1120',
+    backgroundColor: '#050608',
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -332,9 +332,9 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 420,
     flex: 1,
-    backgroundColor: '#12182B',
+    backgroundColor: '#090A0F',
     borderWidth: Platform.OS === 'web' ? 1 : 0,
-    borderColor: 'rgba(253, 249, 239, 0.11)',
+    borderColor: 'rgba(255, 255, 255, 0.11)',
     borderRadius: Platform.OS === 'web' ? 40 : 0,
     overflow: 'hidden',
     position: 'relative'
@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
     fontFamily: fontDisplay,
     fontWeight: '700',
     fontSize: 16,
-    color: '#FDF9EF',
+    color: '#F4F3F0',
     flex: 1
   },
   shareBtn: {
@@ -380,9 +380,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   countCard: {
-    backgroundColor: '#1E2742',
+    backgroundColor: '#13151E',
     borderWidth: 1,
-    borderColor: 'rgba(253, 249, 239, 0.14)',
+    borderColor: 'rgba(255, 255, 255, 0.14)',
     borderRadius: 14,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -391,12 +391,12 @@ const styles = StyleSheet.create({
   countText: {
     fontFamily: fontUI,
     fontSize: 12.5,
-    color: '#C3BAA6'
+    color: '#8B8D98'
   },
   countBold: {
     fontFamily: fontUIBold,
     fontWeight: '600',
-    color: '#FDF9EF'
+    color: '#F4F3F0'
   },
   photoGrid: {
     flexDirection: 'row',
@@ -406,14 +406,14 @@ const styles = StyleSheet.create({
   },
   photoOverlayGradient: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(18, 24, 43, 0.25)'
+    backgroundColor: 'rgba(9, 10, 15, 0.25)'
   },
   captionPill: {
     position: 'absolute',
     top: 8,
     left: 8,
     right: 8,
-    backgroundColor: 'rgba(18, 24, 43, 0.65)',
+    backgroundColor: 'rgba(9, 10, 15, 0.65)',
     paddingHorizontal: 7,
     paddingVertical: 3,
     borderRadius: 8
@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
     fontFamily: fontUI,
     fontSize: 9.5,
     fontWeight: '600',
-    color: '#FDF9EF'
+    color: '#F4F3F0'
   },
   photoTile: {
     width: '48%',
@@ -448,7 +448,7 @@ const styles = StyleSheet.create({
   photoTagText: {
     fontFamily: fontUI,
     fontSize: 10,
-    color: '#D8D0BC'
+    color: '#B4B6C0'
   },
   addPhotosBtn: {
     borderWidth: 1,
@@ -463,13 +463,13 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 13,
     fontWeight: '600',
-    color: '#C3BAA6'
+    color: '#8B8D98'
   },
   aiDigestOuter: {
     marginBottom: 20
   },
   aiDigestInner: {
-    backgroundColor: '#1E2742',
+    backgroundColor: '#13151E',
     borderWidth: 1,
     borderColor: 'rgba(212,175,55,0.25)',
     borderRadius: 18,
@@ -485,11 +485,11 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 13.5,
     fontWeight: '600',
-    color: '#FDF9EF',
+    color: '#F4F3F0',
     flex: 1
   },
   aiGoldTag: {
-    backgroundColor: '#FFD98A',
+    backgroundColor: '#D4AF37',
     borderRadius: 8,
     paddingHorizontal: 7,
     paddingVertical: 2
@@ -504,7 +504,7 @@ const styles = StyleSheet.create({
   aiDigestText: {
     fontFamily: fontUI,
     fontSize: 13,
-    color: '#D8D0BC',
+    color: '#B4B6C0',
     lineHeight: 19,
     marginBottom: 14
   },
@@ -526,15 +526,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 14,
     paddingBottom: 22,
-    backgroundColor: '#12182B',
+    backgroundColor: '#090A0F',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(253, 249, 239, 0.11)'
+    borderTopColor: 'rgba(255, 255, 255, 0.11)'
   },
   downloadFullBtn: {
     width: '100%',
     paddingVertical: 14,
     borderRadius: 12,
-    backgroundColor: '#F0B24A',
+    backgroundColor: '#FF5A5F',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -544,6 +544,6 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 14.5,
     fontWeight: '700',
-    color: '#231A0C'
+    color: '#2E0805'
   }
 });

@@ -4,8 +4,8 @@
 //
 // These tests read the REAL token values from src/theme/colors.ts (regex-extracted,
 // because node --test cannot import TS directly) and assert them against the
-// DESIGN_SYSTEM.md palette. Previously this suite asserted hardcoded local
-// constants against themselves, which validated nothing.
+// restored original palette: Base #090A0F, Card #13151E, Coral #FF5A5F, Emerald #3DE0A0,
+// Gold #D4AF37, Amber #F59E0B, Danger #EF4444.
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
@@ -23,39 +23,48 @@ const colorsSrc = fs.readFileSync(
 function token(mode, name) {
   const blockMatch = colorsSrc.match(new RegExp(`${mode}:\\s*\\{([\\s\\S]*?)\\n  \\}`));
   assert.ok(blockMatch, `colors.ts must contain a ${mode} block`);
-  const valueMatch = blockMatch[1].match(new RegExp(`${name}:\\s*['\"]([^'\"]+)['\"]`));
+  const valueMatch = blockMatch[1].match(new RegExp(`${name}:\\s*['"]([^'"]+)['"]`));
   assert.ok(valueMatch, `colors.${mode}.${name} must exist`);
   return valueMatch[1];
 }
 
-// DESIGN_SYSTEM.md palette — sharpened accents (2026-09-07): vivid gold, vivid teal, vermilion.
+// Canonical original palette
 const DARK = {
-  background: '#12182B',   // Ink
-  surface: '#1E2742',
-  primary: '#F0B24A',      // vivid gold
-  secondary: '#25C9A0',    // vivid teal
-  success: '#25C9A0',
-  danger: '#E14733',       // vermilion
-  seal: '#E14733',         // dual meaning with danger is intentional
-  textPrimary: '#FDF9EF',
-  textSecondary: '#C3BAA6'
+  background: '#090A0F',   // Base
+  card: '#13151E',         // Card
+  surface: '#13151E',
+  primary: '#FF5A5F',      // Coral
+  secondary: '#3DE0A0',    // Emerald
+  success: '#3DE0A0',      // Emerald
+  warning: '#F59E0B',      // Amber
+  gold: '#D4AF37',         // Gold
+  danger: '#EF4444',       // Danger
+  seal: '#3DE0A0',
+  textPrimary: '#F4F3F0',
+  textSecondary: '#8B8D98'
 };
 const LIGHT = {
-  background: '#F6EFDE',   // Parchment
-  primary: '#C88A1F',      // bright gold for parchment
-  secondary: '#0FA47F',    // vivid teal
-  success: '#0FA47F',
-  danger: '#D6432B',       // vermilion
-  seal: '#D6432B',
-  textPrimary: '#1E1A14'
+  background: '#F4F3F0',
+  primary: '#FF5A5F',      // Coral
+  secondary: '#16A34A',
+  success: '#16A34A',
+  warning: '#D97706',
+  gold: '#B45309',
+  danger: '#DC2626',
+  seal: '#16A34A',
+  textPrimary: '#090A0F'
 };
 
 describe('Property 6: Screen background token correctness', () => {
-  it('dark background is Ink (#12182B)', () => {
+  it('dark background is Base (#090A0F)', () => {
     assert.equal(token('dark', 'background'), DARK.background);
   });
 
-  it('light background is Parchment (#F6EFDE)', () => {
+  it('dark card is Card (#13151E)', () => {
+    assert.equal(token('dark', 'card'), DARK.card);
+  });
+
+  it('light background is #F4F3F0', () => {
     assert.equal(token('light', 'background'), LIGHT.background);
   });
 
@@ -63,65 +72,76 @@ describe('Property 6: Screen background token correctness', () => {
     assert.notEqual(DARK.background, LIGHT.background);
   });
 
-  it('neither background is the retired terracotta/coral palette', () => {
-    assert.notEqual(token('dark', 'background'), '#090A0F');
-    assert.notEqual(token('light', 'background'), '#F3EEE2');
+  it('neither background is the retired Ink & Brass palette', () => {
+    assert.notEqual(token('dark', 'background'), '#12182B');
+    assert.notEqual(token('light', 'background'), '#F6EFDE');
   });
 });
 
 describe('Property 7: Primary color token correctness', () => {
-  it('dark primary is Brass (#C99A5B)', () => {
+  it('dark primary is Coral (#FF5A5F)', () => {
     assert.equal(token('dark', 'primary'), DARK.primary);
   });
 
-  it('light primary is Brass (#A97C3D)', () => {
+  it('light primary is Coral (#FF5A5F)', () => {
     assert.equal(token('light', 'primary'), LIGHT.primary);
   });
 
-  it('primary tokens are not the retired coral (#FF5A5F) or old terracotta (#EA580C)', () => {
-    assert.notEqual(token('dark', 'primary'), '#FF5A5F');
-    assert.notEqual(token('light', 'primary'), '#FF5A5F');
-    assert.notEqual(token('dark', 'primary'), '#EA580C');
-    assert.notEqual(token('light', 'primary'), '#EA580C');
+  it('primary tokens are Coral (#FF5A5F), not brass (#C99A5B or #F0B24A)', () => {
+    assert.notEqual(token('dark', 'primary'), '#C99A5B');
+    assert.notEqual(token('light', 'primary'), '#A97C3D');
+    assert.notEqual(token('dark', 'primary'), '#F0B24A');
+    assert.notEqual(token('light', 'primary'), '#C88A1F');
   });
 });
 
-describe('Property 8: Seal color dual meaning (errors AND finalized-trip seal)', () => {
-  it('dark seal is Sealing Red, identical to danger', () => {
-    assert.equal(token('dark', 'seal'), token('dark', 'danger'));
+describe('Property 8: Seal color token correctness', () => {
+  it('dark seal is Emerald (#3DE0A0)', () => {
     assert.equal(token('dark', 'seal'), DARK.seal);
   });
 
-  it('light seal is Sealing Red, identical to danger', () => {
-    assert.equal(token('light', 'seal'), token('light', 'danger'));
+  it('light seal is #16A34A', () => {
     assert.equal(token('light', 'seal'), LIGHT.seal);
   });
 
-  it('seal is NOT the retired mint green', () => {
-    assert.notEqual(token('dark', 'seal'), '#3DE0A0');
+  it('seal is Emerald, NOT the retired vermilion / sealing red (#E14733 or #C1503F)', () => {
+    assert.notEqual(token('dark', 'seal'), '#E14733');
+    assert.notEqual(token('dark', 'seal'), '#C1503F');
   });
 });
 
-describe('Property 9: Success tokens stay in the petrol/moss family', () => {
-  it('dark success is the petrol-moss readable variant', () => {
+describe('Property 9: Success tokens stay in the Emerald family', () => {
+  it('dark success is Emerald (#3DE0A0)', () => {
     assert.equal(token('dark', 'success'), DARK.success);
   });
 
-  it('light success is Moss (#4B7A51)', () => {
-    assert.equal(token('light', 'success'), LIGHT.success);
+  it('dark secondary is Emerald (#3DE0A0)', () => {
+    assert.equal(token('dark', 'secondary'), DARK.secondary);
+  });
+
+  it('dark warning is Amber (#F59E0B)', () => {
+    assert.equal(token('dark', 'warning'), DARK.warning);
+  });
+
+  it('dark gold is Gold (#D4AF37)', () => {
+    assert.equal(token('dark', 'gold'), DARK.gold);
   });
 });
 
-describe('Property 10: Text tokens match the document palette', () => {
-  it('dark textPrimary is warm off-white (#F3EEE2)', () => {
+describe('Property 10: Text and danger tokens match the original palette', () => {
+  it('dark danger is Danger (#EF4444)', () => {
+    assert.equal(token('dark', 'danger'), DARK.danger);
+  });
+
+  it('dark textPrimary is #F4F3F0', () => {
     assert.equal(token('dark', 'textPrimary'), DARK.textPrimary);
   });
 
-  it('dark textSecondary is warm grey (#A9A08C)', () => {
+  it('dark textSecondary is #8B8D98', () => {
     assert.equal(token('dark', 'textSecondary'), DARK.textSecondary);
   });
 
-  it('light textPrimary is ink brown (#1E1A14)', () => {
+  it('light textPrimary is ink black (#090A0F)', () => {
     assert.equal(token('light', 'textPrimary'), LIGHT.textPrimary);
   });
 });

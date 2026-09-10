@@ -87,7 +87,7 @@ export default function LegalModal({ visible, section, onClose }: LegalModalProp
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
         <View style={[styles.header, { borderBottomColor: theme.border }]}>
           <View style={styles.headerLeft}>
-            <View style={[styles.iconBox, { backgroundColor: isDarkMode ? '#323C5A' : '#FFEFC9' }]}>
+            <View style={[styles.iconBox, { backgroundColor: isDarkMode ? '#262938' : '#FFEFC9' }]}>
               <Icon size={18} color={theme.primary} />
             </View>
             <View>

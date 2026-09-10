@@ -21,7 +21,7 @@ export const FloatingAIChatButton: React.FC = () => {
     >
       <View style={styles.glowAura} />
       <View style={styles.fabButton}>
-        <Sparkles size={18} color="#0C1120" strokeWidth={2.5} />
+        <Sparkles size={18} color="#050608" strokeWidth={2.5} />
         <Text style={styles.fabText}>Ask Gemini</Text>
       </View>
     </TouchableOpacity>
@@ -42,8 +42,8 @@ const styles = StyleSheet.create({
     width: 130,
     height: 52,
     borderRadius: 26,
-    backgroundColor: 'rgba(240, 178, 74, 0.35)',
-    shadowColor: '#F0B24A',
+    backgroundColor: 'rgba(255, 90, 95, 0.35)',
+    shadowColor: '#FF5A5F',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.6,
     shadowRadius: 12
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#F0B24A',
+    backgroundColor: '#FF5A5F',
     paddingVertical: 12,
     paddingHorizontal: 18,
     borderRadius: 25,
@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
     elevation: 8
   },
   fabText: {
-    color: '#0C1120',
+    color: '#050608',
     fontSize: 14,
     fontWeight: '800'
   }

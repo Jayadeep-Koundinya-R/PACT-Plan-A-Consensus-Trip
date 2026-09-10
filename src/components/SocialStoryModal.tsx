@@ -101,7 +101,7 @@ export const SocialStoryModal: React.FC<SocialStoryModalProps> = ({
               style={[
                 styles.storyFrame,
                 {
-                  backgroundColor: '#0E1424',
+                  backgroundColor: '#0B0F17',
                   borderColor: theme.primary
                 },
                 shadows.glowPrimary
@@ -110,13 +110,13 @@ export const SocialStoryModal: React.FC<SocialStoryModalProps> = ({
               {/* Card Header */}
               <View style={styles.storyHeader}>
                 <View style={styles.brandRow}>
-                  <View style={[styles.iconCircle, { backgroundColor: '#35C4A5' }]}>
+                  <View style={[styles.iconCircle, { backgroundColor: '#3DE0A0' }]}>
                     <Compass size={16} color="#FFFFFF" />
                   </View>
                   <Text style={styles.brandText}>PACT</Text>
                 </View>
                 <View style={styles.consensusSeal}>
-                  <Award size={12} color="#25C9A0" />
+                  <Award size={12} color="#3DE0A0" />
                   <Text style={styles.consensusSealText}>100% CONSENSUS</Text>
                 </View>
               </View>
@@ -130,11 +130,11 @@ export const SocialStoryModal: React.FC<SocialStoryModalProps> = ({
               {/* Stats Box */}
               <View style={styles.statsBox}>
                 <View style={styles.statItem}>
-                  <Calendar size={14} color="#35C4A5" />
+                  <Calendar size={14} color="#3DE0A0" />
                   <Text style={styles.statText}>{dates}</Text>
                 </View>
                 <View style={styles.statItem}>
-                  <DollarSign size={14} color="#25C9A0" />
+                  <DollarSign size={14} color="#3DE0A0" />
                   <Text style={styles.statText}>{budget} / person</Text>
                 </View>
               </View>
@@ -162,7 +162,7 @@ export const SocialStoryModal: React.FC<SocialStoryModalProps> = ({
 
               {/* Footer */}
               <View style={styles.storyFooter}>
-                <Sparkles size={14} color="#FFB224" />
+                <Sparkles size={14} color="#F59E0B" />
                 <Text style={styles.footerText}>Made with PACT • Plan A Consensus Trip</Text>
               </View>
             </View>
@@ -257,18 +257,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: 'rgba(37, 201, 160, 0.2)',
+    backgroundColor: 'rgba(61, 224, 160, 0.2)',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: radius.pill
   },
   consensusSealText: {
-    color: '#25C9A0',
+    color: '#3DE0A0',
     fontSize: 9,
     fontWeight: '800'
   },
   groupLabel: {
-    color: '#C3BAA6',
+    color: '#8B8D98',
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 1,
@@ -282,12 +282,12 @@ const styles = StyleSheet.create({
     lineHeight: 30
   },
   statsBox: {
-    backgroundColor: 'rgba(253, 249, 239, 0.11)',
+    backgroundColor: 'rgba(255, 255, 255, 0.11)',
     borderRadius: radius.md,
     padding: 12,
     gap: 6,
     borderWidth: 1,
-    borderColor: 'rgba(253, 249, 239, 0.14)'
+    borderColor: 'rgba(255, 255, 255, 0.14)'
   },
   statItem: {
     flexDirection: 'row',
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
     gap: 6
   },
   statText: {
-    color: '#FDF9EF',
+    color: '#F4F3F0',
     fontSize: 12,
     fontWeight: '700'
   },
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
     marginTop: 4
   },
   crewLabel: {
-    color: '#9C947F',
+    color: '#6C6F7A',
     fontSize: 9,
     fontWeight: '800',
     letterSpacing: 0.8,
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill
   },
   crewChipText: {
-    color: '#35C4A5',
+    color: '#3DE0A0',
     fontSize: 11,
     fontWeight: '700'
   },
@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
     gap: 6
   },
   tagText: {
-    color: '#C3BAA6',
+    color: '#8B8D98',
     fontSize: 11,
     fontWeight: '600'
   },
@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
     gap: 6
   },
   footerText: {
-    color: '#9C947F',
+    color: '#6C6F7A',
     fontSize: 10,
     fontWeight: '600'
   },

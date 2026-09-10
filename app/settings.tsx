@@ -62,13 +62,13 @@ export default function PactSettings() {
       onPress={onPress}
       style={[
         styles.toggleTrack,
-        on ? { backgroundColor: '#25C9A0' } : { backgroundColor: 'rgba(253, 249, 239, 0.18)' }
+        on ? { backgroundColor: '#3DE0A0' } : { backgroundColor: 'rgba(255, 255, 255, 0.18)' }
       ]}
     >
       <View
         style={[
           styles.toggleThumb,
-          on ? { backgroundColor: '#0A2A1F', transform: [{ translateX: 16 }] } : { backgroundColor: '#C3BAA6', transform: [{ translateX: 0 }] }
+          on ? { backgroundColor: '#052E20', transform: [{ translateX: 16 }] } : { backgroundColor: '#8B8D98', transform: [{ translateX: 0 }] }
         ]}
       />
     </TouchableOpacity>
@@ -82,7 +82,7 @@ export default function PactSettings() {
           <View style={styles.headerRow}>
             <View style={styles.headerLeft}>
               <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7} style={styles.backBtn}>
-                <ArrowLeft size={18} color="#C3BAA6" />
+                <ArrowLeft size={18} color="#8B8D98" />
               </TouchableOpacity>
               <Text style={styles.headerTitle}>Settings & circles</Text>
             </View>
@@ -94,9 +94,9 @@ export default function PactSettings() {
                   openNotificationCenter();
                 }}
                 activeOpacity={0.7}
-                style={[styles.notifHeaderBtn, { backgroundColor: isDarkMode ? 'rgba(240, 178, 74, 0.12)' : '#FFEFC9' }]}
+                style={[styles.notifHeaderBtn, { backgroundColor: isDarkMode ? 'rgba(255, 90, 95, 0.12)' : '#FFEFC9' }]}
               >
-                <Bell size={17} color="#F0B24A" />
+                <Bell size={17} color="#FF5A5F" />
                 {unreadCount > 0 && (
                   <View style={styles.notifBadgeDot} />
                 )}
@@ -107,7 +107,7 @@ export default function PactSettings() {
                   <Path
                     d="M7 1.3l5 1.8v3.7c0 3-2 5.3-5 6-3-.7-5-3-5-6V3.1z"
                     fill="none"
-                    stroke="#C3BAA6"
+                    stroke="#8B8D98"
                     strokeWidth="1.1"
                     strokeLinejoin="round"
                   />
@@ -132,7 +132,7 @@ export default function PactSettings() {
               <Text style={[styles.profileHandle, { color: theme.textSecondary }]}>{profile?.email || '@alex_travels'}</Text>
               <View style={styles.proStatusPill}>
                 <Svg width="10" height="10" viewBox="0 0 10 10">
-                  <Path d="M1 3.5l2 1.5 2-3 2 3 2-1.5-.7 4.5H1.7z" fill="#FFD98A" />
+                  <Path d="M1 3.5l2 1.5 2-3 2 3 2-1.5-.7 4.5H1.7z" fill="#D4AF37" />
                 </Svg>
                 <Text style={styles.proStatusPillText}>{subscriptionPlan !== 'free' ? 'PACT Pro organizer pass active' : 'Free tier (Up to 5 members)'}</Text>
               </View>
@@ -141,17 +141,17 @@ export default function PactSettings() {
 
 
           {/* Appearance & Theme Section */}
-          <Text style={[styles.sectionHeading, { color: isDarkMode ? '#A9A08C' : '#6B6252' }]}>Appearance & theme</Text>
-          <View style={[styles.settingsGroupCard, { backgroundColor: isDarkMode ? '#192038' : '#FFFFFF', borderColor: isDarkMode ? 'rgba(253, 249, 239, 0.11)' : 'rgba(0,0,0,0.08)' }]}>
+          <Text style={[styles.sectionHeading, { color: isDarkMode ? '#8B8D98' : '#6B6252' }]}>Appearance & theme</Text>
+          <View style={[styles.settingsGroupCard, { backgroundColor: isDarkMode ? '#192038' : '#FFFFFF', borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0,0,0,0.08)' }]}>
             <View style={styles.settingRow}>
               <View style={styles.settingTextCol}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 2 }}>
-                  {isDarkMode ? <Moon size={15} color="#F0B24A" /> : <Sun size={15} color="#D4952B" />}
-                  <Text style={[styles.settingLabel, { color: isDarkMode ? '#FDF9EF' : '#1E1A14' }]}>
+                  {isDarkMode ? <Moon size={15} color="#FF5A5F" /> : <Sun size={15} color="#D4952B" />}
+                  <Text style={[styles.settingLabel, { color: isDarkMode ? '#F4F3F0' : '#1E1A14' }]}>
                     {isDarkMode ? 'Dark theme (Ink & Brass)' : 'Light theme (Parchment & Gold)'}
                   </Text>
                 </View>
-                <Text style={[styles.settingDesc, { color: isDarkMode ? '#9C947F' : '#6B6252' }]}>
+                <Text style={[styles.settingDesc, { color: isDarkMode ? '#6C6F7A' : '#6B6252' }]}>
                   {isDarkMode
                     ? 'Deep midnight blue background with warm brass accents and gold CTAs.'
                     : 'Classic warm parchment paper aesthetic with vintage ink typography.'}
@@ -163,13 +163,13 @@ export default function PactSettings() {
 
 
           {/* Currency & Localization Section */}
-          <Text style={[styles.sectionHeading, { color: isDarkMode ? '#A9A08C' : '#6B6252' }]}>Currency & localization</Text>
-          <View style={[styles.settingsGroupCard, { backgroundColor: isDarkMode ? '#192038' : '#FFFFFF', borderColor: isDarkMode ? 'rgba(253, 249, 239, 0.11)' : 'rgba(0,0,0,0.08)' }]}>
+          <Text style={[styles.sectionHeading, { color: isDarkMode ? '#8B8D98' : '#6B6252' }]}>Currency & localization</Text>
+          <View style={[styles.settingsGroupCard, { backgroundColor: isDarkMode ? '#192038' : '#FFFFFF', borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0,0,0,0.08)' }]}>
             <View style={{ padding: 14 }}>
-              <Text style={[styles.settingLabel, { color: isDarkMode ? '#FDF9EF' : '#1E1A14', marginBottom: 4 }]}>
+              <Text style={[styles.settingLabel, { color: isDarkMode ? '#F4F3F0' : '#1E1A14', marginBottom: 4 }]}>
                 Display currency ({currencySymbol || '$'} {currency || 'USD'})
               </Text>
-              <Text style={[styles.settingDesc, { color: isDarkMode ? '#9C947F' : '#6B6252', marginBottom: 12 }]}>
+              <Text style={[styles.settingDesc, { color: isDarkMode ? '#6C6F7A' : '#6B6252', marginBottom: 12 }]}>
                 Prices, budget ranges, and market guidance will be converted to your preferred currency.
               </Text>
               <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -186,13 +186,13 @@ export default function PactSettings() {
                       activeOpacity={0.75}
                       style={[
                         styles.currencyTab,
-                        isSelected ? styles.currencyTabActive : { backgroundColor: isDarkMode ? '#12182B' : '#F6EFDE', borderColor: isDarkMode ? 'rgba(253, 249, 239, 0.12)' : 'rgba(0,0,0,0.08)' }
+                        isSelected ? styles.currencyTabActive : { backgroundColor: isDarkMode ? '#090A0F' : '#F6EFDE', borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0,0,0,0.08)' }
                       ]}
                     >
-                      <Text style={[styles.currencyTabSymbol, isSelected && { color: '#0C1120' }]}>
+                      <Text style={[styles.currencyTabSymbol, isSelected && { color: '#050608' }]}>
                         {symbols[curr]}
                       </Text>
-                      <Text style={[styles.currencyTabCode, isSelected && { color: '#0C1120', fontWeight: '700' }]}>
+                      <Text style={[styles.currencyTabCode, isSelected && { color: '#050608', fontWeight: '700' }]}>
                         {curr}
                       </Text>
                     </TouchableOpacity>
@@ -213,7 +213,7 @@ export default function PactSettings() {
             >
               <View style={styles.circleHeaderRow}>
                 <Text style={[styles.circleTitle, { color: theme.textPrimary }]}>Goa beach escape 2026</Text>
-                <MoreVertical size={16} color="#9C947F" />
+                <MoreVertical size={16} color="#6C6F7A" />
               </View>
               <View style={styles.circleMetaRow}>
                 <Text style={styles.circleStatusGreen}>3/5 responded</Text>
@@ -243,7 +243,7 @@ export default function PactSettings() {
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={() => router.push('/create-circle' as any)}
-            style={[styles.createCircleBtn, { backgroundColor: isDarkMode ? '#12182B' : '#EFE7D4', borderColor: theme.border }]}
+            style={[styles.createCircleBtn, { backgroundColor: isDarkMode ? '#090A0F' : '#EFE7D4', borderColor: theme.border }]}
           >
             <Text style={styles.createCircleBtnText}>+ Create new circle</Text>
           </TouchableOpacity>
@@ -275,7 +275,7 @@ export default function PactSettings() {
             <View style={styles.settingRow}>
               <Text style={[styles.settingLabel, { color: theme.textPrimary }]}>WhatsApp nudges</Text>
               <View style={styles.connectedRow}>
-                <Check size={12} color="#25C9A0" />
+                <Check size={12} color="#3DE0A0" />
                 <Text style={styles.connectedText}>Connected</Text>
               </View>
             </View>
@@ -287,7 +287,7 @@ export default function PactSettings() {
             <View style={[styles.settingRow, styles.settingRowBorder]}>
               <View style={styles.settingTextCol}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <Sparkles size={14} color="#F0B24A" />
+                  <Sparkles size={14} color="#FF5A5F" />
                   <Text style={[styles.settingLabel, { color: theme.textPrimary }]}>AI Advisor notifications</Text>
                 </View>
                 <Text style={[styles.settingDesc, { color: theme.textSecondary }]}>
@@ -306,7 +306,7 @@ export default function PactSettings() {
                 activeOpacity={0.8}
                 style={styles.testAiBtn}
               >
-                <Sparkles size={14} color="#0C1120" />
+                <Sparkles size={14} color="#050608" />
                 <Text style={styles.testAiBtnText}>Test incoming AI notification</Text>
               </TouchableOpacity>
             </View>
@@ -319,8 +319,8 @@ export default function PactSettings() {
             <View style={styles.planInfoRow}>
               <View style={styles.planInfoLeft}>
                 <View style={[styles.planBadge, subscriptionPlan !== 'free' ? styles.planBadgePro : styles.planBadgeFree]}>
-                  {subscriptionPlan !== 'free' ? <Crown size={12} color="#0C1120" /> : <Zap size={12} color="#C3BAA6" />}
-                  <Text style={[styles.planBadgeText, subscriptionPlan !== 'free' && { color: '#0C1120' }]}>
+                  {subscriptionPlan !== 'free' ? <Crown size={12} color="#050608" /> : <Zap size={12} color="#8B8D98" />}
+                  <Text style={[styles.planBadgeText, subscriptionPlan !== 'free' && { color: '#050608' }]}>
                     {subscriptionPlan !== 'free' ? 'PACT PRO' : 'FREE TIER'}
                   </Text>
                 </View>
@@ -336,19 +336,19 @@ export default function PactSettings() {
             {/* Plan Features List */}
             <View style={styles.planFeaturesList}>
               <View style={styles.planFeatureItem}>
-                <Check size={12} color={subscriptionPlan !== 'free' ? '#25C9A0' : '#C3BAA6'} />
+                <Check size={12} color={subscriptionPlan !== 'free' ? '#3DE0A0' : '#8B8D98'} />
                 <Text style={[styles.planFeatureText, { color: theme.textSecondary }]}>
                   {subscriptionPlan !== 'free' ? 'Unlimited trip circles' : '1 active trip circle'}
                 </Text>
               </View>
               <View style={styles.planFeatureItem}>
-                <Check size={12} color={subscriptionPlan !== 'free' ? '#25C9A0' : '#C3BAA6'} />
+                <Check size={12} color={subscriptionPlan !== 'free' ? '#3DE0A0' : '#8B8D98'} />
                 <Text style={[styles.planFeatureText, { color: theme.textSecondary }]}>
                   {subscriptionPlan !== 'free' ? 'Up to 50+ members per circle' : 'Up to 5 members per circle'}
                 </Text>
               </View>
               <View style={styles.planFeatureItem}>
-                <Check size={12} color={subscriptionPlan !== 'free' ? '#25C9A0' : '#C3BAA6'} />
+                <Check size={12} color={subscriptionPlan !== 'free' ? '#3DE0A0' : '#8B8D98'} />
                 <Text style={[styles.planFeatureText, { color: theme.textSecondary }]}>
                   {subscriptionPlan !== 'free' ? 'Unlimited AI prompts' : '15 AI prompts per day'}
                 </Text>
@@ -364,11 +364,11 @@ export default function PactSettings() {
               }}
               style={styles.viewPassesBtn}
             >
-              <CreditCard size={15} color="#0C1120" />
+              <CreditCard size={15} color="#050608" />
               <Text style={styles.viewPassesBtnText}>
                 {subscriptionPlan !== 'free' ? 'Change Plan / Upgrade Tier' : 'Buy a Group Pass'}
               </Text>
-              <ChevronRight size={14} color="#0C1120" />
+              <ChevronRight size={14} color="#050608" />
             </TouchableOpacity>
 
             {/* Manage Subscription (Pro only) */}
@@ -447,13 +447,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#2A2F3A'
   },
   planBadgePro: {
-    backgroundColor: '#25C9A0'
+    backgroundColor: '#3DE0A0'
   },
   planBadgeText: {
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 0.5,
-    color: '#C3BAA6'
+    color: '#8B8D98'
   },
   planFeaturesList: {
     marginTop: 12,
@@ -474,7 +474,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#F0B24A',
+    backgroundColor: '#FF5A5F',
     paddingVertical: 12,
     marginHorizontal: 16,
     marginBottom: 12,
@@ -491,7 +491,7 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline'
   },
   viewPassesBtnText: {
-    color: '#0C1120',
+    color: '#050608',
     fontSize: 13,
     fontWeight: '800'
   },
@@ -505,19 +505,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   currencyTabActive: {
-    backgroundColor: '#F0B24A',
-    borderColor: '#F0B24A'
+    backgroundColor: '#FF5A5F',
+    borderColor: '#FF5A5F'
   },
   currencyTabSymbol: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#F0B24A',
+    color: '#FF5A5F',
     marginBottom: 2
   },
   currencyTabCode: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#A9A08C'
+    color: '#8B8D98'
   },
   notifHeaderBtn: {
     width: 36,
@@ -534,27 +534,27 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#C1503F'
+    backgroundColor: '#EF4444'
   },
   testAiBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#F0B24A',
+    backgroundColor: '#FF5A5F',
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 10,
     width: '100%'
   },
   testAiBtnText: {
-    color: '#0C1120',
+    color: '#050608',
     fontSize: 13,
     fontWeight: '700'
   },
   outerContainer: {
     flex: 1,
-    backgroundColor: '#0C1120',
+    backgroundColor: '#050608',
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -562,9 +562,9 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 420,
     flex: 1,
-    backgroundColor: '#12182B',
+    backgroundColor: '#090A0F',
     borderWidth: Platform.OS === 'web' ? 1 : 0,
-    borderColor: 'rgba(253, 249, 239, 0.11)',
+    borderColor: 'rgba(255, 255, 255, 0.11)',
     borderRadius: Platform.OS === 'web' ? 40 : 0,
     overflow: 'hidden',
     position: 'relative'
@@ -595,21 +595,21 @@ const styles = StyleSheet.create({
     fontFamily: fontDisplay,
     fontWeight: '700',
     fontSize: 16,
-    color: '#FDF9EF'
+    color: '#F4F3F0'
   },
   shieldIconBox: {
     width: 34,
     height: 34,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'rgba(253, 249, 239, 0.18)',
+    borderColor: 'rgba(255, 255, 255, 0.18)',
     alignItems: 'center',
     justifyContent: 'center'
   },
   profileCard: {
-    backgroundColor: '#1E2742',
+    backgroundColor: '#13151E',
     borderWidth: 1,
-    borderColor: 'rgba(253, 249, 239, 0.14)',
+    borderColor: 'rgba(255, 255, 255, 0.14)',
     borderRadius: 18,
     padding: 18,
     marginBottom: 20,
@@ -624,9 +624,9 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#7A7263',
+    backgroundColor: '#454857',
     borderWidth: 2,
-    borderColor: '#FFD98A',
+    borderColor: '#D4AF37',
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -634,13 +634,13 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 17,
     fontWeight: '700',
-    color: '#D8D0BC'
+    color: '#B4B6C0'
   },
   proMiniBadge: {
     position: 'absolute',
     bottom: -4,
     alignSelf: 'center',
-    backgroundColor: '#FFD98A',
+    backgroundColor: '#D4AF37',
     borderRadius: 6,
     paddingHorizontal: 6,
     paddingVertical: 2
@@ -658,12 +658,12 @@ const styles = StyleSheet.create({
     fontFamily: fontDisplay,
     fontSize: 18,
     fontWeight: '700',
-    color: '#FDF9EF'
+    color: '#F4F3F0'
   },
   profileHandle: {
     fontFamily: fontUI,
     fontSize: 12,
-    color: '#9C947F',
+    color: '#6C6F7A',
     marginTop: 2,
     marginBottom: 8
   },
@@ -683,13 +683,13 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 10.5,
     fontWeight: '600',
-    color: '#FFD98A'
+    color: '#D4AF37'
   },
   sectionHeading: {
     fontFamily: fontUIBold,
     fontSize: 11,
     fontWeight: '700',
-    color: '#9C947F',
+    color: '#6C6F7A',
     letterSpacing: 0.8,
     marginBottom: 10
   },
@@ -698,9 +698,9 @@ const styles = StyleSheet.create({
     marginBottom: 12
   },
   circleItemCard: {
-    backgroundColor: '#1E2742',
+    backgroundColor: '#13151E',
     borderWidth: 1,
-    borderColor: 'rgba(253, 249, 239, 0.14)',
+    borderColor: 'rgba(255, 255, 255, 0.14)',
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 15
@@ -714,7 +714,7 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 14.5,
     fontWeight: '600',
-    color: '#FDF9EF',
+    color: '#F4F3F0',
     marginBottom: 8
   },
   circleMetaRow: {
@@ -725,16 +725,16 @@ const styles = StyleSheet.create({
   circleStatusGreen: {
     fontFamily: fontUIBold,
     fontSize: 11.5,
-    color: '#25C9A0'
+    color: '#3DE0A0'
   },
   circleStatusAmber: {
     fontFamily: fontUIBold,
     fontSize: 11.5,
-    color: '#FFC55C'
+    color: '#F0B547'
   },
   roleBadge: {
     borderWidth: 1,
-    borderColor: 'rgba(253, 249, 239, 0.2)',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
     borderRadius: 20,
     paddingHorizontal: 9,
     paddingVertical: 3
@@ -743,7 +743,7 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 10.5,
     fontWeight: '600',
-    color: '#D8D0BC'
+    color: '#B4B6C0'
   },
   createCircleBtn: {
     width: '100%',
@@ -759,12 +759,12 @@ const styles = StyleSheet.create({
   createCircleBtnText: {
     fontFamily: fontUI,
     fontSize: 13,
-    color: '#C3BAA6'
+    color: '#8B8D98'
   },
   settingsGroupCard: {
-    backgroundColor: '#1E2742',
+    backgroundColor: '#13151E',
     borderWidth: 1,
-    borderColor: 'rgba(253, 249, 239, 0.14)',
+    borderColor: 'rgba(255, 255, 255, 0.14)',
     borderRadius: 16,
     paddingHorizontal: 16,
     marginBottom: 22
@@ -777,7 +777,7 @@ const styles = StyleSheet.create({
   },
   settingRowBorder: {
     borderTopWidth: 1,
-    borderTopColor: 'rgba(253, 249, 239, 0.11)'
+    borderTopColor: 'rgba(255, 255, 255, 0.11)'
   },
   settingTextCol: {
     flex: 1,
@@ -787,12 +787,12 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 13.5,
     fontWeight: '600',
-    color: '#FDF9EF'
+    color: '#F4F3F0'
   },
   settingDesc: {
     fontFamily: fontUI,
     fontSize: 11.5,
-    color: '#9C947F',
+    color: '#6C6F7A',
     lineHeight: 16,
     marginTop: 3
   },
@@ -816,12 +816,12 @@ const styles = StyleSheet.create({
   connectedText: {
     fontFamily: fontUIBold,
     fontSize: 11.5,
-    color: '#25C9A0'
+    color: '#3DE0A0'
   },
   remindersSub: {
     fontFamily: fontUI,
     fontSize: 11.5,
-    color: '#9C947F'
+    color: '#6C6F7A'
   },
   planInfoRow: {
     flexDirection: 'row',
@@ -829,17 +829,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(253, 249, 239, 0.11)'
+    borderBottomColor: 'rgba(255, 255, 255, 0.11)'
   },
   renewsDate: {
     fontFamily: fontUI,
     fontSize: 11,
-    color: '#9C947F'
+    color: '#6C6F7A'
   },
   dangerBox: {
-    backgroundColor: 'rgba(225, 71, 51,0.07)',
+    backgroundColor: 'rgba(239, 68, 68,0.07)',
     borderWidth: 1,
-    borderColor: 'rgba(225, 71, 51,0.2)',
+    borderColor: 'rgba(239, 68, 68,0.2)',
     borderRadius: 12,
     paddingVertical: 6,
     marginVertical: 14
@@ -852,16 +852,16 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 13,
     fontWeight: '600',
-    color: '#E14733'
+    color: '#EF4444'
   },
   dangerDivider: {
     borderTopWidth: 1,
-    borderTopColor: 'rgba(225, 71, 51,0.15)',
+    borderTopColor: 'rgba(239, 68, 68,0.15)',
     marginHorizontal: 8
   },
   purgeBtnText: {
     fontFamily: fontUI,
     fontSize: 12.5,
-    color: '#A97C3D'
+    color: '#B54848'
   }
 });

@@ -2,12 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, useWindowDimensions } from 'react-native';
 
 const LUXURY_GOLD_COLORS = [
-  '#F0B24A', // Vibrant Gold
-  '#C99A5B', // Warm Brass
+  '#FF5A5F', // Vibrant Gold
+  '#FF5A5F', // Warm Brass
   '#FFDF88', // Pale Champagne
-  '#FDF9EF', // Warm White Sparkle
+  '#F4F3F0', // Warm White Sparkle
   '#D4952B', // Deep Amber Gold
-  '#C1503F', // Sealing Wax Red
+  '#EF4444', // Sealing Wax Red
   '#E6BE75', // Golden Sand
   '#B8860B'  // Rich Bronze
 ];
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
   },
   particle: {
     position: 'absolute',
-    shadowColor: '#F0B24A',
+    shadowColor: '#FF5A5F',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.25,
     shadowRadius: 2

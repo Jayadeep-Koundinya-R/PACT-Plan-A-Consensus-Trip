@@ -109,8 +109,8 @@ export default function PactPaywall() {
             >
               <ArrowLeft size={18} color={theme.textPrimary} />
             </TouchableOpacity>
-            <View style={[styles.proPillBadge, { backgroundColor: isDarkMode ? 'rgba(240, 178, 74, 0.15)' : '#FFF3D6' }]}>
-              <Sparkles size={12} color="#F0B24A" />
+            <View style={[styles.proPillBadge, { backgroundColor: isDarkMode ? 'rgba(255, 90, 95, 0.15)' : '#FFF3D6' }]}>
+              <Sparkles size={12} color="#FF5A5F" />
               <Text style={styles.proPillText}>GROUP PASSES & TIERS</Text>
             </View>
           </View>
@@ -118,7 +118,7 @@ export default function PactPaywall() {
           {/* Golden Hero Card */}
           <View style={[styles.heroCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <Text style={[styles.heroTitle, { color: theme.textPrimary }]}>Only 1 Person Pays.</Text>
-            <Text style={[styles.heroHighlight, { color: '#F0B24A' }]}>Everyone Else Joins 100% Free.</Text>
+            <Text style={[styles.heroHighlight, { color: '#FF5A5F' }]}>Everyone Else Joins 100% Free.</Text>
             <Text style={[styles.heroSub, { color: theme.textSecondary }]}>
               Invite 5, 10, 19, or 50+ friends. Only the trip organizer activates the group pass — all participants enter constraints and vote with zero paywalls.
             </Text>
@@ -144,10 +144,10 @@ export default function PactPaywall() {
                       isSelected && { backgroundColor: theme.primary, borderColor: theme.primary }
                     ]}
                   >
-                    <Text style={[styles.currencyTabSymbol, isSelected ? { color: '#0C1120' } : { color: theme.primary }]}>
+                    <Text style={[styles.currencyTabSymbol, isSelected ? { color: '#050608' } : { color: theme.primary }]}>
                       {symbols[c]}
                     </Text>
-                    <Text style={[styles.currencyTabCode, isSelected ? { color: '#0C1120', fontWeight: '800' } : { color: theme.textSecondary }]}>
+                    <Text style={[styles.currencyTabCode, isSelected ? { color: '#050608', fontWeight: '800' } : { color: theme.textSecondary }]}>
                       {c}
                     </Text>
                   </TouchableOpacity>
@@ -212,7 +212,7 @@ export default function PactPaywall() {
                   style={[
                     styles.tierCard,
                     { backgroundColor: theme.surface, borderColor: theme.border },
-                    isSelected && { borderColor: '#F0B24A', borderWidth: 2 }
+                    isSelected && { borderColor: '#FF5A5F', borderWidth: 2 }
                   ]}
                 >
                   {/* Top Badge & Capacity */}
@@ -220,9 +220,9 @@ export default function PactPaywall() {
                     <View style={styles.tierNameCol}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                         {tierId === 'tier_community' ? (
-                          <Building2 size={16} color="#25C9A0" />
+                          <Building2 size={16} color="#3DE0A0" />
                         ) : (
-                          <Users size={16} color="#F0B24A" />
+                          <Users size={16} color="#FF5A5F" />
                         )}
                         <Text style={[styles.tierName, { color: theme.textPrimary }]}>{tier.name}</Text>
                       </View>
@@ -230,7 +230,7 @@ export default function PactPaywall() {
                     </View>
 
                     <View style={styles.tierPriceCol}>
-                      <Text style={[styles.tierPrice, { color: tierId === 'free' ? '#25C9A0' : '#F0B24A' }]}>
+                      <Text style={[styles.tierPrice, { color: tierId === 'free' ? '#3DE0A0' : '#FF5A5F' }]}>
                         {priceDisplay}
                       </Text>
                       <Text style={[styles.tierPriceSub, { color: theme.textSecondary }]}>
@@ -247,7 +247,7 @@ export default function PactPaywall() {
                   <View style={styles.tierFeatures}>
                     {tier.features.map((feat, idx) => (
                       <View key={idx} style={styles.featureItem}>
-                        <Check size={13} color="#25C9A0" strokeWidth={2.5} />
+                        <Check size={13} color="#3DE0A0" strokeWidth={2.5} />
                         <Text style={[styles.featureText, { color: theme.textPrimary }]}>{feat}</Text>
                       </View>
                     ))}
@@ -260,23 +260,23 @@ export default function PactPaywall() {
                     style={[
                       styles.tierActionBtn,
                       tierId === 'tier_community'
-                        ? { backgroundColor: '#1E2742', borderWidth: 1, borderColor: '#25C9A0' }
+                        ? { backgroundColor: '#13151E', borderWidth: 1, borderColor: '#3DE0A0' }
                         : tierId === 'free'
                         ? { backgroundColor: theme.surfaceSubtle, borderWidth: 1, borderColor: theme.border }
-                        : { backgroundColor: '#F0B24A' }
+                        : { backgroundColor: '#FF5A5F' }
                     ]}
                   >
                     {tierId === 'tier_community' ? (
                       <>
-                        <Mail size={15} color="#25C9A0" />
-                        <Text style={[styles.tierActionBtnText, { color: '#25C9A0' }]}>Contact Operator</Text>
+                        <Mail size={15} color="#3DE0A0" />
+                        <Text style={[styles.tierActionBtnText, { color: '#3DE0A0' }]}>Contact Operator</Text>
                       </>
                     ) : tierId === 'free' ? (
                       <Text style={[styles.tierActionBtnText, { color: theme.textPrimary }]}>Current Free Tier (≤5)</Text>
                     ) : (
                       <>
-                        <Sparkles size={15} color="#0C1120" />
-                        <Text style={[styles.tierActionBtnText, { color: '#0C1120' }]}>
+                        <Sparkles size={15} color="#050608" />
+                        <Text style={[styles.tierActionBtnText, { color: '#050608' }]}>
                           Activate {tier.name} Pass
                         </Text>
                       </>
@@ -289,7 +289,7 @@ export default function PactPaywall() {
 
           {/* Privacy & Operator Guarantee */}
           <View style={[styles.guaranteeCard, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}>
-            <ShieldCheck size={18} color="#25C9A0" />
+            <ShieldCheck size={18} color="#3DE0A0" />
             <View style={{ flex: 1 }}>
               <Text style={[styles.guaranteeTitle, { color: theme.textPrimary }]}>No Per-Person Seat Fees</Text>
               <Text style={[styles.guaranteeDesc, { color: theme.textSecondary }]}>
@@ -310,7 +310,7 @@ export default function PactPaywall() {
             <View style={[styles.operatorModalCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
               <View style={styles.modalHeader}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                  <Building2 size={20} color="#25C9A0" />
+                  <Building2 size={20} color="#3DE0A0" />
                   <Text style={[styles.modalHeaderTitle, { color: theme.textPrimary }]}>
                     Building & Community Concierge
                   </Text>
@@ -325,12 +325,12 @@ export default function PactPaywall() {
               </Text>
 
               <View style={[styles.operatorEmailBox, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}>
-                <Mail size={16} color="#F0B24A" />
+                <Mail size={16} color="#FF5A5F" />
                 <Text style={[styles.operatorEmailText, { color: theme.textPrimary }]}>
                   concierge@pact.travel
                 </Text>
                 <TouchableOpacity onPress={handleCopyEmail} activeOpacity={0.7} style={styles.copyBtn}>
-                  <Text style={{ color: copiedEmail ? '#25C9A0' : '#F0B24A', fontSize: 12, fontWeight: '700' }}>
+                  <Text style={{ color: copiedEmail ? '#3DE0A0' : '#FF5A5F', fontSize: 12, fontWeight: '700' }}>
                     {copiedEmail ? 'Copied!' : 'Copy'}
                   </Text>
                 </TouchableOpacity>
@@ -342,7 +342,7 @@ export default function PactPaywall() {
                   onPress={handleOpenEmail}
                   style={styles.primaryEmailBtn}
                 >
-                  <Mail size={16} color="#0C1120" />
+                  <Mail size={16} color="#050608" />
                   <Text style={styles.primaryEmailBtnText}>Open Email to Operator</Text>
                 </TouchableOpacity>
 
@@ -370,7 +370,7 @@ export default function PactPaywall() {
 const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
-    backgroundColor: '#0C1120',
+    backgroundColor: '#050608',
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -378,9 +378,9 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 480,
     flex: 1,
-    backgroundColor: '#12182B',
+    backgroundColor: '#090A0F',
     borderWidth: Platform.OS === 'web' ? 1 : 0,
-    borderColor: 'rgba(253, 249, 239, 0.11)',
+    borderColor: 'rgba(255, 255, 255, 0.11)',
     borderRadius: Platform.OS === 'web' ? 40 : 0,
     overflow: 'hidden',
     position: 'relative'
@@ -415,7 +415,7 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 11,
     fontWeight: '800',
-    color: '#F0B24A',
+    color: '#FF5A5F',
     letterSpacing: 0.8
   },
   heroCard: {
@@ -499,13 +499,13 @@ const styles = StyleSheet.create({
     fontWeight: '600'
   },
   saveTag: {
-    backgroundColor: '#25C9A0',
+    backgroundColor: '#3DE0A0',
     paddingHorizontal: 5,
     paddingVertical: 2,
     borderRadius: 4
   },
   saveTagText: {
-    color: '#0C1120',
+    color: '#050608',
     fontSize: 9,
     fontWeight: '800'
   },
@@ -645,7 +645,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
-    backgroundColor: 'rgba(240, 178, 74, 0.15)'
+    backgroundColor: 'rgba(255, 90, 95, 0.15)'
   },
   modalActions: {
     gap: 10,
@@ -656,12 +656,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#F0B24A',
+    backgroundColor: '#FF5A5F',
     paddingVertical: 12,
     borderRadius: 10
   },
   primaryEmailBtnText: {
-    color: '#0C1120',
+    color: '#050608',
     fontSize: 14,
     fontWeight: '800'
   },

@@ -12,11 +12,11 @@ import Animated, {
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const PARTICLE_COLORS = [
-  '#25C9A0', // Emerald
-  '#F0B24A', // Coral
-  '#FFD98A', // Gold
-  '#25C9A0',
-  '#F0B24A'
+  '#3DE0A0', // Emerald
+  '#FF5A5F', // Coral
+  '#D4AF37', // Gold
+  '#3DE0A0',
+  '#FF5A5F'
 ];
 
 interface ParticleConfig {

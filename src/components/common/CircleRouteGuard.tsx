@@ -19,7 +19,7 @@ export const CircleRouteGuard: React.FC<CircleRouteGuardProps> = ({ id, children
       <SafeAreaView style={styles.container}>
         <View style={styles.card}>
           <View style={styles.iconBox}>
-            <AlertCircle size={28} color="#F0B24A" />
+            <AlertCircle size={28} color="#FF5A5F" />
           </View>
           <Text style={styles.title}>Circle Not Found</Text>
           <Text style={styles.description}>
@@ -30,7 +30,7 @@ export const CircleRouteGuard: React.FC<CircleRouteGuardProps> = ({ id, children
             activeOpacity={0.8}
             onPress={() => router.replace('/(tabs)/home')}
           >
-            <ArrowLeft size={16} color="#FDF9EF" strokeWidth={2.5} />
+            <ArrowLeft size={16} color="#F4F3F0" strokeWidth={2.5} />
             <Text style={styles.backButtonText}>Return to My Circles</Text>
           </TouchableOpacity>
         </View>
@@ -44,7 +44,7 @@ export const CircleRouteGuard: React.FC<CircleRouteGuardProps> = ({ id, children
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0C1120',
+    backgroundColor: '#050608',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
@@ -52,9 +52,9 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 380,
-    backgroundColor: '#182036',
+    backgroundColor: '#0F1017',
     borderWidth: 1,
-    borderColor: 'rgba(253, 249, 239, 0.14)',
+    borderColor: 'rgba(255, 255, 255, 0.14)',
     borderRadius: 20,
     padding: 28,
     alignItems: 'center',
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: 'rgba(240, 178, 74, 0.12)',
+    backgroundColor: 'rgba(255, 90, 95, 0.12)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
   description: {
     fontFamily: fontUI,
     fontSize: 14,
-    color: '#C3BAA6',
+    color: '#8B8D98',
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 24,
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#25C9A0',
+    backgroundColor: '#3DE0A0',
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 12,
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
   backButtonText: {
     fontFamily: fontUIBold,
     fontSize: 14,
-    color: '#0A2A1F',
+    color: '#052E20',
     fontWeight: '700',
   },
 });

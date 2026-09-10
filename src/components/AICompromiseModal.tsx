@@ -130,7 +130,7 @@ export const AICompromiseModal: React.FC<AICompromiseModalProps> = ({
           {/* 1. Analyzing Animation State */}
           {stage === 'analyzing' && (
             <View style={styles.analyzingBox}>
-              <View style={[styles.pulseCircle, { backgroundColor: isDarkMode ? '#323C5A' : '#FFEFC9' }, shadows.glowPrimary]}>
+              <View style={[styles.pulseCircle, { backgroundColor: isDarkMode ? '#262938' : '#FFEFC9' }, shadows.glowPrimary]}>
                 <BrainCircuit size={36} color={theme.primary} />
               </View>
               <Text style={[styles.analyzingTitle, { color: theme.textPrimary }]}>
@@ -167,8 +167,8 @@ export const AICompromiseModal: React.FC<AICompromiseModalProps> = ({
           {stage === 'proposal' && proposal && (
             <ScrollView showsVerticalScrollIndicator={false} style={styles.proposalScroll}>
               {/* Match Score Banner */}
-              <View style={[styles.matchBanner, { backgroundColor: isDarkMode ? '#0A2A1F' : '#DCFCE7', borderColor: '#25C9A0' }]}>
-                <Sparkles size={16} color="#25C9A0" />
+              <View style={[styles.matchBanner, { backgroundColor: isDarkMode ? '#052E20' : '#DCFCE7', borderColor: '#3DE0A0' }]}>
+                <Sparkles size={16} color="#3DE0A0" />
                 <Text style={styles.matchBannerText}>
                   {proposal.projectedConsensusPercent}% Projected Group Consensus
                 </Text>
@@ -200,7 +200,7 @@ export const AICompromiseModal: React.FC<AICompromiseModalProps> = ({
               </View>
 
               {/* The Trade-Off Rationale */}
-              <View style={[styles.tradeOffCard, { backgroundColor: isDarkMode ? '#242E4A' : '#FFF3D9', borderColor: theme.primary }]}>
+              <View style={[styles.tradeOffCard, { backgroundColor: isDarkMode ? '#1B1D27' : '#FFF3D9', borderColor: theme.primary }]}>
                 <View style={styles.tradeOffHeader}>
                   <Zap size={15} color={theme.primary} />
                   <Text style={[styles.tradeOffTitle, { color: theme.primary }]}>
@@ -257,7 +257,7 @@ export const AICompromiseModal: React.FC<AICompromiseModalProps> = ({
           {/* 3. Applied Confirmation State */}
           {stage === 'applied' && (
             <View style={styles.appliedBox}>
-              <View style={[styles.successCircle, { backgroundColor: '#25C9A0' }]}>
+              <View style={[styles.successCircle, { backgroundColor: '#3DE0A0' }]}>
                 <CheckCircle2 size={40} color="#FFFFFF" />
               </View>
               <Text style={[styles.appliedTitle, { color: theme.textPrimary }]}>
@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
     marginBottom: 12
   },
   matchBannerText: {
-    color: '#25C9A0',
+    color: '#3DE0A0',
     fontSize: 12,
     fontWeight: '800'
   },

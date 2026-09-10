@@ -215,17 +215,17 @@ const styles = StyleSheet.create({
   vaultCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1E2742',
+    backgroundColor: '#13151E',
     borderRadius: radius.md,
     padding: 14,
     borderWidth: 1,
-    borderColor: 'rgba(253, 249, 239, 0.14)'
+    borderColor: 'rgba(255, 255, 255, 0.14)'
   },
   docIconBox: {
     width: 36,
     height: 36,
     borderRadius: 8,
-    backgroundColor: 'rgba(253, 249, 239, 0.14)',
+    backgroundColor: 'rgba(255, 255, 255, 0.14)',
     marginRight: 12
   },
   docContent: {
@@ -236,19 +236,19 @@ const styles = StyleSheet.create({
     height: 14,
     width: '65%',
     borderRadius: 4,
-    backgroundColor: 'rgba(253, 249, 239, 0.18)'
+    backgroundColor: 'rgba(255, 255, 255, 0.18)'
   },
   docMetaSkeleton: {
     height: 10,
     width: '45%',
     borderRadius: 3,
-    backgroundColor: 'rgba(253, 249, 239, 0.11)'
+    backgroundColor: 'rgba(255, 255, 255, 0.11)'
   },
   docActionSkeleton: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: 'rgba(253, 249, 239, 0.11)'
+    backgroundColor: 'rgba(255, 255, 255, 0.11)'
   },
   // Memory Photos Skeleton Styles
   photoGrid: {
@@ -261,9 +261,9 @@ const styles = StyleSheet.create({
     width: '48%',
     height: 130,
     borderRadius: 12,
-    backgroundColor: '#1E2742',
+    backgroundColor: '#13151E',
     borderWidth: 1,
-    borderColor: 'rgba(253, 249, 239, 0.14)',
+    borderColor: 'rgba(255, 255, 255, 0.14)',
     justifyContent: 'flex-end',
     padding: 10
   },
@@ -271,6 +271,6 @@ const styles = StyleSheet.create({
     height: 12,
     width: '50%',
     borderRadius: 3,
-    backgroundColor: 'rgba(253, 249, 239, 0.21)'
+    backgroundColor: 'rgba(255, 255, 255, 0.21)'
   }
 });

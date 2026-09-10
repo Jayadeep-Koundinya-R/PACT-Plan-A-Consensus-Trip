@@ -77,16 +77,16 @@ export const PactAIChatModal: React.FC = () => {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.keyboardContainer}
         >
-          <View style={[styles.chatCard, { backgroundColor: isDarkMode ? '#0C1120' : '#F6EFDE' }]}>
+          <View style={[styles.chatCard, { backgroundColor: isDarkMode ? '#050608' : '#F6EFDE' }]}>
             {/* Header */}
-            <View style={[styles.header, { borderBottomColor: isDarkMode ? 'rgba(253, 249, 239, 0.1)' : 'rgba(0,0,0,0.08)' }]}>
+            <View style={[styles.header, { borderBottomColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0,0,0,0.08)' }]}>
               <View style={styles.headerLeft}>
                 <View style={styles.botAvatar}>
-                  <Sparkles size={18} color="#0C1120" strokeWidth={2.5} />
+                  <Sparkles size={18} color="#050608" strokeWidth={2.5} />
                 </View>
                 <View>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                    <Text style={[styles.headerTitle, { color: isDarkMode ? '#FDF9EF' : '#1E1A14' }]}>
+                    <Text style={[styles.headerTitle, { color: isDarkMode ? '#F4F3F0' : '#1E1A14' }]}>
                       PACT AI Advisor
                     </Text>
                     <View style={styles.onlineDot} />
@@ -94,7 +94,7 @@ export const PactAIChatModal: React.FC = () => {
                   {isPro ? (
                     <Text style={styles.headerSubtitle}>Powered by Gemini · Pro: unlimited AI</Text>
                   ) : (
-                    <Text style={[styles.headerSubtitle, { color: quotaReached ? '#D99836' : '#A9A08C' }]}>
+                    <Text style={[styles.headerSubtitle, { color: quotaReached ? '#E0484D' : '#8B8D98' }]}>
                       {quotaReached
                         ? `${FREE_DAILY_PROMPT_LIMIT}/${FREE_DAILY_PROMPT_LIMIT} used — daily limit reached`
                         : `Powered by Gemini · ${quotaRemaining} free prompts left today`}
@@ -110,14 +110,14 @@ export const PactAIChatModal: React.FC = () => {
                   activeOpacity={0.7}
                   
                 >
-                  <Trash2 size={16} color="#A9A08C" />
+                  <Trash2 size={16} color="#8B8D98" />
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={closeAIChat}
-                  style={[styles.headerActionBtn, { backgroundColor: 'rgba(240, 178, 74, 0.12)' }]}
+                  style={[styles.headerActionBtn, { backgroundColor: 'rgba(255, 90, 95, 0.12)' }]}
                   activeOpacity={0.7}
                 >
-                  <X size={18} color="#F0B24A" />
+                  <X size={18} color="#FF5A5F" />
                 </TouchableOpacity>
               </View>
             </View>
@@ -130,10 +130,10 @@ export const PactAIChatModal: React.FC = () => {
                     key={idx}
                     onPress={() => handleChip(chip)}
                     disabled={quotaReached}
-                    style={[styles.chipPill, { backgroundColor: isDarkMode ? '#192038' : '#EDE4D0', borderColor: isDarkMode ? 'rgba(240, 178, 74, 0.2)' : 'rgba(0,0,0,0.1)' }, quotaReached && { opacity: 0.45 }]}
+                    style={[styles.chipPill, { backgroundColor: isDarkMode ? '#192038' : '#EDE4D0', borderColor: isDarkMode ? 'rgba(255, 90, 95, 0.2)' : 'rgba(0,0,0,0.1)' }, quotaReached && { opacity: 0.45 }]}
                     activeOpacity={0.75}
                   >
-                    <Text style={[styles.chipText, { color: isDarkMode ? '#FDF9EF' : '#1E1A14' }]}>
+                    <Text style={[styles.chipText, { color: isDarkMode ? '#F4F3F0' : '#1E1A14' }]}>
                       {chip}
                     </Text>
                   </TouchableOpacity>
@@ -160,7 +160,7 @@ export const PactAIChatModal: React.FC = () => {
                   >
                     {!isUser && (
                       <View style={styles.modelAvatar}>
-                        <Sparkles size={14} color="#F0B24A" />
+                        <Sparkles size={14} color="#FF5A5F" />
                       </View>
                     )}
 
@@ -171,7 +171,7 @@ export const PactAIChatModal: React.FC = () => {
                           ? styles.bubbleUser
                           : [
                               styles.bubbleModel,
-                              { backgroundColor: isDarkMode ? '#192038' : '#FFFFFF', borderColor: isDarkMode ? 'rgba(253, 249, 239, 0.1)' : 'rgba(0,0,0,0.08)' },
+                              { backgroundColor: isDarkMode ? '#192038' : '#FFFFFF', borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0,0,0,0.08)' },
                               (m.isError || m.quotaBlocked) && styles.bubbleWarning,
                               m.truncated && styles.bubbleTruncated
                             ]
@@ -180,7 +180,7 @@ export const PactAIChatModal: React.FC = () => {
                       <Text
                         style={[
                           styles.messageText,
-                          isUser ? styles.messageTextUser : [styles.messageTextModel, { color: isDarkMode ? '#FDF9EF' : '#1E1A14' }]
+                          isUser ? styles.messageTextUser : [styles.messageTextModel, { color: isDarkMode ? '#F4F3F0' : '#1E1A14' }]
                         ]}
                       >
                         {m.text}
@@ -188,7 +188,7 @@ export const PactAIChatModal: React.FC = () => {
                       <Text
                         style={[
                           styles.timestamp,
-                          { color: isUser ? '#6B5018' : '#A9A08C', alignSelf: isUser ? 'flex-end' : 'flex-start' }
+                          { color: isUser ? '#6B5018' : '#8B8D98', alignSelf: isUser ? 'flex-end' : 'flex-start' }
                         ]}
                       >
                         {m.timestamp}
@@ -201,11 +201,11 @@ export const PactAIChatModal: React.FC = () => {
               {isLoading && (
                 <View style={[styles.messageRow, styles.messageRowModel]}>
                   <View style={styles.modelAvatar}>
-                    <Sparkles size={14} color="#F0B24A" />
+                    <Sparkles size={14} color="#FF5A5F" />
                   </View>
                   <View style={[styles.bubbleModel, { backgroundColor: isDarkMode ? '#192038' : '#FFFFFF', paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 8 }]}>
-                    <ActivityIndicator size="small" color="#F0B24A" />
-                    <Text style={{ fontSize: 13, color: isDarkMode ? '#A9A08C' : '#6B6252', fontStyle: 'italic' }}>
+                    <ActivityIndicator size="small" color="#FF5A5F" />
+                    <Text style={{ fontSize: 13, color: isDarkMode ? '#8B8D98' : '#6B6252', fontStyle: 'italic' }}>
                       Gemini is generating recommendation...
                     </Text>
                   </View>
@@ -214,8 +214,8 @@ export const PactAIChatModal: React.FC = () => {
             </ScrollView>
 
             {quotaReached && (
-              <View style={[styles.quotaBanner, { backgroundColor: isDarkMode ? 'rgba(240, 178, 74, 0.12)' : '#FFF3D6', borderTopColor: isDarkMode ? 'rgba(253, 249, 239, 0.1)' : 'rgba(0,0,0,0.08)' }]}>
-                <Text style={[styles.quotaBannerText, { color: isDarkMode ? '#FDF9EF' : '#6A4A12' }]}>
+              <View style={[styles.quotaBanner, { backgroundColor: isDarkMode ? 'rgba(255, 90, 95, 0.12)' : '#FFF3D6', borderTopColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0,0,0,0.08)' }]}>
+                <Text style={[styles.quotaBannerText, { color: isDarkMode ? '#F4F3F0' : '#6A4A12' }]}>
                   You've used all {FREE_DAILY_PROMPT_LIMIT} free AI prompts today.
                 </Text>
                 <TouchableOpacity
@@ -223,18 +223,18 @@ export const PactAIChatModal: React.FC = () => {
                   onPress={goUpgrade}
                   style={styles.upgradeChip}
                 >
-                  <Crown size={14} color="#0C1120" />
+                  <Crown size={14} color="#050608" />
                   <Text style={styles.upgradeChipText}>Upgrade for unlimited</Text>
                 </TouchableOpacity>
               </View>
             )}
 
             {/* Input Bar */}
-            <View style={[styles.inputBar, { backgroundColor: isDarkMode ? '#12182B' : '#EAE0CB', borderTopColor: isDarkMode ? 'rgba(253, 249, 239, 0.1)' : 'rgba(0,0,0,0.08)' }]}>
+            <View style={[styles.inputBar, { backgroundColor: isDarkMode ? '#090A0F' : '#EAE0CB', borderTopColor: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0,0,0,0.08)' }]}>
               <TextInput
-                style={[styles.textInput, { backgroundColor: isDarkMode ? '#192038' : '#FFFFFF', color: isDarkMode ? '#FDF9EF' : '#1E1A14' }]}
+                style={[styles.textInput, { backgroundColor: isDarkMode ? '#192038' : '#FFFFFF', color: isDarkMode ? '#F4F3F0' : '#1E1A14' }]}
                 placeholder={quotaReached ? 'Daily limit reached — upgrade to continue' : 'Ask Gemini anything about your trip...'}
-                placeholderTextColor="#A9A08C"
+                placeholderTextColor="#8B8D98"
                 value={inputText}
                 onChangeText={setInputText}
                 onSubmitEditing={handleSend}
@@ -248,7 +248,7 @@ export const PactAIChatModal: React.FC = () => {
                 style={[styles.sendBtn, (!inputText.trim() || isLoading || quotaReached) && { opacity: 0.5 }]}
                 activeOpacity={0.8}
               >
-                <Send size={16} color="#0C1120" strokeWidth={2.5} />
+                <Send size={16} color="#050608" strokeWidth={2.5} />
               </TouchableOpacity>
             </View>
           </View>
@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#F0B24A',
+    backgroundColor: '#FF5A5F',
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -309,11 +309,11 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#25C9A0'
+    backgroundColor: '#3DE0A0'
   },
   headerSubtitle: {
     fontSize: 11,
-    color: '#A9A08C'
+    color: '#8B8D98'
   },
   headerActionBtn: {
     width: 32,
@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
   chipsContainer: {
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(253, 249, 239, 0.06)'
+    borderBottomColor: 'rgba(255, 255, 255, 0.06)'
   },
   chipPill: {
     paddingVertical: 6,
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: 'rgba(240, 178, 74, 0.15)',
+    backgroundColor: 'rgba(255, 90, 95, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 2
@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10
   },
   bubbleUser: {
-    backgroundColor: '#F0B24A',
+    backgroundColor: '#FF5A5F',
     borderBottomRightRadius: 4
   },
   bubbleModel: {
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
     lineHeight: 20
   },
   messageTextUser: {
-    color: '#0C1120',
+    color: '#050608',
     fontWeight: '600'
   },
   messageTextModel: {
@@ -409,7 +409,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#F0B24A',
+    backgroundColor: '#FF5A5F',
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -418,7 +418,7 @@ const styles = StyleSheet.create({
     borderWidth: 1
   },
   bubbleTruncated: {
-    borderColor: 'rgba(240, 178, 74, 0.65)',
+    borderColor: 'rgba(255, 90, 95, 0.65)',
     borderWidth: 1
   },
   quotaBanner: {
@@ -440,13 +440,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#F0B24A',
+    backgroundColor: '#FF5A5F',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 10
   },
   upgradeChipText: {
-    color: '#0C1120',
+    color: '#050608',
     fontSize: 12,
     fontWeight: '800'
   }

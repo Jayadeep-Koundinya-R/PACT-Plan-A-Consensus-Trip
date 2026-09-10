@@ -42,7 +42,7 @@ export default function CircleDetailLayout() {
     <CircleRouteGuard id={id}>
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Top Header Bar */}
-      <SafeAreaView style={[styles.safeHeader, { backgroundColor: isDarkMode ? '#0E1424' : '#F6EFDE', borderBottomColor: theme.border }]}>
+      <SafeAreaView style={[styles.safeHeader, { backgroundColor: isDarkMode ? '#0B0F17' : '#F6EFDE', borderBottomColor: theme.border }]}>
         <View style={styles.headerBar}>
           {/* Header Left: "← My Circles" */}
           <TouchableOpacity
@@ -54,7 +54,7 @@ export default function CircleDetailLayout() {
             style={styles.backButton}
             accessibilityLabel="Back to My Circles"
           >
-            <ArrowLeft size={15} color="#F0B24A" strokeWidth={2.5} />
+            <ArrowLeft size={15} color="#FF5A5F" strokeWidth={2.5} />
             <Text style={styles.backButtonText}>My Circles</Text>
           </TouchableOpacity>
 
@@ -79,7 +79,7 @@ export default function CircleDetailLayout() {
               ]}
               accessibilityLabel="Vault"
             >
-              <Lock size={12} color={isVault ? '#25C9A0' : '#C3BAA6'} />
+              <Lock size={12} color={isVault ? '#3DE0A0' : '#8B8D98'} />
               <Text style={[styles.tabPillText, isVault && styles.activeTabPillText]}>Vault</Text>
             </TouchableOpacity>
 
@@ -95,7 +95,7 @@ export default function CircleDetailLayout() {
               ]}
               accessibilityLabel="Memories"
             >
-              <ImageIcon size={12} color={isMemories ? '#25C9A0' : '#C3BAA6'} />
+              <ImageIcon size={12} color={isMemories ? '#3DE0A0' : '#8B8D98'} />
               <Text style={[styles.tabPillText, isMemories && styles.activeTabPillText]}>Memories</Text>
             </TouchableOpacity>
           </View>
@@ -130,12 +130,12 @@ export default function CircleDetailLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#12182B'
+    backgroundColor: '#090A0F'
   },
   safeHeader: {
-    backgroundColor: '#0E1424',
+    backgroundColor: '#0B0F17',
     borderBottomWidth: 1,
-    borderBottomColor: '#2B3552',
+    borderBottomColor: '#262938',
     zIndex: 50
   },
   headerBar: {
@@ -155,12 +155,12 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 8,
     borderRadius: 8,
-    backgroundColor: 'rgba(240, 178, 74, 0.08)'
+    backgroundColor: 'rgba(255, 90, 95, 0.08)'
   },
   backButtonText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#F0B24A'
+    color: '#FF5A5F'
   },
   centerCol: {
     flex: 1,
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     fontFamily: fontDisplay,
     fontSize: 14,
     fontWeight: '700',
-    color: '#FDF9EF',
+    color: '#F4F3F0',
     textAlign: 'center'
   },
   rightActions: {
@@ -186,21 +186,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 5,
     borderRadius: 8,
-    backgroundColor: '#242E4A',
+    backgroundColor: '#1B1D27',
     borderWidth: 1,
-    borderColor: '#384262'
+    borderColor: '#2D3144'
   },
   activeTabPill: {
-    backgroundColor: 'rgba(37, 201, 160, 0.12)',
-    borderColor: 'rgba(37, 201, 160, 0.3)'
+    backgroundColor: 'rgba(61, 224, 160, 0.12)',
+    borderColor: 'rgba(61, 224, 160, 0.3)'
   },
   tabPillText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#C3BAA6'
+    color: '#8B8D98'
   },
   activeTabPillText: {
-    color: '#25C9A0',
+    color: '#3DE0A0',
     fontWeight: '700'
   }
 });

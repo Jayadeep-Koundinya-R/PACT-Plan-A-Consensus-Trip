@@ -103,8 +103,8 @@ export const PactButton: React.FC<PactButtonProps> = ({
           <Svg width="100%" height="100%">
             <Defs>
               <SvgGradient id="pactBtnGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <Stop offset="0%" stopColor="#F0B24A" />
-                <Stop offset="100%" stopColor="#C8842A" />
+                <Stop offset="0%" stopColor="#FF5A5F" />
+                <Stop offset="100%" stopColor="#E0484D" />
               </SvgGradient>
             </Defs>
             <Rect width="100%" height="100%" rx={radius.btn} fill="url(#pactBtnGrad)" />
@@ -115,7 +115,7 @@ export const PactButton: React.FC<PactButtonProps> = ({
       {loading ? (
         <ActivityIndicator
           size="small"
-          color={variant === 'glass' ? '#FDF9EF' : '#FFFFFF'}
+          color={variant === 'glass' ? '#F4F3F0' : '#FFFFFF'}
         />
       ) : (
         <View style={styles.contentRow}>
@@ -178,24 +178,24 @@ const styles = StyleSheet.create({
   },
   // Variant styles
   solid: {
-    backgroundColor: '#F0B24A',
+    backgroundColor: '#FF5A5F',
     ...shadows.glowPrimary
   },
   glass: {
-    backgroundColor: 'rgba(253, 249, 239, 0.14)',
+    backgroundColor: 'rgba(255, 255, 255, 0.14)',
     borderWidth: 1,
-    borderColor: 'rgba(253, 249, 239, 0.2)'
+    borderColor: 'rgba(255, 255, 255, 0.2)'
   },
   danger: {
-    backgroundColor: '#E14733',
-    shadowColor: '#E14733',
+    backgroundColor: '#EF4444',
+    shadowColor: '#EF4444',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 2
   },
   gradientContainer: {
-    backgroundColor: '#F0B24A',
+    backgroundColor: '#FF5A5F',
     ...shadows.glowPrimary
   },
   // Text styles
@@ -214,16 +214,16 @@ const styles = StyleSheet.create({
     fontSize: 16
   },
   solidText: {
-    color: '#231A0C'
+    color: '#2E0805'
   },
   glassText: {
-    color: '#FDF9EF'
+    color: '#F4F3F0'
   },
   dangerText: {
     color: '#FFFFFF'
   },
   gradientText: {
-    color: '#231A0C'
+    color: '#2E0805'
   },
   // Disabled
   disabled: {

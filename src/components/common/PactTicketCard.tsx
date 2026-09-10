@@ -22,9 +22,9 @@ export interface PactTicketDividerProps {
  */
 export const PactTicketDivider: React.FC<PactTicketDividerProps> = ({
   notchSize = 20,
-  notchColor = '#12182B',
-  notchBorderColor = 'rgba(253, 249, 239, 0.14)',
-  dashedBorderColor = 'rgba(253, 249, 239, 0.22)',
+  notchColor = '#090A0F',
+  notchBorderColor = 'rgba(255, 255, 255, 0.14)',
+  dashedBorderColor = 'rgba(255, 255, 255, 0.22)',
   marginHorizontal = 20,
   style
 }) => {
@@ -100,11 +100,11 @@ export const PactTicketCard: React.FC<PactTicketCardProps> = ({
   bottomContent,
   children,
   notchSize = 20,
-  notchColor = '#12182B',
-  notchBorderColor = 'rgba(253, 249, 239, 0.14)',
-  dashedBorderColor = 'rgba(253, 249, 239, 0.22)',
-  backgroundColor = '#1E2742',
-  borderColor = 'rgba(253, 249, 239, 0.14)',
+  notchColor = '#090A0F',
+  notchBorderColor = 'rgba(255, 255, 255, 0.14)',
+  dashedBorderColor = 'rgba(255, 255, 255, 0.22)',
+  backgroundColor = '#13151E',
+  borderColor = 'rgba(255, 255, 255, 0.14)',
   borderRadius: cardRadius = radius.card,
   style,
   topStyle,

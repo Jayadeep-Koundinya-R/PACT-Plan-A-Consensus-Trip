@@ -12,9 +12,9 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: theme.primary,
-        tabBarInactiveTintColor: isDarkMode ? '#C3BAA6' : '#5C5445',
+        tabBarInactiveTintColor: isDarkMode ? '#8B8D98' : '#5C5445',
         tabBarStyle: {
-          backgroundColor: isDarkMode ? '#0E1424' : '#F6EFDE',
+          backgroundColor: isDarkMode ? '#0B0F17' : '#F6EFDE',
           borderTopColor: theme.border,
           borderTopWidth: 1,
           height: Platform.OS === 'ios' ? 84 : 64,

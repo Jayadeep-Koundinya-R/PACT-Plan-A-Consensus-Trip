@@ -186,7 +186,7 @@ export default function PactLandingScreen() {
 
   if (isCheckingAuth) {
     return (
-      <View style={[styles.outerContainer, { backgroundColor: '#0C1120' }]}>
+      <View style={[styles.outerContainer, { backgroundColor: '#050608' }]}>
         <View style={styles.loadingLogoBadge}>
           <Text style={styles.loadingBrandText}>PACT</Text>
         </View>
@@ -249,9 +249,9 @@ export default function PactLandingScreen() {
                 ]}
               >
                 <Svg width="24" height="24" viewBox="0 0 24 24">
-                  <Circle cx="12" cy="12" r="10" fill="#7A7263" stroke="#7A7263" strokeWidth="1" />
-                  <Path d="M8 10v-3a4 4 0 0 1 8 0v3" fill="none" stroke="#C3BAA6" strokeWidth="1.2" />
-                  <Rect x="7" y="9.5" width="10" height="7" rx="1.5" fill="#C3BAA6" />
+                  <Circle cx="12" cy="12" r="10" fill="#454857" stroke="#454857" strokeWidth="1" />
+                  <Path d="M8 10v-3a4 4 0 0 1 8 0v3" fill="none" stroke="#8B8D98" strokeWidth="1.2" />
+                  <Rect x="7" y="9.5" width="10" height="7" rx="1.5" fill="#8B8D98" />
                 </Svg>
               </Animated.View>
 
@@ -270,9 +270,9 @@ export default function PactLandingScreen() {
                 ]}
               >
                 <Svg width="24" height="24" viewBox="0 0 24 24">
-                  <Circle cx="12" cy="12" r="10" fill="#7A7263" stroke="#7A7263" strokeWidth="1" />
-                  <Path d="M8 10v-3a4 4 0 0 1 8 0v3" fill="none" stroke="#C3BAA6" strokeWidth="1.2" />
-                  <Rect x="7" y="9.5" width="10" height="7" rx="1.5" fill="#C3BAA6" />
+                  <Circle cx="12" cy="12" r="10" fill="#454857" stroke="#454857" strokeWidth="1" />
+                  <Path d="M8 10v-3a4 4 0 0 1 8 0v3" fill="none" stroke="#8B8D98" strokeWidth="1.2" />
+                  <Rect x="7" y="9.5" width="10" height="7" rx="1.5" fill="#8B8D98" />
                 </Svg>
               </Animated.View>
 
@@ -290,9 +290,9 @@ export default function PactLandingScreen() {
                 ]}
               >
                 <Svg width="24" height="24" viewBox="0 0 24 24">
-                  <Circle cx="12" cy="12" r="10" fill="#7A7263" stroke="#7A7263" strokeWidth="1" />
-                  <Path d="M8 10v-3a4 4 0 0 1 8 0v3" fill="none" stroke="#C3BAA6" strokeWidth="1.2" />
-                  <Rect x="7" y="9.5" width="10" height="7" rx="1.5" fill="#C3BAA6" />
+                  <Circle cx="12" cy="12" r="10" fill="#454857" stroke="#454857" strokeWidth="1" />
+                  <Path d="M8 10v-3a4 4 0 0 1 8 0v3" fill="none" stroke="#8B8D98" strokeWidth="1.2" />
+                  <Rect x="7" y="9.5" width="10" height="7" rx="1.5" fill="#8B8D98" />
                 </Svg>
               </Animated.View>
 
@@ -314,16 +314,16 @@ export default function PactLandingScreen() {
                     cx="70"
                     cy="60"
                     r="32"
-                    fill="#0A2A1F"
+                    fill="#052E20"
                     fillOpacity="0.8"
-                    stroke="#25C9A0"
+                    stroke="#3DE0A0"
                     strokeWidth="2.5"
                     strokeDasharray="4 3"
                   />
                   <Path
                     d="M57 60l9 9 17-19"
                     fill="none"
-                    stroke="#25C9A0"
+                    stroke="#3DE0A0"
                     strokeWidth="3.4"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -334,7 +334,7 @@ export default function PactLandingScreen() {
                     textAnchor="middle"
                     fontSize="11"
                     fontWeight="700"
-                    fill="#25C9A0"
+                    fill="#3DE0A0"
                     letterSpacing="0.5"
                   >
                     100% match
@@ -363,7 +363,7 @@ export default function PactLandingScreen() {
                 <Path
                   d="M1 1l8 7 8-7"
                   fill="none"
-                  stroke="#7A7263"
+                  stroke="#454857"
                   strokeWidth="1.6"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -419,7 +419,7 @@ export default function PactLandingScreen() {
             style={styles.primaryCtaBtn}
           >
             <Text style={styles.primaryCtaBtnText}>Get Started / Log In</Text>
-            <ArrowRight size={18} color="#0C1120" strokeWidth={2.5} />
+            <ArrowRight size={18} color="#050608" strokeWidth={2.5} />
           </TouchableOpacity>
 
           {/* Secondary Demo Mode CTA */}
@@ -428,7 +428,7 @@ export default function PactLandingScreen() {
             onPress={handleInstantDemo}
             style={styles.demoCtaBtn}
           >
-            <Sparkles size={15} color="#FDF9EF" />
+            <Sparkles size={15} color="#F4F3F0" />
             <Text style={styles.demoCtaBtnText}>Explore Demo Mode (5 Members)</Text>
           </TouchableOpacity>
 
@@ -444,7 +444,7 @@ export default function PactLandingScreen() {
 const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
-    backgroundColor: '#0C1120',
+    backgroundColor: '#050608',
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -452,9 +452,9 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 20,
-    backgroundColor: '#0E1424',
+    backgroundColor: '#0B0F17',
     borderWidth: 1,
-    borderColor: '#2B3552',
+    borderColor: '#262938',
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -462,16 +462,16 @@ const styles = StyleSheet.create({
     fontFamily: fontDisplay,
     fontSize: 22,
     fontWeight: '800',
-    color: '#F0B24A',
+    color: '#FF5A5F',
     letterSpacing: 1
   },
   phoneFrame: {
     width: '100%',
     maxWidth: 420,
     flex: 1,
-    backgroundColor: '#12182B',
+    backgroundColor: '#090A0F',
     borderWidth: Platform.OS === 'web' ? 1 : 0,
-    borderColor: 'rgba(253, 249, 239, 0.11)',
+    borderColor: 'rgba(255, 255, 255, 0.11)',
     borderRadius: Platform.OS === 'web' ? 40 : 0,
     overflow: 'hidden',
     position: 'relative'
@@ -492,25 +492,25 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 22,
     letterSpacing: 0.3,
-    color: '#F0B24A'
+    color: '#FF5A5F'
   },
   howItWorksPill: {
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#2B3552',
-    backgroundColor: '#1E2742'
+    borderColor: '#262938',
+    backgroundColor: '#13151E'
   },
   howItWorksText: {
     fontSize: 12,
-    color: '#C3BAA6',
+    color: '#8B8D98',
     fontWeight: '600'
   },
   heroCard: {
-    backgroundColor: '#1E2742',
+    backgroundColor: '#13151E',
     borderWidth: 1,
-    borderColor: '#2B3552',
+    borderColor: '#262938',
     borderRadius: 20,
     padding: 24,
     alignItems: 'center',
@@ -537,14 +537,14 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 26,
     lineHeight: 32,
-    color: '#FDF9EF',
+    color: '#F4F3F0',
     textAlign: 'center',
     letterSpacing: -0.3,
     marginBottom: 8
   },
   heroSubheading: {
     fontSize: 13,
-    color: '#C3BAA6',
+    color: '#8B8D98',
     textAlign: 'center',
     lineHeight: 18
   },
@@ -554,9 +554,9 @@ const styles = StyleSheet.create({
     marginBottom: 10
   },
   stepsSection: {
-    backgroundColor: '#1E2742',
+    backgroundColor: '#13151E',
     borderWidth: 1,
-    borderColor: '#2B3552',
+    borderColor: '#262938',
     borderRadius: 20,
     padding: 20,
     marginBottom: 16
@@ -565,7 +565,7 @@ const styles = StyleSheet.create({
     fontFamily: fontDisplay,
     fontWeight: '700',
     fontSize: 15,
-    color: '#FDF9EF',
+    color: '#F4F3F0',
     marginBottom: 14
   },
   stepRow: {
@@ -574,13 +574,13 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingVertical: 12,
     borderTopWidth: 1,
-    borderTopColor: '#2B3552'
+    borderTopColor: '#262938'
   },
   stepNumber: {
     fontFamily: fontDisplay,
     fontSize: 15,
     fontWeight: '700',
-    color: '#F0B24A',
+    color: '#FF5A5F',
     width: 18,
     marginTop: 1
   },
@@ -590,21 +590,21 @@ const styles = StyleSheet.create({
   stepTitle: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#FDF9EF',
+    color: '#F4F3F0',
     marginBottom: 3
   },
   stepDesc: {
     fontSize: 12,
-    color: '#C3BAA6',
+    color: '#8B8D98',
     lineHeight: 16
   },
   bottomCtaBar: {
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: Platform.OS === 'ios' ? 24 : 16,
-    backgroundColor: '#12182B',
+    backgroundColor: '#090A0F',
     borderTopWidth: 1,
-    borderTopColor: '#2B3552',
+    borderTopColor: '#262938',
     gap: 8
   },
   primaryCtaBtn: {
@@ -612,14 +612,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
-    backgroundColor: '#F0B24A',
+    backgroundColor: '#FF5A5F',
     paddingVertical: 14,
     borderRadius: 14
   },
   primaryCtaBtnText: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#0C1120',
+    color: '#050608',
     letterSpacing: -0.2
   },
   demoCtaBtn: {
@@ -627,20 +627,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#1E2742',
+    backgroundColor: '#13151E',
     borderWidth: 1,
-    borderColor: '#2B3552',
+    borderColor: '#262938',
     paddingVertical: 12,
     borderRadius: 14
   },
   demoCtaBtnText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#FDF9EF'
+    color: '#F4F3F0'
   },
   termsFooterText: {
     fontSize: 10,
-    color: '#7A7263',
+    color: '#454857',
     textAlign: 'center',
     marginTop: 4
   }

@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(225, 71, 51, 0.08)',
+    backgroundColor: 'rgba(239, 68, 68, 0.08)',
     alignSelf: 'center',
     marginVertical: 12
   },

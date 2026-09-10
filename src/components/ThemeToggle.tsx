@@ -15,15 +15,15 @@ export const ThemeToggle: React.FC = () => {
       style={[
         styles.button,
         {
-          backgroundColor: isDarkMode ? 'rgba(253, 249, 239, 0.11)' : 'rgba(0,0,0,0.05)',
+          backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0,0,0,0.05)',
           borderColor: theme.border
         }
       ]}
     >
       {isDarkMode ? (
-        <Sun size={18} color="#FFC55C" />
+        <Sun size={18} color="#F0B547" />
       ) : (
-        <Moon size={18} color="#12182B" />
+        <Moon size={18} color="#090A0F" />
       )}
     </TouchableOpacity>
   );

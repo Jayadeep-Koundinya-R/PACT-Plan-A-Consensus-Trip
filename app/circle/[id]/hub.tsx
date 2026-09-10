@@ -256,7 +256,7 @@ export default function PactCirclesHub() {
                   activeOpacity={0.7}
                   style={[styles.settingsBtn, { position: 'relative' }]}
                 >
-                  <Bell size={16} color="#F0B24A" />
+                  <Bell size={16} color="#FF5A5F" />
                   {unreadCount > 0 && <View style={styles.hubNotifDot} />}
                 </TouchableOpacity>
 
@@ -265,7 +265,7 @@ export default function PactCirclesHub() {
                   activeOpacity={0.7}
                   style={styles.settingsBtn}
                 >
-                  <Settings size={16} color="#C3BAA6" />
+                  <Settings size={16} color="#8B8D98" />
                 </TouchableOpacity>
               </View>
             </View>
@@ -308,7 +308,7 @@ export default function PactCirclesHub() {
             <View style={styles.earlyBirdCard}>
               <View style={styles.earlyBirdBadgeRow}>
                 <View style={styles.earlyBirdTag}>
-                  <Zap size={13} color="#25C9A0" fill="#25C9A0" />
+                  <Zap size={13} color="#3DE0A0" fill="#3DE0A0" />
                   <Text style={styles.earlyBirdTagText}>Early bird activated</Text>
                 </View>
                 <TouchableOpacity onPress={toggleDemoSimulation} activeOpacity={0.7}>
@@ -339,7 +339,7 @@ export default function PactCirclesHub() {
                     cy="42"
                     r={r}
                     fill="none"
-                    stroke="rgba(253, 249, 239, 0.14)"
+                    stroke="rgba(255, 255, 255, 0.14)"
                     strokeWidth="7"
                   />
                   <Circle
@@ -347,7 +347,7 @@ export default function PactCirclesHub() {
                     cy="42"
                     r={r}
                     fill="none"
-                    stroke="#25C9A0"
+                    stroke="#3DE0A0"
                     strokeWidth="7"
                     strokeLinecap="round"
                     strokeDasharray={`${circumference}`}
@@ -367,7 +367,7 @@ export default function PactCirclesHub() {
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Text style={styles.statusHeaderLabel}>Group consensus status</Text>
                   <TouchableOpacity onPress={toggleDemoSimulation} activeOpacity={0.7}>
-                    <Text style={{ fontFamily: fontUI, fontSize: 10, color: '#9C947F' }}>toggle</Text>
+                    <Text style={{ fontFamily: fontUI, fontSize: 10, color: '#6C6F7A' }}>toggle</Text>
                   </TouchableOpacity>
                 </View>
                 <Text style={styles.statusSubtext}>
@@ -401,11 +401,11 @@ export default function PactCirclesHub() {
                   {m.status === 'locked' ? (
                     <View style={styles.statusBadgeRow}>
                       <Svg width="12" height="12" viewBox="0 0 12 12">
-                        <Circle cx="6" cy="6" r="6" fill="#25C9A0" fillOpacity={0.15} />
+                        <Circle cx="6" cy="6" r="6" fill="#3DE0A0" fillOpacity={0.15} />
                         <Path
                           d="M3.3 6.2l1.8 1.8 3.6-3.8"
                           fill="none"
-                          stroke="#25C9A0"
+                          stroke="#3DE0A0"
                           strokeWidth="1.4"
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -433,13 +433,13 @@ export default function PactCirclesHub() {
                     activeOpacity={0.7}
                     style={[
                       styles.nudgeButton,
-                      nudged[m.name] && { borderColor: 'rgba(253, 249, 239, 0.11)' }
+                      nudged[m.name] && { borderColor: 'rgba(255, 255, 255, 0.11)' }
                     ]}
                   >
                     <Text
                       style={[
                         styles.nudgeButtonText,
-                        nudged[m.name] && { color: '#9C947F' }
+                        nudged[m.name] && { color: '#6C6F7A' }
                       ]}
                     >
                       {nudged[m.name] ? 'Nudged' : 'Nudge'}
@@ -455,7 +455,7 @@ export default function PactCirclesHub() {
                 <PactButton
                   variant="gradient"
                   onPress={handleBulkWhatsAppNudge}
-                  icon={<Send size={14} color="#0C1120" />}
+                  icon={<Send size={14} color="#050608" />}
                 >
                   {bulkNudged ? 'WhatsApp nudge sent' : 'Nudge everyone on WhatsApp'}
                 </PactButton>
@@ -492,7 +492,7 @@ export default function PactCirclesHub() {
                   <Svg width="16" height="16" viewBox="0 0 16 16">
                     <Path
                       d="M8 1.3A6.7 6.7 0 0 0 2.3 11.6L1.3 14.7l3.2-1a6.7 6.7 0 1 0 3.5-12.4z"
-                      fill="#0B3327"
+                      fill="#0B3B22"
                     />
                   </Svg>
                   <Text style={styles.whatsAppButtonText}>Share to WhatsApp group</Text>
@@ -509,14 +509,14 @@ export default function PactCirclesHub() {
           >
             <View style={styles.matrixQuickLeft}>
               <View style={styles.matrixIconBox}>
-                <Sparkles size={16} color="#25C9A0" />
+                <Sparkles size={16} color="#3DE0A0" />
               </View>
               <View>
                 <Text style={styles.matrixQuickTitle}>Live Consensus Engine</Text>
                 <Text style={styles.matrixQuickSub}>Preview ranked destinations & overlap</Text>
               </View>
             </View>
-            <ChevronRight size={16} color="#9C947F" />
+            <ChevronRight size={16} color="#6C6F7A" />
           </TouchableOpacity>
         </ScrollView>
         <NotificationCenterModal />
@@ -547,11 +547,11 @@ const styles = StyleSheet.create({
     width: 7,
     height: 7,
     borderRadius: 3.5,
-    backgroundColor: '#C1503F'
+    backgroundColor: '#EF4444'
   },
   outerContainer: {
     flex: 1,
-    backgroundColor: '#0C1120',
+    backgroundColor: '#050608',
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -559,7 +559,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 420,
     height: '100%',
-    backgroundColor: '#0C1120'
+    backgroundColor: '#050608'
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -578,7 +578,7 @@ const styles = StyleSheet.create({
   tripTitle: {
     fontFamily: fontDisplay,
     fontSize: 22,
-    color: '#FDF9EF',
+    color: '#F4F3F0',
     flex: 1,
     lineHeight: 28
   },
@@ -591,27 +591,27 @@ const styles = StyleSheet.create({
   realtimePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(37, 201, 160, 0.1)',
+    backgroundColor: 'rgba(61, 224, 160, 0.1)',
     borderWidth: 1,
-    borderColor: 'rgba(37, 201, 160, 0.28)',
+    borderColor: 'rgba(61, 224, 160, 0.28)',
     borderRadius: 20,
     paddingHorizontal: 8,
     paddingVertical: 3,
     gap: 5
   },
   realtimePillOffline: {
-    backgroundColor: 'rgba(253, 249, 239, 0.1)',
-    borderColor: 'rgba(253, 249, 239, 0.18)'
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.18)'
   },
   realtimeDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#C3BAA6'
+    backgroundColor: '#8B8D98'
   },
   realtimeDotConnected: {
-    backgroundColor: '#25C9A0',
-    shadowColor: '#25C9A0',
+    backgroundColor: '#3DE0A0',
+    shadowColor: '#3DE0A0',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
     shadowRadius: 4
@@ -619,15 +619,15 @@ const styles = StyleSheet.create({
   realtimeText: {
     fontFamily: fontUIBold,
     fontSize: 9.5,
-    color: '#25C9A0',
+    color: '#3DE0A0',
     fontWeight: '700',
     letterSpacing: 0.5
   },
   realtimeTextOffline: {
-    color: '#C3BAA6'
+    color: '#8B8D98'
   },
   realtimeEventBadge: {
-    backgroundColor: 'rgba(253, 249, 239, 0.08)',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 12,
@@ -636,7 +636,7 @@ const styles = StyleSheet.create({
   realtimeEventText: {
     fontFamily: fontUI,
     fontSize: 9.5,
-    color: '#C3BAA6'
+    color: '#8B8D98'
   },
   headerRightActions: {
     flexDirection: 'row',
@@ -644,7 +644,7 @@ const styles = StyleSheet.create({
     gap: 8
   },
   inviteCodeBadge: {
-    backgroundColor: 'rgba(253, 249, 239, 0.11)',
+    backgroundColor: 'rgba(255, 255, 255, 0.11)',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
@@ -654,25 +654,25 @@ const styles = StyleSheet.create({
   inviteCodeText: {
     fontFamily: fontUIBold,
     fontSize: 11,
-    color: '#F0B24A'
+    color: '#FF5A5F'
   },
   settingsBtn: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(253, 249, 239, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     justifyContent: 'center',
     alignItems: 'center'
   },
   // Early Bird Encouraging Banner Styles
   earlyBirdCard: {
-    backgroundColor: '#1E2742',
+    backgroundColor: '#13151E',
     borderWidth: 1,
-    borderColor: 'rgba(37, 201, 160, 0.3)',
+    borderColor: 'rgba(61, 224, 160, 0.3)',
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
-    shadowColor: '#25C9A0',
+    shadowColor: '#3DE0A0',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.12,
     shadowRadius: 10
@@ -687,7 +687,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: 'rgba(37, 201, 160, 0.12)',
+    backgroundColor: 'rgba(61, 224, 160, 0.12)',
     paddingHorizontal: 9,
     paddingVertical: 4,
     borderRadius: 12
@@ -695,38 +695,38 @@ const styles = StyleSheet.create({
   earlyBirdTagText: {
     fontFamily: fontUIBold,
     fontSize: 10.5,
-    color: '#25C9A0',
+    color: '#3DE0A0',
     letterSpacing: 0.5
   },
   earlyBirdCountText: {
     fontFamily: fontUIBold,
     fontSize: 11,
-    color: '#C3BAA6',
+    color: '#8B8D98',
     letterSpacing: 0.5
   },
   earlyBirdTitle: {
     fontFamily: fontDisplay,
     fontSize: 18,
-    color: '#FDF9EF',
+    color: '#F4F3F0',
     marginBottom: 6
   },
   earlyBirdDesc: {
     fontFamily: fontUI,
     fontSize: 12.5,
-    color: '#C3BAA6',
+    color: '#8B8D98',
     lineHeight: 18,
     marginBottom: 14
   },
   earlyBirdProgressTrack: {
     height: 6,
-    backgroundColor: 'rgba(253, 249, 239, 0.14)',
+    backgroundColor: 'rgba(255, 255, 255, 0.14)',
     borderRadius: 3,
     position: 'relative',
     marginBottom: 8
   },
   earlyBirdProgressFill: {
     height: '100%',
-    backgroundColor: '#25C9A0',
+    backgroundColor: '#3DE0A0',
     borderRadius: 3
   },
   unlockThresholdMarker: {
@@ -741,18 +741,18 @@ const styles = StyleSheet.create({
     width: 5,
     height: 5,
     borderRadius: 2.5,
-    backgroundColor: '#25C9A0'
+    backgroundColor: '#3DE0A0'
   },
   thresholdText: {
     fontFamily: fontUI,
     fontSize: 9.5,
-    color: '#25C9A0'
+    color: '#3DE0A0'
   },
   // Standard Status Card Styles
   statusCard: {
-    backgroundColor: '#1E2742',
+    backgroundColor: '#13151E',
     borderWidth: 1,
-    borderColor: 'rgba(253, 249, 239, 0.14)',
+    borderColor: 'rgba(255, 255, 255, 0.14)',
     borderRadius: 16,
     padding: 16,
     flexDirection: 'row',
@@ -776,12 +776,12 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 15,
     fontWeight: '600',
-    color: '#FDF9EF'
+    color: '#F4F3F0'
   },
   progressSubLabel: {
     fontFamily: fontUI,
     fontSize: 8.5,
-    color: '#9C947F',
+    color: '#6C6F7A',
     textTransform: 'lowercase'
   },
   statusTextCol: {
@@ -790,21 +790,21 @@ const styles = StyleSheet.create({
   statusHeaderLabel: {
     fontFamily: fontUIBold,
     fontSize: 10,
-    color: '#C3BAA6',
+    color: '#8B8D98',
     letterSpacing: 0.8,
     marginBottom: 4
   },
   statusSubtext: {
     fontFamily: fontUI,
     fontSize: 13,
-    color: '#FDF9EF',
+    color: '#F4F3F0',
     lineHeight: 18
   },
   // Members List Styles
   membersCard: {
-    backgroundColor: '#1E2742',
+    backgroundColor: '#13151E',
     borderWidth: 1,
-    borderColor: 'rgba(253, 249, 239, 0.14)',
+    borderColor: 'rgba(255, 255, 255, 0.14)',
     borderRadius: 16,
     padding: 16,
     marginBottom: 16
@@ -818,13 +818,13 @@ const styles = StyleSheet.create({
   membersCardTitle: {
     fontFamily: fontUIBold,
     fontSize: 11,
-    color: '#C3BAA6',
+    color: '#8B8D98',
     letterSpacing: 0.8
   },
   membersCardSubtitle: {
     fontFamily: fontUI,
     fontSize: 11,
-    color: '#9C947F'
+    color: '#6C6F7A'
   },
   memberRow: {
     flexDirection: 'row',
@@ -832,20 +832,20 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingVertical: 10,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(253, 249, 239, 0.1)'
+    borderTopColor: 'rgba(255, 255, 255, 0.1)'
   },
   avatarCircle: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(253, 249, 239, 0.11)',
+    backgroundColor: 'rgba(255, 255, 255, 0.11)',
     justifyContent: 'center',
     alignItems: 'center'
   },
   avatarInitials: {
     fontFamily: fontUIBold,
     fontSize: 12,
-    color: '#D8D0BC'
+    color: '#B4B6C0'
   },
   memberInfoCol: {
     flex: 1
@@ -853,7 +853,7 @@ const styles = StyleSheet.create({
   memberName: {
     fontFamily: fontUIBold,
     fontSize: 14,
-    color: '#FDF9EF',
+    color: '#F4F3F0',
     marginBottom: 3
   },
   statusBadgeRow: {
@@ -864,22 +864,22 @@ const styles = StyleSheet.create({
   lockedStatusText: {
     fontFamily: fontUI,
     fontSize: 11.5,
-    color: '#25C9A0'
+    color: '#3DE0A0'
   },
   pulseDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#F0B24A'
+    backgroundColor: '#FF5A5F'
   },
   awaitingStatusText: {
     fontFamily: fontUI,
     fontSize: 11.5,
-    color: '#F0B24A'
+    color: '#FF5A5F'
   },
   nudgeButton: {
     borderWidth: 1,
-    borderColor: 'rgba(253, 249, 239, 0.2)',
+    borderColor: 'rgba(255, 255, 255, 0.2)',
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 6
@@ -887,19 +887,19 @@ const styles = StyleSheet.create({
   nudgeButtonText: {
     fontFamily: fontUIBold,
     fontSize: 11.5,
-    color: '#FDF9EF'
+    color: '#F4F3F0'
   },
   bulkNudgeContainer: {
     marginTop: 14,
     paddingTop: 14,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(253, 249, 239, 0.11)',
+    borderTopColor: 'rgba(255, 255, 255, 0.11)',
     gap: 8
   },
   bulkNudgeSubtext: {
     fontFamily: fontUI,
     fontSize: 11,
-    color: '#9C947F',
+    color: '#6C6F7A',
     textAlign: 'center',
     lineHeight: 15
   },
@@ -908,10 +908,10 @@ const styles = StyleSheet.create({
     marginBottom: 16
   },
   ticketCard: {
-    backgroundColor: '#1E2742',
+    backgroundColor: '#13151E',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(253, 249, 239, 0.14)',
+    borderColor: 'rgba(255, 255, 255, 0.14)',
     overflow: 'hidden'
   },
   ticketTopSection: {
@@ -921,14 +921,14 @@ const styles = StyleSheet.create({
   ticketCodeLabel: {
     fontFamily: fontUIBold,
     fontSize: 10.5,
-    color: '#C3BAA6',
+    color: '#8B8D98',
     letterSpacing: 0.8,
     marginBottom: 4
   },
   ticketCodeHeading: {
     fontFamily: fontDisplay,
     fontSize: 26,
-    color: '#FDF9EF',
+    color: '#F4F3F0',
     letterSpacing: 2
   },
   perforationWrapper: {
@@ -941,14 +941,14 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#0C1120',
+    backgroundColor: '#050608',
     marginLeft: -10
   },
   notchRight: {
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#0C1120',
+    backgroundColor: '#050608',
     marginRight: -10,
     marginLeft: 'auto'
   },
@@ -956,14 +956,14 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 1,
     borderWidth: 1,
-    borderColor: 'rgba(253, 249, 239, 0.18)',
+    borderColor: 'rgba(255, 255, 255, 0.18)',
     borderStyle: 'dashed'
   },
   ticketBottomSection: {
     padding: 16
   },
   whatsAppButton: {
-    backgroundColor: '#25C9A0',
+    backgroundColor: '#3DE0A0',
     borderRadius: 12,
     paddingVertical: 13,
     flexDirection: 'row',
@@ -974,13 +974,13 @@ const styles = StyleSheet.create({
   whatsAppButtonText: {
     fontFamily: fontUIBold,
     fontSize: 13.5,
-    color: '#0B3327'
+    color: '#0B3B22'
   },
   // Matrix Quick Card Styles
   matrixQuickCard: {
-    backgroundColor: '#1E2742',
+    backgroundColor: '#13151E',
     borderWidth: 1,
-    borderColor: 'rgba(253, 249, 239, 0.14)',
+    borderColor: 'rgba(255, 255, 255, 0.14)',
     borderRadius: 14,
     padding: 14,
     flexDirection: 'row',
@@ -997,20 +997,20 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: 'rgba(37, 201, 160, 0.1)',
+    backgroundColor: 'rgba(61, 224, 160, 0.1)',
     justifyContent: 'center',
     alignItems: 'center'
   },
   matrixQuickTitle: {
     fontFamily: fontUIBold,
     fontSize: 14,
-    color: '#FDF9EF',
+    color: '#F4F3F0',
     marginBottom: 2
   },
   matrixQuickSub: {
     fontFamily: fontUI,
     fontSize: 11.5,
-    color: '#C3BAA6'
+    color: '#8B8D98'
   },
   // Bottom Sticky Bar
   bottomBar: {
@@ -1020,14 +1020,14 @@ const styles = StyleSheet.create({
     right: 0,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    backgroundColor: 'rgba(12, 17, 32, 0.95)',
+    backgroundColor: 'rgba(5, 6, 8, 0.95)',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(253, 249, 239, 0.11)'
+    borderTopColor: 'rgba(255, 255, 255, 0.11)'
   },
   primaryActionButton: {
-    backgroundColor: '#F0B24A',
+    backgroundColor: '#FF5A5F',
     borderWidth: 1,
-    borderColor: '#F0B24A',
+    borderColor: '#FF5A5F',
     borderRadius: 12,
     paddingVertical: 13,
     alignItems: 'center'
@@ -1035,6 +1035,6 @@ const styles = StyleSheet.create({
   primaryActionButtonText: {
     fontFamily: fontUIBold,
     fontSize: 13.5,
-    color: '#2A1A05'
+    color: '#2E0805'
   }
 });

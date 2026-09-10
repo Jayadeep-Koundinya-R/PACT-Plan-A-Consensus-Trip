@@ -281,7 +281,7 @@ export default function AuthScreen() {
               ]}
             >
               <View style={styles.pillarCardHeader}>
-                <View style={[styles.pillarIconBox, { backgroundColor: isDarkMode ? '#323C5A' : '#FFEFC9' }]}>
+                <View style={[styles.pillarIconBox, { backgroundColor: isDarkMode ? '#262938' : '#FFEFC9' }]}>
                   <ActiveIcon size={20} color={theme.primary} />
                 </View>
                 <View style={styles.pillarTextCol}>
@@ -356,7 +356,7 @@ export default function AuthScreen() {
               <View
                 style={[
                   styles.errorBox,
-                  { backgroundColor: isDarkMode ? '#3A241E' : '#FEE2E2', borderColor: '#E96A50' }
+                  { backgroundColor: isDarkMode ? '#3A241E' : '#FEE2E2', borderColor: '#F87171' }
                 ]}
               >
                 <AlertCircle size={16} color={theme.danger} />
@@ -577,7 +577,7 @@ export default function AuthScreen() {
                     { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }
                   ]}
                 >
-                  <View style={[styles.avatarCircle, { backgroundColor: isDarkMode ? '#323C5A' : '#FFEFC9' }]}>
+                  <View style={[styles.avatarCircle, { backgroundColor: isDarkMode ? '#262938' : '#FFEFC9' }]}>
                     <Text style={[styles.avatarLetter, { color: theme.primary }]}>
                       {m.userName ? m.userName.charAt(0) : 'U'}
                     </Text>

@@ -163,7 +163,7 @@ export default function PactConsensusResults() {
               style={styles.gridIconBtn}
               accessibilityLabel="Toggle deadlock simulation"
             >
-              <Text style={{ fontFamily: fontUIBold, fontSize: 10, color: deadlockMode ? '#E14733' : '#C3BAA6' }}>
+              <Text style={{ fontFamily: fontUIBold, fontSize: 10, color: deadlockMode ? '#EF4444' : '#8B8D98' }}>
                 {deadlockMode ? 'Deadlock on' : 'Simulate deadlock'}
               </Text>
             </TouchableOpacity>
@@ -174,7 +174,7 @@ export default function PactConsensusResults() {
             <View style={styles.wideBudgetBanner}>
               <View style={styles.wideBudgetHeaderRow}>
                 <View style={styles.wideBudgetIconBox}>
-                  <AlertTriangle size={15} color="#FFB224" />
+                  <AlertTriangle size={15} color="#F59E0B" />
                 </View>
                 <Text style={styles.wideBudgetTitle}>
                   Wide Budget Gap Detected (${minBudget} – ${maxBudget})
@@ -193,7 +193,7 @@ export default function PactConsensusResults() {
                 activeOpacity={0.8}
                 style={styles.flexibleSplitPill}
               >
-                <Sliders size={12} color="#FFB224" />
+                <Sliders size={12} color="#F59E0B" />
                 <Text style={styles.flexibleSplitPillText}>Suggest flexible budget split</Text>
               </TouchableOpacity>
             </View>
@@ -204,7 +204,7 @@ export default function PactConsensusResults() {
             <View style={styles.deadlockCard}>
               <View style={styles.deadlockHeaderRow}>
                 <View style={styles.deadlockAlertIcon}>
-                  <ShieldAlert size={20} color="#E14733" />
+                  <ShieldAlert size={20} color="#EF4444" />
                 </View>
                 <View style={{ flex: 1 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -224,7 +224,7 @@ export default function PactConsensusResults() {
               {/* AI Whisperer Recommendation */}
               <View style={styles.whispererBox}>
                 <View style={styles.whispererBoxHeader}>
-                  <Sparkles size={13} color="#25C9A0" />
+                  <Sparkles size={13} color="#3DE0A0" />
                   <Text style={styles.whispererBoxTag}>Recommended compromise</Text>
                 </View>
                 <Text style={styles.whispererBoxText}>
@@ -238,7 +238,7 @@ export default function PactConsensusResults() {
                 <PactButton
                   variant="glass"
                   onPress={handleSendPrivateNudge}
-                  icon={<Send size={13} color="#FDF9EF" />}
+                  icon={<Send size={13} color="#F4F3F0" />}
                 >
                   {privateNudgeSent ? 'Private Nudge Dispatched ✓' : 'Send generic private nudge'}
                 </PactButton>
@@ -253,7 +253,7 @@ export default function PactConsensusResults() {
                 <PactButton
                   variant="gradient"
                   onPress={handleSoftOverride}
-                  icon={<Users size={14} color="#0C1120" />}
+                  icon={<Users size={14} color="#050608" />}
                 >
                   Soft Override (4 of 5 members approve)
                 </PactButton>
@@ -267,7 +267,7 @@ export default function PactConsensusResults() {
               {/* Soft Override Banner if override was triggered */}
               {softOverrideActive && (
                 <View style={styles.overrideBanner}>
-                  <Check size={14} color="#25C9A0" />
+                  <Check size={14} color="#3DE0A0" />
                   <Text style={styles.overrideBannerText}>
                     Supermajority Override Active: 4 of 5 members approved Goa. En-suite suite reserved for Sam.
                   </Text>
@@ -303,7 +303,7 @@ export default function PactConsensusResults() {
                     {checklist.map((item, idx) => (
                       <View key={idx} style={styles.checkRow}>
                         <View style={styles.checkCircle}>
-                          <Check size={11} color="#25C9A0" />
+                          <Check size={11} color="#3DE0A0" />
                         </View>
                         <Text style={styles.checkItemText}>{item}</Text>
                       </View>
@@ -332,7 +332,7 @@ export default function PactConsensusResults() {
                 style={styles.subOptionCard}
               >
                 <View style={styles.subOptionStub}>
-                  <Text style={[styles.subOptionScore, { color: 82 >= 70 ? '#25C9A0' : '#F0B24A' }]}>82%</Text>
+                  <Text style={[styles.subOptionScore, { color: 82 >= 70 ? '#3DE0A0' : '#FF5A5F' }]}>82%</Text>
                   <Text style={styles.subOptionStubLabel}>match</Text>
                 </View>
                 <View style={styles.subOptionPerforation} />
@@ -369,7 +369,7 @@ export default function PactConsensusResults() {
                 style={styles.subOptionCard}
               >
                 <View style={styles.subOptionStub}>
-                  <Text style={[styles.subOptionScore, { color: 74 >= 70 ? '#25C9A0' : '#F0B24A' }]}>74%</Text>
+                  <Text style={[styles.subOptionScore, { color: 74 >= 70 ? '#3DE0A0' : '#FF5A5F' }]}>74%</Text>
                   <Text style={styles.subOptionStubLabel}>match</Text>
                 </View>
                 <View style={styles.subOptionPerforation} />
@@ -421,7 +421,7 @@ export default function PactConsensusResults() {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Flexible Budget Split</Text>
               <TouchableOpacity onPress={() => setShowFlexibleSplitModal(false)} style={styles.modalCloseBtn}>
-                <X size={18} color="#C3BAA6" />
+                <X size={18} color="#8B8D98" />
               </TouchableOpacity>
             </View>
 
@@ -442,7 +442,7 @@ export default function PactConsensusResults() {
             </View>
 
             <View style={styles.tierSummary}>
-              <Check size={14} color="#25C9A0" />
+              <Check size={14} color="#3DE0A0" />
               <Text style={styles.tierSummaryText}>
                 Result: 100% of 5 members funded within private caps!
               </Text>
@@ -473,18 +473,18 @@ export default function PactConsensusResults() {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{selectedDetails?.name}</Text>
               <TouchableOpacity onPress={() => setSelectedDetails(null)} style={styles.modalCloseBtn}>
-                <X size={18} color="#C3BAA6" />
+                <X size={18} color="#8B8D98" />
               </TouchableOpacity>
             </View>
 
             <View style={styles.modalMetaRow}>
               <View style={styles.modalMetaBadge}>
-                <Calendar size={13} color="#25C9A0" />
+                <Calendar size={13} color="#3DE0A0" />
                 <Text style={styles.modalMetaBadgeText}>{selectedDetails?.dates}</Text>
               </View>
 
               <View style={styles.modalMetaBadge}>
-                <DollarSign size={13} color="#25C9A0" />
+                <DollarSign size={13} color="#3DE0A0" />
                 <Text style={styles.modalMetaBadgeText}>{selectedDetails?.cost}</Text>
               </View>
             </View>
@@ -492,7 +492,7 @@ export default function PactConsensusResults() {
             <View style={styles.modalChecklist}>
               {selectedDetails?.reasons?.map((r: string, i: number) => (
                 <View key={i} style={styles.modalCheckRow}>
-                  <Check size={14} color="#25C9A0" />
+                  <Check size={14} color="#3DE0A0" />
                   <Text style={styles.modalCheckText}>{r}</Text>
                 </View>
               ))}
@@ -514,7 +514,7 @@ export default function PactConsensusResults() {
 const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
-    backgroundColor: '#0C1120',
+    backgroundColor: '#050608',
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -522,7 +522,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 420,
     height: '100%',
-    backgroundColor: '#0C1120'
+    backgroundColor: '#050608'
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -544,28 +544,28 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(253, 249, 239, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     justifyContent: 'center',
     alignItems: 'center'
   },
   headerTitle: {
     fontFamily: fontDisplay,
     fontSize: 20,
-    color: '#FDF9EF'
+    color: '#F4F3F0'
   },
   gridIconBtn: {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
-    backgroundColor: 'rgba(253, 249, 239, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderWidth: 1,
-    borderColor: 'rgba(253, 249, 239, 0.14)'
+    borderColor: 'rgba(255, 255, 255, 0.14)'
   },
   // Wide Budget Gap Banner Styles
   wideBudgetBanner: {
-    backgroundColor: 'rgba(255, 178, 36, 0.08)',
+    backgroundColor: 'rgba(245, 158, 11, 0.08)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 178, 36, 0.35)',
+    borderColor: 'rgba(245, 158, 11, 0.35)',
     borderRadius: 14,
     padding: 14,
     marginBottom: 16
@@ -580,19 +580,19 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 178, 36, 0.2)',
+    backgroundColor: 'rgba(245, 158, 11, 0.2)',
     justifyContent: 'center',
     alignItems: 'center'
   },
   wideBudgetTitle: {
     fontFamily: fontUIBold,
     fontSize: 13,
-    color: '#FFB224'
+    color: '#F59E0B'
   },
   wideBudgetDesc: {
     fontFamily: fontUI,
     fontSize: 12,
-    color: '#D8D0BC',
+    color: '#B4B6C0',
     lineHeight: 17,
     marginBottom: 10
   },
@@ -601,9 +601,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: 'rgba(255, 178, 36, 0.15)',
+    backgroundColor: 'rgba(245, 158, 11, 0.15)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 178, 36, 0.4)',
+    borderColor: 'rgba(245, 158, 11, 0.4)',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20
@@ -611,28 +611,28 @@ const styles = StyleSheet.create({
   flexibleSplitPillText: {
     fontFamily: fontUIBold,
     fontSize: 11.5,
-    color: '#FFB224'
+    color: '#F59E0B'
   },
   // Deadlock Diagnostics Card Styles
   whispererLiveBadge: {
     paddingHorizontal: 5,
     paddingVertical: 1,
     borderRadius: 4,
-    backgroundColor: '#25C9A0'
+    backgroundColor: '#3DE0A0'
   },
   whispererLiveBadgeText: {
     fontFamily: fontUIBold,
     fontSize: 8,
-    color: '#0C1120'
+    color: '#050608'
   },
   whispererBox: {
     marginTop: 10,
     marginBottom: 12,
     padding: 12,
     borderRadius: 10,
-    backgroundColor: 'rgba(37, 201, 160, 0.08)',
+    backgroundColor: 'rgba(61, 224, 160, 0.08)',
     borderWidth: 1,
-    borderColor: 'rgba(37, 201, 160, 0.25)'
+    borderColor: 'rgba(61, 224, 160, 0.25)'
   },
   whispererBoxHeader: {
     flexDirection: 'row',
@@ -643,19 +643,19 @@ const styles = StyleSheet.create({
   whispererBoxTag: {
     fontFamily: fontUIBold,
     fontSize: 9,
-    color: '#25C9A0',
+    color: '#3DE0A0',
     letterSpacing: 0.8
   },
   whispererBoxText: {
     fontFamily: fontUI,
     fontSize: 12,
-    color: '#FDF9EF',
+    color: '#F4F3F0',
     lineHeight: 18
   },
   deadlockCard: {
-    backgroundColor: '#242E4A',
+    backgroundColor: '#1B1D27',
     borderWidth: 1,
-    borderColor: 'rgba(225, 71, 51, 0.4)',
+    borderColor: 'rgba(239, 68, 68, 0.4)',
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
@@ -670,31 +670,31 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(225, 71, 51, 0.15)',
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
     justifyContent: 'center',
     alignItems: 'center'
   },
   deadlockTitle: {
     fontFamily: fontUIBold,
     fontSize: 14,
-    color: '#E14733'
+    color: '#EF4444'
   },
   deadlockSubtitle: {
     fontFamily: fontUI,
     fontSize: 11.5,
-    color: '#C3BAA6',
+    color: '#8B8D98',
     marginTop: 2
   },
   deadlockDesc: {
     fontFamily: fontUI,
     fontSize: 12.5,
-    color: '#D8D0BC',
+    color: '#B4B6C0',
     lineHeight: 18
   },
   resolutionPathBox: {
     backgroundColor: 'rgba(255, 255, 255, 0.03)',
     borderWidth: 1,
-    borderColor: 'rgba(253, 249, 239, 0.14)',
+    borderColor: 'rgba(255, 255, 255, 0.14)',
     borderRadius: 12,
     padding: 12,
     gap: 8
@@ -702,22 +702,22 @@ const styles = StyleSheet.create({
   resolutionPathNumber: {
     fontFamily: fontUIBold,
     fontSize: 10,
-    color: '#C3BAA6',
+    color: '#8B8D98',
     letterSpacing: 0.8
   },
   resolutionPathDetail: {
     fontFamily: fontUI,
     fontSize: 11,
-    color: '#C3BAA6',
+    color: '#8B8D98',
     lineHeight: 15
   },
   overrideBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: 'rgba(37, 201, 160, 0.1)',
+    backgroundColor: 'rgba(61, 224, 160, 0.1)',
     borderWidth: 1,
-    borderColor: 'rgba(37, 201, 160, 0.3)',
+    borderColor: 'rgba(61, 224, 160, 0.3)',
     borderRadius: 12,
     padding: 10,
     marginBottom: 14
@@ -725,12 +725,12 @@ const styles = StyleSheet.create({
   overrideBannerText: {
     fontFamily: fontUI,
     fontSize: 11.5,
-    color: '#25C9A0',
+    color: '#3DE0A0',
     flex: 1,
     lineHeight: 16
   },
   overridePill: {
-    backgroundColor: 'rgba(37, 201, 160, 0.15)',
+    backgroundColor: 'rgba(61, 224, 160, 0.15)',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 10
@@ -738,13 +738,13 @@ const styles = StyleSheet.create({
   overridePillText: {
     fontFamily: fontUIBold,
     fontSize: 9.5,
-    color: '#25C9A0'
+    color: '#3DE0A0'
   },
   // Top Ticket Card Styles
   topTicketCard: {
-    backgroundColor: '#1E2742',
+    backgroundColor: '#13151E',
     borderWidth: 1,
-    borderColor: 'rgba(253, 249, 239, 0.14)',
+    borderColor: 'rgba(255, 255, 255, 0.14)',
     borderRadius: 18,
     overflow: 'hidden',
     marginBottom: 16
@@ -759,7 +759,7 @@ const styles = StyleSheet.create({
     marginBottom: 12
   },
   topPickBadge: {
-    backgroundColor: 'rgba(37, 201, 160, 0.12)',
+    backgroundColor: 'rgba(61, 224, 160, 0.12)',
     paddingHorizontal: 9,
     paddingVertical: 4,
     borderRadius: 12
@@ -767,7 +767,7 @@ const styles = StyleSheet.create({
   topPickBadgeText: {
     fontFamily: fontUIBold,
     fontSize: 10,
-    color: '#25C9A0',
+    color: '#3DE0A0',
     letterSpacing: 0.5
   },
   destMatchRow: {
@@ -779,17 +779,17 @@ const styles = StyleSheet.create({
   destTitleText: {
     fontFamily: fontDisplay,
     fontSize: 22,
-    color: '#FDF9EF'
+    color: '#F4F3F0'
   },
   matchProgressBarBg: {
     height: 4,
-    backgroundColor: 'rgba(253, 249, 239, 0.11)',
+    backgroundColor: 'rgba(255, 255, 255, 0.11)',
     borderRadius: 2,
     marginBottom: 14
   },
   matchProgressBarFill: {
     height: '100%',
-    backgroundColor: '#25C9A0',
+    backgroundColor: '#3DE0A0',
     borderRadius: 2
   },
   metaTagsRow: {
@@ -805,13 +805,13 @@ const styles = StyleSheet.create({
   metaItemText: {
     fontFamily: fontUI,
     fontSize: 12,
-    color: '#C3BAA6'
+    color: '#8B8D98'
   },
   checklistContainer: {
     gap: 8,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(253, 249, 239, 0.11)'
+    borderTopColor: 'rgba(255, 255, 255, 0.11)'
   },
   checkRow: {
     flexDirection: 'row',
@@ -822,21 +822,21 @@ const styles = StyleSheet.create({
     width: 16,
     height: 16,
     borderRadius: 8,
-    backgroundColor: 'rgba(37, 201, 160, 0.12)',
+    backgroundColor: 'rgba(61, 224, 160, 0.12)',
     justifyContent: 'center',
     alignItems: 'center'
   },
   checkItemText: {
     fontFamily: fontUI,
     fontSize: 12,
-    color: '#FDF9EF'
+    color: '#F4F3F0'
   },
   // Sub options — doc Ticket motif: sharp on 3 sides, top-right rounded, score stub
   // in Fraunces on a surfaceSubtle fill left of a dashed perforation.
   subOptionCard: {
-    backgroundColor: '#1E2742',
+    backgroundColor: '#13151E',
     borderWidth: 1,
-    borderColor: 'rgba(253, 249, 239, 0.14)',
+    borderColor: 'rgba(255, 255, 255, 0.14)',
     borderTopLeftRadius: 0,
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
@@ -847,7 +847,7 @@ const styles = StyleSheet.create({
   },
   subOptionStub: {
     width: 64,
-    backgroundColor: '#182036',
+    backgroundColor: '#0F1017',
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 14
@@ -855,14 +855,14 @@ const styles = StyleSheet.create({
   subOptionStubLabel: {
     fontFamily: fontUI,
     fontSize: 9.5,
-    color: '#C3BAA6',
+    color: '#8B8D98',
     marginTop: 2
   },
   subOptionPerforation: {
     width: 0,
     borderLeftWidth: 1,
     borderStyle: 'dashed',
-    borderLeftColor: 'rgba(253, 249, 239, 0.22)'
+    borderLeftColor: 'rgba(255, 255, 255, 0.22)'
   },
   subOptionMain: {
     flex: 1,
@@ -879,18 +879,18 @@ const styles = StyleSheet.create({
   subOptionName: {
     fontFamily: fontUIBold,
     fontSize: 15,
-    color: '#FDF9EF',
+    color: '#F4F3F0',
     marginBottom: 3
   },
   subOptionMeta: {
     fontFamily: fontUI,
     fontSize: 11.5,
-    color: '#C3BAA6'
+    color: '#8B8D98'
   },
   subOptionScore: {
     fontFamily: fontDisplay,
     fontSize: 22,
-    color: '#F0B24A'
+    color: '#FF5A5F'
   },
   // Bottom Bar
   bottomBar: {
@@ -900,12 +900,12 @@ const styles = StyleSheet.create({
     right: 0,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    backgroundColor: 'rgba(12, 17, 32, 0.95)',
+    backgroundColor: 'rgba(5, 6, 8, 0.95)',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(253, 249, 239, 0.11)'
+    borderTopColor: 'rgba(255, 255, 255, 0.11)'
   },
   proceedButton: {
-    backgroundColor: '#F0B24A',
+    backgroundColor: '#FF5A5F',
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center'
@@ -913,7 +913,7 @@ const styles = StyleSheet.create({
   proceedButtonText: {
     fontFamily: fontUIBold,
     fontSize: 14,
-    color: '#2A1A05'
+    color: '#2E0805'
   },
   // Modal Styles
   modalOverlay: {
@@ -926,7 +926,7 @@ const styles = StyleSheet.create({
   modalContent: {
     width: '100%',
     maxWidth: 380,
-    backgroundColor: '#1E2742',
+    backgroundColor: '#13151E',
     borderRadius: 18,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
@@ -941,26 +941,26 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontFamily: fontDisplay,
     fontSize: 18,
-    color: '#FDF9EF'
+    color: '#F4F3F0'
   },
   modalCloseBtn: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: 'rgba(253, 249, 239, 0.11)',
+    backgroundColor: 'rgba(255, 255, 255, 0.11)',
     justifyContent: 'center',
     alignItems: 'center'
   },
   modalDesc: {
     fontFamily: fontUI,
     fontSize: 12.5,
-    color: '#C3BAA6',
+    color: '#8B8D98',
     lineHeight: 18
   },
   tierCard: {
     backgroundColor: 'rgba(255,255,255,0.03)',
     borderWidth: 1,
-    borderColor: 'rgba(253, 249, 239, 0.11)',
+    borderColor: 'rgba(255, 255, 255, 0.11)',
     borderRadius: 10,
     padding: 12,
     gap: 3
@@ -968,30 +968,30 @@ const styles = StyleSheet.create({
   tierName: {
     fontFamily: fontUIBold,
     fontSize: 13,
-    color: '#FDF9EF'
+    color: '#F4F3F0'
   },
   tierCost: {
     fontFamily: fontUIBold,
     fontSize: 14,
-    color: '#FFB224'
+    color: '#F59E0B'
   },
   tierNote: {
     fontFamily: fontUI,
     fontSize: 11,
-    color: '#C3BAA6'
+    color: '#8B8D98'
   },
   tierSummary: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: 'rgba(37, 201, 160, 0.1)',
+    backgroundColor: 'rgba(61, 224, 160, 0.1)',
     borderRadius: 8,
     padding: 10
   },
   tierSummaryText: {
     fontFamily: fontUIBold,
     fontSize: 11.5,
-    color: '#25C9A0',
+    color: '#3DE0A0',
     flex: 1
   },
   modalMetaRow: {
@@ -1002,7 +1002,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: 'rgba(253, 249, 239, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8
@@ -1010,7 +1010,7 @@ const styles = StyleSheet.create({
   modalMetaBadgeText: {
     fontFamily: fontUI,
     fontSize: 11.5,
-    color: '#FDF9EF'
+    color: '#F4F3F0'
   },
   modalChecklist: {
     gap: 8
@@ -1023,7 +1023,7 @@ const styles = StyleSheet.create({
   modalCheckText: {
     fontFamily: fontUI,
     fontSize: 12,
-    color: '#D8D0BC'
+    color: '#B4B6C0'
   },
 
   topCardCoverBox: {
@@ -1038,6 +1038,6 @@ const styles = StyleSheet.create({
   },
   topCardCoverOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(18, 24, 43, 0.45)'
+    backgroundColor: 'rgba(9, 10, 15, 0.45)'
   },
 });

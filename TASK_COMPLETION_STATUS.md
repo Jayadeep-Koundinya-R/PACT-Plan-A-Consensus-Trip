@@ -1,8 +1,8 @@
 # 🏆 PACT — Task Completion Status & Submission Readiness Report
 
-> **Last Updated**: 2026-09-08  
+> **Last Updated**: 2026-09-10  
 > **Target Branch**: `main` *(fully committed & synchronized with origin/main)*  
-> **Automated Test Suite**: **106/106 tests passing** (24 suites)  
+> **Automated Test Suite**: **110/110 tests passing** (24 suites)  
 > **TypeScript Strict Check**: **0 errors** (`npx tsc --noEmit` exits with code 0)  
 > **Static Web Export**: **24/24 static routes exported cleanly** to `dist/`  
 > **Local Server**: Running at `http://localhost:3000` with clean Expo routing  
@@ -63,20 +63,21 @@ The following tasks have been fully implemented, unit-tested, verified on localh
 
 ---
 
-### 5. 🎨 High Priority #8 — Design System Realignment: Warm Terracotta → Ink & Brass
-- **Problem**: The app had a fragmented color palette with stale terracotta/coral hex codes (`#FF5A5F`, `#EA580C`, `#10B981`) conflicting with the intended archival parchment/brass design language.
+### 5. 🎨 Design System Restoration: Original Palette Restored (Base, Card, Coral, Emerald, Gold, Amber, Danger)
+- **Problem**: Revert the unrequested Ink & Brass redesign and strictly restore the original PACT color palette tokens across the entire codebase.
 - **Resolution**:
-  - Rewrote `src/theme/colors.ts` to establish the canonical PACT palette:
-    - **Dark Theme (Ink & Brass)**: Background Ink (`#0C1120`), Surface Slate (`#192038`), Primary Warm Brass (`#F0B24A`), Accent Petrol/Moss (`#25C9A0`), Danger/Seal Sealing Red (`#D3503F`).
-    - **Light Theme (Parchment & Gold)**: Background Warm Parchment (`#F6EFDE`), Surface Card (`#EDE4D0`), Primary Antique Gold (`#A97C3D`), Text Deep Ink (`#1E1A14`).
-  - Added formal Property Tests 6–10 in `src/theme/__tests__/colorTokens.test.mjs` asserting that:
-    - Backgrounds match Ink/Parchment tokens exactly.
-    - Primary colors match Brass tokens and are never the retired coral or old terracotta.
-    - Sealing Red is consistently applied to both errors and finalized seals.
-    - Success tokens stay strictly within the petrol/moss family.
-    - Text tokens match the document palette.
-- **Verification**: All 5 design system property tests pass in `npm test`.
-- **Files Modified**: `src/theme/colors.ts`, `src/theme/__tests__/colorTokens.test.mjs`.
+  - Reverted `src/theme/colors.ts` to exact original canonical tokens:
+    - **Dark Theme**: Base (`#090A0F`), Card / Surface (`#13151E`), Coral (`#FF5A5F`), Emerald (`#3DE0A0`), Gold (`#D4AF37`), Amber (`#F59E0B`), Danger (`#EF4444`).
+    - **Light Theme**: Background (`#F4F3F0`), Surface (`#FFFFFF`), Primary (`#FF5A5F`), Secondary/Seal (`#16A34A`), Gold (`#B45309`), Danger (`#DC2626`).
+  - Reverted hardcoded hex literals (927 instances) and rgba values (244 instances) across 47 component and screen files in `app/` and `src/`.
+  - Updated all 5 formal Property Tests (Properties 6-10) in `src/theme/__tests__/colors.test.mjs` asserting:
+    - Background matches Base (`#090A0F`) and Card (`#13151E`).
+    - Primary matches Coral (`#FF5A5F`), never brass.
+    - Seal and success match Emerald (`#3DE0A0`).
+    - Warning matches Amber (`#F59E0B`), Gold matches (`#D4AF37`), Danger matches (`#EF4444`).
+  - Confirmed visually with fresh browser screenshots on Home, Circle Hub, and Paywall routes.
+- **Verification**: All 110 automated tests pass with 0 failures, TypeScript compiles cleanly with 0 errors (`npx tsc --noEmit`), and Expo static web export succeeds for all 24 routes.
+- **Files Modified**: `src/theme/colors.ts`, `src/theme/__tests__/colors.test.mjs`, and 47 UI screens/components.
 
 ---
 
