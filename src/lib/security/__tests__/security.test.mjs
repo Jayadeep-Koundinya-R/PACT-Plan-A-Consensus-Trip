@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
@@ -87,4 +88,16 @@ test('Security Test 3: Non-organizer cannot finalize trip', (t) => {
     },
     'Finalize must fail if consensus is below 70%'
   );
+});
+
+test('Security Test 4: useGatherlyStore never imports raw group read functions and relies on aggregate snapshot only', () => {
+  const storeSource = fs.readFileSync('src/store/useGatherlyStore.ts', 'utf8');
+  assert.equal(storeSource.includes('fetchGroupPreferencesFromSupabase'), false, 'useGatherlyStore must not import or call fetchGroupPreferencesFromSupabase');
+  assert.equal(storeSource.includes('fetchGroupVotesFromSupabase'), false, 'useGatherlyStore must not import or call fetchGroupVotesFromSupabase');
+  assert.ok(storeSource.includes('fetchGroupConsensusSnapshot'), 'useGatherlyStore must use fetchGroupConsensusSnapshot');
+
+  // Verify schema RLS policy prevents raw reads
+  const schemaSource = fs.readFileSync('supabase/schema.sql', 'utf8');
+  assert.ok(schemaSource.includes('create policy "Users can view only their own preferences"'));
+  assert.ok(schemaSource.includes('create policy "Users can view own vote"'));
 });

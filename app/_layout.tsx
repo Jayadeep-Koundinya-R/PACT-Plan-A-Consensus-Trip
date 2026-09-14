@@ -1,5 +1,4 @@
-﻿import { PactAIChatModal } from '../src/components/PactAIChatModal';
-import React, { Component, ReactNode, useEffect } from 'react';
+﻿import React, { Component, ReactNode, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -124,7 +123,6 @@ export default function RootLayout() {
           animation: 'fade_from_bottom'
         }}
       />
-      <PactAIChatModal />
     </RootErrorBoundary>
   );
 }

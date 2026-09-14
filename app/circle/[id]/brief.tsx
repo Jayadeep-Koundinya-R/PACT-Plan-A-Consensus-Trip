@@ -1,6 +1,5 @@
 ﻿import { useShareInvite } from '../../../src/hooks/useShareInvite';
 import { SocialStoryModal } from '../../../src/components/SocialStoryModal';
-import { DepositSplitModal } from '../../../src/components/DepositSplitModal';
 import { NotificationToast } from '../../../src/components/NotificationToast';
 import { useNotificationStore } from '../../../src/store/useNotificationStore';
 import { CircleRouteGuard } from '../../../src/components/common';
@@ -26,7 +25,7 @@ import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
 import { colors, radius } from '../../../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
-import { ArrowLeft, Share2, Calendar, Lock, Sparkles, FolderArchive, Image as ImageIcon, CreditCard } from 'lucide-react-native';
+import { ArrowLeft, Share2, Calendar, Lock, Sparkles, FolderArchive, Image as ImageIcon } from 'lucide-react-native';
 
 export default function PactTripBrief() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -49,7 +48,6 @@ export default function PactTripBrief() {
   const { shareTripBrief } = useShareInvite();
   const [confettiKey, setConfettiKey] = useState(0);
   const [showStoryModal, setShowStoryModal] = useState(false);
-  const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const { addNotification } = useNotificationStore();
 
   useEffect(() => {
@@ -248,14 +246,6 @@ export default function PactTripBrief() {
               </Svg>
               <Text style={styles.whatsAppBriefBtnText}>Send WhatsApp group brief</Text>
             </TouchableOpacity>
-              <TouchableOpacity
-                activeOpacity={0.85}
-                onPress={() => { haptics.tap(); setIsDepositModalOpen(true); }}
-                style={[styles.secondaryActionBtn, { borderColor: '#3DE0A0', backgroundColor: '#10281F' }]}
-              >
-                <CreditCard size={15} color="#3DE0A0" />
-                <Text style={[styles.secondaryActionBtnText, { color: '#3DE0A0' }]}>Collect Booking Deposit (1-Tap UPI / Split)</Text>
-              </TouchableOpacity>
 
             <TouchableOpacity
               activeOpacity={0.85}
@@ -351,32 +341,6 @@ export default function PactTripBrief() {
           isDarkMode={true}
         />
 
-        {/* 1-Tap Deposit Split & UPI Settlement Modal */}
-        <DepositSplitModal
-          visible={isDepositModalOpen}
-          circleId={currentGroup.id}
-          circleName={currentGroup.name || 'Goa Beach Escape 2026'}
-          totalDeposit={1250}
-          currency="USD"
-          members={
-            members.length > 0
-              ? members.map((m, idx) => ({ id: m.userId, name: m.userName || 'Member', isOrganizer: idx === 0 }))
-              : [
-                  { id: 'm1', name: 'Jayadeep (You)', isOrganizer: true },
-                  { id: 'm2', name: 'Maya S.' },
-                  { id: 'm3', name: 'Rohan K.' },
-                  { id: 'm4', name: 'Alex M.' },
-                  { id: 'm5', name: 'Jordan T.' },
-                ]
-          }
-          payee={{
-            name: members[0]?.userName || 'Jayadeep',
-            upiVpa: 'jayadeep@oksbi',
-            revolutHandle: 'jayadeepk',
-            venmoHandle: 'jayadeep-pact',
-          }}
-          onClose={() => setIsDepositModalOpen(false)}
-        />
       </View>
     </SafeAreaView>
   );

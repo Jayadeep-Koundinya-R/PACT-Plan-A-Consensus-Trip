@@ -222,14 +222,14 @@ create policy "Organizers can delete groups"
   using (organizer_id = auth.uid());
 
 -- ----------------------------------------------------------------------------
--- 5. [MEDIUM 9] Database-Enforced Member Cap Trigger (MAX=10)
+-- 5. [MEDIUM 9] Database-Enforced Member Cap Trigger (MAX=20)
 -- ----------------------------------------------------------------------------
 create or replace function public.check_group_member_limit()
 returns trigger
 language plpgsql as $$
 begin
-  if (select count(*) from public.group_members where group_id = NEW.group_id) >= 10 then
-    raise exception 'Group has reached maximum capacity of 10 members';
+  if (select count(*) from public.group_members where group_id = NEW.group_id) >= 20 then
+    raise exception 'Group has reached maximum capacity of 20 members';
   end if;
   return NEW;
 end;

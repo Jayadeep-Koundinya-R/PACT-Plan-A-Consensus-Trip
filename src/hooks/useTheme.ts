@@ -1,48 +1,21 @@
-﻿import { useGatherlyStore } from '../store/useGatherlyStore';
-import { useUserStore } from '../store/useUserStore';
-import { colors, pactThemes, getThemeById, ThemeId, PactThemeDefinition } from '../theme/colors';
+import { useGatherlyStore } from '../store/useGatherlyStore';
+import { colors, pactThemes, ThemeId, PactThemeDefinition } from '../theme/colors';
 
 /**
- * useTheme - Unified, Persistent Multi-Theme Hook for PACT
- * Provides reactive access to the active theme, theme switcher, and persistence.
- * Supports at least 4 predefined themes (2 Dark, 2 Light).
+ * useTheme — Locked to single Obsidian Midnight dark theme.
+ * No theme switching. PRD item #12.
  */
 export function useTheme() {
-  const currentThemeId = useGatherlyStore((s) => s.currentThemeId || 'obsidian_dark');
-  const isDarkModeGatherly = useGatherlyStore((s) => s.isDarkMode);
-  const setThemeStore = useGatherlyStore((s) => s.setTheme);
-  const toggleGatherly = useGatherlyStore((s) => s.toggleDarkMode);
-
-  const isDarkModeUser = useUserStore((s) => s.isDarkMode);
-  const toggleUser = useUserStore((s) => s.toggleDarkMode);
-
-  const themeDef: PactThemeDefinition = getThemeById(currentThemeId);
+  const isDarkMode = useGatherlyStore((s) => s.isDarkMode);
+  const toggleDarkMode = useGatherlyStore((s) => s.toggleDarkMode);
+  const themeDef: PactThemeDefinition = pactThemes.obsidian_dark;
   const theme = themeDef.colors;
-  const isDarkMode = isDarkModeGatherly;
-
-  const setTheme = (id: ThemeId) => {
-    setThemeStore(id);
-    const newDef = getThemeById(id);
-    const isDark = newDef.category === 'dark';
-    if (isDarkModeUser !== isDark) {
-      toggleUser();
-    }
-  };
-
-  const toggleDarkMode = () => {
-    toggleGatherly();
-    if (isDarkModeUser === isDarkModeGatherly) {
-      toggleUser();
-    }
-  };
 
   return {
     theme,
-    themeId: currentThemeId,
+    themeId: 'obsidian_dark' as ThemeId,
     themeDefinition: themeDef,
-    allThemes: Object.values(pactThemes),
-    isDarkMode,
-    setTheme,
+    isDarkMode: true, // locked dark
     toggleDarkMode,
     colors
   };

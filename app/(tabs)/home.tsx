@@ -1,6 +1,3 @@
-import { ThemeCustomizerModal } from '../../src/components/ThemeCustomizerModal';
-import { PerspectiveCard3D } from '../../src/components/3d/PerspectiveCard3D';
-import { Visual3DConsensusOrb } from '../../src/components/3d/Visual3DConsensusOrb';
 import { useShareInvite } from '../../src/hooks/useShareInvite';
 import { useTheme } from '../../src/hooks/useTheme';
 import { useNotificationStore } from '../../src/store/useNotificationStore';
@@ -34,7 +31,6 @@ import {
   ArrowRight,
   Bell,
   Sparkles,
-  Palette,
   KeyRound,
   CheckCircle2,
   Clock,
@@ -48,7 +44,6 @@ import {
 export default function MyCirclesScreen() {
   const router = useRouter();
   const { theme, isDarkMode } = useTheme();
-  const [showThemeModal, setShowThemeModal] = useState(false);
   const haptics = usePactHaptics();
 
   const { circles = [], activeCircleId, setActiveCircle, archiveCircle, unarchiveCircle, loadDemoCircle, clearCircles } = useCircleStore();
@@ -147,17 +142,7 @@ export default function MyCirclesScreen() {
             </View>
 
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={() => {
-                  haptics.tap();
-                  setShowThemeModal(true);
-                }}
-                style={[styles.notifBellBtn, { borderColor: theme.border }]}
-                accessibilityLabel="Open Theme Customizer"
-              >
-                <Palette size={17} color={theme.primary} />
-              </TouchableOpacity>
+              
 
               <TouchableOpacity
                 activeOpacity={0.7}
@@ -250,31 +235,26 @@ export default function MyCirclesScreen() {
             </TouchableOpacity>
           </View>
 
-                    {/* 3D Visual Consensus Engine Hero Card */}
-          <PerspectiveCard3D
-            tiltAngleX={2}
-            tiltAngleY={-3}
-            glowColor={isDarkMode ? 'rgba(255, 90, 95, 0.2)' : 'rgba(2, 132, 199, 0.15)'}
-            style={{ marginBottom: 14 }}
-          >
-            <View style={[styles.hero3DCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              <View style={styles.hero3DContent}>
-                <View style={styles.hero3DTagRow}>
-                  <View style={[styles.hero3DTag, { backgroundColor: theme.primaryLight }]}>
-                    <Text style={[styles.hero3DTagText, { color: theme.primary }]}>PARETO 3D ENGINE</Text>
-                  </View>
-                  <Text style={[styles.hero3DSub, { color: theme.textSecondary }]}>Zero-Knowledge Privacy</Text>
+                    {/* Consensus Engine Hero Card */}
+          <View style={[styles.hero3DCard, { backgroundColor: theme.surface, borderColor: theme.border, marginBottom: 14 }]}>
+            <View style={styles.hero3DContent}>
+              <View style={styles.hero3DTagRow}>
+                <View style={[styles.hero3DTag, { backgroundColor: theme.primaryLight }]}>
+                  <Text style={[styles.hero3DTagText, { color: theme.primary }]}>PARETO ENGINE</Text>
                 </View>
-                <Text style={[styles.hero3DTitle, { color: theme.textPrimary }]}>
-                  Conflict-Free Travel Consensus
-                </Text>
-                <Text style={[styles.hero3DDesc, { color: theme.textSecondary }]}>
-                  Secret budgets & dates matched mathematically with 0 peer pressure.
-                </Text>
+                <Text style={[styles.hero3DSub, { color: theme.textSecondary }]}>Private Consensus</Text>
               </View>
-              <Visual3DConsensusOrb size={72} primaryColor={theme.primary} sealColor={theme.seal} />
+              <Text style={[styles.hero3DTitle, { color: theme.textPrimary }]}>
+                Conflict-Free Travel Consensus
+              </Text>
+              <Text style={[styles.hero3DDesc, { color: theme.textSecondary }]}>
+                Secret budgets & dates matched mathematically with 0 peer pressure.
+              </Text>
             </View>
-          </PerspectiveCard3D>
+            <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: theme.primaryLight, alignItems: 'center', justifyContent: 'center' }}>
+              <ShieldCheck size={30} color={theme.primary} />
+            </View>
+          </View>
 
           {/* Circles Section with Active / Archived Tabs */}
           <View style={styles.sectionHeaderRow}>
@@ -523,7 +503,7 @@ export default function MyCirclesScreen() {
         </ScrollView>
         <NotificationCenterModal />
         <NotificationToast />
-        <ThemeCustomizerModal visible={showThemeModal} onClose={() => setShowThemeModal(false)} />
+        
       </View>
     </SafeAreaView>
   );

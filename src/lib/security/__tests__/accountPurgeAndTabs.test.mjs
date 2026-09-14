@@ -57,7 +57,7 @@ describe('Account Purge and Tab Navigation Verification', () => {
   });
 
   // 2. Bottom Navigation Bar Layout Verification
-  test('bottom tab navigation layout defines exactly the 4 required visible tabs plus hidden pro tab', () => {
+  test('bottom tab navigation layout defines exactly the 3 required visible tabs plus hidden pro tab', () => {
     const layoutPath = path.resolve(process.cwd(), 'app/(tabs)/_layout.tsx');
     assert.ok(fs.existsSync(layoutPath), 'TabLayout file must exist');
 
@@ -66,15 +66,13 @@ describe('Account Purge and Tab Navigation Verification', () => {
     // Tab names
     assert.ok(content.includes('name="home"'), 'Home tab must be registered');
     assert.ok(content.includes('name="create"'), 'Create tab must be registered');
-    assert.ok(content.includes('name="ai-advisor"'), 'AI Advisor tab must be registered');
-    assert.ok(content.includes('name="settings"'), 'Settings tab must be registered');
+        assert.ok(content.includes('name="settings"'), 'Settings tab must be registered');
     assert.ok(content.includes('name="pro"'), 'Pro tab route must exist');
 
     // Tab bar labels
     assert.ok(content.includes("tabBarLabel: 'My Circles'"), 'My Circles label must be set');
     assert.ok(content.includes("tabBarLabel: 'New Trip'"), 'New Trip label must be set');
-    assert.ok(content.includes("tabBarLabel: 'AI Advisor'"), 'AI Advisor label must be set');
-    assert.ok(content.includes("tabBarLabel: 'Settings'"), 'Settings label must be set');
+        assert.ok(content.includes("tabBarLabel: 'Settings'"), 'Settings label must be set');
 
     // Renamed from Ask Gemini
     assert.ok(!content.includes('Ask Gemini'), 'Ask Gemini should be replaced with AI Advisor');
@@ -83,16 +81,7 @@ describe('Account Purge and Tab Navigation Verification', () => {
     assert.ok(content.includes('href: null'), 'Pro tab must have href: null to hide from bottom bar');
   });
 
-  // 3. AI Advisor Tab Screen File Exists
-  test('ai-advisor.tsx screen file exists in app/(tabs)/', () => {
-    const advisorPath = path.resolve(process.cwd(), 'app/(tabs)/ai-advisor.tsx');
-    assert.ok(fs.existsSync(advisorPath), 'app/(tabs)/ai-advisor.tsx must exist');
-
-    const content = fs.readFileSync(advisorPath, 'utf8');
-    assert.ok(content.includes('PACT AI Advisor'), 'Screen must include PACT AI Advisor title');
-    assert.ok(content.includes('useAIChatStore'), 'Screen must integrate with useAIChatStore');
-    assert.ok(content.includes('FREE_DAILY_PROMPT_LIMIT'), 'Screen must display daily prompt quota');
-  });
+  
 
   // 4. Settings Screen Working Buttons and Modals
   test('settings.tsx contains working Delete Account, Sign Out, and Billing confirmation modals', () => {

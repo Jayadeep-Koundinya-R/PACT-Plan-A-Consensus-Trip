@@ -8,7 +8,9 @@ import {
   ScrollView,
   StyleSheet,
   SafeAreaView,
-  Platform
+  Platform,
+  Alert,
+  BackHandler
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -117,6 +119,17 @@ export default function PactConstraintsForm() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [budgetAdvisor, setBudgetAdvisor] = useState<BudgetAdvisorResult | null>(null);
+
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      const onBackPress = () => {
+        router.push(`/circle/${currentGroup.id}/hub` as any);
+        return true;
+      };
+      const backSub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+      return () => backSub.remove();
+    }
+  }, [currentGroup?.id, router]);
 
   useEffect(() => {
     let mounted = true;

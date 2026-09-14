@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 describe('Single organizer pass and capacity', () => {
   function getTierForMemberCount(count) {
     const n = Math.max(1, Math.floor(count || 1));
-    return n <= 5 ? 'free' : 'tier_10';
+    return n <= 5 ? 'free' : 'organizer_pass';
   }
 
   it('keeps circles up to five members free', () => {
@@ -12,14 +12,14 @@ describe('Single organizer pass and capacity', () => {
     assert.equal(getTierForMemberCount(5), 'free');
   });
 
-  it('uses one organizer pass from six through ten members', () => {
-    assert.equal(getTierForMemberCount(6), 'tier_10');
-    assert.equal(getTierForMemberCount(10), 'tier_10');
+  it('uses one organizer pass from six through twenty members', () => {
+    assert.equal(getTierForMemberCount(6), 'organizer_pass');
+    assert.equal(getTierForMemberCount(20), 'organizer_pass');
   });
 
   it('does not advertise a paid tier above the backend capacity', () => {
-    assert.equal(10 <= 10, true);
-    assert.equal(11 <= 10, false);
+    assert.equal(20 <= 20, true);
+    assert.equal(21 <= 20, false);
   });
 });
 

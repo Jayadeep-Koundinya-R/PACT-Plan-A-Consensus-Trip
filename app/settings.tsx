@@ -1,5 +1,4 @@
 ﻿import { useTheme } from '../src/hooks/useTheme';
-import { ThemeCustomizerModal } from '../src/components/ThemeCustomizerModal';
 import { useNotificationStore } from '../src/store/useNotificationStore';
 import { NotificationCenterModal } from '../src/components/NotificationCenterModal';
 import { NotificationToast } from '../src/components/NotificationToast';
@@ -43,21 +42,16 @@ import {
   AlertTriangle,
   X,
   RefreshCw,
-  Palette
 } from 'lucide-react-native';
 
 export default function PactSettings() {
   const router = useRouter();
-  const { theme, themeId, themeDefinition, allThemes, isDarkMode, setTheme, toggleDarkMode } = useTheme();
-  const [showThemeModal, setShowThemeModal] = useState(false);
+  const { theme, isDarkMode, toggleDarkMode } = useTheme();
   const { openNotificationCenter, notifications, simulateAINotification } = useNotificationStore();
   const unreadCount = notifications.filter((n) => !n.read).length;
   const {
     groups = [],
     currentUserId = 'user-maya-001',
-    currency,
-    currencySymbol,
-    setCurrency,
     subscriptionPlan,
     clearLocalAccountData,
     logout: gatherlyLogout
@@ -68,15 +62,15 @@ export default function PactSettings() {
     toggleDarkMode();
   };
 
-  const { profile, logout: userLogout } = useUserStore();
+  const { profile, logout: userLogout, privacyMaskBudget, autoDeleteVetos, togglePrivacyMaskBudget, toggleAutoDeleteVetos } = useUserStore();
   const { circles = [] } = useCircleStore();
   const allCircles = circles.length > 0 ? circles : groups.map((g: any) => ({ id: g.id, name: g.name, inviteCode: g.inviteCode, archived: false, members: [] }));
   const activeCircles = allCircles.filter((c: any) => !c.archived);
 
   // Toggle states
   const [toggles, setToggles] = useState<Record<string, boolean>>({
-    maskBudget: true,
-    autoDelete: true,
+    maskBudget: privacyMaskBudget !== false,
+    autoDelete: autoDeleteVetos === true,
     whatsAppNudges: true,
     deadlineReminders: true,
     aiNotifs: true
@@ -99,6 +93,8 @@ export default function PactSettings() {
 
   const flip = (k: string) => {
     triggerHaptic();
+    if (k === 'maskBudget') togglePrivacyMaskBudget();
+    else if (k === 'autoDelete') toggleAutoDeleteVetos();
     setToggles((t) => ({ ...t, [k]: !t[k] }));
   };
 
@@ -240,145 +236,19 @@ export default function PactSettings() {
           </View>
 
           {/* Appearance & Theme Section */}
-          <Text style={[styles.sectionHeading, { color: isDarkMode ? '#8B8D98' : '#6B6252' }]}>Appearance & 4 Curated Themes</Text>
+          <Text style={[styles.sectionHeading, { color: isDarkMode ? '#8B8D98' : '#6B6252' }]}>Appearance</Text>
           <View style={[styles.settingsGroupCard, { backgroundColor: isDarkMode ? '#13151E' : '#FFFFFF', borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0,0,0,0.08)' }]}>
             <View style={styles.settingRow}>
               <View style={styles.settingTextCol}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 2 }}>
                   {isDarkMode ? <Moon size={15} color="#FF5A5F" /> : <Sun size={15} color="#D4AF37" />}
                   <Text style={[styles.settingLabel, { color: isDarkMode ? '#F4F3F0' : '#1E1A14' }]}>
-                    {isDarkMode ? 'Dark theme' : 'Light theme'}
+                    Obsidian Midnight
                   </Text>
                 </View>
                 <Text style={[styles.settingDesc, { color: isDarkMode ? '#6C6F7A' : '#6B6252' }]}>
-                  {isDarkMode
-                    ? 'Obsidian dark background with coral brand accents and gold passes.'
-                    : 'Clean light mode with sharp typography and high contrast.'}
+                  Signature dark palette with coral brand accents, emerald seals, and gold passes.
                 </Text>
-              </View>
-              <ToggleSwitch on={isDarkMode} onPress={handleToggleTheme} />
-            </View>
-
-            {/* 4 Predefined Themes: 2 Dark, 2 Light */}
-            <View style={{ paddingHorizontal: 16, paddingBottom: 14, paddingTop: 6, borderTopWidth: 1, borderTopColor: isDarkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }}>
-              <Text style={{ fontFamily: fontUIBold, fontSize: 11, color: isDarkMode ? '#8B8D98' : '#6B6252', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                Select Active Theme (2 Dark, 2 Light)
-              </Text>
-
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                {allThemes.map((t) => {
-                  const isSelected = themeId === t.id;
-                  return (
-                    <TouchableOpacity
-                      key={t.id}
-                      onPress={() => {
-                        triggerHaptic();
-                        setTheme(t.id);
-                      }}
-                      activeOpacity={0.8}
-                      style={{
-                        flex: 1,
-                        minWidth: '46%',
-                        padding: 10,
-                        borderRadius: 10,
-                        backgroundColor: isDarkMode ? '#0D0F18' : '#F4F3F0',
-                        borderWidth: isSelected ? 2 : 1,
-                        borderColor: isSelected ? '#FF5A5F' : (isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'),
-                        position: 'relative'
-                      }}
-                      accessibilityLabel={`Select ${t.name} theme`}
-                    >
-                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                        <Text style={{ fontFamily: fontUIBold, fontSize: 12, color: theme.textPrimary }} numberOfLines={1}>
-                          {t.name}
-                        </Text>
-                        {isSelected && (
-                          <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: '#FF5A5F', alignItems: 'center', justifyContent: 'center' }}>
-                            <Check size={10} color="#FFFFFF" strokeWidth={3} />
-                          </View>
-                        )}
-                      </View>
-
-                      {/* 4-Color Swatch Dots */}
-                      <View style={{ flexDirection: 'row', gap: 4, alignItems: 'center' }}>
-                        <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: t.previewBg, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' }} />
-                        <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: t.previewCard, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' }} />
-                        <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: t.previewPrimary }} />
-                        <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: t.previewSeal }} />
-                        <Text style={{ fontFamily: fontUI, fontSize: 9, color: theme.textSecondary, marginLeft: 'auto', textTransform: 'capitalize' }}>
-                          {t.category}
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-
-              {/* Open Full Theme Gallery Modal Button */}
-              <TouchableOpacity
-                onPress={() => {
-                  triggerHaptic();
-                  setShowThemeModal(true);
-                }}
-                activeOpacity={0.8}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 8,
-                  marginTop: 12,
-                  paddingVertical: 10,
-                  borderRadius: 8,
-                  backgroundColor: isDarkMode ? 'rgba(255, 90, 95, 0.12)' : 'rgba(255, 90, 95, 0.08)',
-                  borderWidth: 1,
-                  borderColor: isDarkMode ? 'rgba(255, 90, 95, 0.3)' : 'rgba(255, 90, 95, 0.2)'
-                }}
-                accessibilityLabel="Open Full Theme Customizer & 3D Preview"
-              >
-                <Palette size={14} color="#FF5A5F" />
-                <Text style={{ fontFamily: fontUIBold, fontSize: 12, color: '#FF5A5F' }}>
-                  Open Full Theme Gallery & 3D Preview
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Currency & Localization Section */}
-          <Text style={[styles.sectionHeading, { color: isDarkMode ? '#8B8D98' : '#6B6252' }]}>Currency & localization</Text>
-          <View style={[styles.settingsGroupCard, { backgroundColor: isDarkMode ? '#13151E' : '#FFFFFF', borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0,0,0,0.08)' }]}>
-            <View style={{ padding: 14 }}>
-              <Text style={[styles.settingLabel, { color: isDarkMode ? '#F4F3F0' : '#1E1A14', marginBottom: 4 }]}>
-                Display currency ({currencySymbol || '$'} {currency || 'USD'})
-              </Text>
-              <Text style={[styles.settingDesc, { color: isDarkMode ? '#6C6F7A' : '#6B6252', marginBottom: 12 }]}>
-                Prices, budget ranges, and market guidance will be converted to your preferred currency.
-              </Text>
-              <View style={{ flexDirection: 'row', gap: 8 }}>
-                {(['USD', 'EUR', 'INR', 'GBP'] as const).map((curr) => {
-                  const isSelected = (currency || 'USD') === curr;
-                  const symbols = { USD: '$', EUR: 'â‚¬', INR: 'â‚¹', GBP: 'Â£' };
-                  return (
-                    <TouchableOpacity
-                      key={curr}
-                      onPress={() => {
-                        triggerHaptic();
-                        setCurrency(curr);
-                      }}
-                      activeOpacity={0.75}
-                      style={[
-                        styles.currencyTab,
-                        isSelected ? styles.currencyTabActive : { backgroundColor: isDarkMode ? '#090A0F' : '#F6EFDE', borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0,0,0,0.08)' }
-                      ]}
-                    >
-                      <Text style={[styles.currencyTabSymbol, isSelected && { color: '#050608' }]}>
-                        {symbols[curr]}
-                      </Text>
-                      <Text style={[styles.currencyTabCode, isSelected && { color: '#050608', fontWeight: '700' }]}>
-                        {curr}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
               </View>
             </View>
           </View>
@@ -530,7 +400,7 @@ export default function PactSettings() {
                   {subscriptionPlan !== 'free' ? 'PACT Organizer Pass Active' : 'Free Tier (Up to 5 members)'}
                 </Text>
                 <Text style={styles.renewsDate}>
-                  {subscriptionPlan !== 'free' ? 'Organizer pass active' : 'Upgrade for 6 to 10 members'}
+                  {subscriptionPlan !== 'free' ? 'Organizer pass active' : 'Upgrade for 6 to 20 members'}
                 </Text>
               </View>
             </View>
@@ -546,7 +416,7 @@ export default function PactSettings() {
               <View style={styles.planFeatureItem}>
                 <Check size={12} color={subscriptionPlan !== 'free' ? '#3DE0A0' : '#8B8D98'} />
                 <Text style={[styles.planFeatureText, { color: theme.textSecondary }]}>
-                  {subscriptionPlan !== 'free' ? 'Up to 10 members per circle' : 'Up to 5 members per circle'}
+                  {subscriptionPlan !== 'free' ? 'Up to 20 members per circle' : 'Up to 5 members per circle'}
                 </Text>
               </View>
               <View style={styles.planFeatureItem}>
@@ -571,6 +441,25 @@ export default function PactSettings() {
                 {subscriptionPlan !== 'free' ? 'Change Plan / Upgrade Tier' : 'Buy a Group Pass'}
               </Text>
               <ChevronRight size={14} color="#050608" />
+            </TouchableOpacity>
+
+            {/* Restore Purchases */}
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={handleRestorePurchases}
+              disabled={isRestoring}
+              style={[styles.manageSubBtn, { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 10 }]}
+            >
+              {isRestoring ? (
+                <ActivityIndicator size="small" color={theme.primary} />
+              ) : (
+                <>
+                  <RefreshCw size={13} color={theme.textSecondary} />
+                  <Text style={[styles.manageSubBtnText, { color: theme.textSecondary }]}>
+                    Restore purchases
+                  </Text>
+                </>
+              )}
             </TouchableOpacity>
 
             {/* Manage Subscription (Pro only) */}
@@ -774,7 +663,7 @@ export default function PactSettings() {
 
         <NotificationCenterModal />
         <NotificationToast />
-        <ThemeCustomizerModal visible={showThemeModal} onClose={() => setShowThemeModal(false)} />
+        
       </View>
     </SafeAreaView>
   );
@@ -845,30 +734,6 @@ const styles = StyleSheet.create({
     color: '#050608',
     fontSize: 13,
     fontWeight: '800'
-  },
-  currencyTab: {
-    flex: 1,
-    paddingVertical: 9,
-    paddingHorizontal: 6,
-    borderRadius: 8,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  currencyTabActive: {
-    backgroundColor: '#FF5A5F',
-    borderColor: '#FF5A5F'
-  },
-  currencyTabSymbol: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FF5A5F',
-    marginBottom: 2
-  },
-  currencyTabCode: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#8B8D98'
   },
   notifHeaderBtn: {
     width: 36,

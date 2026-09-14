@@ -36,7 +36,8 @@ export default function PactCreateJoinScreen() {
   const liveTotal = parseInt(memberCount, 10) || 5;
   const liveTier = getTierForMemberCount(liveTotal);
   const exceedsCapacity = liveTotal > MAX_GROUP_MEMBERS;
-  const needsUpgrade = subscriptionPlan === 'free' && liveTotal > 5 && !exceedsCapacity;
+  const isDemoUser = !currentUserId || currentUserId.startsWith('user-');
+  const needsUpgrade = subscriptionPlan === 'free' && !isDemoUser && liveTotal > 5 && !exceedsCapacity;
 
   const triggerHaptic = () => {
     if (Platform.OS !== 'web') {

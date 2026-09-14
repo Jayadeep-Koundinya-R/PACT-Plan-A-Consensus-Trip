@@ -15,6 +15,10 @@ Status legend: ✅ Done & verified · 🟡 Built but not verified · ⬜ Not sta
 | S3 | Privacy copy matches RLS/access-policy implementation | ✅ | Removed end-to-end encryption, cryptographic computation, zero-knowledge, and impossible-inference claims from user-facing copy. | 2026-09-10 |
 | S4 | Invite code is reliable fallback when HTTPS domain is unavailable | ✅ | Share copy now uses `pact://join/{code}` only as an installed-app hint and always includes the invite code; no runtime `pact.app` invite URL remains. | 2026-09-10 |
 | S5 | README reflects current test count and flat pass | ✅ | README now documents 116 tests across 26 suites and one organizer pass up to 10 members. | 2026-09-10 |
+| S6 | Paywall triggers real RevenueCat purchase with local mock isolated to web preview only | ✅ | Native purchase invokes `Purchases.purchasePackage(pkg)` (`app/paywall.tsx:58`) with explicit error alerts on failure/cancel and zero silent fallbacks; local state unlock is only reachable when `Platform.OS === 'web'` (`app/paywall.tsx:98-107`) behind an explicit "Preview PACT Pro in Web Demo" button. | 2026-09-12 |
+| S7 | Client fetches group data via `get_group_consensus_snapshot` exclusively with raw reads removed | ✅ | Deleted `fetchGroupPreferencesFromSupabase` and `fetchGroupVotesFromSupabase` from `src/store/useGatherlyStore.ts`; `fetchGroupDataFromCloud` now exclusively reads `fetchGroupConsensusSnapshot` (`service.ts:412-423`). Supabase RLS (`schema.sql:177,220`) strictly blocks peer row SELECT even on direct queries. Verified in `security.test.mjs` (Security Test 4). | 2026-09-12 |
+| S8 | Finalizing a trip writes the trip brief and status to Supabase | ✅ | `src/store/useGatherlyStore.ts:801-806` invokes `saveTripBriefToSupabase()` (`src/lib/supabase/service.ts:426-449`), upserting to `trip_briefs` and updating `groups.status = 'finalized'`. | 2026-09-12 |
+| S9 | Group capacity expanded from 10 to 20 members | ✅ | Hard cap raised to 20 in `src/lib/supabase/service.ts:41,240`, `supabase/schema.sql:490-491`, `src/lib/pricing/groupPricing.ts:8,42`, and `app/create-circle.tsx`; flat organizer pass covers 6–20 members; verified with 118 unit/integration tests and live circle creation in browser. | 2026-09-14 |
 | R1 | Create a new trip circle | ✅ | Verified `createGroup` in store & Supabase fallback; tested in Node test suite | 2026-09-07 |
 | R2 | Join a circle via invite code & lightweight 'Add People' flow | ✅ | Verified in `AddPeopleModal`, `app/circle/[id]/hub.tsx`, and unified `useShareInvite()` hook | 2026-09-10 |
 | R3 | Join via deep link, under 10 sec, no signup wall (guest auth) | 🟡 | Deep links configured (`pact://join`, `pact://invite`) in `app.json`; guest auth handles persona | 2026-09-07 |
@@ -63,8 +67,8 @@ Status legend: ✅ Done & verified · 🟡 Built but not verified · ⬜ Not sta
 | R26 | Lightweight invite share sheet (WhatsApp/SMS/email/copy link) | ✅ | Built `AddPeopleModal.tsx` on Circle Hub; pre-fills code & 10-sec join link with zero sign-up friction | 2026-09-10 |
 | R27 | All "Share to WhatsApp" & share touchpoints unified under one shared hook | ✅ | Built `useShareInvite()`; unified `hub.tsx`, `brief.tsx`, `InviteQRModal.tsx`, `NudgeModal.tsx`, `home.tsx`; verified in test suite | 2026-09-10 |
 | R28 | User-directory / friend-request system | ❌ Non-Goal | Intentionally excluded to protect private, invite-only circles; documented in `README.md` Section 8 | 2026-09-10 |
-| R29 | One flat Organizer Pass, maximum 10 members | ✅ | Removed 19/50/community tiers; `groupPricing.ts`, create-circle guard, and paywall now agree on free up to 5 and one pass up to 10. Native purchase verification remains separate. | 2026-09-10 |
-| R30 | Global AI Chat Advisor & Fair Quota | ✅ | Built in `app/(tabs)/ai-advisor.tsx` with 15 prompt/day free quota; verified in `dailyQuota.test.mjs` & bottom tabs | 2026-09-10 |
+| R29 | One flat Organizer Pass, maximum 20 members | ✅ | Single flat $9.99 USD pass; free up to 5 and one pass covers 6–20 members. Multi-currency, extra tiers, and concierge flow removed per PRD. | 2026-09-14 |
+| R30 | Global AI Chat Advisor (Out-of-scope non-goal) | ⛔ Non-Goal | Removed from bottom tabs & root modals per PRD scope decision; Compromise Whisperer remains the sole AI surface. | 2026-09-12 |
 
 ---
 
@@ -74,7 +78,7 @@ Status legend: ✅ Done & verified · 🟡 Built but not verified · ⬜ Not sta
 |---|---|---|---|
 | N1 | Canonical PACT palette: Base (#090A0F), Card (#13151E), Coral (#FF5A5F), Emerald (#3DE0A0), Gold (#D4AF37) across all screens | ✅ | Evaluated in `colors.test.mjs` with 10 property tests (Properties 6-10) + live browser screenshots |
 | N2 | Haptics on key interactions (lock, seal, success, warning) | ✅ | `usePactHaptics.ts` wrapper with web safe no-op fallbacks |
-| N3 | Full automated test suite passing | ✅ | **119/119 tests passing across 26 suites**; `npx tsc --noEmit` exits with 0 errors |
+| N3 | Full automated test suite passing | ✅ | **115/115 tests passing across 27 suites**; `npx tsc --noEmit` exits with 0 errors |
 | N4 | No git push to `main` or production deploy without explicit approval | ✅ | Strict branch isolation on `pre-submission-review` |
 
 ---

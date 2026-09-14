@@ -38,7 +38,7 @@ export function generateInviteCode(prefix?: string): string {
   return code;
 }
 
-const MAX_GROUP_MEMBERS = 10;
+const MAX_GROUP_MEMBERS = 20;
 
 // ============================================================
 // 1. Auth Services

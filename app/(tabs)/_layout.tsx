@@ -1,7 +1,7 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
-import { Compass, PlusCircle, Settings, Sparkles } from 'lucide-react-native';
+import { Compass, PlusCircle, Settings } from 'lucide-react-native';
 import { useTheme } from '../../src/hooks/useTheme';
 
 export default function TabLayout() {
@@ -55,16 +55,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="ai-advisor"
-        options={{
-          title: 'AI Advisor',
-          tabBarLabel: 'AI Advisor',
-          tabBarIcon: ({ color, size }) => (
-            <Sparkles size={size || 22} color={color} strokeWidth={2.2} />
-          )
-        }}
-      />
-      <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',
@@ -74,7 +64,7 @@ export default function TabLayout() {
           )
         }}
       />
-      {/* Hidden from bottom navigation bar per user request — accessible via Settings & Home buttons */}
+      {/* Hidden from bottom navigation bar — accessible via Settings & Home buttons */}
       <Tabs.Screen
         name="pro"
         options={{

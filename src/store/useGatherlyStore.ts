@@ -20,14 +20,13 @@ import {
   fetchUserGroups,
   joinGroupWithCode,
   savePreferencesToSupabase,
-  fetchGroupPreferencesFromSupabase,
   fetchTripOptionsFromSupabase,
   castVoteInSupabase,
   leaveSupabaseGroup,
   deleteSupabaseGroup,
   transferGroupOwnership,
-  fetchGroupVotesFromSupabase,
   fetchGroupConsensusSnapshot,
+  GroupConsensusSnapshot,
   saveTripBriefToSupabase,
   fetchTripBriefFromSupabase,
   signOutUser
@@ -109,6 +108,7 @@ interface GatherlyState {
   // Voting & Consensus
   votes: Record<string, boolean>; // key: `${optionId}_${userId}` -> true (approved)
   finalizedBrief: TripBrief | null;
+  consensusSnapshot: GroupConsensusSnapshot | null;
 
   // Actions
   toggleDarkMode: () => void;
@@ -196,6 +196,7 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
           preferenceDrafts: {},
           votes: {},
           finalizedBrief: null,
+  consensusSnapshot: null,
           vaultDocuments: {},
           memoryPhotos: {}
         });
@@ -280,6 +281,7 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   pendingInviteCode: null,
   votes: {},
   finalizedBrief: null,
+  consensusSnapshot: null,
   activeDemoScenario: 'early_bird',
 
   vaultDocuments: {},
@@ -327,7 +329,7 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   toggleDarkMode: () => {
     const state = get();
     const newIsDark = !state.isDarkMode;
-    const newThemeId: ThemeId = newIsDark ? 'obsidian_dark' : 'parchment_light';
+    const newThemeId: ThemeId = 'obsidian_dark';
     set({ isDarkMode: newIsDark, currentThemeId: newThemeId });
     AsyncStorage.setItem('@pact_theme_id', newThemeId).catch(() => {});
     AsyncStorage.setItem('@pact_dark_mode', String(newIsDark)).catch(() => {});
@@ -344,7 +346,7 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
         set({ currentThemeId: savedTheme as ThemeId, isDarkMode: themeDef.category === 'dark' });
       } else if (savedDark !== null) {
         const isDark = savedDark === 'true';
-        set({ isDarkMode: isDark, currentThemeId: isDark ? 'obsidian_dark' : 'parchment_light' });
+        set({ isDarkMode: isDark, currentThemeId: 'obsidian_dark' });
       }
     } catch (_err) {}
   },
@@ -425,10 +427,6 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
       useUserStore.getState().logout();
     } catch (e) {}
     try {
-      const { useAIChatStore } = require('./useAIChatStore');
-      useAIChatStore.getState().clearChat();
-    } catch (e) {}
-    try {
       if (typeof window !== 'undefined' && window.localStorage) {
         window.localStorage.clear();
       }
@@ -497,20 +495,42 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   fetchGroupDataFromCloud: async (groupId: string) => {
     if (!groupId || groupId === DEMO_GROUP_ID) return;
     try {
-      const [cloudPrefs, cloudOptions, cloudVotes, snapshot, cloudBrief] = await Promise.all([
-        fetchGroupPreferencesFromSupabase(groupId),
+      // Secure aggregate-only fetch: Never read peers' raw preferences or raw votes.
+      const [cloudOptions, snapshot, cloudBrief] = await Promise.all([
         fetchTripOptionsFromSupabase(groupId),
-        fetchGroupVotesFromSupabase(groupId),
         fetchGroupConsensusSnapshot(groupId),
         fetchTripBriefFromSupabase(groupId)
       ]);
 
-      set((state) => ({
-        members: cloudPrefs.length > 0 ? cloudPrefs : state.members,
-        tripOptions: cloudOptions.length > 0 ? cloudOptions : state.tripOptions,
-        votes: { ...state.votes, ...cloudVotes },
-        finalizedBrief: cloudBrief || state.finalizedBrief
-      }));
+      set((state) => {
+        let updatedTripOptions = cloudOptions.length > 0 ? cloudOptions : state.tripOptions;
+
+        // Map aggregate options from secure consensus snapshot
+        if (snapshot && snapshot.options && snapshot.options.length > 0) {
+          updatedTripOptions = snapshot.options.map((opt) => ({
+            id: opt.option_id,
+            groupId: snapshot.group_id,
+            name: opt.title || opt.destination,
+            destinationType: opt.destination,
+            dateStart: opt.start_date,
+            dateEnd: opt.end_date,
+            budgetPerPerson: opt.price_per_person,
+            tags: opt.tags || [],
+            description: '',
+            title: opt.title || opt.destination,
+            destination: opt.destination,
+            startDate: opt.start_date,
+            endDate: opt.end_date,
+            pricePerPerson: opt.price_per_person
+          }));
+        }
+
+        return {
+          tripOptions: updatedTripOptions,
+          consensusSnapshot: snapshot || state.consensusSnapshot,
+          finalizedBrief: cloudBrief || state.finalizedBrief
+        };
+      });
     } catch (e) {
       console.warn('Error fetching group data from Supabase:', e);
     }
@@ -652,7 +672,7 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
         const friendlyMessages: Record<string, string> = {
           'INVALID_CODE': 'Invalid invite code. Please check and try again.',
           'ALREADY_MEMBER': "You're already a member of this group!",
-          'GROUP_FULL': 'This circle is full (10/10 members).',
+          'GROUP_FULL': 'This circle is full (20/20 members).',
           'GROUP_CANCELLED': 'This trip has been cancelled.',
           'GROUP_FINALIZED': 'This trip has already been finalized.'
         };
