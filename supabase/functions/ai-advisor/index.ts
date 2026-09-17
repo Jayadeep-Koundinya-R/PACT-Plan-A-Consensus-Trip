@@ -33,7 +33,36 @@ interface ChatRequest {
   conversationHistory?: Array<{ role: 'user' | 'model'; text: string }>;
 }
 
-type AIAdvisorRequest = WhispererRequest | BudgetAdvisorRequest | ChatRequest;
+interface StorytellerRequest {
+  action: 'destination_storyteller';
+  destination: string;
+  placeName?: string;
+}
+
+type AIAdvisorRequest = WhispererRequest | BudgetAdvisorRequest | ChatRequest | StorytellerRequest;
+
+const DESTINATION_STORIES: Record<string, { story: string; culturalTip: string; historicalContext: string }> = {
+  goa: {
+    story: "Goa is a coastal enclave where four and a half centuries of Portuguese maritime history melt into lush Konkan fishing villages and whispering coconut groves. Morning brings the gentle clatter of local bakeries delivering fresh poee bread by bicycle, while afternoons slip into tranquil susegad—the cherished Goan art of unhurried contentment. For group travelers, Goa offers a rare duality: tranquil heritage estates nestled along Nerul's quiet backwaters just a short drive from coastal tavernas celebrating fiery coconut curries and seaside laughter.",
+    culturalTip: "Embrace the 1 PM to 4 PM susegad lull when heritage village shops rest, and remove footwear when entering traditional ancestral homes.",
+    historicalContext: "Liberated in 1961, Goa retains a distinctive Indo-Portuguese legal and architectural fabric seen in its oyster-shell windows, azulejo ceramic tiles, and open communal courtyards."
+  },
+  puducherry: {
+    story: "Puducherry exists in a poetic cadence between Tamil sea breezes and French colonial symmetry. Divided by an ancient canal into the vibrant Tamil quarter and the quiet, pastel-washed French White Town, its cobblestone streets are shaded by sprawling bougainvillea cascading over mustard-yellow walls. Friends traveling together will find French-Indian fusion courtyards where artisanal sourdough meets aromatic filter coffee, leading to sunset strolls along Goubert Avenue overlooking the Bay of Bengal.",
+    culturalTip: "White Town's residential lanes observe quiet hours after 10 PM; renting vintage bicycles is the most respectful and picturesque way to explore.",
+    historicalContext: "Transferred peacefully to India in 1954, Puducherry preserves an 18th-century French grid layout planned around seaside sea walls and breezy colonial verandahs."
+  },
+  manali: {
+    story: "Perched at the northern tip of the Kullu Valley, Manali is where rushing turquoise waters of the Beas River cut through ancient deodar cedar forests into snow-capped Himalayan ridges. Beyond the bustling town center lies Old Manali, where wooden Kath-Kuni chalets with slate roofs overlook apple orchards and aromatic spice cafes. For a circle of friends, it offers crisp mountain air, panoramic stargazing from mountain lodges, and daytime adventures into high alpine passes.",
+    culturalTip: "High mountain passes require eco-permits; dress in layers as valley sunshine gives way quickly to alpine chill by late afternoon.",
+    historicalContext: "Named after sage Manu, who stepped ashore here to recreate human life after the great flood according to Hindu mythology; traditional Kath-Kuni wood-and-stone architecture was engineered specifically to withstand seismic tremors."
+  },
+  jaipur: {
+    story: "The Pink City is a living theater of Rajput valor, geometric astronomical genius, and vibrant royal craftsmanship. Founded in 1727 with wide avenues aligned to Vedic Vastu Shastra principles, Jaipur's terracotta-pink facades gleam under the desert sun. From bustling spice corridors in Johari Bazaar to tranquil candlelight dinners in 300-year-old palace courtyards, the city immerses group travelers in majestic architecture and warm Rajasthani hospitality.",
+    culturalTip: "Always negotiate pre-arranged auto-rickshaw fares or book verified transfers when navigating the labyrinthine old walled city gates.",
+    historicalContext: "Painted pink in 1876 under Maharaja Ram Singh to welcome the Prince of Wales, symbolizing traditional hospitable welcome."
+  }
+};
 
 // Local Curated Fallbacks
 const DESTINATION_BUDGET_FALLBACKS: Record<string, { min: number; max: number; desc: string }> = {
@@ -131,7 +160,7 @@ serve(async (req: Request) => {
       ];
 
       try {
-        const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent', {
+        const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
           body: JSON.stringify({ contents, generationConfig: { temperature: 0.4, maxOutputTokens: 8192 } })
@@ -178,7 +207,7 @@ Return STRICT JSON format only:
   "explanation": "Brief 1-sentence explanation of what this covers."
 }`;
 
-          const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent', {
+          const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -235,7 +264,7 @@ Return STRICT JSON only:
   "anonymizedSummary": "1-sentence summary of the aggregate balance."
 }`;
 
-          const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent', {
+          const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -264,6 +293,64 @@ Return STRICT JSON only:
 
       // Fallback
       return new Response(JSON.stringify(getLocalWhispererFallback(destination, groupSize, aggregatedData)), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
+    if (body.action === 'destination_storyteller') {
+      const { destination, placeName } = body;
+      const norm = (destination || 'Goa').toLowerCase().trim();
+
+      if (apiKey) {
+        try {
+          const prompt = `You are the PACT AI Travel Storyteller. Explain the cultural essence, history, and atmosphere of "${destination}"${placeName ? ` (focusing on ${placeName})` : ''} for a group of friends visiting.
+Keep it conversational, vivid, engaging, and under 3 short paragraphs.
+Strict Rules:
+- Never invent usage statistics ("X travelers used PACT").
+- Highlight authentic cultural norms, local lore, and sensory details.
+Return STRICT JSON only:
+{
+  "story": "2-3 conversational paragraphs capturing the soul and history of the place.",
+  "culturalTip": "One respectful cultural or local tip for group visitors.",
+  "historicalContext": "One fascinating historical anchor that shaped this place."
+}`;
+
+          const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-goog-api-key': apiKey
+            },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: { temperature: 0.4, responseMimeType: 'application/json' }
+            })
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (text) {
+              const parsed = JSON.parse(text);
+              return new Response(JSON.stringify({ ...parsed, destination, placeName, source: 'gemini_live' }), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+              });
+            }
+          }
+        } catch (aiErr) {
+          console.error('Gemini Storyteller call error (falling back to local index):', aiErr);
+        }
+      }
+
+      // Fallback
+      const matchKey = Object.keys(DESTINATION_STORIES).find(k => norm.includes(k));
+      const fallback = matchKey ? DESTINATION_STORIES[matchKey] : {
+        story: `${destination} offers a compelling blend of regional heritage, distinct culinary traditions, and evocative landscapes that make it an unforgettable backdrop for group travel memories.`,
+        culturalTip: "Engage with local guides and respect quiet hours in heritage residential neighborhoods.",
+        historicalContext: `${destination} developed as a vital regional crossroad, shaping its unique architectural and cultural identity today.`
+      };
+
+      return new Response(JSON.stringify({ ...fallback, destination, placeName, source: 'pact_storyteller_index' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }

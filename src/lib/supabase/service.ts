@@ -428,7 +428,13 @@ export async function saveTripBriefToSupabase(
   optionId: string | null,
   briefData: any
 ): Promise<boolean> {
-  if (!isLiveSupabaseConfigured) return false;
+  // PACT V2: Archive circle chat log into Memory Library upon trip finalization
+  try {
+    const { useCircleChatStore } = require('../../store/useCircleChatStore');
+    useCircleChatStore.getState().archiveChatLog(groupId);
+  } catch (e) {}
+
+  if (!isLiveSupabaseConfigured) return true;
   try {
     const { error: briefErr } = await supabase
       .from('trip_briefs')
@@ -436,6 +442,7 @@ export async function saveTripBriefToSupabase(
         group_id: groupId,
         option_id: optionId || null,
         brief_data: briefData,
+        chat_log_archived: true,
         generated_at: new Date().toISOString()
       });
     if (briefErr) {
@@ -467,6 +474,57 @@ export async function fetchTripBriefFromSupabase(groupId: string): Promise<any |
       .single();
     if (error || !data) return null;
     return data.brief_data;
+  } catch (e) {
+    return null;
+  }
+}
+
+
+// ============================================================
+// 7. Circle Chat Services (PACT V2)
+// ============================================================
+
+export async function fetchCircleMessagesFromSupabase(groupId: string): Promise<any[]> {
+  if (!isLiveSupabaseConfigured) return [];
+  try {
+    const { data, error } = await supabase
+      .from('circle_messages')
+      .select('*')
+      .eq('group_id', groupId)
+      .order('created_at', { ascending: true });
+    if (error) {
+      console.warn('fetchCircleMessages error:', error);
+      return [];
+    }
+    return data || [];
+  } catch (e) {
+    return [];
+  }
+}
+
+export async function sendCircleMessageToSupabase(
+  groupId: string,
+  userId: string,
+  userDisplayName: string,
+  content: string
+): Promise<any | null> {
+  if (!isLiveSupabaseConfigured) return null;
+  try {
+    const { data, error } = await supabase
+      .from('circle_messages')
+      .insert({
+        group_id: groupId,
+        user_id: userId,
+        user_display_name: userDisplayName,
+        content: content.trim()
+      })
+      .select()
+      .single();
+    if (error) {
+      console.warn('sendCircleMessage error:', error);
+      return null;
+    }
+    return data;
   } catch (e) {
     return null;
   }

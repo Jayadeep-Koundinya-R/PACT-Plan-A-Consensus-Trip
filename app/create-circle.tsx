@@ -16,7 +16,7 @@ import { useRouter } from 'expo-router';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../src/store/useGatherlyStore';
-import { useCircleStore } from '../src/store/useCircleStore';
+import { useCircleStore, CircleMember, MemberStatus } from '../src/store/useCircleStore';
 import { colors, radius } from '../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../src/theme/typography';
 import { ArrowLeft, ChevronRight, Plus, Users, Sparkles, X } from 'lucide-react-native';
@@ -119,9 +119,19 @@ export default function PactCreateJoinScreen() {
           organizerName: 'Alex Rivers',
           status: 'collecting',
           totalMembersCount: total,
-          members: [
-            { userId: 'user-maya-001', name: 'Alex (You)', status: 'locked', nudgedAt: null }
-          ],
+          members: (function(): CircleMember[] {
+            const list: CircleMember[] = [{ userId: 'user-maya-001', name: 'Alex (You)', status: 'locked' as MemberStatus, nudgedAt: null }];
+            const names = ['Jordan', 'Sam', 'Maya', 'Chris', 'Taylor', 'Morgan', 'Casey', 'Riley'];
+            for (let i = 1; i < total; i++) {
+              list.push({
+                userId: 'user-pending-' + i + '-' + Date.now(),
+                name: names[i - 1] || ('Friend ' + (i + 1)),
+                status: 'waiting' as MemberStatus,
+                nudgedAt: null
+              });
+            }
+            return list;
+          })(),
           createdAt: new Date().toISOString()
         });
       } catch (e) {}

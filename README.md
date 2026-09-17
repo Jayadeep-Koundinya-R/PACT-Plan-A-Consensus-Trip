@@ -7,7 +7,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-3178C6.svg?style=flat&logo=typescript)](https://www.typescriptlang.org/)
 [![Supabase](https://img.shields.io/badge/Supabase-Auth%20%2B%20Postgres-3ECF8E.svg?style=flat&logo=supabase)](https://supabase.com)
 [![RevenueCat](https://img.shields.io/badge/RevenueCat-In--App%20Subscriptions-E85D04.svg?style=flat&logo=revenuecat)](https://revenuecat.com)
-[![Tests](https://img.shields.io/badge/Tests-116%2F116%20Passing-brightgreen.svg)](package.json)
+[![Tests](https://img.shields.io/badge/Tests-131%2F131%20Passing-brightgreen.svg)](package.json)
 
 ---
 
@@ -79,6 +79,10 @@
 | **Archive Circles** | Active vs Archived dashboard tabs with 1-tap Archive and Restore. | Keeps dashboard clean and focused. |
 | **Push Notifications** | Generic reminders (*"A member hasn't responded yet"*). | Privacy engine strictly blocks financial numbers. |
 | **Trip Vault & Memories** | Shared documents, booking codes, and photo library with attribution. | Available offline with pre-seeded fallbacks. |
+| **Realtime Circle Chat** | Ephemeral, privacy-guarded trip room chat with typing presence. | Live WebSocket sync; no external tracking. |
+| **Real Place Recommendations** | Verified stays, dining & activities via Google Places API + Gemini narration. | 30-day caching prevents redundant calls. |
+| **AI Cultural Storyteller** | Conversational deep-dives into destination heritage, traditions, and lore. | Authentic historical context without generic fluff. |
+| **Review-Derived Safety Notes** | Grounded "Good to know" practical tips extracted from real reviews. | Omitted when no data; zero fabricated stats. |
 
 ---
 
@@ -102,7 +106,7 @@ $$\\text{Member Score} = (\\text{Date Score} \\times 0.35) + (\\text{Budget Scor
 PACT incorporates a sustainable, fair monetization model powered by RevenueCat:
 
 - **Free Tier**: Up to 1 active trip circle and 5 members, standard destination scoring, basic Trip Brief.
-- **PACT Organizer Pass** ($9.99 per trip, up to 10 members):
+- **PACT Organizer Pass** ($9.99 per trip, up to 20 members):
   - Only the organizer pays; invited members join free.
   - AI Compromise Whisperer & AI Budget Advisor live calls.
   - **Circle Inheritance**: When the organizer has Pro, all invited circle members get Pro features for that trip.
@@ -145,11 +149,11 @@ npm install
 ```
 
 ### Step 2: Run the Automated Regression Test Suite
-Run the 116-test suite validating scoring, privacy guards, webhooks, AI fallbacks, and the design-system tokens:
+Run the 131-test suite validating scoring, privacy guards, webhooks, AI fallbacks, and the design-system tokens:
 ```bash
 npm test
 ```
-*Expected output: 116 passed across 26 suites.*
+*Expected output: 131 passed across 28 suites.*
 
 ### Step 3: Launch Web Preview
 ```bash

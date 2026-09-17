@@ -93,6 +93,7 @@ const StampBallotCard: React.FC<StampBallotCardProps> = ({
     );
 
     onVote(opt.key, decision);
+    if (decision !== 'approve') onRank(opt.key, 0);
   };
 
   const animatedCardStyle = useAnimatedStyle(() => {
@@ -219,8 +220,7 @@ export default function PactSilentBallot() {
   });
 
   const [ranks, setRanks] = useState<Record<string, number>>({
-    goa: 1,
-    pondy: 2
+    goa: 1
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -270,7 +270,15 @@ export default function PactSilentBallot() {
 
   const setVote = (key: string, val: 'approve' | 'reject') => {
     triggerHaptic();
-    setVotes((v) => ({ ...v, [key]: v[key] === val ? null : val }));
+    const nextVal = votes[key] === val ? null : val;
+    setVotes((v) => ({ ...v, [key]: nextVal }));
+    if (nextVal !== 'approve') {
+      setRanks((rk) => {
+        const next = { ...rk };
+        delete next[key];
+        return next;
+      });
+    }
   };
 
   const setRank = (key: string, r: number) => {

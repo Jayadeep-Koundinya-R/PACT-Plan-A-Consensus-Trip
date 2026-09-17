@@ -1,4 +1,4 @@
-﻿# PECT  — Testing Matrix (Living Document)
+﻿# PACT  — Testing Matrix (Living Document)
 
 **Rules for AG during testing:**
 1. Test only what's in `PACT_LOCKED_SCOPE_PRD.md`s "In Scope" list. If you encounter a removed/out-of-scope feature still lingering in the UI, log it as a cleanup item, don't test it.

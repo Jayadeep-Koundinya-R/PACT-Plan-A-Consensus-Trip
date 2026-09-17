@@ -57,10 +57,20 @@ const SCENARIOS: ScenarioOption[] = [
   }
 ];
 
+const DEMO_PERSONAS = [
+  { id: 'user-maya-001', name: 'Maya (Org)' },
+  { id: 'user-priya-003', name: 'Priya' },
+  { id: 'user-alex-004', name: 'Alex' },
+  { id: 'user-jake-002', name: 'Jake' },
+  { id: 'user-sam-005', name: 'Sam' },
+];
+
 export const DemoScenarioSwitcher: React.FC = () => {
   const haptics = usePactHaptics();
   const activeScenario = useGatherlyStore((s) => s.activeDemoScenario || 'early_bird');
   const setDemoScenario = useGatherlyStore((s) => s.setDemoScenario);
+  const currentUserId = useGatherlyStore((s) => s.currentUserId);
+  const loginAsPersona = useGatherlyStore((s) => s.loginAsPersona);
 
   const [isExpanded, setIsExpanded] = useState(true);
 
@@ -109,6 +119,7 @@ export const DemoScenarioSwitcher: React.FC = () => {
 
         {/* 4 1-Tap Presets Grid */}
         {isExpanded && (
+          <>
           <View style={styles.presetsRow}>
             {SCENARIOS.map((sc) => {
               const isActive = activeScenario === sc.id;
@@ -152,6 +163,35 @@ export const DemoScenarioSwitcher: React.FC = () => {
               );
             })}
           </View>
+
+          {/* Persona Switcher row in Demo Mode */}
+          <View style={styles.personasSection}>
+            <Text style={styles.personasSectionTitle}>DEMO TRAVELER VIEW:</Text>
+            <View style={styles.personasRow}>
+              {DEMO_PERSONAS.map((p) => {
+                const isCurrent = currentUserId === p.id;
+                return (
+                  <TouchableOpacity
+                    key={p.id}
+                    activeOpacity={0.7}
+                    onPress={() => {
+                      haptics.tap();
+                      loginAsPersona(p.id);
+                    }}
+                    style={[
+                      styles.personaChip,
+                      isCurrent && styles.personaChipActive
+                    ]}
+                  >
+                    <Text style={[styles.personaChipText, isCurrent && styles.personaChipTextActive]}>
+                      {p.name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+          </>
         )}
       </View>
     </View>
@@ -255,5 +295,45 @@ const styles = StyleSheet.create({
     fontSize: 8.5,
     color: '#454857',
     textAlign: 'center'
-  }
+  },
+  personasSection: {
+    marginTop: 8,
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  personasSectionTitle: {
+    fontFamily: fontUIBold,
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#8B8D98',
+    letterSpacing: 0.6,
+    marginBottom: 4,
+  },
+  personasRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+  },
+  personaChip: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    backgroundColor: '#1B1D27',
+    borderWidth: 1,
+    borderColor: '#2C3654',
+  },
+  personaChipActive: {
+    backgroundColor: 'rgba(255, 90, 95, 0.18)',
+    borderColor: '#FF5A5F',
+  },
+  personaChipText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#8B8D98',
+  },
+  personaChipTextActive: {
+    color: '#FF5A5F',
+    fontWeight: '800',
+  },
 });

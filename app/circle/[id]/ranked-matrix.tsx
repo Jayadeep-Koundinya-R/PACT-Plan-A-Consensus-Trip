@@ -14,6 +14,7 @@ import {
   Alert,
   Modal
 } from 'react-native';
+import { ExplorePlaceSection } from '../../../src/components/ExplorePlaceSection';
 import { ConsensusGauge, ParticleBurst, PactButton } from '../../../src/components/common';
 import { usePactHaptics } from '../../../src/hooks/usePactHaptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -309,6 +310,7 @@ export default function PactConsensusResults() {
                       </View>
                     ))}
                   </View>
+                  <ExplorePlaceSection destination="Goa" />
                 </View>
               </View>
 
@@ -347,6 +349,9 @@ export default function PactConsensusResults() {
                     <Text style={styles.subOptionMeta}>Oct 12 - Oct 17  |  $480 / person</Text>
                   </View>
                 </View>
+                <View style={{ paddingHorizontal: 12, paddingBottom: 8 }}>
+                  <ExplorePlaceSection destination="Puducherry" />
+                </View>
               </TouchableOpacity>
 
               {/* #3 Ranked Destination Card */}
@@ -383,6 +388,9 @@ export default function PactConsensusResults() {
                     <Text style={styles.subOptionName}>Manali, Himachal Pradesh</Text>
                     <Text style={styles.subOptionMeta}>Oct 15 - Oct 20  |  $620 / person</Text>
                   </View>
+                </View>
+                <View style={{ paddingHorizontal: 12, paddingBottom: 8 }}>
+                  <ExplorePlaceSection destination="Manali" />
                 </View>
               </TouchableOpacity>
             </>

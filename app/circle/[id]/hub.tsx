@@ -32,6 +32,7 @@ import { usePactHaptics } from '../../../src/hooks/usePactHaptics';
 import { PactButton } from '../../../src/components/common';
 import {
   ArrowLeft,
+  MessageSquare,
   Vote,
   Check,
   Copy,
@@ -219,6 +220,18 @@ export default function PactCirclesHub() {
                 >
                   <Bell size={16} color="#FF5A5F" />
                   {unreadCount > 0 && <View style={styles.hubNotifDot} />}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => {
+                    haptics.tap();
+                    router.push(`/circle/${currentGroup.id}/chat` as any);
+                  }}
+                  activeOpacity={0.7}
+                  style={styles.settingsBtn}
+                  accessibilityLabel="Circle Chat"
+                >
+                  <MessageSquare size={16} color="#3DE0A0" />
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -492,12 +505,41 @@ export default function PactCirclesHub() {
             </View>
           </View>
 
-          {/* PACT Poll Quick Action Card */}
+          {/* Circle Chat Quick Action Card (PACT V2) */}
+          <TouchableOpacity
+            onPress={() => {
+              haptics.tap();
+              router.push(`/circle/${currentGroup.id}/chat` as any);
+            }}
+            activeOpacity={0.85}
+            style={[styles.pactPollCard, { borderColor: 'rgba(61, 224, 160, 0.25)', marginBottom: 10 }]}
+            accessibilityLabel="Open Circle Chat"
+          >
+            <View style={styles.pactPollLeft}>
+              <View style={[styles.pactPollIconBox, { backgroundColor: 'rgba(61, 224, 160, 0.12)' }]}>
+                <MessageSquare size={18} color="#3DE0A0" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text style={styles.pactPollTitle}>Circle Chat</Text>
+                  <View style={[styles.pactPollBadge, { backgroundColor: 'rgba(61, 224, 160, 0.15)' }]}>
+                    <Text style={[styles.pactPollBadgeText, { color: '#3DE0A0' }]}>LIVE</Text>
+                  </View>
+                </View>
+                <Text style={styles.pactPollSub}>
+                  Discuss dates, villas, and trip ideas live with all 20 members
+                </Text>
+              </View>
+            </View>
+            <ChevronRight size={16} color="#3DE0A0" />
+          </TouchableOpacity>
+
+          {/* Silent Sealed Ballot Quick Action Card */}
           <TouchableOpacity
             onPress={() => router.push(`/circle/${currentGroup.id}/silent-ballot` as any)}
             activeOpacity={0.85}
             style={styles.pactPollCard}
-            accessibilityLabel="Open PACT Poll: Sealed Anti-Herd Voting"
+            accessibilityLabel="Open Silent Sealed Ballot: Anti-Herd Voting"
           >
             <View style={styles.pactPollLeft}>
               <View style={styles.pactPollIconBox}>

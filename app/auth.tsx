@@ -58,9 +58,9 @@ const PACT_FEATURES: PactFeature[] = [
   {
     id: 'privacy',
     category: 'consensus',
-    title: 'Zero-Knowledge Private Ballot',
+    title: 'Confidential Private Ballot',
     tagline: 'Budgets & vetoes 100% confidential',
-    badge: '100% Zero-Leak',
+    badge: '100% Confidential',
     badgeColor: '#3DE0A0',
     desc: 'Enter your real budget & blackout dates in complete privacy. Friends only see the resulting group overlap � never individual numbers.',
     solveInsight: 'Breaks the budget shame barrier where people silently drop out of trips.',
@@ -136,10 +136,10 @@ const PACT_FEATURES: PactFeature[] = [
     id: 'fair-pricing',
     category: 'consensus',
     title: 'Fair Organizer Pass ($9.99 Flat)',
-    tagline: 'One pass covers all 10 friends',
+    tagline: 'One pass covers up to 20 friends',
     badge: 'No Per-Seat Tax',
     badgeColor: '#F59E0B',
-    desc: 'Only 1 organizer pays flat $9.99 for up to 10 travelers. No per-seat ticketing, no monthly subscriptions, and no hidden booking markups.',
+    desc: 'Only 1 organizer pays flat $9.99 for up to 20 travelers. No per-seat ticketing, no monthly subscriptions, and no hidden booking markups.',
     solveInsight: 'Aligned with group economics: native RevenueCat purchasing with instant receipt restore.',
     icon: CheckCircle2
   }
@@ -159,7 +159,6 @@ export default function AuthScreen() {
   } = useGatherlyStore();
 
   const [isSignUp, setIsSignUp] = useState(true);
-  const [activePillar, setActivePillar] = useState(0);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -240,24 +239,12 @@ export default function AuthScreen() {
     }
   };
 
-  const handleSelectDemoPersona = (userId: string) => {
-    triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
-    loginAsPersona(userId);
-    useUserStore.getState().setAuthenticated(true);
-    router.replace('/(tabs)/home');
-  };
-
   const handleInstantGuest = () => {
     triggerHaptic(Haptics.ImpactFeedbackStyle.Light);
     loginAsPersona('user-maya-001');
     useUserStore.getState().setAuthenticated(true);
     router.replace('/(tabs)/home');
   };
-
-  const [featureCategory, setFeatureCategory] = useState<string>('all');
-  const filteredFeatures = featureCategory === 'all' ? PACT_FEATURES : PACT_FEATURES.filter(f => f.category === featureCategory);
-  const activeFeature = PACT_FEATURES[activePillar] || PACT_FEATURES[0];
-  const ActiveIcon = activeFeature.icon;
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
@@ -275,7 +262,6 @@ export default function AuthScreen() {
           <ScreenHeader
             title="PACT"
             subtitle="PLAN A CONSENSUS TRIP"
-            onBack={() => router.push('/')}
             isDarkMode={isDarkMode}
           />
 
@@ -310,172 +296,34 @@ export default function AuthScreen() {
             </Text>
           </View>
 
-          {/* Comprehensive PACT Feature Showcase */}
-          <View style={styles.pillarsContainer}>
-            <View style={styles.featureShowcaseHeader}>
-              <View style={styles.featureHeaderBadge}>
-                <Sparkles size={12} color="#D4AF37" />
-                <Text style={styles.featureHeaderBadgeText}>FULL SUITE DISCOVERY</Text>
+          {/* 3-Step Group Flow Walkthrough (Clear path to sign-up) */}
+          <View style={[styles.stepFlowCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.stepFlowTitle, { color: theme.textPrimary }]}>
+              How PACT Works In 3 Simple Steps
+            </Text>
+            <View style={styles.stepFlowRow}>
+              <View style={styles.stepFlowCol}>
+                <View style={styles.stepCircle}>
+                  <Text style={styles.stepCircleText}>1</Text>
+                </View>
+                <Text style={[styles.stepLabel, { color: theme.textPrimary }]}>Create Circle</Text>
+                <Text style={[styles.stepSub, { color: theme.textSecondary }]}>Share 1-tap WhatsApp code</Text>
               </View>
-              <Text style={[styles.sectionHeading, { color: theme.textPrimary }]}>
-                Every Tool You Need To Lock The Trip
-              </Text>
-              <Text style={[styles.sectionSubheading, { color: theme.textSecondary }]}>
-                Explore the 8 built-in features that take your group from chat indecision to confirmed travel:
-              </Text>
-            </View>
-
-            {/* Category Filter Pills */}
-            <View style={styles.categoryFilterRow}>
-              {[
-                { id: 'all', label: 'All Features (8)' },
-                { id: 'consensus', label: 'Consensus & Privacy (4)' },
-                { id: 'ai', label: 'AI & Live Sync (2)' },
-                { id: 'collab', label: 'WhatsApp & Vault (2)' }
-              ].map((cat) => {
-                const isActive = featureCategory === cat.id;
-                return (
-                  <TouchableOpacity
-                    key={cat.id}
-                    onPress={() => {
-                      triggerHaptic();
-                      setFeatureCategory(cat.id);
-                    }}
-                    style={[
-                      styles.categoryPill,
-                      isActive
-                        ? { backgroundColor: theme.primary, borderColor: theme.primary }
-                        : { backgroundColor: theme.surface, borderColor: theme.border }
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.categoryPillText,
-                        { color: isActive ? '#FFFFFF' : theme.textSecondary }
-                      ]}
-                    >
-                      {cat.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-
-            {/* Feature Horizontal Grid / Selector */}
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.featureChipsScroll}
-            >
-              {filteredFeatures.map((feature) => {
-                const Icon = feature.icon;
-                const isSelected = feature.id === activeFeature.id;
-                return (
-                  <TouchableOpacity
-                    key={feature.id}
-                    onPress={() => {
-                      triggerHaptic();
-                      const globalIdx = PACT_FEATURES.findIndex(f => f.id === feature.id);
-                      setActivePillar(globalIdx >= 0 ? globalIdx : 0);
-                    }}
-                    style={[
-                      styles.featureMiniCard,
-                      isSelected
-                        ? { backgroundColor: isDarkMode ? '#1E2130' : '#FFF5F5', borderColor: theme.primary }
-                        : { backgroundColor: theme.surface, borderColor: theme.border }
-                    ]}
-                  >
-                    <View style={styles.featureMiniHeader}>
-                      <View style={[styles.featureMiniIconBox, { backgroundColor: isDarkMode ? '#13151E' : '#FFFFFF' }]}>
-                        <Icon size={14} color={isSelected ? theme.primary : theme.textSecondary} />
-                      </View>
-                      <View style={[styles.featureMiniBadge, { borderColor: feature.badgeColor }]}>
-                        <Text style={[styles.featureMiniBadgeText, { color: feature.badgeColor }]}>
-                          {feature.badge}
-                        </Text>
-                      </View>
-                    </View>
-                    <Text
-                      style={[
-                        styles.featureMiniTitle,
-                        { color: isSelected ? theme.primary : theme.textPrimary }
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {feature.title}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-
-            {/* Active Selected Feature Deep-Dive Card */}
-            <View
-              style={[
-                styles.pillarCard,
-                { backgroundColor: theme.surface, borderColor: theme.border }
-              ]}
-            >
-              <View style={styles.pillarCardHeader}>
-                <View style={[styles.pillarIconBox, { backgroundColor: isDarkMode ? '#262938' : '#FFEFC9' }]}>
-                  <ActiveIcon size={22} color={theme.primary} />
+              <View style={styles.stepDivider} />
+              <View style={styles.stepFlowCol}>
+                <View style={[styles.stepCircle, { backgroundColor: '#3DE0A0' }]}>
+                  <Text style={[styles.stepCircleText, { color: '#090A0F' }]}>2</Text>
                 </View>
-                <View style={styles.pillarTextCol}>
-                  <View style={styles.pillarTitleRow}>
-                    <Text style={[styles.pillarTitle, { color: theme.textPrimary }]}>
-                      {activeFeature.title}
-                    </Text>
-                    <View style={[styles.activeFeatureBadge, { borderColor: activeFeature.badgeColor }]}>
-                      <Text style={[styles.activeFeatureBadgeText, { color: activeFeature.badgeColor }]}>
-                        {activeFeature.badge}
-                      </Text>
-                    </View>
-                  </View>
-                  <Text style={[styles.pillarTagline, { color: theme.primary }]}>
-                    {activeFeature.tagline}
-                  </Text>
-                </View>
+                <Text style={[styles.stepLabel, { color: theme.textPrimary }]}>Secret Inputs</Text>
+                <Text style={[styles.stepSub, { color: theme.textSecondary }]}>Confidential budgets & dates</Text>
               </View>
-
-              <Text style={[styles.pillarDesc, { color: theme.textSecondary }]}>
-                {activeFeature.desc}
-              </Text>
-
-              <View style={styles.insightBox}>
-                <Text style={styles.insightLabel}>Why It Matters:</Text>
-                <Text style={styles.insightText}>{activeFeature.solveInsight}</Text>
-              </View>
-            </View>
-
-            {/* 3-Step Group Flow Walkthrough */}
-            <View style={[styles.stepFlowCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              <Text style={[styles.stepFlowTitle, { color: theme.textPrimary }]}>
-                How PACT Works In 3 Simple Steps
-              </Text>
-              <View style={styles.stepFlowRow}>
-                <View style={styles.stepFlowCol}>
-                  <View style={styles.stepCircle}>
-                    <Text style={styles.stepCircleText}>1</Text>
-                  </View>
-                  <Text style={[styles.stepLabel, { color: theme.textPrimary }]}>Create Circle</Text>
-                  <Text style={[styles.stepSub, { color: theme.textSecondary }]}>Share 1-tap WhatsApp code</Text>
+              <View style={styles.stepDivider} />
+              <View style={styles.stepFlowCol}>
+                <View style={[styles.stepCircle, { backgroundColor: '#D4AF37' }]}>
+                  <Text style={[styles.stepCircleText, { color: '#090A0F' }]}>3</Text>
                 </View>
-                <View style={styles.stepDivider} />
-                <View style={styles.stepFlowCol}>
-                  <View style={[styles.stepCircle, { backgroundColor: '#3DE0A0' }]}>
-                    <Text style={[styles.stepCircleText, { color: '#090A0F' }]}>2</Text>
-                  </View>
-                  <Text style={[styles.stepLabel, { color: theme.textPrimary }]}>Secret Inputs</Text>
-                  <Text style={[styles.stepSub, { color: theme.textSecondary }]}>Zero-knowledge budgets & dates</Text>
-                </View>
-                <View style={styles.stepDivider} />
-                <View style={styles.stepFlowCol}>
-                  <View style={[styles.stepCircle, { backgroundColor: '#D4AF37' }]}>
-                    <Text style={[styles.stepCircleText, { color: '#090A0F' }]}>3</Text>
-                  </View>
-                  <Text style={[styles.stepLabel, { color: theme.textPrimary }]}>Consensus</Text>
-                  <Text style={[styles.stepSub, { color: theme.textSecondary }]}>Pareto engine & AI reveal trip</Text>
-                </View>
+                <Text style={[styles.stepLabel, { color: theme.textPrimary }]}>Consensus</Text>
+                <Text style={[styles.stepSub, { color: theme.textSecondary }]}>Pareto engine & AI reveal trip</Text>
               </View>
             </View>
           </View>
@@ -686,6 +534,62 @@ export default function AuthScreen() {
             </View>
           </View>
 
+          {/* Comprehensive 8-Feature Scannable Showcase (Complete & Uncluttered) */}
+          <View style={styles.featureShowcaseContainer}>
+            <View style={styles.featureShowcaseHeader}>
+              <View style={styles.featureHeaderBadge}>
+                <Sparkles size={12} color="#D4AF37" />
+                <Text style={styles.featureHeaderBadgeText}>ALL 8 CORE CAPABILITIES</Text>
+              </View>
+              <Text style={[styles.sectionHeading, { color: theme.textPrimary }]}>
+                Everything Your Group Needs To Lock The Trip
+              </Text>
+              <Text style={[styles.sectionSubheading, { color: theme.textSecondary }]}>
+                A complete suite engineered to eliminate group chat indecision:
+              </Text>
+            </View>
+
+            {/* Clean, scannable list of all 8 features (no filter pills, skimmable in seconds) */}
+            <View style={styles.featureList}>
+              {PACT_FEATURES.map((feat) => {
+                const FeatIcon = feat.icon;
+                return (
+                  <View
+                    key={feat.id}
+                    style={[
+                      styles.featureItemCard,
+                      { backgroundColor: theme.surface, borderColor: theme.border }
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.featureIconBox,
+                        { backgroundColor: isDarkMode ? '#1E2130' : '#FFF5F5' }
+                      ]}
+                    >
+                      <FeatIcon size={18} color={feat.badgeColor || theme.primary} />
+                    </View>
+                    <View style={styles.featureTextBox}>
+                      <View style={styles.featureTitleRow}>
+                        <Text style={[styles.featureTitle, { color: theme.textPrimary }]}>
+                          {feat.title}
+                        </Text>
+                        <View style={[styles.featureBadge, { borderColor: feat.badgeColor }]}>
+                          <Text style={[styles.featureBadgeText, { color: feat.badgeColor }]}>
+                            {feat.badge}
+                          </Text>
+                        </View>
+                      </View>
+                      <Text style={[styles.featureDesc, { color: theme.textSecondary }]}>
+                        {feat.desc}
+                      </Text>
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+
           {/* Legal Footer Links */}
           <View style={styles.legalFooter}>
             <Text style={[styles.legalFooterTitle, { color: theme.textSecondary }]}>
@@ -730,53 +634,7 @@ export default function AuthScreen() {
             </Text>
           </View>
 
-          {/* Quick Demo Personas (Development & Testing) */}
-          <View
-            style={[
-              styles.demoCard,
-              { backgroundColor: theme.surface, borderColor: theme.border }
-            ]}
-          >
-            <View style={styles.demoHeader}>
-              <Sparkles size={16} color={theme.primary} />
-              <Text style={[styles.demoTitle, { color: theme.textPrimary }]}>
-                Quick Persona Switcher (Test Views)
-              </Text>
-            </View>
-            <Text style={[styles.demoSub, { color: theme.textSecondary }]}>
-              Tap any traveler to test their private view in the reunion circle:
-            </Text>
-
-            <View style={styles.personaGrid}>
-              {members.slice(0, 3).map((m) => (
-                <TouchableOpacity
-                  key={m.userId}
-                  onPress={() => handleSelectDemoPersona(m.userId)}
-                  activeOpacity={0.75}
-                  style={[
-                    styles.personaBtn,
-                    { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }
-                  ]}
-                >
-                  <View style={[styles.avatarCircle, { backgroundColor: isDarkMode ? '#262938' : '#FFEFC9' }]}>
-                    <Text style={[styles.avatarLetter, { color: theme.primary }]}>
-                      {m.userName ? m.userName.charAt(0) : 'U'}
-                    </Text>
-                  </View>
-                  <View style={styles.personaTextCol}>
-                    <Text style={[styles.personaName, { color: theme.textPrimary }]}>
-                      {m.userName} {m.userId === 'user-maya-001' ? '👑 (Organizer)' : ''}
-                    </Text>
-                    <Text style={[styles.personaBudget, { color: theme.textSecondary }]}>
-                      Dates: July • Budget: ${m.budgetMin}–${m.budgetMax}
-                    </Text>
-                  </View>
-                  <UserCheck size={16} color={theme.primary} />
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-            </>
+          </>
           )}
         </ScrollView>
       </KeyboardAvoidingView>
@@ -791,180 +649,6 @@ export default function AuthScreen() {
 }
 
 const styles = StyleSheet.create({
-  featureShowcaseHeader: {
-    marginBottom: 10
-  },
-  featureHeaderBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    alignSelf: 'flex-start',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 12,
-    backgroundColor: 'rgba(212, 175, 55, 0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(212, 175, 55, 0.3)',
-    marginBottom: 6
-  },
-  featureHeaderBadgeText: {
-    fontSize: 9.5,
-    fontWeight: '800',
-    color: '#D4AF37',
-    letterSpacing: 0.6
-  },
-  sectionSubheading: {
-    fontSize: 12,
-    lineHeight: 16,
-    marginTop: -4,
-    marginBottom: 10
-  },
-  categoryFilterRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 10
-  },
-  categoryPill: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 16,
-    borderWidth: 1
-  },
-  categoryPillText: {
-    fontSize: 11,
-    fontWeight: '700'
-  },
-  featureChipsScroll: {
-    gap: 8,
-    paddingBottom: 8,
-    marginBottom: 4
-  },
-  featureMiniCard: {
-    width: 170,
-    padding: 10,
-    borderRadius: radius.card,
-    borderWidth: 1,
-    gap: 6
-  },
-  featureMiniHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between'
-  },
-  featureMiniIconBox: {
-    width: 24,
-    height: 24,
-    borderRadius: 6,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  featureMiniBadge: {
-    paddingHorizontal: 5,
-    paddingVertical: 2,
-    borderRadius: 6,
-    borderWidth: 1
-  },
-  featureMiniBadgeText: {
-    fontSize: 8.5,
-    fontWeight: '700'
-  },
-  featureMiniTitle: {
-    fontSize: 11,
-    fontWeight: '700'
-  },
-  pillarTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8
-  },
-  activeFeatureBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 8,
-    borderWidth: 1
-  },
-  activeFeatureBadgeText: {
-    fontSize: 9.5,
-    fontWeight: '700'
-  },
-  insightBox: {
-    marginTop: 10,
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    borderLeftWidth: 3,
-    borderLeftColor: '#3DE0A0'
-  },
-  insightLabel: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: '#3DE0A0',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 2
-  },
-  insightText: {
-    fontSize: 11.5,
-    color: '#E0E2EC',
-    lineHeight: 16
-  },
-  stepFlowCard: {
-    marginTop: 12,
-    padding: 12,
-    borderRadius: radius.card,
-    borderWidth: 1
-  },
-  stepFlowTitle: {
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 0.2,
-    marginBottom: 10,
-    textAlign: 'center'
-  },
-  stepFlowRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between'
-  },
-  stepFlowCol: {
-    flex: 1,
-    alignItems: 'center',
-    textAlign: 'center'
-  },
-  stepCircle: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: '#FF5A5F',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 4
-  },
-  stepCircleText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#FFFFFF'
-  },
-  stepLabel: {
-    fontSize: 10.5,
-    fontWeight: '700',
-    textAlign: 'center'
-  },
-  stepSub: {
-    fontSize: 9,
-    textAlign: 'center',
-    marginTop: 2
-  },
-  stepDivider: {
-    width: 16,
-    height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    marginHorizontal: 4,
-    marginBottom: 16
-  },
-
   safeArea: {
     flex: 1
   },
@@ -1007,73 +691,66 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 18
   },
-  pillarsContainer: {
-    marginBottom: 16
-  },
-  sectionHeading: {
-    fontSize: 14,
-    fontWeight: '800',
-    letterSpacing: -0.2,
-    marginBottom: 10
-  },
-  pillarTabsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 10
-  },
-  pillarTabChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: radius.pill,
-    borderWidth: 1
-  },
-  pillarTabChipText: {
-    fontSize: 11,
-    fontWeight: '700'
-  },
-  pillarCard: {
+  stepFlowCard: {
+    marginBottom: 16,
     padding: 14,
     borderRadius: radius.card,
     borderWidth: 1
   },
-  pillarCardHeader: {
+  stepFlowTitle: {
+    fontSize: 12.5,
+    fontWeight: '800',
+    letterSpacing: 0.2,
+    marginBottom: 12,
+    textAlign: 'center'
+  },
+  stepFlowRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    marginBottom: 8
+    justifyContent: 'space-between'
   },
-  pillarIconBox: {
-    width: 36,
-    height: 36,
+  stepFlowCol: {
+    flex: 1,
+    alignItems: 'center',
+    textAlign: 'center'
+  },
+  stepCircle: {
+    width: 24,
+    height: 24,
     borderRadius: 12,
+    backgroundColor: '#FF5A5F',
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'center'
+    marginBottom: 5
   },
-  pillarTextCol: {
-    flex: 1
+  stepCircleText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#FFFFFF'
   },
-  pillarTitle: {
-    fontSize: 14,
-    fontWeight: '800'
-  },
-  pillarTagline: {
+  stepLabel: {
     fontSize: 11,
     fontWeight: '700',
-    marginTop: 1
+    textAlign: 'center'
   },
-  pillarDesc: {
-    fontSize: 12,
-    lineHeight: 17
+  stepSub: {
+    fontSize: 9.5,
+    textAlign: 'center',
+    marginTop: 2,
+    lineHeight: 13
+  },
+  stepDivider: {
+    width: 16,
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    marginHorizontal: 4,
+    marginBottom: 16
   },
   authCard: {
     padding: 18,
     borderRadius: radius.card,
     borderWidth: 1,
-    marginBottom: 16
+    marginBottom: 20
   },
   authTabSwitcher: {
     flexDirection: 'row',
@@ -1150,7 +827,7 @@ const styles = StyleSheet.create({
     marginBottom: 10
   },
   submitBtnText: {
-    color: '#3A2A10',
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '800'
   },
@@ -1178,58 +855,88 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '500'
   },
-  demoCard: {
-    borderRadius: radius.card,
-    padding: 16,
-    borderWidth: 1,
+  featureShowcaseContainer: {
     marginBottom: 20
   },
-  demoHeader: {
+  featureShowcaseHeader: {
+    marginBottom: 12
+  },
+  featureHeaderBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 5,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+    backgroundColor: 'rgba(212, 175, 55, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.3)',
+    marginBottom: 6
+  },
+  featureHeaderBadgeText: {
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#D4AF37',
+    letterSpacing: 0.6
+  },
+  sectionHeading: {
+    fontSize: 15,
+    fontWeight: '800',
+    letterSpacing: -0.2,
     marginBottom: 4
   },
-  demoTitle: {
-    fontSize: 13,
-    fontWeight: '800'
+  sectionSubheading: {
+    fontSize: 12,
+    lineHeight: 16,
+    marginBottom: 12
   },
-  demoSub: {
-    fontSize: 11,
-    marginBottom: 10
+  featureList: {
+    gap: 8
   },
-  personaGrid: {
-    gap: 6
-  },
-  personaBtn: {
+  featureItemCard: {
     flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
-    borderRadius: radius.md,
+    alignItems: 'flex-start',
+    padding: 12,
+    borderRadius: radius.card,
     borderWidth: 1,
-    gap: 10
+    gap: 12
   },
-  avatarCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+  featureIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'center'
+    marginTop: 2
   },
-  avatarLetter: {
-    fontSize: 13,
-    fontWeight: '800'
-  },
-  personaTextCol: {
+  featureTextBox: {
     flex: 1
   },
-  personaName: {
-    fontSize: 12,
-    fontWeight: '700'
+  featureTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+    marginBottom: 3
   },
-  personaBudget: {
-    fontSize: 10,
-    marginTop: 1
+  featureTitle: {
+    fontSize: 13,
+    fontWeight: '800'
+  },
+  featureBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1
+  },
+  featureBadgeText: {
+    fontSize: 9,
+    fontWeight: '800'
+  },
+  featureDesc: {
+    fontSize: 11.5,
+    lineHeight: 16
   },
   legalFooter: {
     alignItems: 'center',

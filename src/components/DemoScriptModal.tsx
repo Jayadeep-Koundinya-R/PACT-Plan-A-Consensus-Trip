@@ -40,7 +40,7 @@ const TIMELINE = [
   {
     time: '1:40 — 2:00',
     title: '5. RevenueCat Pro Monetization',
-    script: '"With RevenueCat, free circles support up to 5 members. One organizer pass supports up to 10 members, while invited members join free."'
+    script: '"With RevenueCat, free circles support up to 5 members. One organizer pass supports up to 20 members, while invited members join free."'
   }
 ];
 

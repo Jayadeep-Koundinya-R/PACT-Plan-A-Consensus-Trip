@@ -95,6 +95,7 @@ create table if not exists public.trip_briefs (
   group_id uuid references public.groups(id) on delete cascade not null,
   option_id uuid references public.trip_options(id) on delete set null,
   brief_data jsonb not null,
+  chat_log_archived boolean not null default false,
   generated_at timestamptz default now() not null
 );
 
@@ -107,6 +108,18 @@ create table if not exists public.subscriptions (
   expires_at timestamptz,
   created_at timestamptz default now() not null
 );
+
+-- 9. Circle Messages (PACT V2)
+create table if not exists public.circle_messages (
+  id uuid primary key default gen_random_uuid(),
+  group_id uuid not null references public.groups(id) on delete cascade,
+  user_id uuid not null references auth.users(id),
+  user_display_name text not null,
+  content text not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists circle_messages_group_id_idx on public.circle_messages(group_id, created_at);
 
 -- ============================================================================
 -- ROW LEVEL SECURITY (RLS) POLICIES
@@ -505,3 +518,56 @@ create policy "Users can insert own profile"
   on public.profiles for insert
   to authenticated
   with check (auth.uid() = id);
+
+
+alter table public.circle_messages enable row level security;
+
+-- ============================================================================
+-- CIRCLE CHAT MESSAGES (PACT V2)
+-- IMPORTANT PRIVACY/SECURITY NOTE:
+-- Unlike preferences and votes which are strictly private-by-default (own-row only),
+-- circle_messages is the ONE deliberate exception where all verified members of a circle
+-- can read all messages within that circle. This is intentional for collaborative trip chat.
+-- Do NOT restrict this policy to author-only; and do NOT use this as a precedent for
+-- relaxing preferences/votes privacy.
+-- ============================================================================
+drop policy if exists "Circle members can read all messages in their circle" on public.circle_messages;
+create policy "Circle members can read all messages in their circle"
+  on public.circle_messages for select
+  using (
+    exists (
+      select 1 from public.group_members
+      where group_members.group_id = circle_messages.group_id
+      and group_members.user_id = auth.uid()
+    )
+  );
+
+drop policy if exists "Circle members can send messages in their circle" on public.circle_messages;
+create policy "Circle members can send messages in their circle"
+  on public.circle_messages for insert
+  with check (
+    user_id = auth.uid()
+    and exists (
+      select 1 from public.group_members
+      where group_members.group_id = circle_messages.group_id
+      and group_members.user_id = auth.uid()
+    )
+  );
+
+
+-- ============================================================================
+-- 10. Place Recommendations Cache (PACT V2 Step 3)
+-- Caches Google Places API results + Gemini narration per destination
+-- Publicly readable, non-sensitive cached data (no RLS needed)
+-- ============================================================================
+create table if not exists public.place_recommendations_cache (
+  id uuid primary key default gen_random_uuid(),
+  destination text not null unique,
+  places_json jsonb not null,
+  ai_summary text,
+  safety_note text,
+  fetched_at timestamptz not null default now()
+);
+
+create index if not exists place_recommendations_destination_idx
+  on public.place_recommendations_cache(destination);

@@ -37,9 +37,9 @@ export type CurrencyCode = 'USD' | 'EUR' | 'INR' | 'GBP';
 
 export const CURRENCIES: Record<CurrencyCode, { code: CurrencyCode; symbol: string; name: string; rate: number }> = {
   USD: { code: 'USD', symbol: '$', name: 'US Dollar', rate: 1 },
-  EUR: { code: 'EUR', symbol: 'â‚¬', name: 'Euro', rate: 0.92 },
-  INR: { code: 'INR', symbol: 'â‚¹', name: 'Indian Rupee', rate: 83.5 },
-  GBP: { code: 'GBP', symbol: 'Â£', name: 'British Pound', rate: 0.79 },
+  EUR: { code: 'EUR', symbol: '€', name: 'Euro', rate: 0.92 },
+  INR: { code: 'INR', symbol: '₹', name: 'Indian Rupee', rate: 83.5 },
+  GBP: { code: 'GBP', symbol: '£', name: 'British Pound', rate: 0.79 },
 };
 
 export interface Group {
@@ -172,7 +172,7 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     const config = CURRENCIES[state.currency] || CURRENCIES.USD;
     const converted = Math.round((amountInUSD * config.rate) / 5) * 5;
     if (state.currency === 'INR') {
-      return `â‚¹${converted.toLocaleString('en-IN')}`;
+      return `₹${converted.toLocaleString('en-IN')}`;
     }
     return `${config.symbol}${converted.toLocaleString()}`;
   },
@@ -331,22 +331,14 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     const newIsDark = !state.isDarkMode;
     const newThemeId: ThemeId = 'obsidian_dark';
     set({ isDarkMode: newIsDark, currentThemeId: newThemeId });
-    AsyncStorage.setItem('@pact_theme_id', newThemeId).catch(() => {});
     AsyncStorage.setItem('@pact_dark_mode', String(newIsDark)).catch(() => {});
   },
 
   initThemeFromStorage: async () => {
     try {
-      const [savedTheme, savedDark] = await Promise.all([
-        AsyncStorage.getItem('@pact_theme_id'),
-        AsyncStorage.getItem('@pact_dark_mode')
-      ]);
-      if (savedTheme && savedTheme in pactThemes) {
-        const themeDef = pactThemes[savedTheme as ThemeId];
-        set({ currentThemeId: savedTheme as ThemeId, isDarkMode: themeDef.category === 'dark' });
-      } else if (savedDark !== null) {
-        const isDark = savedDark === 'true';
-        set({ isDarkMode: isDark, currentThemeId: 'obsidian_dark' });
+      const savedDark = await AsyncStorage.getItem('@pact_dark_mode');
+      if (savedDark !== null) {
+        set({ isDarkMode: savedDark === 'true', currentThemeId: 'obsidian_dark' });
       }
     } catch (_err) {}
   },
@@ -821,7 +813,12 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
       travelWindow: `${consensus.winningOption.option.dateStart} to ${consensus.winningOption.option.dateEnd}`
     };
 
-    if (activeGroupId && !activeGroupId.startsWith('circle-college-reunion')) {
+    if (activeGroupId) {
+      try {
+        const { useCircleChatStore } = require('./useCircleChatStore');
+        useCircleChatStore.getState().archiveChatLog(activeGroupId);
+      } catch (e) {}
+
       saveTripBriefToSupabase(
         activeGroupId,
         consensus.winningOption.option.id,
@@ -856,14 +853,14 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
       {
         section: 'FLIGHTS & TRANSPORT',
         items: [
-          { id: 'v1', name: 'IndiGo_Flight_All5.pdf', meta: 'Uploaded by Alex  â€¢  1.2 MB', type: 'flight', section: 'FLIGHTS & TRANSPORT' },
-          { id: 'v2', name: 'Airport_Transfer_Receipt.pdf', meta: 'Uploaded by Sam  â€¢  450 KB', type: 'transfer', section: 'FLIGHTS & TRANSPORT' }
+          { id: 'v1', name: 'IndiGo_Flight_All5.pdf', meta: 'Uploaded by Alex  •  1.2 MB', type: 'flight', section: 'FLIGHTS & TRANSPORT' },
+          { id: 'v2', name: 'Airport_Transfer_Receipt.pdf', meta: 'Uploaded by Sam  •  450 KB', type: 'transfer', section: 'FLIGHTS & TRANSPORT' }
         ]
       },
       {
         section: 'ACCOMMODATION BOOKINGS',
         items: [
-          { id: 'v3', name: 'South_Goa_Villa_Confirmation.pdf', meta: 'Uploaded by You  â€¢  Code #PACT-9921', type: 'villa', section: 'ACCOMMODATION BOOKINGS' }
+          { id: 'v3', name: 'South_Goa_Villa_Confirmation.pdf', meta: 'Uploaded by You  •  Code #PACT-9921', type: 'villa', section: 'ACCOMMODATION BOOKINGS' }
         ]
       }
     ]

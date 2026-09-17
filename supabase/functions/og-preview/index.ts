@@ -87,7 +87,7 @@ serve(async (req: Request) => {
         <polygon points="24,32 28,24 24,27 20,24" fill="#FF5A5F" fill-opacity="0.6" />
         
         <text x="64" y="24" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="18" font-weight="900" fill="#FF5A5F" letter-spacing="2">PACT</text>
-        <text x="64" y="42" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700" fill="#8E95A8" letter-spacing="1">ZERO-KNOWLEDGE GROUP TRIP CONSENSUS</text>
+        <text x="64" y="42" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700" fill="#8E95A8" letter-spacing="1">PRIVATE GROUP TRIP CONSENSUS</text>
 
         <!-- Status Pill -->
         <rect x="800" y="4" width="180" height="38" rx="19" fill="#1B2232" stroke="#3DE0A0" stroke-width="1" />
@@ -123,7 +123,7 @@ serve(async (req: Request) => {
 
         <!-- Status Details -->
         <text x="28" y="96" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600" fill="#7C849B">
-          Invite Code: <tspan fill="#FF5A5F" font-weight="800">${code}</tspan> • 100% Zero-Knowledge Privacy Guarantee
+          Invite Code: <tspan fill="#FF5A5F" font-weight="800">${code}</tspan> • 100% Private Ballot Guarantee
         </text>
       </g>
 
@@ -131,7 +131,7 @@ serve(async (req: Request) => {
       <g transform="translate(80, 520)">
         <!-- Badge 1 -->
         <rect x="0" y="0" width="220" height="34" rx="17" fill="#1A1F2C" stroke="#2C344A" stroke-width="1" />
-        <text x="24" y="22" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700" fill="#D2D6E2">🔒 Zero-Leak Privacy</text>
+        <text x="24" y="22" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="700" fill="#D2D6E2">🔒 Private by Design</text>
 
         <!-- Badge 2 -->
         <rect x="236" y="0" width="230" height="34" rx="17" fill="#1A1F2C" stroke="#2C344A" stroke-width="1" />
