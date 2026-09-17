@@ -72,7 +72,7 @@ export const DemoScenarioSwitcher: React.FC = () => {
   const currentUserId = useGatherlyStore((s) => s.currentUserId);
   const loginAsPersona = useGatherlyStore((s) => s.loginAsPersona);
 
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const handleSelect = (scenarioId: ScenarioOption['id']) => {
     haptics.action();

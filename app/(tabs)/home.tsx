@@ -397,7 +397,10 @@ export default function MyCirclesScreen() {
                     {/* Invite Code Pill with Copy */}
                     <TouchableOpacity
                       activeOpacity={0.7}
-                      onPress={() => handleCopy(circle.inviteCode)}
+                      onPress={(e: any) => {
+                        e?.stopPropagation?.();
+                        handleCopy(circle.inviteCode);
+                      }}
                       style={styles.invitePill}
                       accessibilityLabel={`Copy invite code ${circle.inviteCode}`}
                     >

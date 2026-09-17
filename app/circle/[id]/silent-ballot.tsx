@@ -27,7 +27,7 @@ import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
 import { usePactHaptics } from '../../../src/hooks/usePactHaptics';
 import { colors, radius } from '../../../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
-import { ArrowLeft, Check, X, Shield, Lock } from 'lucide-react-native';
+import { ArrowLeft, Check, X, Shield, Lock, Users } from 'lucide-react-native';
 import { PactButton } from '../../../src/components/common';
 import { WaxSealStamp } from '../../../src/components/WaxSealStamp';
 
@@ -493,6 +493,28 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 16,
     color: '#F4F3F0'
+  },
+  headerBadgesRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8
+  },
+  turnoutBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3.5,
+    borderRadius: 6,
+    backgroundColor: 'rgba(61, 224, 160, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.25)'
+  },
+  turnoutBadgeText: {
+    fontFamily: fontUIBold,
+    fontSize: 10.5,
+    color: '#3DE0A0',
+    fontWeight: '700'
   },
   sealedBadge: {
     flexDirection: 'row',

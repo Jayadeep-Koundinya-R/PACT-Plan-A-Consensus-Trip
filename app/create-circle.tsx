@@ -9,26 +9,23 @@ import {
   ScrollView,
   StyleSheet,
   SafeAreaView,
-  Platform,
-  Modal
+  Platform
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import Svg, { Path, Circle, Rect } from 'react-native-svg';
+import Svg, { Path, Circle } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../src/store/useGatherlyStore';
 import { useCircleStore, CircleMember, MemberStatus } from '../src/store/useCircleStore';
-import { colors, radius } from '../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../src/theme/typography';
-import { ArrowLeft, ChevronRight, Plus, Users, Sparkles, X } from 'lucide-react-native';
+import { ArrowLeft, Plus, Sparkles, Minus } from 'lucide-react-native';
 
 export default function PactCreateJoinScreen() {
   const router = useRouter();
-  const { theme, isDarkMode } = useTheme();
+  const { theme } = useTheme();
   const { createGroup, joinGroupByCode, subscriptionPlan, groups, currentUserId } = useGatherlyStore();
 
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [tripName, setTripName] = useState('');
   const [memberCount, setMemberCount] = useState('5');
   const [createError, setCreateError] = useState('');
@@ -61,17 +58,11 @@ export default function PactCreateJoinScreen() {
         setError('');
         router.push(`/circle/${res.group.id}/hub` as any);
       } else {
-        // Direct route with mock if code matches demo
         router.push(`/circle/circle-college-reunion-2026/hub` as any);
       }
     } catch (e) {
       router.push(`/circle/circle-college-reunion-2026/hub` as any);
     }
-  };
-
-  const handleCreateNewTrip = () => {
-    triggerHaptic();
-    setIsCreateModalOpen(true);
   };
 
   const handleConfirmCreate = async () => {
@@ -84,22 +75,18 @@ export default function PactCreateJoinScreen() {
       return;
     }
 
-    // Free-tier member-cap guard: block and ask for the one organizer pass.
     if (subscriptionPlan === 'free' && total > 5) {
       const tierForTotal = getTierForMemberCount(total);
       setCreateError(`The Free tier supports up to 5 members. This trip needs the ${tierForTotal.name} (${tierForTotal.capacityLabel}).`);
       return;
     }
-    // Free-tier single-active-circle guard (demo personas are exempt so the demo
-    // tour can still spin up extra circles for testing).
-    const isDemoUser = !currentUserId || currentUserId.startsWith('user-');
+    
     if (subscriptionPlan === 'free' && !isDemoUser && groups.length >= 1) {
       setCreateError('The Free tier includes 1 active trip circle. Upgrade to a group pass to organize more circles.');
       return;
     }
 
     setCreateError('');
-    setIsCreateModalOpen(false);
     try {
       const newGroup = await createGroup({
         name,
@@ -161,32 +148,107 @@ export default function PactCreateJoinScreen() {
           </View>
 
           {/* Heading */}
-          <Text style={[styles.mainTitle, { color: theme.textPrimary }]}>Who's this trip for?</Text>
+          <Text style={[styles.mainTitle, { color: theme.textPrimary }]}>Plan a Consensus Trip</Text>
           <Text style={[styles.mainSubtitle, { color: theme.textSecondary }]}>
-            Start a new trip poll, or join one a friend already sent you.
+            Create a private circle for your group, or join one a friend sent you.
           </Text>
 
-          {/* Option 1: Create a new trip Card */}
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={handleCreateNewTrip}
-            style={[styles.createCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
-          >
-            <View style={styles.createIconBox}>
-              <Svg width="20" height="20" viewBox="0 0 20 20">
-                <Path d="M10 3v14M3 10h14" stroke="#FF5A5F" strokeWidth="2" strokeLinecap="round" />
-              </Svg>
+          {/* Option 1: Inline Create Trip Form (No Modal Indirection) */}
+          <View style={[styles.createCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <View style={styles.cardHeaderRow}>
+              <View style={styles.createIconBox}>
+                <Plus size={20} color="#FF5A5F" />
+              </View>
+              <View style={styles.cardTextCol}>
+                <Text style={[styles.cardHeading, { color: theme.textPrimary }]}>Create a new trip circle</Text>
+                <Text style={[styles.cardSubtext, { color: theme.textSecondary }]}>You set it up and invite friends</Text>
+              </View>
             </View>
-            <View style={styles.cardTextCol}>
-              <Text style={[styles.cardHeading, { color: theme.textPrimary }]}>Create a new trip</Text>
-              <Text style={[styles.cardSubtext, { color: theme.textSecondary }]}>You'll set it up and invite the group</Text>
+
+            {/* Trip Name Input */}
+            <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>TRIP NAME</Text>
+            <TextInput
+              style={[
+                styles.textInput,
+                { backgroundColor: theme.surfaceSubtle, color: theme.textPrimary, borderColor: theme.border }
+              ]}
+              value={tripName}
+              onChangeText={(t) => {
+                setTripName(t);
+                if (createError) setCreateError('');
+              }}
+              placeholder="e.g. Goa Beach Escape 2026"
+              placeholderTextColor="#454857"
+            />
+
+            {/* Member Count Stepper & Tier */}
+            <View style={styles.memberStepperSection}>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>ESTIMATED TRAVELERS</Text>
+                <Text style={[styles.tierTag, { color: liveTotal <= 5 ? '#3DE0A0' : '#FF5A5F' }]}>
+                  {liveTier.name} • {liveTier.capacityLabel}
+                </Text>
+              </View>
+              <View style={styles.stepperBox}>
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    const nextVal = Math.max(2, liveTotal - 1);
+                    setMemberCount(String(nextVal));
+                    triggerHaptic();
+                  }}
+                  style={[styles.stepperBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
+                >
+                  <Minus size={14} color={theme.textPrimary} />
+                </TouchableOpacity>
+                <Text style={[styles.stepperCount, { color: theme.textPrimary }]}>{liveTotal}</Text>
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    const nextVal = Math.min(MAX_GROUP_MEMBERS, liveTotal + 1);
+                    setMemberCount(String(nextVal));
+                    triggerHaptic();
+                  }}
+                  style={[styles.stepperBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
+                >
+                  <Plus size={14} color={theme.textPrimary} />
+                </TouchableOpacity>
+              </View>
             </View>
-            <Text style={styles.cardChevron}>›</Text>
-          </TouchableOpacity>
+
+            {/* Pro Tier Notice if 6+ members */}
+            {needsUpgrade && !exceedsCapacity && (
+              <View style={[styles.tierNoticeBox, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}>
+                <Text style={[styles.tierNoticeText, { color: theme.textSecondary }]}>
+                  Circles of 6–20 members require the PACT Organizer Pass.
+                </Text>
+                <TouchableOpacity
+                  activeOpacity={0.75}
+                  onPress={() => router.push('/paywall')}
+                  style={styles.viewPassLink}
+                >
+                  <Text style={styles.viewPassLinkText}>View Group Pass →</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {Boolean(createError) && (
+              <Text style={styles.errorText}>{createError}</Text>
+            )}
+
+            <TouchableOpacity
+              activeOpacity={0.88}
+              onPress={handleConfirmCreate}
+              style={styles.createButton}
+            >
+              <Sparkles size={16} color="#050608" />
+              <Text style={styles.createButtonText}>Create Circle & Get Code</Text>
+            </TouchableOpacity>
+          </View>
 
           {/* Option 2: Join with a code Card */}
           <View style={[styles.joinCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <View style={styles.joinHeaderRow}>
+            <View style={styles.cardHeaderRow}>
               <View style={styles.joinIconBox}>
                 <Svg width="20" height="20" viewBox="0 0 20 20">
                   <Path
@@ -198,15 +260,15 @@ export default function PactCreateJoinScreen() {
                   />
                 </Svg>
               </View>
-              <View>
+              <View style={styles.cardTextCol}>
                 <Text style={[styles.cardHeading, { color: theme.textPrimary }]}>Join with a code</Text>
-                <Text style={[styles.cardSubtext, { color: theme.textSecondary }]}>Ask the trip organizer for their code</Text>
+                <Text style={[styles.cardSubtext, { color: theme.textSecondary }]}>Ask your trip organizer for their code</Text>
               </View>
             </View>
 
             <TextInput
               style={[
-                styles.codeInput,
+                styles.textInput,
                 { backgroundColor: theme.surfaceSubtle, color: theme.textPrimary, borderColor: theme.border },
                 error ? { borderColor: '#E0484D' } : {}
               ]}
@@ -238,121 +300,16 @@ export default function PactCreateJoinScreen() {
               <Path d="M7 4v3.3l2.2 1.3" stroke="#454857" strokeWidth="1.2" fill="none" strokeLinecap="round" />
             </Svg>
             <Text style={styles.privacyText}>
-              Your constraints stay private until everyone's voted
+              Your budgets & dates stay private until consensus is reached
             </Text>
           </View>
         </ScrollView>
       </View>
-
-      {/* Modal for Creating Circle */}
-      <Modal
-        visible={isCreateModalOpen}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setIsCreateModalOpen(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: theme.textPrimary }]}>New Trip Circle</Text>
-              <TouchableOpacity
-                onPress={() => setIsCreateModalOpen(false)}
-                style={styles.modalCloseBtn}
-              >
-                <X size={18} color="#8B8D98" />
-              </TouchableOpacity>
-            </View>
-
-            <Text style={[styles.modalLabel, { color: theme.textSecondary }]}>Trip name</Text>
-            <TextInput
-              style={[styles.modalInput, { backgroundColor: theme.surfaceSubtle, color: theme.textPrimary, borderColor: theme.border }]}
-              value={tripName}
-              onChangeText={setTripName}
-              placeholder="e.g. Goa Beach Escape 2026"
-              placeholderTextColor="#454857"
-            />
-
-            <Text style={[styles.modalLabel, { color: theme.textSecondary }]}>Estimated travelers</Text>
-            <TextInput
-              style={[styles.modalInput, { backgroundColor: theme.surfaceSubtle, color: theme.textPrimary, borderColor: theme.border }]}
-              value={memberCount}
-              onChangeText={setMemberCount}
-              keyboardType="number-pad"
-              placeholder="5"
-              placeholderTextColor="#454857"
-            />
-
-            <View style={[styles.tierInfoBox, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}>
-              <Text style={[styles.tierInfoTitle, { color: theme.textPrimary }]}>
-                {liveTier.name} · {liveTier.capacityLabel}
-              </Text>
-              <Text style={[styles.tierInfoDesc, { color: theme.textSecondary }]}>
-                {exceedsCapacity
-                  ? `PACT currently supports up to ${MAX_GROUP_MEMBERS} members per circle.`
-                  : needsUpgrade
-                    ? `This size needs the one organizer pass. The Free tier is limited to 5 members.`
-                    : `${liveTier.recommendedFor}`}
-              </Text>
-              {needsUpgrade && !exceedsCapacity && (
-                <View style={{ marginTop: 10 }}>
-                  <TouchableOpacity
-                    activeOpacity={0.75}
-                    onPress={() => { setIsCreateModalOpen(false); router.push('/paywall'); }}
-                    style={styles.viewPassLink}
-                  >
-                    <Text style={styles.viewPassLinkText}>Upgrade → View Group Passes</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
-
-            {Boolean(createError) && (
-              <Text style={[styles.errorText, { marginBottom: 12 }]}>{createError}</Text>
-            )}
-
-            <TouchableOpacity
-              activeOpacity={0.88}
-              onPress={handleConfirmCreate}
-              style={styles.modalCreateBtn}
-            >
-              <Sparkles size={16} color="#050608" />
-              <Text style={styles.modalCreateBtnText}>Create Circle & Get Code</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  tierInfoBox: {
-    borderRadius: 10,
-    borderWidth: 1,
-    padding: 10,
-    marginTop: 8,
-    marginBottom: 16
-  },
-  tierInfoTitle: {
-    fontFamily: fontUIBold,
-    fontSize: 12,
-    fontWeight: '700'
-  },
-  tierInfoDesc: {
-    fontSize: 11,
-    lineHeight: 15
-  },
-  viewPassLink: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 6,
-    backgroundColor: 'rgba(255, 90, 95, 0.15)'
-  },
-  viewPassLinkText: {
-    color: '#FF5A5F',
-    fontSize: 11,
-    fontWeight: '800'
-  },
   outerContainer: {
     flex: 1,
     backgroundColor: '#050608',
@@ -361,7 +318,7 @@ const styles = StyleSheet.create({
   },
   phoneFrame: {
     width: '100%',
-    maxWidth: 420,
+    maxWidth: 440,
     flex: 1,
     backgroundColor: '#090A0F',
     borderWidth: Platform.OS === 'web' ? 1 : 0,
@@ -371,15 +328,15 @@ const styles = StyleSheet.create({
     position: 'relative'
   },
   scrollContent: {
-    paddingHorizontal: 24,
-    paddingTop: 22,
+    paddingHorizontal: 22,
+    paddingTop: 20,
     paddingBottom: 40
   },
   navHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    marginBottom: 30
+    marginBottom: 24
   },
   backButton: {
     width: 32,
@@ -396,34 +353,37 @@ const styles = StyleSheet.create({
   mainTitle: {
     fontFamily: fontDisplay,
     fontWeight: '700',
-    fontSize: 26,
-    lineHeight: 32,
+    fontSize: 24,
+    lineHeight: 30,
     color: '#F4F3F0',
-    marginBottom: 8
+    marginBottom: 6
   },
   mainSubtitle: {
     fontFamily: fontUI,
-    fontSize: 14,
+    fontSize: 13.5,
     color: '#8B8D98',
-    lineHeight: 21,
-    marginBottom: 28
+    lineHeight: 20,
+    marginBottom: 22
   },
   createCard: {
     backgroundColor: '#13151E',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.14)',
     borderRadius: 18,
-    padding: 20,
-    marginBottom: 14,
+    padding: 18,
+    marginBottom: 18
+  },
+  cardHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16
+    gap: 14,
+    marginBottom: 16
   },
   createIconBox: {
-    width: 46,
-    height: 46,
+    width: 42,
+    height: 42,
     borderRadius: 12,
-    backgroundColor: 'rgba(255, 90, 95,0.12)',
+    backgroundColor: 'rgba(255, 90, 95, 0.14)',
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -438,50 +398,117 @@ const styles = StyleSheet.create({
   },
   cardSubtext: {
     fontFamily: fontUI,
-    fontSize: 12.5,
+    fontSize: 12,
     color: '#6C6F7A',
-    marginTop: 3
+    marginTop: 2
   },
-  cardChevron: {
-    color: '#454857',
-    fontSize: 20,
-    fontWeight: '300'
+  inputLabel: {
+    fontFamily: fontUIBold,
+    fontSize: 10.5,
+    letterSpacing: 0.8,
+    color: '#8B8D98',
+    marginBottom: 6
+  },
+  textInput: {
+    width: '100%',
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: '#090A0F',
+    color: '#F4F3F0',
+    fontSize: 14,
+    fontFamily: fontUI,
+    marginBottom: 14
+  },
+  memberStepperSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 14
+  },
+  tierTag: {
+    fontFamily: fontUIBold,
+    fontSize: 11.5,
+    fontWeight: '600',
+    marginTop: 1
+  },
+  stepperBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10
+  },
+  stepperBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 9,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    backgroundColor: '#1E2130',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  stepperCount: {
+    fontFamily: fontUIBold,
+    fontSize: 16,
+    minWidth: 24,
+    textAlign: 'center'
+  },
+  tierNoticeBox: {
+    borderRadius: 10,
+    borderWidth: 1,
+    padding: 10,
+    marginBottom: 14
+  },
+  tierNoticeText: {
+    fontSize: 11.5,
+    lineHeight: 16
+  },
+  viewPassLink: {
+    alignSelf: 'flex-start',
+    marginTop: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    backgroundColor: 'rgba(255, 90, 95, 0.15)'
+  },
+  viewPassLinkText: {
+    color: '#FF5A5F',
+    fontSize: 11,
+    fontWeight: '800'
+  },
+  createButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    width: '100%',
+    paddingVertical: 13,
+    borderRadius: 11,
+    backgroundColor: '#FF5A5F'
+  },
+  createButtonText: {
+    fontFamily: fontUIBold,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#050608'
   },
   joinCard: {
     backgroundColor: '#13151E',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.14)',
     borderRadius: 18,
-    padding: 20,
-    marginBottom: 24
-  },
-  joinHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-    marginBottom: 14
+    padding: 18,
+    marginBottom: 20
   },
   joinIconBox: {
-    width: 46,
-    height: 46,
+    width: 42,
+    height: 42,
     borderRadius: 12,
-    backgroundColor: 'rgba(61, 224, 160,0.12)',
+    backgroundColor: 'rgba(61, 224, 160, 0.12)',
     alignItems: 'center',
     justifyContent: 'center'
-  },
-  codeInput: {
-    width: '100%',
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    backgroundColor: '#090A0F',
-    color: '#F4F3F0',
-    fontSize: 14,
-    fontFamily: fontUIBold,
-    letterSpacing: 1,
-    marginBottom: 12
   },
   errorText: {
     fontSize: 12,
@@ -507,78 +534,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginTop: 4
+    marginTop: 4,
+    justifyContent: 'center'
   },
   privacyText: {
     fontFamily: fontUI,
-    fontSize: 12,
+    fontSize: 11.5,
     color: '#6C6F7A'
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(5, 6, 8,0.85)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20
-  },
-  modalContent: {
-    width: '100%',
-    maxWidth: 380,
-    backgroundColor: '#13151E',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    padding: 22
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 18
-  },
-  modalTitle: {
-    fontFamily: fontDisplay,
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#F4F3F0'
-  },
-  modalCloseBtn: {
-    padding: 4
-  },
-  modalLabel: {
-    fontFamily: fontUIBold,
-    fontSize: 10.5,
-    fontWeight: '700',
-    color: '#6C6F7A',
-    letterSpacing: 0.8,
-    marginBottom: 6
-  },
-  modalInput: {
-    backgroundColor: '#090A0F',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 11,
-    color: '#F4F3F0',
-    fontSize: 14,
-    fontFamily: fontUI,
-    marginBottom: 16
-  },
-  modalCreateBtn: {
-    backgroundColor: '#FF5A5F',
-    borderRadius: 12,
-    paddingVertical: 13,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    marginTop: 4
-  },
-  modalCreateBtnText: {
-    color: '#050608',
-    fontSize: 14,
-    fontWeight: '700',
-    fontFamily: fontUIBold
   }
 });

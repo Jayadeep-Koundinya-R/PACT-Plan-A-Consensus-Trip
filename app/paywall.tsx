@@ -33,6 +33,8 @@ import {
 export default function PactPaywall() {
   const router = useRouter();
   const { theme, isDarkMode } = useTheme();
+  const subscriptionPlan = useGatherlyStore((s) => s.subscriptionPlan);
+  const isPro = subscriptionPlan && subscriptionPlan !== 'free';
   const [isPurchasing, setIsPurchasing] = useState(false);
 
   const triggerHaptic = () => {
@@ -210,20 +212,29 @@ export default function PactPaywall() {
                 ))}
               </View>
 
-              <TouchableOpacity
-                onPress={handleActivatePass}
-                disabled={isPurchasing}
-                activeOpacity={0.85}
-                style={[styles.actionBtn, { backgroundColor: '#FF5A5F' }]}
-              >
-                <Text style={styles.actionBtnText}>
-                  {isPurchasing
-                    ? 'Connecting to Store...'
-                    : Platform.OS === 'web'
-                    ? 'Preview PACT Pro in Web Demo'
-                    : 'Unlock Organizer Pass • $9.99'}
-                </Text>
-              </TouchableOpacity>
+              {isPro ? (
+                <View style={styles.activePassBanner}>
+                  <Check size={16} color="#3DE0A0" />
+                  <Text style={styles.activePassText}>
+                    Active Organizer Pass (Up to 20 Members)
+                  </Text>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  onPress={handleActivatePass}
+                  disabled={isPurchasing}
+                  activeOpacity={0.85}
+                  style={[styles.actionBtn, { backgroundColor: '#FF5A5F' }]}
+                >
+                  <Text style={styles.actionBtnText}>
+                    {isPurchasing
+                      ? 'Connecting to Store...'
+                      : Platform.OS === 'web'
+                      ? 'Preview PACT Pro in Web Demo'
+                      : 'Unlock Organizer Pass • $9.99'}
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
 
@@ -399,6 +410,24 @@ const styles = StyleSheet.create({
     fontFamily: fontUI,
     fontSize: 13,
     lineHeight: 18
+  },
+  activePassBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    width: '100%',
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: 'rgba(61, 224, 160, 0.12)',
+    borderWidth: 1,
+    borderColor: '#3DE0A0',
+  },
+  activePassText: {
+    fontFamily: fontUIBold,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#3DE0A0',
   },
   actionBtn: {
     paddingVertical: 13,
