@@ -60,8 +60,7 @@ export default function PactConsensusResults() {
 
   const [selectedDetails, setSelectedDetails] = useState<any | null>(null);
   const [showBurst, setShowBurst] = useState(false);
-  const [showFlexibleSplitModal, setShowFlexibleSplitModal] = useState(false);
-
+  
   // Deadlock state management
   const [deadlockModeLocal, setDeadlockModeLocal] = useState<boolean | null>(null);
   const deadlockMode = deadlockModeLocal !== null ? deadlockModeLocal : (activeDemoScenario === 'deadlock');
@@ -72,8 +71,7 @@ export default function PactConsensusResults() {
       setDeadlockModeLocal(val);
     }
   };
-  const [softOverrideActive, setSoftOverrideActive] = useState(false);
-  const [privateNudgeSent, setPrivateNudgeSent] = useState(false);
+    const [privateNudgeSent, setPrivateNudgeSent] = useState(false);
   const [whispererResult, setWhispererResult] = useState<CompromiseWhispererResult | null>(null);
 
   useEffect(() => {
@@ -133,12 +131,6 @@ export default function PactConsensusResults() {
     }
   };
 
-  const handleSoftOverride = () => {
-    haptics.success();
-    setSoftOverrideActive(true);
-    setShowBurst(true);
-    setTimeout(() => setShowBurst(false), 2000);
-  };
 
   return (
     <SafeAreaView style={styles.outerContainer}>
@@ -158,7 +150,6 @@ export default function PactConsensusResults() {
               onPress={() => {
                 haptics.tap();
                 setDeadlockMode((prev) => !prev);
-                setSoftOverrideActive(false);
               }}
               activeOpacity={0.7}
               style={styles.gridIconBtn}
@@ -186,22 +177,12 @@ export default function PactConsensusResults() {
                 A ${budgetSpread} spread exists between individual caps. A standard flat split will strain 2 members.
               </Text>
 
-              <TouchableOpacity
-                onPress={() => {
-                  haptics.tap();
-                  setShowFlexibleSplitModal(true);
-                }}
-                activeOpacity={0.8}
-                style={styles.flexibleSplitPill}
-              >
-                <Sliders size={12} color="#F59E0B" />
-                <Text style={styles.flexibleSplitPillText}>Suggest flexible budget split</Text>
-              </TouchableOpacity>
+              
             </View>
           )}
 
           {/* 2. Veto / Total Deadlock Fallback Card OR Normal Destinations */}
-          {deadlockMode && !softOverrideActive ? (
+          {deadlockMode ? (
             <View style={styles.deadlockCard}>
               <View style={styles.deadlockHeaderRow}>
                 <View style={styles.deadlockAlertIcon}>
@@ -248,32 +229,10 @@ export default function PactConsensusResults() {
                 </Text>
               </View>
 
-              {/* Resolution Path 2 */}
-              <View style={styles.resolutionPathBox}>
-                <Text style={styles.resolutionPathNumber}>Resolution path 2 — supermajority</Text>
-                <PactButton
-                  variant="gradient"
-                  onPress={handleSoftOverride}
-                  icon={<Users size={14} color="#050608" />}
-                >
-                  Soft Override (4 of 5 members approve)
-                </PactButton>
-                <Text style={styles.resolutionPathDetail}>
-                  Supermajority consensus rule: 80% approval proceeds with private en-suite room guarantee for all members.
-                </Text>
-              </View>
+              
             </View>
           ) : (
             <>
-              {/* Soft Override Banner if override was triggered */}
-              {softOverrideActive && (
-                <View style={styles.overrideBanner}>
-                  <Check size={14} color="#3DE0A0" />
-                  <Text style={styles.overrideBannerText}>
-                    Supermajority Override Active: 4 of 5 members approved Goa. En-suite suite reserved for Sam.
-                  </Text>
-                </View>
-              )}
 
               {/* #1 Top Compromise Ticket Card */}
               <View style={styles.topTicketCard}>
@@ -287,14 +246,9 @@ export default function PactConsensusResults() {
                   <View style={styles.topBadgeRow}>
                     <View style={styles.topPickBadge}>
                       <Text style={styles.topPickBadgeText}>
-                        {softOverrideActive ? 'Top compromise — override' : 'Top compromise'}
+                        Top compromise
                       </Text>
                     </View>
-                    {softOverrideActive && (
-                      <View style={styles.overridePill}>
-                        <Text style={styles.overridePillText}>4/5 APPROVED</Text>
-                      </View>
-                    )}
                   </View>
                 </View>
                 <View style={styles.topTicketInner}>
@@ -402,72 +356,21 @@ export default function PactConsensusResults() {
           <TouchableOpacity
             activeOpacity={0.88}
             onPress={handleProceedToSilentVoting}
-            disabled={deadlockMode && !softOverrideActive}
+            disabled={deadlockMode}
             style={[
               styles.proceedButton,
-              deadlockMode && !softOverrideActive && { opacity: 0.4 }
+              deadlockMode && { opacity: 0.4 }
             ]}
           >
             <Text style={styles.proceedButtonText}>
-              {softOverrideActive
-                ? 'Proceed to silent voting (Supermajority)'
-                : 'Proceed to silent voting (3 options)'}
+              Proceed to silent voting
             </Text>
           </TouchableOpacity>
         </View>
       </View>
 
       {/* Flexible Budget Split Modal */}
-      <Modal
-        visible={showFlexibleSplitModal}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowFlexibleSplitModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Flexible Budget Split</Text>
-              <TouchableOpacity onPress={() => setShowFlexibleSplitModal(false)} style={styles.modalCloseBtn}>
-                <X size={18} color="#8B8D98" />
-              </TouchableOpacity>
-            </View>
-
-            <Text style={styles.modalDesc}>
-              Instead of an equal $540/person flat split, PACT recommends room-tier allocations so all 5 members stay within their private limits:
-            </Text>
-
-            <View style={styles.tierCard}>
-              <Text style={styles.tierName}>Private Master Suite (Maya & Alex)</Text>
-              <Text style={styles.tierCost}>$680 / person</Text>
-              <Text style={styles.tierNote}>Higher budget cap — includes private terrace & en-suite bath</Text>
-            </View>
-
-            <View style={styles.tierCard}>
-              <Text style={styles.tierName}>Standard Villa Rooms (Jordan, Sam & You)</Text>
-              <Text style={styles.tierCost}>$440 / person</Text>
-              <Text style={styles.tierNote}>Well within $500 cap — full access to shared infinity pool & beach</Text>
-            </View>
-
-            <View style={styles.tierSummary}>
-              <Check size={14} color="#3DE0A0" />
-              <Text style={styles.tierSummaryText}>
-                Result: 100% of 5 members funded within private caps!
-              </Text>
-            </View>
-
-            <PactButton
-              variant="gradient"
-              onPress={() => {
-                haptics.success();
-                setShowFlexibleSplitModal(false);
-              }}
-            >
-              Apply Split Recommendation
-            </PactButton>
-          </View>
-        </View>
-      </Modal>
+      
 
       {/* Destination Breakdown Modal */}
       <Modal
