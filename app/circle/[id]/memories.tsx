@@ -14,14 +14,14 @@ import {
   Alert
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import Svg, { Rect, Circle, Path } from 'react-native-svg';
 import * as Clipboard from 'expo-clipboard';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
 import { usePactHaptics } from '../../../src/hooks/usePactHaptics';
 import { EmptyState } from '../../../src/components/EmptyState';
 import { colors, radius } from '../../../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
-import { ArrowLeft, Share2, Plus, Download, Sparkles, Image as ImageIcon, Check, Copy, RefreshCw } from 'lucide-react-native';
+import { ArrowLeft, Share2, Plus, Download, Sparkles, Image as ImageIcon, Check, Copy, RefreshCw, MessageSquare, Lock, ChevronDown, ChevronUp } from 'lucide-react-native';
+import { useCircleChatStore } from '../../../src/store/useCircleChatStore';
 import { MemoryPhotoSkeleton } from '../../../src/components/SkeletonLoader';
 
 export default function PactMemoryLibrary() {
@@ -44,6 +44,11 @@ export default function PactMemoryLibrary() {
     };
 
   const [copied, setCopied] = useState(false);
+  const { getArchivedChatLog, getMessages } = useCircleChatStore();
+  const archivedLog = getArchivedChatLog(currentGroup.id);
+  const chatMessages = archivedLog ? archivedLog.messages : getMessages(currentGroup.id);
+  const [isChatExpanded, setIsChatExpanded] = useState(false);
+  const [chatCopied, setChatCopied] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
   const handleSyncMemories = () => {
@@ -186,18 +191,6 @@ export default function PactMemoryLibrary() {
                 <Text style={{ fontFamily: fontUI, fontSize: 11, color: '#8B8D98' }}>Sync</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={() => Alert.alert('Share Album', 'Shared private album link created.')}
-                style={styles.shareBtn}
-              >
-                <Svg width="14" height="14" viewBox="0 0 14 14">
-                  <Circle cx="10.5" cy="3" r="1.8" fill="none" stroke="#8B8D98" strokeWidth="1.1" />
-                  <Circle cx="3" cy="7" r="1.8" fill="none" stroke="#8B8D98" strokeWidth="1.1" />
-                  <Circle cx="10.5" cy="11" r="1.8" fill="none" stroke="#8B8D98" strokeWidth="1.1" />
-                  <Path d="M4.6 6.1l4.3-2.2M4.6 7.9l4.3 2.2" stroke="#8B8D98" strokeWidth="1.1" />
-                </Svg>
-              </TouchableOpacity>
             </View>
           </View>
 
@@ -298,6 +291,90 @@ export default function PactMemoryLibrary() {
                   </TouchableOpacity>
                 </View>
               </View>
+
+              {/* Trip Chat Log (Archived to Memory Library) */}
+              <View style={styles.chatArchiveOuter}>
+                <View style={styles.chatArchiveInner}>
+                  <View style={styles.chatArchiveHeader}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                      <View style={styles.chatArchiveIconBox}>
+                        <MessageSquare size={16} color="#3DE0A0" />
+                      </View>
+                      <View>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                          <Text style={styles.chatArchiveTitle}>Trip Chat Log</Text>
+                          <View style={styles.chatArchiveBadge}>
+                            <Lock size={10} color="#D4AF37" />
+                            <Text style={styles.chatArchiveBadgeText}>Archived</Text>
+                          </View>
+                        </View>
+                        <Text style={styles.chatArchiveSubtitle}>
+                          {chatMessages.length + ' circle messages preserved (read-only)'}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <TouchableOpacity
+                      onPress={() => {
+                        haptics.tap();
+                        setIsChatExpanded(!isChatExpanded);
+                      }}
+                      style={styles.chatExpandBtn}
+                      accessibilityLabel="Toggle Chat Transcript"
+                    >
+                      {isChatExpanded ? (
+                        <ChevronUp size={16} color="#8B8D98" />
+                      ) : (
+                        <ChevronDown size={16} color="#8B8D98" />
+                      )}
+                    </TouchableOpacity>
+                  </View>
+
+                  {isChatExpanded && (
+                    <View style={styles.chatTranscriptContainer}>
+                      {chatMessages.map((msg, i) => (
+                        <View key={msg.id || i} style={styles.chatTranscriptRow}>
+                          <Text style={styles.chatTranscriptTime}>
+                            {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </Text>
+                          <Text style={styles.chatTranscriptSender}>{msg.userDisplayName}:</Text>
+                          <Text style={styles.chatTranscriptContent}>{msg.content}</Text>
+                        </View>
+                      ))}
+
+                      <View style={styles.chatActionRow}>
+                        <TouchableOpacity
+                          activeOpacity={0.8}
+                          onPress={async () => {
+                            haptics.success();
+                            const transcriptText = chatMessages
+                              .map((m) => '[' + new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + '] ' + m.userDisplayName + ': ' + m.content)
+                              .join('\n');
+                            await Clipboard.setStringAsync(transcriptText);
+                            setChatCopied(true);
+                            setTimeout(() => setChatCopied(false), 1800);
+                          }}
+                          style={[styles.chatCopyBtn, chatCopied ? { backgroundColor: '#22C58B' } : null]}
+                        >
+                          {chatCopied ? <Check size={12} color="#CFF3E4" /> : <Copy size={12} color="#F4F3F0" />}
+                          <Text style={styles.chatCopyBtnText}>{chatCopied ? 'Copied Transcript' : 'Copy Transcript'}</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                          activeOpacity={0.8}
+                          onPress={() => {
+                            haptics.tap();
+                            router.push(('/circle/' + currentGroup.id + '/chat') as any);
+                          }}
+                          style={styles.chatJumpBtn}
+                        >
+                          <Text style={styles.chatJumpBtnText}>{'Open Live Chat →'}</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  )}
+                </View>
+              </View>
             </>
           )}
         </ScrollView>
@@ -322,6 +399,130 @@ export default function PactMemoryLibrary() {
 }
 
 const styles = StyleSheet.create({
+  chatArchiveOuter: {
+    backgroundColor: "#13151E",
+    borderWidth: 1,
+    borderColor: "rgba(61, 224, 160, 0.25)",
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 14,
+    marginBottom: 20
+  },
+  chatArchiveInner: {
+    gap: 10
+  },
+  chatArchiveHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between"
+  },
+  chatArchiveIconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: "rgba(61, 224, 160, 0.12)",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  chatArchiveTitle: {
+    fontFamily: fontDisplay,
+    fontSize: 14,
+    fontWeight: '700',
+    color: "#F4F3F0"
+  },
+  chatArchiveBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: "rgba(212, 175, 55, 0.15)",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "rgba(212, 175, 55, 0.3)"
+  },
+  chatArchiveBadgeText: {
+    fontFamily: fontUIBold,
+    fontSize: 9.5,
+    color: "#D4AF37"
+  },
+  chatArchiveSubtitle: {
+    fontFamily: fontUI,
+    fontSize: 11,
+    color: "#8B8D98",
+    marginTop: 2
+  },
+  chatExpandBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  chatTranscriptContainer: {
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255, 255, 255, 0.08)",
+    gap: 8
+  },
+  chatTranscriptRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 6
+  },
+  chatTranscriptTime: {
+    fontFamily: fontUI,
+    fontSize: 9.5,
+    color: "#6C6F7A",
+    width: 48,
+    marginTop: 2
+  },
+  chatTranscriptSender: {
+    fontFamily: fontUIBold,
+    fontSize: 11,
+    color: "#3DE0A0"
+  },
+  chatTranscriptContent: {
+    fontFamily: fontUI,
+    fontSize: 11.5,
+    color: "#F4F3F0",
+    flex: 1,
+    lineHeight: 16
+  },
+  chatActionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 8,
+    gap: 8
+  },
+  chatCopyBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: "#1B1D27",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.12)",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8
+  },
+  chatCopyBtnText: {
+    fontFamily: fontUIBold,
+    fontSize: 10.5,
+    color: "#F4F3F0"
+  },
+  chatJumpBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 6
+  },
+  chatJumpBtnText: {
+    fontFamily: fontUIBold,
+    fontSize: 11,
+    color: "#3DE0A0"
+  },
   outerContainer: {
     flex: 1,
     backgroundColor: '#050608',

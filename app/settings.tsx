@@ -62,14 +62,13 @@ export default function PactSettings() {
     toggleDarkMode();
   };
 
-  const { profile, logout: userLogout, privacyMaskBudget, autoDeleteVetos, togglePrivacyMaskBudget, toggleAutoDeleteVetos } = useUserStore();
+  const { profile, logout: userLogout, autoDeleteVetos, toggleAutoDeleteVetos } = useUserStore();
   const { circles = [] } = useCircleStore();
   const allCircles = circles.length > 0 ? circles : groups.map((g: any) => ({ id: g.id, name: g.name, inviteCode: g.inviteCode, archived: false, members: [] }));
   const activeCircles = allCircles.filter((c: any) => !c.archived);
 
   // Toggle states
   const [toggles, setToggles] = useState<Record<string, boolean>>({
-    maskBudget: privacyMaskBudget !== false,
     autoDelete: autoDeleteVetos === true,
     whatsAppNudges: true,
     deadlineReminders: true,
@@ -93,8 +92,7 @@ export default function PactSettings() {
 
   const flip = (k: string) => {
     triggerHaptic();
-    if (k === 'maskBudget') togglePrivacyMaskBudget();
-    else if (k === 'autoDelete') toggleAutoDeleteVetos();
+    if (k === 'autoDelete') toggleAutoDeleteVetos();
     setToggles((t) => ({ ...t, [k]: !t[k] }));
   };
 
@@ -316,16 +314,6 @@ export default function PactSettings() {
           <Text style={[styles.sectionHeading, { color: theme.textSecondary }]}>Privacy shield defaults</Text>
           <View style={[styles.settingsGroupCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <View style={styles.settingRow}>
-              <View style={styles.settingTextCol}>
-                <Text style={[styles.settingLabel, { color: theme.textPrimary }]}>Mask exact budget numbers</Text>
-                <Text style={[styles.settingDesc, { color: theme.textSecondary }]}>
-                  Only the engine sees your cap; group never sees your raw budget.
-                </Text>
-              </View>
-              <ToggleSwitch on={toggles.maskBudget} onPress={() => flip('maskBudget')} />
-            </View>
-
-            <View style={[styles.settingRow, styles.settingRowBorder]}>
               <View style={styles.settingTextCol}>
                 <Text style={[styles.settingLabel, { color: theme.textPrimary }]}>Auto-delete veto history after vote</Text>
               </View>

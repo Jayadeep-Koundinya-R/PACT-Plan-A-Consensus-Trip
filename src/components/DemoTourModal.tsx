@@ -61,7 +61,7 @@ const TOUR_STEPS = [
     title: 'RevenueCat In-App Monetization',
     icon: Crown,
     color: '#D4AF37',
-    summary: 'Free circles support up to 5 members. The organizer pass supports up to 10 members, while invited members join free.'
+    summary: 'Free circles support up to 5 members. The organizer pass supports up to 20 members, while invited members join free.'
   }
 ];
 

@@ -31,3 +31,5 @@ android/build/
 
 .vercel
 .kiro/
+
+supabase/.temp/

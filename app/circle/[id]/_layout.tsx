@@ -9,7 +9,7 @@ import { StepProgressBar } from '../../../src/components/StepProgressBar';
 import { DemoScenarioSwitcher } from '../../../src/components/DemoScenarioSwitcher';
 import { colors, radius, shadows } from '../../../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
-import { ArrowLeft, Lock, Image as ImageIcon, Sparkles } from 'lucide-react-native';
+import { ArrowLeft, Lock, Image as ImageIcon, Sparkles, MessageSquare } from 'lucide-react-native';
 import { CircleRouteGuard } from '../../../src/components/common';
 
 export default function CircleDetailLayout() {
@@ -29,6 +29,7 @@ export default function CircleDetailLayout() {
 
   const isVault = pathname.includes('/vault');
   const isMemories = pathname.includes('/memories');
+  const isChat = pathname.includes('/chat');
 
   let currentStep = 1;
   if (pathname.includes('/preferences')) currentStep = 2;
@@ -36,7 +37,7 @@ export default function CircleDetailLayout() {
   else if (pathname.includes('/silent-ballot')) currentStep = 4;
   else if (pathname.includes('/brief')) currentStep = 5;
 
-  const showStepBar = !isVault && !isMemories;
+  const showStepBar = !isVault && !isMemories && !isChat;
 
   return (
     <CircleRouteGuard id={id}>
@@ -67,6 +68,22 @@ export default function CircleDetailLayout() {
 
           {/* Header Right: Secondary post-trip tab options (Vault & Memories) */}
           <View style={styles.rightActions}>
+            <TouchableOpacity
+              activeOpacity={0.75}
+              onPress={() => {
+                haptics.tap();
+                router.push(`/circle/${circleId}/chat` as any);
+              }}
+              style={[
+                styles.tabPill,
+                isChat && styles.activeTabPill
+              ]}
+              accessibilityLabel="Chat"
+            >
+              <MessageSquare size={12} color={isChat ? '#3DE0A0' : '#8B8D98'} />
+              <Text style={[styles.tabPillText, isChat && styles.activeTabPillText]}>Chat</Text>
+            </TouchableOpacity>
+
             <TouchableOpacity
               activeOpacity={0.75}
               onPress={() => {

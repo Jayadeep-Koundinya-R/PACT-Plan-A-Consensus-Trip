@@ -25,7 +25,7 @@ import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
 import { colors, radius } from '../../../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
-import { ArrowLeft, Share2, Calendar, Lock, Sparkles, FolderArchive, Image as ImageIcon } from 'lucide-react-native';
+import { ArrowLeft, Share2, Calendar, Lock, FolderArchive, Image as ImageIcon } from 'lucide-react-native';
 
 export default function PactTripBrief() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -34,7 +34,7 @@ export default function PactTripBrief() {
     return <CircleRouteGuard id={id}><View /></CircleRouteGuard>;
   }
   const router = useRouter();
-  const { groups = [], members = [], formatCurrency, currency, currencySymbol } = useGatherlyStore();
+  const { groups = [], members = [], formatCurrency, currency, currencySymbol, finalizedBrief, getConsensusResults } = useGatherlyStore();
 
   const currentGroup =
     groups.find((g) => g && g.id === id) ||
@@ -69,11 +69,23 @@ export default function PactTripBrief() {
     };
   }, []);
 
+  const consensus = getConsensusResults ? getConsensusResults() : null;
+  const winningOpt = finalizedBrief ? finalizedBrief.winningOption : (consensus ? consensus.winningOption : null);
+  const destinationName = (winningOpt && winningOpt.option && (winningOpt.option.name || (winningOpt.option as any).destination)) || currentGroup.name || 'Goa, India';
+  const tripDates = (finalizedBrief && finalizedBrief.travelWindow) || (winningOpt && winningOpt.option && winningOpt.option.dateStart && winningOpt.option.dateEnd ? (winningOpt.option.dateStart + ' - ' + winningOpt.option.dateEnd) : 'Oct 14 - Oct 19, 2026');
+  const targetBudgetStr = (winningOpt && winningOpt.option && winningOpt.option.budgetPerPerson) ? (formatCurrency ? formatCurrency(winningOpt.option.budgetPerPerson) : ('$' + winningOpt.option.budgetPerPerson)) : (formatCurrency ? formatCurrency(540) : '$540');
+  const attendeeList = (finalizedBrief && finalizedBrief.confirmedParticipants && finalizedBrief.confirmedParticipants.length > 0)
+    ? finalizedBrief.confirmedParticipants.join(', ')
+    : (members && members.length > 0 ? members.map((m) => m.userName || 'Member').join(', ') : 'Alex, Sam, Jordan, Maya, You');
+  const stayType = (winningOpt && winningOpt.option && winningOpt.option.destinationType)
+    ? (winningOpt.option.destinationType + ' (fits ' + (currentGroup.totalMembersCount || 5) + ')')
+    : ('Private stay (fits ' + (currentGroup.totalMembersCount || 5) + ')');
+
   const details = [
-    { label: 'DATES', value: 'Oct 14 - Oct 19, 2026' },
-    { label: 'TARGET BUDGET', value: `~${formatCurrency ? formatCurrency(540) : '$540'} / person` },
-    { label: 'ATTENDEES', value: 'Alex, Sam, Jordan, Maya, You' },
-    { label: 'STAY TYPE', value: 'Private beach villa (fits 5)' }
+    { label: 'DATES', value: tripDates },
+    { label: 'TARGET BUDGET', value: '~' + targetBudgetStr + ' / person' },
+    { label: 'ATTENDEES', value: attendeeList },
+    { label: 'STAY TYPE', value: stayType }
   ];
 
   const itinerary = [
@@ -194,8 +206,8 @@ export default function PactTripBrief() {
               centerSubtext="locked"
               style={{ marginBottom: 12 }}
             />
-            <Text style={styles.consensusTitle}>Consensus locked â€” 100%</Text>
-            <Text style={styles.consensusSub}>All 5 members approved this plan.</Text>
+            <Text style={styles.consensusTitle}>Consensus locked — 100%</Text>
+            <Text style={styles.consensusSub}>All {currentGroup.totalMembersCount || 5} members approved this plan.</Text>
           </View>
 
           {/* Official Sealed Ticket Card */}
@@ -207,7 +219,7 @@ export default function PactTripBrief() {
 
             <View style={styles.ticketBody}>
               <View style={styles.ticketMainPadding}>
-                <Text style={styles.destMainHeading}>Goa, India</Text>
+                <Text style={styles.destMainHeading}>{destinationName}</Text>
 
                 <View style={styles.detailsList}>
                   {details.map((d) => (
@@ -228,7 +240,7 @@ export default function PactTripBrief() {
 
               <View style={styles.ticketFooter}>
                 <Text style={styles.ticketFooterText}>
-                  PACT-8821  â€¢  ISSUED BY GROUP CONSENSUS
+                  PACT-8821  •  ISSUED BY GROUP CONSENSUS
                 </Text>
               </View>
             </View>
@@ -306,14 +318,6 @@ export default function PactTripBrief() {
               <Text style={styles.quickNavTileText}>Memories</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => router.push('/paywall' as any)}
-              style={styles.quickNavTile}
-            >
-              <Sparkles size={16} color="#D4AF37" />
-              <Text style={styles.quickNavTileText}>PACT Pro</Text>
-            </TouchableOpacity>
           </View>
         </ScrollView>
 
