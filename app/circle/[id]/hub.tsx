@@ -527,7 +527,7 @@ export default function PactCirclesHub() {
                   </View>
                 </View>
                 <Text style={styles.pactPollSub}>
-                  Discuss dates, villas, and trip ideas live with all 20 members
+                  Discuss dates, villas, and trip ideas live with all 24 members
                 </Text>
               </View>
             </View>

@@ -228,7 +228,7 @@ export default function PactSettings() {
                 <Svg width="9" height="9" viewBox="0 0 9 9">
                   <Path d="M1 3.5l2 1.5 2-3 2 3 2-1.5-.7 4.5H1.7z" fill="#D4AF37" />
                 </Svg>
-                <Text style={styles.proStatusPillText}>{subscriptionPlan !== 'free' ? 'PACT Pro organizer pass active' : 'Free tier (Up to 5 members)'}</Text>
+                <Text style={styles.proStatusPillText}>{subscriptionPlan !== 'free' ? 'PACT Pro organizer pass active' : 'Free tier (Up to 8 members)'}</Text>
               </View>
             </View>
           </View>
@@ -385,10 +385,10 @@ export default function PactSettings() {
                   </Text>
                 </View>
                 <Text style={[styles.settingLabel, { color: theme.textPrimary }]}>
-                  {subscriptionPlan !== 'free' ? 'PACT Organizer Pass Active' : 'Free Tier (Up to 5 members)'}
+                  {subscriptionPlan !== 'free' ? 'PACT Organizer Pass Active' : 'Free Tier (Up to 8 members)'}
                 </Text>
                 <Text style={styles.renewsDate}>
-                  {subscriptionPlan !== 'free' ? 'Organizer pass active' : 'Upgrade for 6 to 20 members'}
+                  {subscriptionPlan !== 'free' ? 'Organizer pass active' : 'Upgrade for 9 to 24 members'}
                 </Text>
               </View>
             </View>
@@ -404,7 +404,7 @@ export default function PactSettings() {
               <View style={styles.planFeatureItem}>
                 <Check size={12} color={subscriptionPlan !== 'free' ? '#3DE0A0' : '#8B8D98'} />
                 <Text style={[styles.planFeatureText, { color: theme.textSecondary }]}>
-                  {subscriptionPlan !== 'free' ? 'Up to 20 members per circle' : 'Up to 5 members per circle'}
+                  {subscriptionPlan !== 'free' ? 'Up to 24 members per circle' : 'Up to 8 members per circle'}
                 </Text>
               </View>
               <View style={styles.planFeatureItem}>

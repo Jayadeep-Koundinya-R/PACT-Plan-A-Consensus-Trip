@@ -21,7 +21,7 @@ import { usePactHaptics } from '../../../src/hooks/usePactHaptics';
 import { EmptyState } from '../../../src/components/EmptyState';
 import { colors, radius } from '../../../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
-import { ArrowLeft, FileText, Home, Shield, Copy, Check, Plus, RefreshCw } from 'lucide-react-native';
+import { ArrowLeft, FileText, Home, Shield, Copy, Check, Plus, RefreshCw, Upload } from 'lucide-react-native';
 import { VaultDocSkeleton } from '../../../src/components/SkeletonLoader';
 
 export default function PactTripVault() {
@@ -71,7 +71,7 @@ export default function PactTripVault() {
 
   const aiText = '✈️ Goa trip update: flights & villa confirmed! All PDF vouchers are ready in the vault.';
 
-    const handleUploadDocument = () => {
+    const handleUploadDocument = async () => {
     haptics.tap();
     if (Platform.OS === 'web' && typeof document !== 'undefined') {
       const input = document.createElement('input');
@@ -80,15 +80,19 @@ export default function PactTripVault() {
       input.onchange = (e: any) => {
         const file = e.target.files && e.target.files[0];
         if (file) {
-          const isVilla = file.name.toLowerCase().includes('hotel') || file.name.toLowerCase().includes('villa') || file.name.toLowerCase().includes('resort');
-          const isTransfer = file.name.toLowerCase().includes('transfer') || file.name.toLowerCase().includes('cab') || file.name.toLowerCase().includes('car');
-          const type = isTransfer ? 'transfer' : isVilla ? 'villa' : 'flight';
+          const nameLower = file.name.toLowerCase();
+          const isVilla = nameLower.includes('hotel') || nameLower.includes('villa') || nameLower.includes('resort') || nameLower.includes('stay') || nameLower.includes('airbnb');
+          const isTransfer = nameLower.includes('transfer') || nameLower.includes('cab') || nameLower.includes('car') || nameLower.includes('taxi') || nameLower.includes('bus');
+          const type = isVilla ? 'villa' : isTransfer ? 'transfer' : 'flight';
           const sizeKb = Math.round(file.size / 1024);
           const sizeStr = sizeKb > 1024 ? (sizeKb / 1024).toFixed(1) + ' MB' : sizeKb + ' KB';
           const newDoc = {
             name: file.name,
-            meta: 'Uploaded by You · ' + sizeStr,
-            type
+            meta: 'Uploaded by You • ' + sizeStr,
+            type,
+            code: 'PACT-' + Math.floor(1000 + Math.random() * 9000),
+            details: `Confirmed ${file.name.replace(/\.[^/.]+$/, '')} voucher uploaded to circle vault. Verified with group consensus.`,
+            passengers: ['Alex (You)', 'Sam', 'Jordan', 'Maya', 'Chris']
           };
           setDocsList((prev: any[]) => {
             const targetSection = isVilla ? 'ACCOMMODATION BOOKINGS' : 'FLIGHTS & TRANSPORT';
@@ -105,7 +109,43 @@ export default function PactTripVault() {
       };
       input.click();
     } else {
-      Alert.alert('Upload Document', 'Document upload dialog opened. Select flight, villa, or transport voucher.');
+      try {
+        const ImagePicker = require('expo-image-picker');
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert('Permission Denied', 'Please allow photo library access to upload tickets.');
+          return;
+        }
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.All,
+          allowsEditing: false,
+          quality: 0.8
+        });
+        if (!result.canceled && result.assets && result.assets[0]) {
+          const asset = result.assets[0];
+          const fileName = asset.fileName || `Booking_Voucher_${Date.now()}.png`;
+          const newDoc = {
+            name: fileName,
+            meta: 'Uploaded by You • Attached screenshot',
+            type: 'flight',
+            code: 'PACT-' + Math.floor(1000 + Math.random() * 9000),
+            details: 'Confirmed booking screenshot uploaded to circle vault. Verified with group consensus.',
+            passengers: ['Alex (You)', 'Sam', 'Jordan', 'Maya', 'Chris']
+          };
+          setDocsList((prev: any[]) => {
+            return prev.map((sec: any) => {
+              if (sec.section === 'FLIGHTS & TRANSPORT') {
+                return { ...sec, items: [newDoc, ...sec.items] };
+              }
+              return sec;
+            });
+          });
+          haptics.success();
+          Alert.alert('Document Vault', `"${fileName}" saved to your trip vault.`);
+        }
+      } catch (err: any) {
+        Alert.alert('Upload Document', 'Document upload dialog opened. Select flight, villa, or transport voucher.');
+      }
     }
   };
 
@@ -312,12 +352,11 @@ export default function PactTripVault() {
         <View style={styles.bottomBar}>
           <TouchableOpacity
             activeOpacity={0.88}
-            onPress={() => {
-              haptics.action();
-              Alert.alert('Upload Document', 'Opening file picker...');
-            }}
+            onPress={handleUploadDocument}
             style={styles.uploadFullBtn}
+            accessibilityLabel="Upload booking PDF or screenshot"
           >
+            <Upload size={16} color="#FFFFFF" strokeWidth={2.4} />
             <Text style={styles.uploadFullBtnText}>+ Upload booking PDF / screenshot</Text>
           </TouchableOpacity>
         </View>
@@ -613,14 +652,21 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     backgroundColor: '#FF5A5F',
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    gap: 8,
+    shadowColor: '#FF5A5F',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 4
   },
   uploadFullBtnText: {
     fontFamily: fontUIBold,
-    fontSize: 14.5,
+    fontSize: 15,
     fontWeight: '700',
-    color: '#2E0805'
+    color: '#FFFFFF'
   },
   modalOverlay: {
     flex: 1,
