@@ -272,13 +272,18 @@ export default function PactConstraintsForm() {
           {/* Animated Main Cards Container */}
           <Animated.View style={[styles.mainCardWrapper, animatedCardStyle]}>
           {/* Privacy Guarantee Banner */}
-          <View style={styles.privacyBanner}>
-            <Svg width="15" height="15" viewBox="0 0 15 15">
-              <Rect x="3.5" y="6.5" width="8" height="6.5" rx="1.5" fill="none" stroke="#3DE0A0" strokeWidth="1.3" />
-              <Path d="M5.2 6.5V4.8a2.3 2.3 0 0 1 4.6 0v1.7" fill="none" stroke="#3DE0A0" strokeWidth="1.3" />
-            </Svg>
+          <View style={styles.privacyBanner} accessibilityRole="summary" accessibilityLabel="Privacy Guarantee: 100% private. Your individual budget, dates, and dealbreakers are never shown to group members. PACT uses anonymized aggregate data for consensus.">
+            <View style={styles.privacyBannerHeader}>
+              <View style={styles.privacyIconBadge}>
+                <Svg width="15" height="15" viewBox="0 0 15 15">
+                  <Rect x="3.5" y="6.5" width="8" height="6.5" rx="1.5" fill="none" stroke="#3DE0A0" strokeWidth="1.3" />
+                  <Path d="M5.2 6.5V4.8a2.3 2.3 0 0 1 4.6 0v1.7" fill="none" stroke="#3DE0A0" strokeWidth="1.3" />
+                </Svg>
+              </View>
+              <Text style={styles.privacyBannerTitle}>100% Private & Sealed</Text>
+            </View>
             <Text style={styles.privacyBannerText}>
-              100% private – individual budgets and dates are never shown to the group.
+              Your budget cap, dates, and dealbreakers are visible <Text style={styles.privacyHighlight}>ONLY to you</Text>. Group members see only aggregated consensus scores.
             </Text>
           </View>
 
@@ -739,23 +744,45 @@ const styles = StyleSheet.create({
     color: '#6C6F7A'
   },
   privacyBanner: {
+    backgroundColor: 'rgba(61, 224, 160, 0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.25)',
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: 18
+  },
+  privacyBannerHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    backgroundColor: 'rgba(61, 224, 160,0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(61, 224, 160,0.2)',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 11,
-    marginBottom: 18
+    gap: 8,
+    marginBottom: 4
+  },
+  privacyIconBadge: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    backgroundColor: 'rgba(61, 224, 160, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  privacyBannerTitle: {
+    fontFamily: fontUIBold,
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#3DE0A0',
+    letterSpacing: 0.3
   },
   privacyBannerText: {
     fontFamily: fontUI,
     fontSize: 11.5,
+    color: '#8B8D98',
+    lineHeight: 16
+  },
+  privacyHighlight: {
+    fontFamily: fontUIBold,
     color: '#3DE0A0',
-    lineHeight: 16,
-    flex: 1
+    fontWeight: '700'
   },
   card: {
     backgroundColor: '#13151E',
