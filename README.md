@@ -1,5 +1,4 @@
 # 🌴 PACT — Plan A Consensus Trip
-> **Shipathon 2026 (RevenueCat)** — Next Gen Award Track  
 > *Turn "we should go somewhere" into a real confirmed trip plan.*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)

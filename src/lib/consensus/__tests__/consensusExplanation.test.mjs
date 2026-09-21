@@ -69,7 +69,6 @@ test('Below 70% / Deadlock consensus explanation', () => {
 });
 
 test('addTripOptionToGroup maps canonical database fields correctly', () => {
-  // Pure mapping verification model
   function mapOptionToDb(groupId, option) {
     const name = option.name || 'Compromise Option';
     const destinationType = option.destinationType || 'General';
