@@ -1,4 +1,6 @@
 import { CircleRouteGuard } from '../../../src/components/common';
+import { SkeletonLoader } from '../../../src/components/SkeletonLoader';
+import { EmptyState } from '../../../src/components/EmptyState';
 import React, { useState, useEffect } from 'react';
 import { fetchCompromiseWhisperer, CompromiseWhispererResult } from '../../../src/lib/ai/aiAdvisorClient';
 import { sendPactNotification, buildNudgeNotification } from '../../../src/lib/notifications/pactNotifications';
@@ -15,11 +17,9 @@ import {
   Modal
 } from 'react-native';
 import { ExplorePlaceSection } from '../../../src/components/ExplorePlaceSection';
-import { ConsensusGauge, ParticleBurst, PactButton } from '../../../src/components/common';
+import { PactButton } from '../../../src/components/common';
 import { usePactHaptics } from '../../../src/hooks/usePactHaptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import Svg, { Rect, Path, Circle } from 'react-native-svg';
-import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
 import { colors, radius } from '../../../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
@@ -35,8 +35,9 @@ import {
   Vote,
   ShieldAlert,
   Send,
-  Sliders,
-  Users
+  Trophy,
+  Layers,
+  RefreshCw
 } from 'lucide-react-native';
 
 export default function PactConsensusResults() {
@@ -47,20 +48,21 @@ export default function PactConsensusResults() {
   }
   const router = useRouter();
   const haptics = usePactHaptics();
-  const { groups = [], getConsensusResults, members = [], activeDemoScenario = "early_bird" } = useGatherlyStore();
+  const { groups = [], members = [], activeDemoScenario = "early_bird" } = useGatherlyStore();
 
   const currentGroup =
     groups.find((g) => g && g.id === id) ||
     groups[0] || {
       id: (id && id !== 'undefined') ? id : 'circle-college-reunion-2026',
-      name: 'Goa trip',
+      name: 'Goa Beach Escape 2026',
       inviteCode: 'GOA-4F82',
       totalMembersCount: 5
     };
 
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedDetails, setSelectedDetails] = useState<any | null>(null);
-  const [showBurst, setShowBurst] = useState(false);
-  
+
   // Deadlock state management
   const [deadlockModeLocal, setDeadlockModeLocal] = useState<boolean | null>(null);
   const deadlockMode = deadlockModeLocal !== null ? deadlockModeLocal : (activeDemoScenario === 'deadlock');
@@ -71,7 +73,8 @@ export default function PactConsensusResults() {
       setDeadlockModeLocal(val);
     }
   };
-    const [privateNudgeSent, setPrivateNudgeSent] = useState(false);
+
+  const [privateNudgeSent, setPrivateNudgeSent] = useState(false);
   const [whispererResult, setWhispererResult] = useState<CompromiseWhispererResult | null>(null);
 
   useEffect(() => {
@@ -87,7 +90,9 @@ export default function PactConsensusResults() {
         .then((res) => {
           if (mounted) setWhispererResult(res);
         })
-        .catch(() => {});
+        .catch(() => {
+          if (mounted) setLoadError('Unable to refresh AI Compromise. Displaying fallback resolution.');
+        });
     }
     return () => {
       mounted = false;
@@ -101,13 +106,9 @@ export default function PactConsensusResults() {
   const budgetSpread = maxBudget - minBudget;
   const hasWideBudgetGap = budgetSpread > 1000;
 
-  const triggerHaptic = () => {
-    haptics.tap();
-  };
-
   const checklist = [
-    'Dates: 100% date window overlap',
-    'Budget: fits all 5 members privately',
+    'Dates: 100% date window overlap across all 5 members',
+    'Budget: fits all 5 member caps privately',
     'Vibes: beach, nightlife & seafood matched'
   ];
 
@@ -131,18 +132,49 @@ export default function PactConsensusResults() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.outerContainer}>
+        <View style={styles.phoneFrame}>
+          <View style={styles.scrollContent}>
+            <View style={styles.headerRow}>
+              <View style={styles.backBtn}>
+                <ArrowLeft size={18} color="#F4F3F0" />
+              </View>
+              <Text style={styles.headerTitle}>Calculating Consensus...</Text>
+            </View>
+            <SkeletonLoader count={3} height={130} />
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.outerContainer}>
       <View style={styles.phoneFrame}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          {showBurst && <ParticleBurst active={true} durationMs={1400} />}
-
           {/* Header Row */}
           <View style={styles.headerRow}>
-            <View style={styles.headerLeft}>
-              <TouchableOpacity onPress={() => { haptics.tap(); if (router.canGoBack()) { router.back(); } else { router.push('/circle/' + currentGroup.id + '/hub'); } }} activeOpacity={0.7} style={styles.backBtn} accessibilityLabel="Go back to Circle Hub"><ArrowLeft size={18} color="#F4F3F0" /></TouchableOpacity>
-              <Text style={styles.headerTitle}>Consensus results</Text>
+            <TouchableOpacity
+              onPress={() => {
+                haptics.tap();
+                if (router.canGoBack()) {
+                  router.back();
+                } else {
+                  router.push(`/circle/${currentGroup.id}/hub` as any);
+                }
+              }}
+              activeOpacity={0.7}
+              style={styles.backBtn}
+              accessibilityLabel="Go back to Circle Hub"
+            >
+              <ArrowLeft size={18} color="#F4F3F0" />
+            </TouchableOpacity>
+
+            <View style={{ flex: 1, marginLeft: 10 }}>
+              <Text style={styles.headerTitle}>Ranked Matrix</Text>
+              <Text style={styles.headerSub}>Deterministic Group Consensus</Text>
             </View>
 
             {/* Simulation toggle button for testers */}
@@ -152,36 +184,40 @@ export default function PactConsensusResults() {
                 setDeadlockMode((prev) => !prev);
               }}
               activeOpacity={0.7}
-              style={styles.gridIconBtn}
+              style={styles.simulationBtn}
               accessibilityLabel="Toggle deadlock simulation"
             >
-              <Text style={{ fontFamily: fontUIBold, fontSize: 10, color: deadlockMode ? '#EF4444' : '#8B8D98' }}>
-                {deadlockMode ? 'Deadlock on' : 'Simulate deadlock'}
+              <RefreshCw size={11} color={deadlockMode ? '#EF4444' : '#8B8D98'} />
+              <Text style={[styles.simulationBtnText, { color: deadlockMode ? '#EF4444' : '#8B8D98' }]}>
+                {deadlockMode ? 'Deadlock' : 'Simulate'}
               </Text>
             </TouchableOpacity>
           </View>
 
-          {/* 1. Wide Budget Gap Banner (High-visibility Amber banner if spread > $1,000) */}
-          {hasWideBudgetGap && (
+          {loadError && (
+            <View style={styles.errorBanner}>
+              <Text style={styles.errorText}>{loadError}</Text>
+            </View>
+          )}
+
+          {/* Wide Budget Gap Banner */}
+          {hasWideBudgetGap && !deadlockMode && (
             <View style={styles.wideBudgetBanner}>
               <View style={styles.wideBudgetHeaderRow}>
                 <View style={styles.wideBudgetIconBox}>
                   <AlertTriangle size={15} color="#F59E0B" />
                 </View>
                 <Text style={styles.wideBudgetTitle}>
-                  Wide Budget Gap Detected (${minBudget} – ${maxBudget})
+                  Wide Budget Spread (${minBudget} – ${maxBudget})
                 </Text>
               </View>
-
               <Text style={styles.wideBudgetDesc}>
-                A ${budgetSpread} spread exists between individual caps. A standard flat split will strain 2 members.
+                A ${budgetSpread} spread exists between individual caps. Consensus engine automatically adjusted room allocations.
               </Text>
-
-              
             </View>
           )}
 
-          {/* 2. Veto / Total Deadlock Fallback Card OR Normal Destinations */}
+          {/* Deadlock / Vetoed Fallback Card OR Normal Ranked Destinations */}
           {deadlockMode ? (
             <View style={styles.deadlockCard}>
               <View style={styles.deadlockHeaderRow}>
@@ -203,6 +239,13 @@ export default function PactConsensusResults() {
                 </View>
               </View>
 
+              {/* Anonymized Privacy Policy Note */}
+              <View style={styles.privacyGuaranteeBadge}>
+                <Text style={styles.privacyGuaranteeText}>
+                  🔒 Privacy Boundary: Individual member names and exact budget caps are sealed.
+                </Text>
+              </View>
+
               {/* AI Whisperer Recommendation */}
               <View style={styles.whispererBox}>
                 <View style={styles.whispererBoxHeader}>
@@ -214,9 +257,9 @@ export default function PactConsensusResults() {
                 </Text>
               </View>
 
-              {/* Resolution Path 1 */}
+              {/* Resolution Action */}
               <View style={styles.resolutionPathBox}>
-                <Text style={styles.resolutionPathNumber}>Resolution path 1 — private nudge</Text>
+                <Text style={styles.resolutionPathNumber}>Resolution path — private nudge</Text>
                 <PactButton
                   variant="glass"
                   onPress={handleSendPrivateNudge}
@@ -228,32 +271,32 @@ export default function PactConsensusResults() {
                   Anonymously nudges members with pending room constraints. Zero names, budgets, or personal veto details revealed.
                 </Text>
               </View>
-
-              
             </View>
           ) : (
             <>
-
-              {/* #1 Top Compromise Ticket Card */}
-              <View style={styles.topTicketCard}>
-                <View style={styles.topCardCoverBox}>
+              {/* #1 Winner Hero Card */}
+              <View style={styles.winnerCard}>
+                <View style={styles.winnerCardCoverBox}>
                   <Image
                     source={{ uri: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=800' }}
                     style={StyleSheet.absoluteFillObject}
                     resizeMode="cover"
                   />
-                  <View style={styles.topCardCoverOverlay} />
-                  <View style={styles.topBadgeRow}>
-                    <View style={styles.topPickBadge}>
-                      <Text style={styles.topPickBadgeText}>
-                        Top compromise
-                      </Text>
+                  <View style={styles.winnerCardCoverOverlay} />
+                  <View style={styles.winnerBadgeRow}>
+                    <View style={styles.winnerBadge}>
+                      <Trophy size={13} color="#052E20" />
+                      <Text style={styles.winnerBadgeText}>#1 Top Choice (96% Match)</Text>
                     </View>
                   </View>
-                </View>
-                <View style={styles.topTicketInner}>
 
-                  {/* Checklist Breakdown */}
+                  <View style={styles.winnerTitleBox}>
+                    <Text style={styles.winnerDestName}>Goa, India</Text>
+                    <Text style={styles.winnerMetaText}>Oct 14 – Oct 19  •  $540 / person</Text>
+                  </View>
+                </View>
+
+                <View style={styles.winnerBody}>
                   <View style={styles.checklistContainer}>
                     {checklist.map((item, idx) => (
                       <View key={idx} style={styles.checkRow}>
@@ -264,94 +307,115 @@ export default function PactConsensusResults() {
                       </View>
                     ))}
                   </View>
-                  <ExplorePlaceSection destination="Goa" />
+
+                  <View style={{ marginTop: 12 }}>
+                    <ExplorePlaceSection destination="Goa" />
+                  </View>
                 </View>
               </View>
 
-              {/* #2 Ranked Destination Card */}
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => {
-                  haptics.tap();
-                  setSelectedDetails({
-                    name: 'Puducherry, India',
-                    dates: 'Oct 12 - Oct 17, 2026',
-                    cost: '$480 / person',
-                    match: '82%',
-                    reasons: [
-                      'Full date overlap for 4 of 5 travelers',
-                      'Budget fits comfortably at $480/traveler',
-                      'French colonial heritage and coastal cafes'
-                    ]
-                  });
-                }}
-                style={styles.subOptionCard}
-              >
-                <View style={styles.subOptionStub}>
-                  <Text style={[styles.subOptionScore, { color: 82 >= 70 ? '#3DE0A0' : '#FF5A5F' }]}>82%</Text>
-                  <Text style={styles.subOptionStubLabel}>match</Text>
-                </View>
-                <View style={styles.subOptionPerforation} />
-                <View style={styles.subOptionMain}>
-                  <Image
-                    source={{ uri: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=300' }}
-                    style={styles.subOptionThumb}
-                    resizeMode="cover"
-                  />
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.subOptionName}>Puducherry, India</Text>
-                    <Text style={styles.subOptionMeta}>Oct 12 - Oct 17  |  $480 / person</Text>
+              {/* #2 Alternative Option Ticket Card */}
+              <View style={styles.subOptionWrapper}>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    haptics.tap();
+                    setSelectedDetails({
+                      name: 'Puducherry, India',
+                      dates: 'Oct 12 - Oct 17, 2026',
+                      cost: '$480 / person',
+                      match: '82%',
+                      reasons: [
+                        'Full date overlap for 4 of 5 travelers',
+                        'Budget fits comfortably at $480/traveler',
+                        'French colonial heritage and coastal cafes'
+                      ]
+                    });
+                  }}
+                  style={styles.subOptionCard}
+                  accessibilityLabel="View Puducherry details"
+                >
+                  <View style={styles.subOptionStub}>
+                    <Text style={[styles.subOptionScore, { color: '#3DE0A0' }]}>82%</Text>
+                    <Text style={styles.subOptionStubLabel}>match</Text>
                   </View>
-                </View>
-                <View style={{ paddingHorizontal: 12, paddingBottom: 8 }}>
+
+                  <View style={styles.subOptionPerforation} />
+
+                  <View style={styles.subOptionMain}>
+                    <Image
+                      source={{ uri: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=300' }}
+                      style={styles.subOptionThumb}
+                      resizeMode="cover"
+                    />
+                    <View style={{ flex: 1 }}>
+                      <View style={styles.alternativeBadge}>
+                        <Text style={styles.alternativeBadgeText}>#2 Alternative</Text>
+                      </View>
+                      <Text style={styles.subOptionName}>Puducherry, India</Text>
+                      <Text style={styles.subOptionMeta}>Oct 12 - Oct 17  |  $480 / person</Text>
+                    </View>
+                    <ChevronRight size={16} color="#8B8D98" />
+                  </View>
+                </TouchableOpacity>
+                <View style={{ paddingHorizontal: 12, paddingBottom: 10 }}>
                   <ExplorePlaceSection destination="Puducherry" />
                 </View>
-              </TouchableOpacity>
+              </View>
 
-              {/* #3 Ranked Destination Card */}
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => {
-                  haptics.tap();
-                  setSelectedDetails({
-                    name: 'Manali, Himachal Pradesh',
-                    dates: 'Oct 15 - Oct 20, 2026',
-                    cost: '$620 / person',
-                    match: '74%',
-                    reasons: [
-                      'Mountain adventure vibe matched',
-                      'Flights + mountain cab transfers fit 4 of 5 members',
-                      'Snow valley views and high-altitude cafes'
-                    ]
-                  });
-                }}
-                style={styles.subOptionCard}
-              >
-                <View style={styles.subOptionStub}>
-                  <Text style={[styles.subOptionScore, { color: 74 >= 70 ? '#3DE0A0' : '#FF5A5F' }]}>74%</Text>
-                  <Text style={styles.subOptionStubLabel}>match</Text>
-                </View>
-                <View style={styles.subOptionPerforation} />
-                <View style={styles.subOptionMain}>
-                  <Image
-                    source={{ uri: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=300' }}
-                    style={styles.subOptionThumb}
-                    resizeMode="cover"
-                  />
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.subOptionName}>Manali, Himachal Pradesh</Text>
-                    <Text style={styles.subOptionMeta}>Oct 15 - Oct 20  |  $620 / person</Text>
+              {/* #3 Alternative Option Ticket Card */}
+              <View style={styles.subOptionWrapper}>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => {
+                    haptics.tap();
+                    setSelectedDetails({
+                      name: 'Manali, Himachal Pradesh',
+                      dates: 'Oct 15 - Oct 20, 2026',
+                      cost: '$620 / person',
+                      match: '74%',
+                      reasons: [
+                        'Mountain adventure vibe matched',
+                        'Flights + mountain transfers fit 4 of 5 members',
+                        'Snow valley views and high-altitude cafes'
+                      ]
+                    });
+                  }}
+                  style={styles.subOptionCard}
+                  accessibilityLabel="View Manali details"
+                >
+                  <View style={styles.subOptionStub}>
+                    <Text style={[styles.subOptionScore, { color: '#3DE0A0' }]}>74%</Text>
+                    <Text style={styles.subOptionStubLabel}>match</Text>
                   </View>
-                </View>
-                <View style={{ paddingHorizontal: 12, paddingBottom: 8 }}>
+
+                  <View style={styles.subOptionPerforation} />
+
+                  <View style={styles.subOptionMain}>
+                    <Image
+                      source={{ uri: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=300' }}
+                      style={styles.subOptionThumb}
+                      resizeMode="cover"
+                    />
+                    <View style={{ flex: 1 }}>
+                      <View style={styles.alternativeBadge}>
+                        <Text style={styles.alternativeBadgeText}>#3 Alternative</Text>
+                      </View>
+                      <Text style={styles.subOptionName}>Manali, Himachal</Text>
+                      <Text style={styles.subOptionMeta}>Oct 15 - Oct 20  |  $620 / person</Text>
+                    </View>
+                    <ChevronRight size={16} color="#8B8D98" />
+                  </View>
+                </TouchableOpacity>
+                <View style={{ paddingHorizontal: 12, paddingBottom: 10 }}>
                   <ExplorePlaceSection destination="Manali" />
                 </View>
-              </TouchableOpacity>
+              </View>
             </>
           )}
         </ScrollView>
 
-        {/* Bottom CTA Bar */}
+        {/* Sticky Bottom Bar */}
         <View style={styles.bottomBar}>
           <TouchableOpacity
             activeOpacity={0.88}
@@ -361,18 +425,17 @@ export default function PactConsensusResults() {
               styles.proceedButton,
               deadlockMode && { opacity: 0.4 }
             ]}
+            accessibilityLabel="Proceed to Silent Voting"
           >
+            <Vote size={18} color="#2E0805" />
             <Text style={styles.proceedButtonText}>
-              Proceed to silent voting
+              Proceed to Silent Voting
             </Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* Flexible Budget Split Modal */}
-      
-
-      {/* Destination Breakdown Modal */}
+      {/* Details Breakdown Modal */}
       <Modal
         visible={Boolean(selectedDetails)}
         transparent={true}
@@ -383,7 +446,11 @@ export default function PactConsensusResults() {
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{selectedDetails?.name}</Text>
-              <TouchableOpacity onPress={() => setSelectedDetails(null)} style={styles.modalCloseBtn}>
+              <TouchableOpacity
+                onPress={() => setSelectedDetails(null)}
+                style={styles.modalCloseBtn}
+                accessibilityLabel="Close details"
+              >
                 <X size={18} color="#8B8D98" />
               </TouchableOpacity>
             </View>
@@ -438,41 +505,63 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: 120
+    paddingBottom: 110
   },
   headerRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16
   },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10
-  },
   backBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
     justifyContent: 'center',
     alignItems: 'center'
   },
   headerTitle: {
     fontFamily: fontDisplay,
     fontSize: 20,
+    fontWeight: '700',
     color: '#F4F3F0'
   },
-  gridIconBtn: {
+  headerSub: {
+    fontFamily: fontUI,
+    fontSize: 11,
+    color: '#8B8D98'
+  },
+  simulationBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    minHeight: 32,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.14)'
+    borderColor: 'rgba(255, 255, 255, 0.12)'
   },
-  // Wide Budget Gap Banner Styles
+  simulationBtnText: {
+    fontFamily: fontUIBold,
+    fontSize: 10,
+    fontWeight: '700'
+  },
+  errorBanner: {
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+    borderRadius: 12,
+    padding: 10,
+    marginBottom: 14
+  },
+  errorText: {
+    fontFamily: fontUI,
+    fontSize: 11.5,
+    color: '#EF4444',
+    textAlign: 'center'
+  },
   wideBudgetBanner: {
     backgroundColor: 'rgba(245, 158, 11, 0.08)',
     borderWidth: 1,
@@ -504,67 +593,10 @@ const styles = StyleSheet.create({
     fontFamily: fontUI,
     fontSize: 12,
     color: '#B4B6C0',
-    lineHeight: 17,
-    marginBottom: 10
-  },
-  flexibleSplitPill: {
-    alignSelf: 'flex-start',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
-    borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.4)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20
-  },
-  flexibleSplitPillText: {
-    fontFamily: fontUIBold,
-    fontSize: 11.5,
-    color: '#F59E0B'
-  },
-  // Deadlock Diagnostics Card Styles
-  whispererLiveBadge: {
-    paddingHorizontal: 5,
-    paddingVertical: 1,
-    borderRadius: 4,
-    backgroundColor: '#3DE0A0'
-  },
-  whispererLiveBadgeText: {
-    fontFamily: fontUIBold,
-    fontSize: 8,
-    color: '#050608'
-  },
-  whispererBox: {
-    marginTop: 10,
-    marginBottom: 12,
-    padding: 12,
-    borderRadius: 10,
-    backgroundColor: 'rgba(61, 224, 160, 0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(61, 224, 160, 0.25)'
-  },
-  whispererBoxHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 6
-  },
-  whispererBoxTag: {
-    fontFamily: fontUIBold,
-    fontSize: 9,
-    color: '#3DE0A0',
-    letterSpacing: 0.8
-  },
-  whispererBoxText: {
-    fontFamily: fontUI,
-    fontSize: 12,
-    color: '#F4F3F0',
-    lineHeight: 18
+    lineHeight: 17
   },
   deadlockCard: {
-    backgroundColor: '#1B1D27',
+    backgroundColor: '#13151E',
     borderWidth: 1,
     borderColor: 'rgba(239, 68, 68, 0.4)',
     borderRadius: 16,
@@ -596,16 +628,57 @@ const styles = StyleSheet.create({
     color: '#8B8D98',
     marginTop: 2
   },
-  deadlockDesc: {
+  whispererLiveBadge: {
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 4,
+    backgroundColor: '#3DE0A0'
+  },
+  whispererLiveBadgeText: {
+    fontFamily: fontUIBold,
+    fontSize: 8,
+    color: '#050608'
+  },
+  privacyGuaranteeBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8
+  },
+  privacyGuaranteeText: {
     fontFamily: fontUI,
-    fontSize: 12.5,
-    color: '#B4B6C0',
+    fontSize: 10.5,
+    color: '#8B8D98'
+  },
+  whispererBox: {
+    padding: 12,
+    borderRadius: 10,
+    backgroundColor: 'rgba(61, 224, 160, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.25)'
+  },
+  whispererBoxHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 6
+  },
+  whispererBoxTag: {
+    fontFamily: fontUIBold,
+    fontSize: 9.5,
+    color: '#3DE0A0',
+    letterSpacing: 0.8
+  },
+  whispererBoxText: {
+    fontFamily: fontUI,
+    fontSize: 12,
+    color: '#F4F3F0',
     lineHeight: 18
   },
   resolutionPathBox: {
     backgroundColor: 'rgba(255, 255, 255, 0.03)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.14)',
+    borderColor: 'rgba(255, 255, 255, 0.12)',
     borderRadius: 12,
     padding: 12,
     gap: 8
@@ -622,107 +695,67 @@ const styles = StyleSheet.create({
     color: '#8B8D98',
     lineHeight: 15
   },
-  overrideBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: 'rgba(61, 224, 160, 0.1)',
-    borderWidth: 1,
-    borderColor: 'rgba(61, 224, 160, 0.3)',
-    borderRadius: 12,
-    padding: 10,
-    marginBottom: 14
-  },
-  overrideBannerText: {
-    fontFamily: fontUI,
-    fontSize: 11.5,
-    color: '#3DE0A0',
-    flex: 1,
-    lineHeight: 16
-  },
-  overridePill: {
-    backgroundColor: 'rgba(61, 224, 160, 0.15)',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10
-  },
-  overridePillText: {
-    fontFamily: fontUIBold,
-    fontSize: 9.5,
-    color: '#3DE0A0'
-  },
-  // Top Ticket Card Styles
-  topTicketCard: {
+  winnerCard: {
     backgroundColor: '#13151E',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.14)',
+    borderColor: 'rgba(61, 224, 160, 0.4)',
     borderRadius: 18,
     overflow: 'hidden',
     marginBottom: 16
   },
-  topTicketInner: {
-    padding: 16
+  winnerCardCoverBox: {
+    height: 140,
+    width: '100%',
+    position: 'relative',
+    padding: 14,
+    justifyContent: 'space-between'
   },
-  topBadgeRow: {
+  winnerCardCoverOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(9, 10, 15, 0.55)'
+  },
+  winnerBadgeRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12
+    justifyContent: 'flex-start'
   },
-  topPickBadge: {
-    backgroundColor: 'rgba(61, 224, 160, 0.12)',
-    paddingHorizontal: 9,
-    paddingVertical: 4,
+  winnerBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#3DE0A0',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     borderRadius: 12
   },
-  topPickBadgeText: {
+  winnerBadgeText: {
     fontFamily: fontUIBold,
-    fontSize: 10,
-    color: '#3DE0A0',
-    letterSpacing: 0.5
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#052E20'
   },
-  destMatchRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 14
+  winnerTitleBox: {
+    zIndex: 2
   },
-  destTitleText: {
+  winnerDestName: {
     fontFamily: fontDisplay,
-    fontSize: 22,
+    fontSize: 24,
+    fontWeight: '700',
     color: '#F4F3F0'
   },
-  matchProgressBarBg: {
-    height: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.11)',
-    borderRadius: 2,
-    marginBottom: 14
-  },
-  matchProgressBarFill: {
-    height: '100%',
-    backgroundColor: '#3DE0A0',
-    borderRadius: 2
-  },
-  metaTagsRow: {
-    flexDirection: 'row',
-    gap: 16,
-    marginBottom: 14
-  },
-  metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6
-  },
-  metaItemText: {
+  winnerMetaText: {
     fontFamily: fontUI,
     fontSize: 12,
-    color: '#8B8D98'
+    color: '#E8ECF2',
+    marginTop: 2
+  },
+  winnerBody: {
+    padding: 16
   },
   checklistContainer: {
     gap: 8,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.11)'
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.08)'
   },
   checkRow: {
     flexDirection: 'row',
@@ -730,10 +763,10 @@ const styles = StyleSheet.create({
     gap: 8
   },
   checkCircle: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: 'rgba(61, 224, 160, 0.12)',
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: 'rgba(61, 224, 160, 0.15)',
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -742,19 +775,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#F4F3F0'
   },
-  // Sub options — doc Ticket motif: sharp on 3 sides, top-right rounded, score stub
-  // in Fraunces on a surfaceSubtle fill left of a dashed perforation.
-  subOptionCard: {
+  subOptionWrapper: {
     backgroundColor: '#13151E',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.14)',
-    borderTopLeftRadius: 0,
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
-    borderTopRightRadius: 12,
-    flexDirection: 'row',
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderRadius: 14,
     overflow: 'hidden',
-    marginBottom: 10
+    marginBottom: 12
+  },
+  subOptionCard: {
+    backgroundColor: '#13151E',
+    flexDirection: 'row',
+    overflow: 'hidden'
   },
   subOptionStub: {
     width: 64,
@@ -769,11 +801,16 @@ const styles = StyleSheet.create({
     color: '#8B8D98',
     marginTop: 2
   },
+  subOptionScore: {
+    fontFamily: fontDisplay,
+    fontSize: 20,
+    fontWeight: '700'
+  },
   subOptionPerforation: {
     width: 0,
     borderLeftWidth: 1,
     borderStyle: 'dashed',
-    borderLeftColor: 'rgba(255, 255, 255, 0.22)'
+    borderLeftColor: 'rgba(255, 255, 255, 0.2)'
   },
   subOptionMain: {
     flex: 1,
@@ -784,52 +821,66 @@ const styles = StyleSheet.create({
   },
   subOptionThumb: {
     width: 52,
-    height: 44,
-    borderRadius: 6
+    height: 52,
+    borderRadius: 8
+  },
+  alternativeBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginBottom: 3
+  },
+  alternativeBadgeText: {
+    fontFamily: fontUIBold,
+    fontSize: 9,
+    color: '#8B8D98'
   },
   subOptionName: {
     fontFamily: fontUIBold,
-    fontSize: 15,
-    color: '#F4F3F0',
-    marginBottom: 3
+    fontSize: 14,
+    color: '#F4F3F0'
   },
   subOptionMeta: {
     fontFamily: fontUI,
-    fontSize: 11.5,
-    color: '#8B8D98'
+    fontSize: 11,
+    color: '#8B8D98',
+    marginTop: 2
   },
-  subOptionScore: {
-    fontFamily: fontDisplay,
-    fontSize: 22,
-    color: '#FF5A5F'
-  },
-  // Bottom Bar
   bottomBar: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
     paddingHorizontal: 16,
-    paddingVertical: 14,
-    backgroundColor: 'rgba(5, 6, 8, 0.95)',
+    paddingTop: 12,
+    paddingBottom: 22,
+    backgroundColor: '#050608',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.11)'
+    borderTopColor: 'rgba(255, 255, 255, 0.11)',
+    alignItems: 'center'
   },
   proceedButton: {
+    width: '100%',
+    minHeight: 48,
     backgroundColor: '#FF5A5F',
     borderRadius: 12,
-    paddingVertical: 14,
-    alignItems: 'center'
+    paddingVertical: 13,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8
   },
   proceedButtonText: {
     fontFamily: fontUIBold,
     fontSize: 14,
+    fontWeight: '700',
     color: '#2E0805'
   },
-  // Modal Styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: 'rgba(0,0,0,0.75)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20
@@ -840,7 +891,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#13151E',
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: 'rgba(255,255,255,0.12)',
     padding: 20,
     gap: 14
   },
@@ -852,58 +903,16 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontFamily: fontDisplay,
     fontSize: 18,
+    fontWeight: '700',
     color: '#F4F3F0'
   },
   modalCloseBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.11)',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
     justifyContent: 'center',
     alignItems: 'center'
-  },
-  modalDesc: {
-    fontFamily: fontUI,
-    fontSize: 12.5,
-    color: '#8B8D98',
-    lineHeight: 18
-  },
-  tierCard: {
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.11)',
-    borderRadius: 10,
-    padding: 12,
-    gap: 3
-  },
-  tierName: {
-    fontFamily: fontUIBold,
-    fontSize: 13,
-    color: '#F4F3F0'
-  },
-  tierCost: {
-    fontFamily: fontUIBold,
-    fontSize: 14,
-    color: '#F59E0B'
-  },
-  tierNote: {
-    fontFamily: fontUI,
-    fontSize: 11,
-    color: '#8B8D98'
-  },
-  tierSummary: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: 'rgba(61, 224, 160, 0.1)',
-    borderRadius: 8,
-    padding: 10
-  },
-  tierSummaryText: {
-    fontFamily: fontUIBold,
-    fontSize: 11.5,
-    color: '#3DE0A0',
-    flex: 1
   },
   modalMetaRow: {
     flexDirection: 'row',
@@ -913,7 +922,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8
@@ -935,20 +944,5 @@ const styles = StyleSheet.create({
     fontFamily: fontUI,
     fontSize: 12,
     color: '#B4B6C0'
-  },
-
-  topCardCoverBox: {
-    height: 120,
-    width: '100%',
-    position: 'relative',
-    borderTopLeftRadius: 18,
-    borderTopRightRadius: 18,
-    overflow: 'hidden',
-    padding: 14,
-    justifyContent: 'flex-start'
-  },
-  topCardCoverOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(9, 10, 15, 0.45)'
-  },
+  }
 });

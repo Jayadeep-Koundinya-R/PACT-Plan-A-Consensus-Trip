@@ -30,7 +30,7 @@ export const REVENUECAT_PRODUCTS: Record<SubscriptionPlan, PlanDetails> = {
     billingPeriod: 'per trip',
     badge: 'Popular',
     features: [
-      'One circle up to 20 members',
+      'One circle up to 24 members',
       'AI-Powered Conflict Explanation Layer',
       'Deep Schedule & Budget Conflict Diagnosis',
       'Custom Styled Trip Brief Themes',
@@ -44,7 +44,7 @@ export const REVENUECAT_PRODUCTS: Record<SubscriptionPlan, PlanDetails> = {
     billingPeriod: 'per trip',
     badge: 'Organizer only',
     features: [
-      'One circle up to 20 members',
+      'One circle up to 24 members',
       'Exportable Calendar (.ICS) Generation',
       'Early Access to New Consensus Models'
     ]

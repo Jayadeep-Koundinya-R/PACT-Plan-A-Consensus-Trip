@@ -9,7 +9,8 @@ import {
   ScrollView,
   StyleSheet,
   SafeAreaView,
-  Platform
+  Platform,
+  Alert
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import Svg, { Path, Circle } from 'react-native-svg';
@@ -34,7 +35,7 @@ export default function PactCreateJoinScreen() {
   const liveTier = getTierForMemberCount(liveTotal);
   const exceedsCapacity = liveTotal > MAX_GROUP_MEMBERS;
   const isDemoUser = !currentUserId || currentUserId.startsWith('user-');
-  const needsUpgrade = subscriptionPlan === 'free' && !isDemoUser && liveTotal > 5 && !exceedsCapacity;
+  const needsUpgrade = subscriptionPlan === 'free' && !isDemoUser && liveTotal > 8 && !exceedsCapacity;
 
   const triggerHaptic = () => {
     if (Platform.OS !== 'web') {
@@ -70,14 +71,21 @@ export default function PactCreateJoinScreen() {
     const name = tripName.trim() || 'Goa Beach Escape 2026';
     const total = parseInt(memberCount, 10) || 5;
 
+    if (total > MAX_GROUP_MEMBERS) {
+      const enterpriseMsg = "Circles larger than 24 members require an Enterprise Custom Plan. Please contact the organizer / support team for pricing details.";
+      setCreateError(enterpriseMsg);
+      Alert.alert("Enterprise Plan Required", enterpriseMsg);
+      return;
+    }
+
     if (!isValidGroupSize(total)) {
       setCreateError(`PACT circles currently support up to ${MAX_GROUP_MEMBERS} members.`);
       return;
     }
 
-    if (subscriptionPlan === 'free' && total > 5) {
+    if (subscriptionPlan === 'free' && total > 8) {
       const tierForTotal = getTierForMemberCount(total);
-      setCreateError(`The Free tier supports up to 5 members. This trip needs the ${tierForTotal.name} (${tierForTotal.capacityLabel}).`);
+      setCreateError(`The Free tier supports up to 8 members. This trip needs the ${tierForTotal.name} (${tierForTotal.capacityLabel}).`);
       return;
     }
     
@@ -185,15 +193,18 @@ export default function PactCreateJoinScreen() {
             <View style={styles.memberStepperSection}>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>ESTIMATED TRAVELERS</Text>
-                <Text style={[styles.tierTag, { color: liveTotal <= 5 ? '#3DE0A0' : '#FF5A5F' }]}>
-                  {liveTier.name} • {liveTier.capacityLabel}
+                <Text style={[styles.tierTag, { color: liveTotal <= 8 ? '#3DE0A0' : (liveTotal <= 24 ? '#FF5A5F' : '#EF4444') }]}>
+                  {liveTotal <= 24 ? `${liveTier.name} • ${liveTier.capacityLabel}` : 'Enterprise Custom Plan (25+)'}
+                </Text>
+                <Text style={{ fontSize: 11, color: theme.textSecondary, marginTop: 2, fontFamily: fontUI }}>
+                  Free: 1–8 members | Organizer Pass: 9–24 members | Custom: 25+ members
                 </Text>
               </View>
               <View style={styles.stepperBox}>
                 <TouchableOpacity
                   activeOpacity={0.7}
                   onPress={() => {
-                    const nextVal = Math.max(2, liveTotal - 1);
+                    const nextVal = Math.max(1, liveTotal - 1);
                     setMemberCount(String(nextVal));
                     triggerHaptic();
                   }}
@@ -201,11 +212,20 @@ export default function PactCreateJoinScreen() {
                 >
                   <Minus size={14} color={theme.textPrimary} />
                 </TouchableOpacity>
-                <Text style={[styles.stepperCount, { color: theme.textPrimary }]}>{liveTotal}</Text>
+                <TextInput
+                  style={[styles.stepperCount, { color: theme.textPrimary, minWidth: 40, textAlign: 'center' }]}
+                  value={memberCount}
+                  onChangeText={(val) => {
+                    setMemberCount(val);
+                    if (createError) setCreateError('');
+                  }}
+                  keyboardType="numeric"
+                  accessibilityLabel="Estimated Travelers Count"
+                />
                 <TouchableOpacity
                   activeOpacity={0.7}
                   onPress={() => {
-                    const nextVal = Math.min(MAX_GROUP_MEMBERS, liveTotal + 1);
+                    const nextVal = liveTotal + 1;
                     setMemberCount(String(nextVal));
                     triggerHaptic();
                   }}
@@ -216,11 +236,17 @@ export default function PactCreateJoinScreen() {
               </View>
             </View>
 
-            {/* Pro Tier Notice if 6+ members */}
-            {needsUpgrade && !exceedsCapacity && (
+            {/* Notice for 9-24 members vs Enterprise 25+ */}
+            {liveTotal > 24 ? (
+              <View style={[styles.tierNoticeBox, { backgroundColor: 'rgba(239, 68, 68, 0.12)', borderColor: 'rgba(239, 68, 68, 0.3)' }]}>
+                <Text style={[styles.tierNoticeText, { color: '#EF4444' }]}>
+                  Circles larger than 24 members require an Enterprise Custom Plan. Please contact the organizer / support team for pricing details.
+                </Text>
+              </View>
+            ) : needsUpgrade && !exceedsCapacity ? (
               <View style={[styles.tierNoticeBox, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}>
                 <Text style={[styles.tierNoticeText, { color: theme.textSecondary }]}>
-                  Circles of 6–20 members require the PACT Organizer Pass.
+                  Circles of 9–24 members require the PACT Organizer Pass.
                 </Text>
                 <TouchableOpacity
                   activeOpacity={0.75}
@@ -230,7 +256,7 @@ export default function PactCreateJoinScreen() {
                   <Text style={styles.viewPassLinkText}>View Group Pass →</Text>
                 </TouchableOpacity>
               </View>
-            )}
+            ) : null}
 
             {Boolean(createError) && (
               <Text style={styles.errorText}>{createError}</Text>

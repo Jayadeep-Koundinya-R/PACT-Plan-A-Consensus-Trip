@@ -3,6 +3,11 @@ import { supabase, isLiveSupabaseConfigured } from '../lib/supabase/client';
 import { useCircleChatStore, CircleMessage } from '../store/useCircleChatStore';
 import { usePactHaptics } from './usePactHaptics';
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+function isUUID(val: string): boolean {
+  return UUID_REGEX.test(val);
+}
+
 /**
  * useCircleChat — Real-time group conversation hook for PACT V2.
  *
@@ -30,9 +35,9 @@ export function useCircleChat(
   const addMessage = useCircleChatStore((s) => s.addMessage);
   const setMessages = useCircleChatStore((s) => s.setMessages);
 
-  // 1. Initial fetch from Supabase if configured
+  // 1. Initial fetch from Supabase if configured & valid UUID
   useEffect(() => {
-    if (!circleId || !isLiveSupabaseConfigured) return;
+    if (!circleId || !isLiveSupabaseConfigured || !isUUID(circleId)) return;
 
     let isMounted = true;
     async function loadCloudMessages() {
@@ -69,46 +74,67 @@ export function useCircleChat(
   useEffect(() => {
     if (!circleId) return;
 
+    // For non-UUID mock/demo circles, local store is used directly
+    if (!isLiveSupabaseConfigured || !isUUID(circleId)) {
+      setIsConnected(true);
+      return;
+    }
+
     const channelName = `pact-chat-${circleId}`;
-    const channel = supabase.channel(channelName);
+    let channel: any = null;
 
-    channel.on(
-      'postgres_changes',
-      {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'circle_messages',
-        filter: `group_id=eq.${circleId}`
-      },
-      (payload) => {
-        const newRecord = payload.new as any;
-        if (newRecord?.id && newRecord?.content) {
-          const incoming: CircleMessage = {
-            id: newRecord.id,
-            groupId: newRecord.group_id,
-            userId: newRecord.user_id,
-            userDisplayName: newRecord.user_display_name,
-            content: newRecord.content,
-            createdAt: newRecord.created_at
-          };
-          addMessage(circleId, incoming);
-          hapticsRef.current.action();
-        }
+    try {
+      // Clean up any existing channel with same name before creating fresh one
+      const existing = supabase.getChannels().find((c) => c.topic === `realtime:${channelName}`);
+      if (existing) {
+        supabase.removeChannel(existing);
       }
-    );
 
-    channel.subscribe((status) => {
-      if (status === 'SUBSCRIBED' || !isLiveSupabaseConfigured) {
-        setIsConnected(true);
-      } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-        if (isLiveSupabaseConfigured) {
+      channel = supabase.channel(channelName);
+
+      channel.on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'circle_messages',
+          filter: `group_id=eq.${circleId}`
+        },
+        (payload: any) => {
+          const newRecord = payload.new as any;
+          if (newRecord?.id && newRecord?.content) {
+            const incoming: CircleMessage = {
+              id: newRecord.id,
+              groupId: newRecord.group_id,
+              userId: newRecord.user_id,
+              userDisplayName: newRecord.user_display_name,
+              content: newRecord.content,
+              createdAt: newRecord.created_at
+            };
+            addMessage(circleId, incoming);
+            hapticsRef.current.action();
+          }
+        }
+      );
+
+      channel.subscribe((status: string) => {
+        if (status === 'SUBSCRIBED') {
+          setIsConnected(true);
+        } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           setIsConnected(false);
         }
-      }
-    });
+      });
+    } catch (err) {
+      console.warn('Realtime chat channel subscription warning (local fallback active):', err);
+      setIsConnected(true);
+    }
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        try {
+          supabase.removeChannel(channel);
+        } catch (e) {}
+      }
     };
   }, [circleId, addMessage]);
 
@@ -135,36 +161,38 @@ export function useCircleChat(
         isOptimistic: true
       };
 
-      // Optimistic update
+      // Optimistic update locally
       addMessage(circleId, optimisticMsg);
       hapticsRef.current.tap();
 
+      if (!isLiveSupabaseConfigured || !isUUID(circleId)) {
+        return optimisticMsg;
+      }
+
       setIsSending(true);
       try {
-        if (isLiveSupabaseConfigured) {
-          const { data, error } = await supabase
-            .from('circle_messages')
-            .insert({
-              group_id: circleId,
-              user_id: senderId,
-              user_display_name: senderName,
-              content: clean
-            })
-            .select()
-            .single();
+        const { data, error } = await supabase
+          .from('circle_messages')
+          .insert({
+            group_id: circleId,
+            user_id: senderId,
+            user_display_name: senderName,
+            content: clean
+          })
+          .select()
+          .single();
 
-          if (!error && data) {
-            // Replace optimistic with real DB record
-            const confirmedMsg: CircleMessage = {
-              id: data.id,
-              groupId: data.group_id,
-              userId: data.user_id,
-              userDisplayName: data.user_display_name,
-              content: data.content,
-              createdAt: data.created_at
-            };
-            return confirmedMsg;
-          }
+        if (!error && data) {
+          // Replace optimistic with real DB record
+          const confirmedMsg: CircleMessage = {
+            id: data.id,
+            groupId: data.group_id,
+            userId: data.user_id,
+            userDisplayName: data.user_display_name,
+            content: data.content,
+            createdAt: data.created_at
+          };
+          return confirmedMsg;
         }
       } catch (e) {
         // Silently preserve optimistic message in store

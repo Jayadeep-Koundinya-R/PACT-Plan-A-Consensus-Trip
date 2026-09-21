@@ -63,7 +63,7 @@ export default function PactPaywall() {
             useUserStore.getState().setSubscriptionPlan('premium_monthly');
             Alert.alert(
               'Organizer Pass Active!',
-              'Purchase confirmed via RevenueCat. You can now organize circles of up to 20 members.',
+              'Purchase confirmed via RevenueCat. You can now organize circles of up to 24 members.',
               [{ text: 'Continue Planning', onPress: () => router.back() }]
             );
             setIsPurchasing(false);
@@ -161,7 +161,7 @@ export default function PactPaywall() {
               Plan Together, Never Pay Per Seat.
             </Text>
             <Text style={[styles.heroSub, { color: theme.textSecondary }]}>
-              One flat pass per trip circle. Free for up to 5 members; one organizer pass covers up to 20 members.
+              One flat pass per trip circle. Free for up to 8 members; one organizer pass covers up to 24 members.
             </Text>
           </View>
 
@@ -172,7 +172,7 @@ export default function PactPaywall() {
               <View style={styles.cardHeader}>
                 <View>
                   <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>Free Circle</Text>
-                  <Text style={[styles.cardCapacity, { color: theme.textSecondary }]}>Up to 5 members</Text>
+                  <Text style={[styles.cardCapacity, { color: theme.textSecondary }]}>Up to 8 members</Text>
                 </View>
                 <Text style={[styles.cardPrice, { color: '#3DE0A0' }]}>Free</Text>
               </View>
@@ -196,7 +196,7 @@ export default function PactPaywall() {
               <View style={styles.cardHeader}>
                 <View>
                   <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>{organizerPass.name}</Text>
-                  <Text style={[styles.cardCapacity, { color: theme.textSecondary }]}>Up to 20 members • USD only</Text>
+                  <Text style={[styles.cardCapacity, { color: theme.textSecondary }]}>Up to 24 members • USD only</Text>
                 </View>
                 <View style={{ alignItems: 'flex-end' }}>
                   <Text style={[styles.cardPrice, { color: '#FF5A5F' }]}>$9.99</Text>
@@ -216,7 +216,7 @@ export default function PactPaywall() {
                 <View style={styles.activePassBanner}>
                   <Check size={16} color="#3DE0A0" />
                   <Text style={styles.activePassText}>
-                    Active Organizer Pass (Up to 20 Members)
+                    Active Organizer Pass (Up to 24 Members)
                   </Text>
                 </View>
               ) : (
@@ -236,13 +236,27 @@ export default function PactPaywall() {
                 </TouchableOpacity>
               )}
             </View>
-          </View>
 
-          {/* Privacy & Guarantee Note */}
+          {/* Enterprise Custom Plan Note */}
+          <View style={[styles.card, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border, marginTop: 12 }]}>
+            <View style={styles.cardHeader}>
+              <View>
+                <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>Enterprise Custom Plan</Text>
+                <Text style={[styles.cardCapacity, { color: theme.textSecondary }]}>25+ members • Tailored for Large Groups</Text>
+              </View>
+              <Text style={[styles.cardPrice, { color: '#F59E0B' }]}>Custom</Text>
+            </View>
+            <Text style={[styles.featureText, { color: theme.textSecondary, marginTop: 8 }]}>
+              Circles larger than 24 members require an Enterprise Custom Plan. Please contact the organizer / support team for pricing details.
+            </Text>
+          </View>
+        </View>
+
+        {/* Privacy & Guarantee Note */}
           <View style={[styles.guaranteeBox, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}>
             <ShieldCheck size={18} color="#3DE0A0" />
             <Text style={[styles.guaranteeText, { color: theme.textSecondary }]}>
-              Sealed consensus and anti-herd voting remain completely private across all tiers.
+              Free: 1–8 members | Organizer Pass: 9–24 members | Custom: 25+ members. Sealed consensus and anti-herd voting remain completely private across all tiers.
             </Text>
           </View>
 
@@ -260,7 +274,7 @@ export default function PactPaywall() {
             </TouchableOpacity>
             <Text style={[styles.footerDot, { color: theme.textSecondary }]}>•</Text>
             <TouchableOpacity
-              onPress={() => Alert.alert('Terms of Service', 'PACT Organizer Pass covers 1 trip circle up to 20 members. Non-refundable once circle consensus is sealed.')}
+              onPress={() => Alert.alert('Terms of Service', 'PACT Organizer Pass covers 1 trip circle of 9 to 24 members. Circles larger than 24 members require an Enterprise Custom Plan.')}
               activeOpacity={0.7}
             >
               <Text style={[styles.footerLink, { color: theme.textSecondary }]}>Terms</Text>

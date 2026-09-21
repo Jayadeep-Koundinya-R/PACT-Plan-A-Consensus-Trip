@@ -1,5 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { CircleRouteGuard } from '../../../src/components/common';
+import { SkeletonLoader } from '../../../src/components/SkeletonLoader';
+import { EmptyState } from '../../../src/components/EmptyState';
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -27,10 +29,9 @@ import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
 import { usePactHaptics } from '../../../src/hooks/usePactHaptics';
 import { colors, radius } from '../../../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
-import { ArrowLeft, Check, X, Shield, Lock, Users } from 'lucide-react-native';
+import { ArrowLeft, Check, X, Shield, Lock, Users, Sparkles, CheckCircle2 } from 'lucide-react-native';
 import { PactButton } from '../../../src/components/common';
 import { WaxSealStamp } from '../../../src/components/WaxSealStamp';
-
 
 interface StampBallotCardProps {
   opt: {
@@ -76,7 +77,7 @@ const StampBallotCard: React.FC<StampBallotCardProps> = ({
     const isApprove = decision === 'approve';
     glowColor.value = isApprove ? '#3DE0A0' : '#EF4444';
 
-    // Fast stamp-down: scale down to 0.9 and spring back rapidly with high tension
+    // Fast stamp-down: scale down to 0.9 and spring back rapidly
     cardScale.value = withSequence(
       withTiming(0.9, { duration: 65 }, (finished) => {
         if (finished) {
@@ -86,23 +87,17 @@ const StampBallotCard: React.FC<StampBallotCardProps> = ({
       withSpring(1, { damping: 7, stiffness: 380 })
     );
 
-    // Pulse a subtle shadow/glow pulse on the card
     glowPulse.value = withSequence(
       withTiming(1, { duration: 80 }),
       withTiming(0, { duration: 400 })
     );
 
     onVote(opt.key, decision);
-    if (decision !== 'approve') onRank(opt.key, 0);
   };
 
   const animatedCardStyle = useAnimatedStyle(() => {
     return {
       transform: [{ scale: cardScale.value }],
-      shadowColor: glowColor.value,
-      shadowOpacity: glowPulse.value * 0.45,
-      shadowRadius: glowPulse.value * 16,
-      elevation: glowPulse.value * 4,
       borderColor: interpolateColor(
         glowPulse.value,
         [0, 1],
@@ -116,11 +111,11 @@ const StampBallotCard: React.FC<StampBallotCardProps> = ({
       {vote === 'approve' && <WaxSealStamp label="SEALED" sublabel="APPROVED" />}
       <View style={styles.cardHeaderRow}>
         <Text style={styles.destName}>{opt.name}</Text>
-        <Text style={styles.matchScore}>{opt.match}%</Text>
+        <Text style={styles.matchScore}>{opt.match}% match</Text>
       </View>
 
       <Text style={styles.destMeta}>
-        {opt.dates}     Est. {opt.price}
+        {opt.dates}  •  Est. {opt.price}
       </Text>
 
       {/* Voting Action Buttons */}
@@ -132,6 +127,7 @@ const StampBallotCard: React.FC<StampBallotCardProps> = ({
             styles.approveBtn,
             vote === 'approve' && styles.approveBtnActive
           ]}
+          accessibilityLabel={`Approve ${opt.name}`}
         >
           <Check size={16} color={vote === 'approve' ? '#052E20' : '#8B8D98'} />
           <Text
@@ -151,45 +147,57 @@ const StampBallotCard: React.FC<StampBallotCardProps> = ({
             styles.rejectBtn,
             vote === 'reject' && styles.rejectBtnActive
           ]}
+          accessibilityLabel={`Reject ${opt.name}`}
         >
-          <X size={16} color={vote === 'reject' ? '#41201A' : '#8B8D98'} />
+          <X size={16} color={vote === 'reject' ? '#2E0805' : '#8B8D98'} />
           <Text
             style={[
               styles.rejectBtnText,
-              vote === 'reject' && { color: '#41201A' }
+              vote === 'reject' && { color: '#2E0805' }
             ]}
           >
-            Reject / veto
+            Reject / Veto
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* Rank Selection Chips if Approved */}
+      {/* Rank Selection Chips strictly for Approved options only */}
       {vote === 'approve' && (
-        <View style={styles.rankChipsRow}>
-          {[1, 2].map((r) => (
-            <TouchableOpacity
-              key={r}
-              activeOpacity={0.8}
-              onPress={() => {
-                haptics.tap();
-                onRank(opt.key, r);
-              }}
-              style={[
-                styles.rankChip,
-                rank === r && styles.rankChipActive
-              ]}
-            >
-              <Text
+        <View style={styles.rankChipsContainer}>
+          <Text style={styles.rankLabelText}>Select Preference Rank:</Text>
+          <View style={styles.rankChipsRow}>
+            {[1, 2].map((r) => (
+              <TouchableOpacity
+                key={r}
+                activeOpacity={0.8}
+                onPress={() => {
+                  haptics.tap();
+                  onRank(opt.key, r);
+                }}
                 style={[
-                  styles.rankChipText,
-                  rank === r && { color: '#2E0805', fontWeight: '700' }
+                  styles.rankChip,
+                  rank === r && styles.rankChipActive
                 ]}
+                accessibilityLabel={`Rank ${opt.name} as #${r} choice`}
               >
-                Rank as #{r} choice
-              </Text>
-            </TouchableOpacity>
-          ))}
+                <Text
+                  style={[
+                    styles.rankChipText,
+                    rank === r && { color: '#2E0805', fontWeight: '800' }
+                  ]}
+                >
+                  Rank #{r} Choice
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      )}
+
+      {/* Clear indicator if option was rejected */}
+      {vote === 'reject' && (
+        <View style={styles.rejectedBanner}>
+          <Text style={styles.rejectedBannerText}>Vetoed from your preferences (Ranking disabled)</Text>
         </View>
       )}
     </Animated.View>
@@ -202,8 +210,9 @@ export default function PactSilentBallot() {
   if (!id || id === 'undefined' || id === '[id]') {
     return <CircleRouteGuard id={id}><View /></CircleRouteGuard>;
   }
+
   const router = useRouter();
-  const { groups = [], castVote, currentUserId = 'user-maya-001' } = useGatherlyStore();
+  const { groups = [], castVote } = useGatherlyStore();
   const haptics = usePactHaptics();
 
   const currentGroup =
@@ -213,6 +222,9 @@ export default function PactSilentBallot() {
       name: 'Goa Beach Escape 2026',
       inviteCode: 'GOA-4F82'
     };
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const [votes, setVotes] = useState<Record<string, 'approve' | 'reject' | null>>({
     goa: 'approve',
@@ -260,46 +272,64 @@ export default function PactSilentBallot() {
     }
   ];
 
-  const triggerHaptic = () => {
-    if (Platform.OS !== 'web') {
-      try {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      } catch (e) {}
-    }
-  };
+  const handleVote = (key: string, decision: 'approve' | 'reject') => {
+    const nextVal = votes[key] === decision ? null : decision;
+    setVotes((prev) => ({ ...prev, [key]: nextVal }));
 
-  const setVote = (key: string, val: 'approve' | 'reject') => {
-    triggerHaptic();
-    const nextVal = votes[key] === val ? null : val;
-    setVotes((v) => ({ ...v, [key]: nextVal }));
+    // CRITICAL FIX: Ensure rejected options cannot retain ranking controls or rank selection
     if (nextVal !== 'approve') {
-      setRanks((rk) => {
-        const next = { ...rk };
-        delete next[key];
-        return next;
+      setRanks((prevRanks) => {
+        const updated = { ...prevRanks };
+        delete updated[key];
+        return updated;
       });
     }
   };
 
-  const setRank = (key: string, r: number) => {
-    triggerHaptic();
-    setRanks((rk) => ({ ...rk, [key]: r }));
+  const handleRank = (key: string, r: number) => {
+    setRanks((prev) => ({ ...prev, [key]: r }));
   };
 
   const handleCastBallot = async () => {
-    triggerHaptic();
+    haptics.success();
     setIsSubmitting(true);
+    setSubmitError(null);
 
     try {
-      await castVote('opt-goa-001', votes.goa === 'approve');
-      await castVote('opt-pondy-002', votes.pondy === 'approve');
+      if (votes.goa) {
+        await castVote('opt-goa-001', votes.goa === 'approve');
+      }
+      if (votes.pondy) {
+        await castVote('opt-pondy-002', votes.pondy === 'approve');
+      }
       router.push(`/circle/${currentGroup.id}/brief` as any);
     } catch (e) {
-      router.push(`/circle/${currentGroup.id}/brief` as any);
+      setSubmitError('Failed to record ballot. Navigating to trip brief.');
+      setTimeout(() => {
+        router.push(`/circle/${currentGroup.id}/brief` as any);
+      }, 800);
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.outerContainer}>
+        <View style={styles.phoneFrame}>
+          <View style={styles.scrollContent}>
+            <View style={styles.headerRow}>
+              <View style={styles.backBtn}>
+                <ArrowLeft size={18} color="#F4F3F0" />
+              </View>
+              <Text style={styles.headerTitle}>Loading Silent Ballot...</Text>
+            </View>
+            <SkeletonLoader count={2} height={140} />
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.outerContainer}>
@@ -307,140 +337,88 @@ export default function PactSilentBallot() {
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           {/* Header Row */}
           <View style={styles.headerRow}>
-            <View style={styles.headerLeft}>
-              
-              <Text style={styles.headerTitle}>Silent ballot</Text>
+            <TouchableOpacity
+              onPress={() => {
+                haptics.tap();
+                if (router.canGoBack()) {
+                  router.back();
+                } else {
+                  router.push(`/circle/${currentGroup.id}/hub` as any);
+                }
+              }}
+              activeOpacity={0.7}
+              style={styles.backBtn}
+              accessibilityLabel="Back to Circle Hub"
+            >
+              <ArrowLeft size={18} color="#F4F3F0" />
+            </TouchableOpacity>
+
+            <View style={{ flex: 1, marginLeft: 10 }}>
+              <Text style={styles.headerTitle}>Silent Ballot</Text>
+              <Text style={styles.headerSub}>Sealed Anti-Herd Voting</Text>
             </View>
 
             <View style={styles.sealedBadge}>
-              <Svg width="10" height="10" viewBox="0 0 10 10">
-                <Rect x="2" y="4.3" width="6" height="4.7" rx="1" fill="none" stroke="#8B8D98" strokeWidth="0.9" />
-                <Path d="M3.2 4.3V3a1.8 1.8 0 0 1 3.6 0v1.3" fill="none" stroke="#8B8D98" strokeWidth="0.9" />
-              </Svg>
-              <Text style={styles.sealedBadgeText}>Votes sealed</Text>
+              <Lock size={11} color="#3DE0A0" />
+              <Text style={styles.sealedBadgeText}>Votes Sealed</Text>
             </View>
           </View>
 
-          {/* Zero Peer Pressure Guarantee Banner */}
+          {/* Guarantee Banner */}
           <View style={styles.guaranteeBanner}>
-            <Svg width="16" height="16" viewBox="0 0 16 16" style={{ marginTop: 2 }}>
-              <Path
-                d="M8 1.5l5.5 2v4.2c0 3.4-2.3 6-5.5 6.8-3.2-.8-5.5-3.4-5.5-6.8V3.5z"
-                fill="none"
-                stroke="#8B8D98"
-                strokeWidth="1.1"
-                strokeLinejoin="round"
-              />
-            </Svg>
+            <Shield size={16} color="#3DE0A0" style={{ marginTop: 2 }} />
             <Text style={styles.guaranteeText}>
               <Text style={styles.guaranteeBold}>Zero peer pressure. </Text>
               Individual votes are sealed and revealed simultaneously when all 5 members finish.
             </Text>
           </View>
 
+          {submitError && (
+            <View style={styles.errorBanner}>
+              <Text style={styles.errorBannerText}>{submitError}</Text>
+            </View>
+          )}
+
           {/* Options to Vote On */}
-          {options.map((opt) => {
-            const vote = votes[opt.key];
-            return (
-              <View key={opt.key} style={styles.ballotCard}>
-                <View style={styles.cardHeaderRow}>
-                  <Text style={styles.destName}>{opt.name}</Text>
-                  <Text style={styles.matchScore}>{opt.match}%</Text>
-                </View>
-
-                <Text style={styles.destMeta}>
-                  {opt.dates}  •  Est. {opt.price}
-                </Text>
-
-                {/* Voting Action Buttons */}
-                <View style={[styles.voteButtonsRow, vote === 'approve' && { marginBottom: 14 }]}>
-                  <TouchableOpacity
-                    activeOpacity={0.85}
-                    onPress={() => setVote(opt.key, 'approve')}
-                    style={[
-                      styles.approveBtn,
-                      vote === 'approve' && styles.approveBtnActive
-                    ]}
-                  >
-                    <Check size={16} color={vote === 'approve' ? '#052E20' : '#8B8D98'} />
-                    <Text
-                      style={[
-                        styles.approveBtnText,
-                        vote === 'approve' && { color: '#052E20' }
-                      ]}
-                    >
-                      Approve
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    activeOpacity={0.85}
-                    onPress={() => setVote(opt.key, 'reject')}
-                    style={[
-                      styles.rejectBtn,
-                      vote === 'reject' && styles.rejectBtnActive
-                    ]}
-                  >
-                    <X size={16} color={vote === 'reject' ? '#41201A' : '#8B8D98'} />
-                    <Text
-                      style={[
-                        styles.rejectBtnText,
-                        vote === 'reject' && { color: '#41201A' }
-                      ]}
-                    >
-                      Reject / veto
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-
-                {/* Rank Selection Chips if Approved */}
-                {vote === 'approve' && (
-                  <View style={styles.rankChipsRow}>
-                    {[1, 2].map((r) => (
-                      <TouchableOpacity
-                        key={r}
-                        activeOpacity={0.8}
-                        onPress={() => setRank(opt.key, r)}
-                        style={[
-                          styles.rankChip,
-                          ranks[opt.key] === r && styles.rankChipActive
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.rankChipText,
-                            ranks[opt.key] === r && { color: '#2E0805', fontWeight: '700' }
-                          ]}
-                        >
-                          Rank as #{r} choice
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
-              </View>
-            );
-          })}
+          {options.length === 0 ? (
+            <EmptyState
+              icon="sparkles"
+              title="No Ballot Options Available"
+              description="No trip destinations are ready for silent voting."
+              actionLabel="Return to Circle Hub"
+              onAction={() => router.push(`/circle/${currentGroup.id}/hub` as any)}
+            />
+          ) : (
+            options.map((opt) => (
+              <StampBallotCard
+                key={opt.key}
+                opt={opt}
+                vote={votes[opt.key]}
+                rank={ranks[opt.key]}
+                onVote={handleVote}
+                onRank={handleRank}
+                haptics={haptics}
+              />
+            ))
+          )}
         </ScrollView>
 
-        {/* Bottom CTA Bar */}
+        {/* Sticky Bottom CTA Bar */}
         <View style={styles.bottomBar}>
           <TouchableOpacity
             activeOpacity={0.88}
             onPress={handleCastBallot}
             disabled={isSubmitting}
             style={styles.lockBallotBtn}
+            accessibilityLabel="Lock & Cast Sealed Ballot"
           >
-            <Svg width="14" height="14" viewBox="0 0 14 14">
-              <Rect x="3" y="6.2" width="8" height="6" rx="1.3" fill="none" stroke="#2E0805" strokeWidth="1.3" />
-              <Path d="M4.5 6.2V4.6a2.1 2.1 0 0 1 4.2 0v1.6" fill="none" stroke="#2E0805" strokeWidth="1.3" />
-            </Svg>
+            <Lock size={16} color="#2E0805" />
             <Text style={styles.lockBallotBtnText}>
-              {isSubmitting ? 'Sealing Ballot...' : 'Lock & cast sealed ballot'}
+              {isSubmitting ? 'Sealing Ballot...' : 'Lock & Cast Sealed Ballot'}
             </Text>
           </TouchableOpacity>
           <Text style={styles.bottomSubtext}>
-            You can change your vote anytime before the final member submits.
+            You can modify your vote anytime until the final member locks in.
           </Text>
         </View>
       </View>
@@ -458,91 +436,66 @@ const styles = StyleSheet.create({
   phoneFrame: {
     width: '100%',
     maxWidth: 420,
-    flex: 1,
-    backgroundColor: '#090A0F',
-    borderWidth: Platform.OS === 'web' ? 1 : 0,
-    borderColor: 'rgba(255, 255, 255, 0.11)',
-    borderRadius: Platform.OS === 'web' ? 40 : 0,
-    overflow: 'hidden',
-    position: 'relative'
+    height: '100%',
+    backgroundColor: '#050608'
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 22,
-    paddingBottom: 24
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 110
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     marginBottom: 16
   },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12
-  },
   backBtn: {
-    width: 32,
-    height: 32,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
     justifyContent: 'center',
     alignItems: 'center'
   },
   headerTitle: {
     fontFamily: fontDisplay,
+    fontSize: 20,
     fontWeight: '700',
-    fontSize: 16,
     color: '#F4F3F0'
   },
-  headerBadgesRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8
-  },
-  turnoutBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 3.5,
-    borderRadius: 6,
-    backgroundColor: 'rgba(61, 224, 160, 0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(61, 224, 160, 0.25)'
-  },
-  turnoutBadgeText: {
-    fontFamily: fontUIBold,
-    fontSize: 10.5,
-    color: '#3DE0A0',
-    fontWeight: '700'
+  headerSub: {
+    fontFamily: fontUI,
+    fontSize: 11,
+    color: '#8B8D98'
   },
   sealedBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: 'rgba(61, 224, 160, 0.3)',
+    backgroundColor: 'rgba(61, 224, 160, 0.1)',
     borderRadius: 20,
     paddingHorizontal: 10,
     paddingVertical: 5
   },
   sealedBadgeText: {
     fontFamily: fontUIBold,
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#8B8D98'
+    fontSize: 10.5,
+    fontWeight: '700',
+    color: '#3DE0A0'
   },
   guaranteeBanner: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 10,
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    backgroundColor: '#13151E',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.14)',
+    borderColor: 'rgba(255, 255, 255, 0.12)',
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 13,
-    marginBottom: 18
+    marginBottom: 16
   },
   guaranteeText: {
     fontFamily: fontUI,
@@ -554,7 +507,21 @@ const styles = StyleSheet.create({
   guaranteeBold: {
     fontFamily: fontUIBold,
     color: '#F4F3F0',
-    fontWeight: '600'
+    fontWeight: '700'
+  },
+  errorBanner: {
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+    borderRadius: 12,
+    padding: 10,
+    marginBottom: 14
+  },
+  errorBannerText: {
+    fontFamily: fontUI,
+    fontSize: 11.5,
+    color: '#EF4444',
+    textAlign: 'center'
   },
   ballotCard: {
     backgroundColor: '#13151E',
@@ -562,7 +529,8 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.14)',
     borderRadius: 18,
     padding: 18,
-    marginBottom: 16
+    marginBottom: 16,
+    position: 'relative'
   },
   cardHeaderRow: {
     flexDirection: 'row',
@@ -572,20 +540,20 @@ const styles = StyleSheet.create({
   },
   destName: {
     fontFamily: fontDisplay,
-    fontSize: 21,
+    fontSize: 20,
     fontWeight: '700',
     color: '#F4F3F0'
   },
   matchScore: {
     fontFamily: fontUIBold,
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     color: '#3DE0A0'
   },
   destMeta: {
     fontFamily: fontUI,
     fontSize: 11.5,
-    color: '#6C6F7A',
+    color: '#8B8D98',
     marginBottom: 16
   },
   voteButtonsRow: {
@@ -594,11 +562,11 @@ const styles = StyleSheet.create({
   },
   approveBtn: {
     flex: 1,
-    paddingVertical: 12,
+    minHeight: 44,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: 'rgba(255, 255, 255, 0.18)',
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -611,16 +579,16 @@ const styles = StyleSheet.create({
   approveBtnText: {
     fontFamily: fontUIBold,
     fontSize: 13.5,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#8B8D98'
   },
   rejectBtn: {
     flex: 1,
-    paddingVertical: 12,
+    minHeight: 44,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: 'rgba(255, 255, 255, 0.18)',
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -633,63 +601,89 @@ const styles = StyleSheet.create({
   rejectBtnText: {
     fontFamily: fontUIBold,
     fontSize: 13.5,
-    fontWeight: '600',
+    fontWeight: '700',
+    color: '#8B8D98'
+  },
+  rankChipsContainer: {
+    marginTop: 10,
+    gap: 6
+  },
+  rankLabelText: {
+    fontFamily: fontUIBold,
+    fontSize: 10.5,
     color: '#8B8D98'
   },
   rankChipsRow: {
     flexDirection: 'row',
-    gap: 8,
-    backgroundColor: '#0F1017',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.14)',
-    borderRadius: 12,
-    padding: 4
+    gap: 8
   },
   rankChip: {
     flex: 1,
-    paddingVertical: 9,
-    borderRadius: 9,
+    minHeight: 42,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
     alignItems: 'center',
     justifyContent: 'center'
   },
   rankChipActive: {
-    backgroundColor: '#FF5A5F'
+    backgroundColor: '#FF5A5F',
+    borderColor: '#FF5A5F'
   },
   rankChipText: {
     fontFamily: fontUI,
     fontSize: 12,
     color: '#8B8D98'
   },
+  rejectedBanner: {
+    marginTop: 10,
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.25)',
+    alignItems: 'center'
+  },
+  rejectedBannerText: {
+    fontFamily: fontUI,
+    fontSize: 11,
+    color: '#EF4444'
+  },
   bottomBar: {
-    paddingHorizontal: 20,
-    paddingTop: 14,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 16,
+    paddingTop: 12,
     paddingBottom: 22,
-    backgroundColor: '#090A0F',
+    backgroundColor: '#050608',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.11)'
+    borderTopColor: 'rgba(255, 255, 255, 0.11)',
+    alignItems: 'center'
   },
   lockBallotBtn: {
     width: '100%',
-    paddingVertical: 14,
+    minHeight: 48,
     borderRadius: 12,
     backgroundColor: '#FF5A5F',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    marginBottom: 10
+    marginBottom: 8
   },
   lockBallotBtnText: {
     fontFamily: fontUIBold,
-    fontSize: 14.5,
+    fontSize: 14,
     fontWeight: '700',
     color: '#2E0805'
   },
   bottomSubtext: {
     fontFamily: fontUI,
-    fontSize: 11,
-    color: '#454857',
-    textAlign: 'center',
-    lineHeight: 16
+    fontSize: 10.5,
+    color: '#8B8D98',
+    textAlign: 'center'
   }
 });

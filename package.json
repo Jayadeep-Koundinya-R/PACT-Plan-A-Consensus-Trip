@@ -5,6 +5,7 @@
   "description": "PACT — Plan A Consensus Trip App for Shipathon 2026",
   "main": "expo-router/entry",
   "scripts": {
+    "dev": "expo start",
     "start": "expo start",
     "web": "expo start --web -c",
     "android": "expo run:android",

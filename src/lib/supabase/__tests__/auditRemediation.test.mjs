@@ -91,19 +91,19 @@ describe('Backend Audit Remediation Verification', () => {
   });
 
   // 4. Member Cap Database Trigger (Issue 9)
-  test('group member limit enforces max 20 members', () => {
+  test('group member limit enforces max 24 members', () => {
     function canJoinGroup(currentCount) {
-      if (currentCount >= 20) {
-        throw new Error('Group has reached maximum capacity of 20 members');
+      if (currentCount >= 24) {
+        throw new Error('Group has reached maximum capacity of 24 members');
       }
       return true;
     }
 
     assert.throws(
-      () => canJoinGroup(20),
-      /Group has reached maximum capacity of 20 members/
+      () => canJoinGroup(24),
+      /Group has reached maximum capacity of 24 members/
     );
 
-    assert.equal(canJoinGroup(19), true);
+    assert.equal(canJoinGroup(23), true);
   });
 });

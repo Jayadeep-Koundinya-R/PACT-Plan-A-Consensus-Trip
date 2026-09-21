@@ -128,6 +128,11 @@ export async function fetchBudgetAdvisor(
   // The only live AI path is the authenticated Edge Function.
   if (isLiveSupabaseConfigured) {
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData?.session) {
+        // Unauthenticated visitor: use instant deterministic fallback without triggering 401
+        throw new Error('No active session for Edge Function');
+      }
       const timeoutPromise = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error('AI Advisor timeout (>3.5s)')), 3500)
       );
@@ -182,6 +187,11 @@ export async function fetchCompromiseWhisperer(
   // The only live AI path is the authenticated Edge Function.
   if (isLiveSupabaseConfigured) {
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData?.session) {
+        // Unauthenticated visitor: use instant deterministic fallback without triggering 401
+        throw new Error('No active session for Edge Function');
+      }
       const timeoutPromise = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error('AI Whisperer timeout (>3.5s)')), 3500)
       );
@@ -228,6 +238,11 @@ export async function fetchDestinationStory(
 
   if (isLiveSupabaseConfigured) {
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData?.session) {
+        // Unauthenticated visitor: use instant deterministic fallback without triggering 401
+        throw new Error('No active session for Edge Function');
+      }
       const timeoutPromise = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error('AI Storyteller timeout (>3.5s)')), 3500)
       );

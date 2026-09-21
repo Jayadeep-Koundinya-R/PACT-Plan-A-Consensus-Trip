@@ -38,7 +38,7 @@ export function generateInviteCode(prefix?: string): string {
   return code;
 }
 
-const MAX_GROUP_MEMBERS = 20;
+const MAX_GROUP_MEMBERS = 24;
 
 // ============================================================
 // 1. Auth Services
@@ -314,42 +314,40 @@ export async function fetchTripOptionsFromSupabase(groupId: string): Promise<Tri
 }
 
 export async function addTripOptionToGroup(groupId: string, option: TripOption): Promise<TripOption> {
-  const title = option.title || option.name || 'Compromise Option';
-  const destination = option.destination || option.destinationType || 'General';
-  const startDate = option.startDate || option.dateStart || '2026-10-12';
-  const endDate = option.endDate || option.dateEnd || '2026-10-18';
-  const price = option.pricePerPerson ?? option.budgetPerPerson ?? 500;
+  const name = option.name || 'Compromise Option';
+  const destinationType = option.destinationType || 'General';
+  const dateStart = option.dateStart || '2026-10-12';
+  const dateEnd = option.dateEnd || '2026-10-18';
+  const budgetPerPerson = option.budgetPerPerson ?? 500;
 
   if (isLiveSupabaseConfigured) {
     const { data, error } = await supabase.from('trip_options').insert({
       group_id: groupId,
-      title,
-      destination,
+      name,
+      destination_type: destinationType,
       description: option.description || '',
-      start_date: startDate,
-      end_date: endDate,
-      price_per_person: price,
+      date_start: dateStart,
+      date_end: dateEnd,
+      budget_per_person: budgetPerPerson,
       tags: option.tags || []
     }).select().single();
 
     if (error) {
       console.warn('Error inserting trip option to Supabase:', error);
-    } else if (data) {
+      throw error;
+    }
+
+    if (data) {
       return {
         id: data.id,
         groupId: data.group_id || groupId,
-        name: data.title || title,
-        destinationType: data.destination || destination,
-        dateStart: data.start_date || startDate,
-        dateEnd: data.end_date || endDate,
-        budgetPerPerson: data.price_per_person ?? price,
+        name: data.name || name,
+        destinationType: data.destination_type || destinationType,
+        dateStart: data.date_start || dateStart,
+        dateEnd: data.date_end || dateEnd,
+        budgetPerPerson: data.budget_per_person ?? budgetPerPerson,
         tags: data.tags || [],
-        description: data.description || '',
-        title: data.title || title,
-        destination: data.destination || destination,
-        startDate: data.start_date || startDate,
-        endDate: data.end_date || endDate,
-        pricePerPerson: data.price_per_person ?? price
+        description: data.description || ''
       };
     }
   }
@@ -358,16 +356,11 @@ export async function addTripOptionToGroup(groupId: string, option: TripOption):
     ...option,
     id: option.id || `opt-${Date.now()}`,
     groupId,
-    name: title,
-    title,
-    destinationType: destination,
-    destination,
-    dateStart: startDate,
-    startDate,
-    dateEnd: endDate,
-    endDate,
-    budgetPerPerson: price,
-    pricePerPerson: price
+    name,
+    destinationType,
+    dateStart,
+    dateEnd,
+    budgetPerPerson
   };
 }
 

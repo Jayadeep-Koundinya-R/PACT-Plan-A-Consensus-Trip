@@ -29,6 +29,7 @@ import {
   GroupConsensusSnapshot,
   saveTripBriefToSupabase,
   fetchTripBriefFromSupabase,
+  addTripOptionToGroup,
   signOutUser
 } from '../lib/supabase/service';
 import { supabase } from '../lib/supabase/client';
@@ -485,7 +486,8 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   },
 
   fetchGroupDataFromCloud: async (groupId: string) => {
-    if (!groupId || groupId === DEMO_GROUP_ID) return;
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(groupId);
+    if (!groupId || groupId === DEMO_GROUP_ID || !isUUID) return;
     try {
       // Secure aggregate-only fetch: Never read peers' raw preferences or raw votes.
       const [cloudOptions, snapshot, cloudBrief] = await Promise.all([
@@ -570,8 +572,11 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
 
     // Fail-closed plan caps (kept in sync with the create-circle screen so no bypasses).
     const isDemoPersona = !organizer || organizer.startsWith('user-') || organizer.startsWith('guest-');
-    if (subscriptionPlan === 'free' && totalCount > 5) {
-      throw new Error('Upgrade required: the Free tier supports up to 5 members. Choose a matching group pass to create larger trips.');
+    if (totalCount > 24) {
+      throw new Error('Circles larger than 24 members require an Enterprise Custom Plan. Please contact the organizer / support team for pricing details.');
+    }
+    if (subscriptionPlan === 'free' && totalCount > 8) {
+      throw new Error('Upgrade required: the Free tier supports up to 8 members. Choose a matching group pass to create larger trips.');
     }
     if (subscriptionPlan === 'free' && !isDemoPersona && groups.length >= 1) {
       throw new Error('Upgrade required: the Free tier includes 1 active circle. Upgrade to organize more circles.');
@@ -664,7 +669,7 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
         const friendlyMessages: Record<string, string> = {
           'INVALID_CODE': 'Invalid invite code. Please check and try again.',
           'ALREADY_MEMBER': "You're already a member of this group!",
-          'GROUP_FULL': 'This circle is full (20/20 members).',
+          'GROUP_FULL': 'This circle is full (24/24 members).',
           'GROUP_CANCELLED': 'This trip has been cancelled.',
           'GROUP_FINALIZED': 'This trip has already been finalized.'
         };
@@ -724,15 +729,38 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     });
   },
 
-  addTripOption: (option: TripOption) => {
-    const { activeGroupId } = get();
-    const { addTripOptionToGroup } = require('../lib/supabase/service');
-    addTripOptionToGroup(activeGroupId, option).catch((e: any) => {
-      console.warn('Error persisting trip option:', e);
-    });
+  addTripOption: async (option: TripOption) => {
+    const { activeGroupId, currentUserId, tripOptions } = get();
+
+    // Prevent duplicate proposal insertion by matching name, destination, and dates
+    const isDuplicate = tripOptions.some((existing) =>
+      existing.id === option.id ||
+      (existing.name.toLowerCase().trim() === option.name.toLowerCase().trim() &&
+       existing.dateStart === option.dateStart &&
+       existing.dateEnd === option.dateEnd)
+    );
+    if (isDuplicate) {
+      console.warn('[addTripOption] Duplicate proposal ignored:', option.name);
+      return;
+    }
+
+    const isDemoUser = !currentUserId || currentUserId.startsWith('user-') || currentUserId.startsWith('guest-');
+    const isDemoGroup = !activeGroupId || activeGroupId === DEMO_GROUP_ID;
+
+    let persistedOption = option;
+
+    // Persist to Supabase if in live authenticated mode
+    if (!isDemoUser && !isDemoGroup) {
+      try {
+        persistedOption = await addTripOptionToGroup(activeGroupId, option);
+      } catch (err) {
+        console.error('[addTripOption] Failed to persist option to Supabase:', err);
+        return; // Fail reliably without corrupting state if server write fails
+      }
+    }
 
     set((state) => ({
-      tripOptions: [option, ...state.tripOptions.filter((o) => o.id !== option.id)]
+      tripOptions: [persistedOption, ...state.tripOptions.filter((o) => o.id !== persistedOption.id)]
     }));
   },
 
