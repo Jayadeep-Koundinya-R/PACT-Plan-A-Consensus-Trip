@@ -134,7 +134,7 @@ export async function fetchBudgetAdvisor(
         throw new Error('No active session for Edge Function');
       }
       const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('AI Advisor timeout (>8.0s)')), 8000)
+        setTimeout(() => reject(new Error('AI Advisor timeout (>3.5s)')), 3500)
       );
 
       const callPromise = supabase.functions.invoke('ai-advisor', {
@@ -193,7 +193,7 @@ export async function fetchCompromiseWhisperer(
         throw new Error('No active session for Edge Function');
       }
       const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('AI Whisperer timeout (>8.0s)')), 8000)
+        setTimeout(() => reject(new Error('AI Whisperer timeout (>3.5s)')), 3500)
       );
 
       const callPromise = supabase.functions.invoke('ai-advisor', {
@@ -244,7 +244,7 @@ export async function fetchDestinationStory(
         throw new Error('No active session for Edge Function');
       }
       const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('AI Storyteller timeout (>8.0s)')), 8000)
+        setTimeout(() => reject(new Error('AI Storyteller timeout (>3.5s)')), 3500)
       );
 
       const callPromise = supabase.functions.invoke('ai-advisor', {
