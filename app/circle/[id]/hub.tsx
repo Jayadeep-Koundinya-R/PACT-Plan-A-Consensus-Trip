@@ -1,11 +1,13 @@
-﻿import { AddPeopleModal } from '../../../src/components/AddPeopleModal';
+import { AddPeopleModal } from '../../../src/components/AddPeopleModal';
 import { InviteQRModal } from '../../../src/components/InviteQRModal';
 import { useShareInvite, formatInviteMessage } from '../../../src/hooks/useShareInvite';
 import { useNotificationStore } from '../../../src/store/useNotificationStore';
 import { NotificationCenterModal } from '../../../src/components/NotificationCenterModal';
 import { NotificationToast } from '../../../src/components/NotificationToast';
 import { CircleRouteGuard } from '../../../src/components/common';
-import React, { useState, useEffect, useRef } from 'react';
+import { SkeletonLoader } from '../../../src/components/SkeletonLoader';
+import { EmptyState } from '../../../src/components/EmptyState';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,15 +16,10 @@ import {
   StyleSheet,
   SafeAreaView,
   Platform,
-  Share,
-  Alert,
-  Animated,
-  Linking
+  Alert
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import Svg, { Circle, Path, Rect } from 'react-native-svg';
-import * as Haptics from 'expo-haptics';
-import * as Clipboard from 'expo-clipboard';
+import Svg, { Circle, Path } from 'react-native-svg';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
 import { useCircleStore } from '../../../src/store/useCircleStore';
 import { useCircleRealtime } from '../../../src/hooks/useCircleRealtime';
@@ -34,19 +31,20 @@ import {
   ArrowLeft,
   MessageSquare,
   Vote,
-  Check,
-  Copy,
   Share2,
   Sparkles,
-  SlidersHorizontal,
-  ChevronRight,
   Bell,
   Settings,
   Zap,
   Send,
-  Users,
   UserPlus,
   QrCode,
+  CheckCircle2,
+  Clock,
+  FileText,
+  RefreshCw,
+  SlidersHorizontal,
+  ChevronRight
 } from 'lucide-react-native';
 
 export default function PactCirclesHub() {
@@ -55,17 +53,39 @@ export default function PactCirclesHub() {
   if (!id || id === 'undefined' || id === '[id]') {
     return <CircleRouteGuard id={id}><View /></CircleRouteGuard>;
   }
+
   const router = useRouter();
   const haptics = usePactHaptics();
-  const { groups = [], members = [], activeGroupId, setActiveGroup, activeDemoScenario = "early_bird", fetchGroupDataFromCloud } = useGatherlyStore();
+  const { groups = [], activeGroupId, activeDemoScenario = 'early_bird', fetchGroupDataFromCloud } = useGatherlyStore();
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
+    let mounted = true;
     if (id && id !== 'undefined' && id !== '[id]') {
-      fetchGroupDataFromCloud(id);
+      setIsLoading(true);
+      setLoadError(null);
+      fetchGroupDataFromCloud(id)
+        .then(() => {
+          if (mounted) setIsLoading(false);
+        })
+        .catch((err) => {
+          if (mounted) {
+            setIsLoading(false);
+            setLoadError('Failed to sync circle data. Using cached offline state.');
+          }
+        });
+    } else {
+      setIsLoading(false);
     }
+    return () => {
+      mounted = false;
+    };
   }, [id]);
+
   const circleFromStore = useCircleStore((s) => s.getCircle(id as string || 'circle-college-reunion-2026'));
-  const { isConnected, lastEvent, lastUpdated, simulateSecondDeviceSubmission } = useCircleRealtime(id as string || 'circle-college-reunion-2026');
+  const { isConnected, lastEvent, simulateSecondDeviceSubmission } = useCircleRealtime(id as string || 'circle-college-reunion-2026');
 
   const rawId = (id && id !== 'undefined') ? id : undefined;
   const currentGroup =
@@ -85,13 +105,10 @@ export default function PactCirclesHub() {
   const [copiedCode, setCopiedCode] = useState(false);
   const [isAddPeopleOpen, setIsAddPeopleOpen] = useState(false);
   const [isQROpen, setIsQROpen] = useState(false);
-  const { shareInvite, shareToWhatsApp, shareNudge, copyInviteCode, copyInviteLink } = useShareInvite();
+  const { shareToWhatsApp, shareNudge, copyInviteCode } = useShareInvite();
   const { openNotificationCenter, notifications } = useNotificationStore();
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  // Awaiting dot is kept calm and steady to prevent visual jitter
-
-  // Dynamic circle members connected to live Supabase Realtime & Store
   const storeMembers = circleFromStore?.members?.map(m => ({
     name: m.name,
     status: m.status
@@ -113,19 +130,18 @@ export default function PactCirclesHub() {
     { name: 'Maya', status: 'locked' as const }
   ]));
 
+  const currentUserMember = demoMembers.find((m) => m.name === 'You') || demoMembers[0];
+  const isCurrentUserLocked = currentUserMember?.status === 'locked';
+
   const lockedCount = demoMembers.filter((m) => m.status === 'locked').length;
   const totalCount = demoMembers.length;
   const isEarlyBird = lockedCount <= 2;
-  const pct = lockedCount / totalCount;
+  const pct = totalCount > 0 ? lockedCount / totalCount : 0;
   const r = 34;
   const circumference = 2 * Math.PI * r;
   const waitingMembers = demoMembers.filter((m) => m.status === 'waiting');
 
   const initials = (name: string) => name.slice(0, 2).toUpperCase();
-
-  const triggerHaptic = () => {
-    haptics.tap();
-  };
 
   const handleNudge = (name: string) => {
     haptics.action();
@@ -149,6 +165,7 @@ export default function PactCirclesHub() {
   };
 
   const handleCopyCode = async () => {
+    haptics.tap();
     const code = currentGroup.inviteCode || 'GOA-4F82';
     await copyInviteCode(code);
     setCopiedCode(true);
@@ -162,12 +179,6 @@ export default function PactCirclesHub() {
     await shareToWhatsApp({ message, inviteCode: code });
   };
 
-  const handleProceedToPreferences = () => {
-    haptics.tap();
-    router.push(`/circle/${currentGroup.id}/preferences` as any);
-  };
-
-  // Helper toggle for demo tester to simulate 3rd member locking in
   const toggleDemoSimulation = () => {
     haptics.success();
     simulateSecondDeviceSubmission('Sam');
@@ -181,14 +192,138 @@ export default function PactCirclesHub() {
     });
   };
 
+  // State-Dependent Dominant Action Handler
+  const renderDominantCTA = () => {
+    const tripStatus = currentGroup.status || 'collecting';
+
+    if (tripStatus === 'finalized') {
+      return (
+        <View style={styles.bottomBar}>
+          <TouchableOpacity
+            activeOpacity={0.88}
+            onPress={() => {
+              haptics.action();
+              router.push(`/circle/${currentGroup.id}/brief` as any);
+            }}
+            style={[styles.primaryActionButton, { backgroundColor: '#3DE0A0', borderColor: '#3DE0A0' }]}
+            accessibilityLabel="View Final Trip Brief"
+          >
+            <FileText size={18} color="#052E20" />
+            <Text style={[styles.primaryActionButtonText, { color: '#052E20' }]}>
+              View Final Trip Brief
+            </Text>
+          </TouchableOpacity>
+          <Text style={styles.ctaSubtext}>Trip consensus is locked and sealed.</Text>
+        </View>
+      );
+    }
+
+    if (!isCurrentUserLocked) {
+      return (
+        <View style={styles.bottomBar}>
+          <TouchableOpacity
+            activeOpacity={0.88}
+            onPress={() => {
+              haptics.tap();
+              router.push(`/circle/${currentGroup.id}/preferences` as any);
+            }}
+            style={styles.primaryActionButton}
+            accessibilityLabel="Set My Preferences"
+          >
+            <SlidersHorizontal size={18} color="#2E0805" />
+            <Text style={styles.primaryActionButtonText}>
+              Set / Update My Preferences
+            </Text>
+          </TouchableOpacity>
+          <Text style={styles.ctaSubtext}>Your constraints remain 100% private and sealed.</Text>
+        </View>
+      );
+    }
+
+    if (isEarlyBird) {
+      return (
+        <View style={styles.bottomBar}>
+          <TouchableOpacity
+            activeOpacity={0.88}
+            onPress={handleBulkWhatsAppNudge}
+            style={[styles.primaryActionButton, { backgroundColor: '#3DE0A0', borderColor: '#3DE0A0' }]}
+            accessibilityLabel="Nudge Group on WhatsApp"
+          >
+            <Send size={18} color="#0B3B22" />
+            <Text style={[styles.primaryActionButtonText, { color: '#0B3B22' }]}>
+              {bulkNudged ? 'Nudge Dispatched on WhatsApp' : 'Nudge Group on WhatsApp'}
+            </Text>
+          </TouchableOpacity>
+          <Text style={styles.ctaSubtext}>You've locked in. {3 - lockedCount} more response(s) needed to unlock consensus.</Text>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.bottomBar}>
+        <TouchableOpacity
+          activeOpacity={0.88}
+          onPress={() => {
+            haptics.action();
+            router.push(`/circle/${currentGroup.id}/silent-ballot` as any);
+          }}
+          style={styles.primaryActionButton}
+          accessibilityLabel="Proceed to Silent Ballot"
+        >
+          <Vote size={18} color="#2E0805" />
+          <Text style={styles.primaryActionButtonText}>
+            Proceed to Silent Ballot
+          </Text>
+        </TouchableOpacity>
+        <Text style={styles.ctaSubtext}>Consensus match ready. Cast your anonymous vote.</Text>
+      </View>
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.outerContainer}>
+        <View style={styles.phoneFrame}>
+          <View style={styles.scrollContent}>
+            <View style={styles.loadingHeaderPlaceholder}>
+              <View style={styles.backHomeBtn}>
+                <ArrowLeft size={18} color="#F4F3F0" />
+              </View>
+              <Text style={styles.tripTitle}>Loading Trip Circle...</Text>
+            </View>
+            <SkeletonLoader count={3} height={110} />
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!currentGroup && !isLoading) {
+    return (
+      <SafeAreaView style={styles.outerContainer}>
+        <View style={styles.phoneFrame}>
+          <View style={styles.scrollContent}>
+            <EmptyState
+              icon="compass"
+              title="Circle Not Found"
+              description="This trip circle does not exist or may have been deleted."
+              actionLabel="Return to My Circles"
+              onAction={() => router.push('/(tabs)/home')}
+            />
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.outerContainer}>
       <View style={styles.phoneFrame}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          {/* Header Row: Dedicated Title Row + Secondary Meta Row */}
+          {/* Header Row */}
           <View style={styles.headerContainer}>
             <View style={styles.headerTopRow}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, marginRight: 8 }}>
+              <View style={styles.headerTitleGroup}>
                 <TouchableOpacity
                   onPress={() => {
                     haptics.tap();
@@ -206,17 +341,14 @@ export default function PactCirclesHub() {
               </View>
 
               <View style={styles.headerRightActions}>
-                <TouchableOpacity onPress={handleCopyCode} activeOpacity={0.7} style={styles.inviteCodeBadge}>
-                  <Text style={styles.inviteCodeText}>{copiedCode ? 'COPIED!' : currentGroup.inviteCode || 'GOA-4F82'}</Text>
-                </TouchableOpacity>
-
                 <TouchableOpacity
                   onPress={() => {
                     haptics.tap();
                     openNotificationCenter();
                   }}
                   activeOpacity={0.7}
-                  style={[styles.settingsBtn, { position: 'relative' }]}
+                  style={[styles.headerIconBtn, { position: 'relative' }]}
+                  accessibilityLabel="Notification Center"
                 >
                   <Bell size={16} color="#FF5A5F" />
                   {unreadCount > 0 && <View style={styles.hubNotifDot} />}
@@ -228,7 +360,7 @@ export default function PactCirclesHub() {
                     router.push(`/circle/${currentGroup.id}/chat` as any);
                   }}
                   activeOpacity={0.7}
-                  style={styles.settingsBtn}
+                  style={styles.headerIconBtn}
                   accessibilityLabel="Circle Chat"
                 >
                   <MessageSquare size={16} color="#3DE0A0" />
@@ -237,7 +369,8 @@ export default function PactCirclesHub() {
                 <TouchableOpacity
                   onPress={() => router.push('/(tabs)/settings' as any)}
                   activeOpacity={0.7}
-                  style={styles.settingsBtn}
+                  style={styles.headerIconBtn}
+                  accessibilityLabel="Circle Settings"
                 >
                   <Settings size={16} color="#8B8D98" />
                 </TouchableOpacity>
@@ -265,34 +398,48 @@ export default function PactCirclesHub() {
                 </Text>
               </View>
 
-              {lastEvent && (
+              {lastEvent ? (
                 <View style={styles.realtimeEventBadge}>
                   <Zap size={11} color="#3DE0A0" />
                   <Text style={styles.realtimeEventText} numberOfLines={1}>
                     {lastEvent}
                   </Text>
                 </View>
+              ) : (
+                <View style={styles.realtimeEventBadge}>
+                  <Clock size={11} color="#8B8D98" />
+                  <Text style={styles.realtimeEventText}>
+                    {isEarlyBird ? 'Phase 1: Collecting Preferences' : 'Phase 2: Silent Voting Open'}
+                  </Text>
+                </View>
               )}
             </View>
           </View>
 
-          {/* Early Bird State Banner (when <= 2 responded) OR Standard Ring Meter (when > 2 responded) */}
+          {loadError && (
+            <View style={styles.errorBanner}>
+              <Text style={styles.errorBannerText}>{loadError}</Text>
+            </View>
+          )}
+
+          {/* Phase Hero Status Banner */}
           {isEarlyBird ? (
             <View style={styles.earlyBirdCard}>
               <View style={styles.earlyBirdBadgeRow}>
                 <View style={styles.earlyBirdTag}>
                   <Zap size={13} color="#3DE0A0" fill="#3DE0A0" />
-                  <Text style={styles.earlyBirdTagText}>Early bird activated</Text>
+                  <Text style={styles.earlyBirdTagText}>Early bird phase</Text>
                 </View>
                 <Text style={styles.earlyBirdCountText}>{lockedCount} of {totalCount} locked in</Text>
               </View>
 
-              <Text style={styles.earlyBirdTitle}>You're leading the charge</Text>
+              <Text style={styles.earlyBirdTitle}>
+                {isCurrentUserLocked ? 'Your inputs are sealed' : 'Lead the charge'}
+              </Text>
               <Text style={styles.earlyBirdDesc}>
-                Consensus calculations unlock once 3 members lock in. Nudge remaining friends to reveal your group's match!
+                Consensus calculations unlock once 3 members lock in their preferences. Nudge remaining friends on WhatsApp!
               </Text>
 
-              {/* Progress bar towards consensus unlock */}
               <View style={styles.earlyBirdProgressTrack}>
                 <View style={[styles.earlyBirdProgressFill, { width: `${(lockedCount / totalCount) * 100}%` }]} />
                 <View style={styles.unlockThresholdMarker}>
@@ -330,28 +477,29 @@ export default function PactCirclesHub() {
                   <Text style={styles.progressFractionText}>
                     {lockedCount}/{totalCount}
                   </Text>
-                  <Text style={styles.progressSubLabel}>responded</Text>
+                  <Text style={styles.progressSubLabel}>locked</Text>
                 </View>
               </View>
 
               <View style={styles.statusTextCol}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Text style={styles.statusHeaderLabel}>Group consensus status</Text>
-                  <Text style={{ fontFamily: fontUI, fontSize: 10, color: '#6C6F7A' }}>{lockedCount}/{totalCount} locked</Text>
-                </View>
+                <Text style={styles.statusHeaderLabel}>Consensus Status</Text>
                 <Text style={styles.statusSubtext}>
-                  {lockedCount >= totalCount ? `All ${totalCount} members locked in! Unanimous consensus ready.` : `${lockedCount} of ${totalCount} members locked in! Consensus algorithms active.`}
+                  {lockedCount >= totalCount
+                    ? `All ${totalCount} members locked in! Unanimous consensus calculated.`
+                    : `${lockedCount} of ${totalCount} members locked in. Consensus engine active.`}
                 </Text>
               </View>
             </View>
           )}
 
-          {/* Members Response List */}
+          {/* Member Responses Card */}
           <View style={styles.membersCard}>
             <View style={styles.membersCardHeader}>
               <View>
                 <Text style={styles.membersCardTitle}>Member responses</Text>
-                <Text style={styles.membersCardSubtitle}>{totalCount - lockedCount} pending</Text>
+                <Text style={styles.membersCardSubtitle}>
+                  {waitingMembers.length > 0 ? `${waitingMembers.length} pending` : 'All responses locked'}
+                </Text>
               </View>
               <TouchableOpacity
                 onPress={() => {
@@ -367,94 +515,85 @@ export default function PactCirclesHub() {
               </TouchableOpacity>
             </View>
 
-            {demoMembers.map((m, i) => (
-              <View
-                key={m.name}
-                style={[
-                  styles.memberRow,
-                  i === 0 && { borderTopWidth: 0 }
-                ]}
-              >
-                <View style={styles.avatarCircle}>
-                  <Text style={styles.avatarInitials}>{initials(m.name)}</Text>
-                </View>
+            {demoMembers.length === 0 ? (
+              <EmptyState
+                icon="users"
+                title="No Members Yet"
+                description="Invite friends to your trip circle using your private code."
+                actionLabel="+ Invite Friends"
+                onAction={() => setIsAddPeopleOpen(true)}
+              />
+            ) : (
+              demoMembers.map((m, i) => (
+                <View
+                  key={m.name}
+                  style={[
+                    styles.memberRow,
+                    i === 0 && { borderTopWidth: 0 }
+                  ]}
+                >
+                  <View style={styles.avatarCircle}>
+                    <Text style={styles.avatarInitials}>{initials(m.name)}</Text>
+                  </View>
 
-                <View style={styles.memberInfoCol}>
-                  <Text style={styles.memberName}>{m.name}</Text>
-                  {m.status === 'locked' ? (
-                    <View style={styles.statusBadgeRow}>
-                      <Svg width="12" height="12" viewBox="0 0 12 12">
-                        <Circle cx="6" cy="6" r="6" fill="#3DE0A0" fillOpacity={0.15} />
-                        <Path
-                          d="M3.3 6.2l1.8 1.8 3.6-3.8"
-                          fill="none"
-                          stroke="#3DE0A0"
-                          strokeWidth="1.4"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </Svg>
-                      <Text style={styles.lockedStatusText}>Inputs locked</Text>
-                    </View>
-                  ) : (
-                    <View style={styles.statusBadgeRow}>
-                      <View style={styles.awaitingDot} />
-                      <Text style={styles.awaitingStatusText}>Awaiting inputs</Text>
-                    </View>
+                  <View style={styles.memberInfoCol}>
+                    <Text style={styles.memberName}>{m.name}</Text>
+                    {m.status === 'locked' ? (
+                      <View style={styles.statusBadgeRow}>
+                        <CheckCircle2 size={12} color="#3DE0A0" />
+                        <Text style={styles.lockedStatusText}>Inputs locked</Text>
+                      </View>
+                    ) : (
+                      <View style={styles.statusBadgeRow}>
+                        <View style={styles.awaitingDot} />
+                        <Text style={styles.awaitingStatusText}>Awaiting inputs</Text>
+                      </View>
+                    )}
+                  </View>
+
+                  {!isEarlyBird && m.status === 'waiting' && (
+                    <TouchableOpacity
+                      onPress={() => handleNudge(m.name)}
+                      activeOpacity={0.7}
+                      style={[
+                        styles.nudgeButton,
+                        nudged[m.name] && { borderColor: 'rgba(255, 255, 255, 0.11)' }
+                      ]}
+                      accessibilityLabel={`Nudge ${m.name}`}
+                    >
+                      <Text
+                        style={[
+                          styles.nudgeButtonText,
+                          nudged[m.name] && { color: '#6C6F7A' }
+                        ]}
+                      >
+                        {nudged[m.name] ? 'Nudged' : 'Nudge'}
+                      </Text>
+                    </TouchableOpacity>
                   )}
                 </View>
-
-                {/* Individual nudge buttons: only shown if NOT early bird mode */}
-                {!isEarlyBird && m.status === 'waiting' && (
-                  <TouchableOpacity
-                    onPress={() => handleNudge(m.name)}
-                    activeOpacity={0.7}
-                    style={[
-                      styles.nudgeButton,
-                      nudged[m.name] && { borderColor: 'rgba(255, 255, 255, 0.11)' }
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.nudgeButtonText,
-                        nudged[m.name] && { color: '#6C6F7A' }
-                      ]}
-                    >
-                      {nudged[m.name] ? 'Nudged' : 'Nudge'}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            ))}
-
-            {/* In Early Bird state: Replace individual nudge buttons with a single primary bulk action */}
-            {isEarlyBird && (
-              <View style={styles.bulkNudgeContainer}>
-                <PactButton
-                  variant="gradient"
-                  onPress={handleBulkWhatsAppNudge}
-                  icon={<Send size={14} color="#050608" />}
-                >
-                  {bulkNudged ? 'WhatsApp nudge sent' : 'Nudge everyone on WhatsApp'}
-                </PactButton>
-                <Text style={styles.bulkNudgeSubtext}>
-                  Sends a single private group reminder with your invite link to all {waitingMembers.length} remaining friends.
-                </Text>
-              </View>
+              ))
             )}
           </View>
 
-          {/* Dashed Ticket Perforation Card for Circle Invite */}
+          {/* Unified Invite Ticket Card */}
           <View style={styles.ticketCardContainer}>
             <View style={styles.ticketCard}>
               <View style={styles.ticketTopSection}>
                 <Text style={styles.ticketCodeLabel}>Circle invite code</Text>
-                <Text style={styles.ticketCodeHeading}>
-                  {currentGroup.inviteCode || 'GOA-4F82'}
-                </Text>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={handleCopyCode}
+                  style={styles.codeCopyTouchable}
+                  accessibilityLabel="Copy invite code"
+                >
+                  <Text style={styles.ticketCodeHeading}>
+                    {currentGroup.inviteCode || 'GOA-4F82'}
+                  </Text>
+                  <Text style={styles.copyBadgeText}>{copiedCode ? 'COPIED!' : 'Tap to copy'}</Text>
+                </TouchableOpacity>
               </View>
 
-              {/* Ticket Notches & Perforation */}
               <View style={styles.perforationWrapper}>
                 <View style={styles.notchLeft} />
                 <View style={styles.notchRight} />
@@ -466,13 +605,9 @@ export default function PactCirclesHub() {
                   activeOpacity={0.88}
                   onPress={handleShareWhatsApp}
                   style={styles.whatsAppButton}
+                  accessibilityLabel="Share to WhatsApp group"
                 >
-                  <Svg width="16" height="16" viewBox="0 0 16 16">
-                    <Path
-                      d="M8 1.3A6.7 6.7 0 0 0 2.3 11.6L1.3 14.7l3.2-1a6.7 6.7 0 1 0 3.5-12.4z"
-                      fill="#0B3B22"
-                    />
-                  </Svg>
+                  <Send size={15} color="#0B3B22" />
                   <Text style={styles.whatsAppButtonText}>Share to WhatsApp group</Text>
                 </TouchableOpacity>
 
@@ -484,6 +619,7 @@ export default function PactCirclesHub() {
                       setIsAddPeopleOpen(true);
                     }}
                     style={styles.ticketSecondaryBtn}
+                    accessibilityLabel="Invite options"
                   >
                     <Share2 size={13} color="#E8ECF2" />
                     <Text style={styles.ticketSecondaryBtnText}>Invite Sheet</Text>
@@ -496,6 +632,7 @@ export default function PactCirclesHub() {
                       setIsQROpen(true);
                     }}
                     style={styles.ticketSecondaryBtn}
+                    accessibilityLabel="QR Pass"
                   >
                     <QrCode size={13} color="#D4AF37" />
                     <Text style={[styles.ticketSecondaryBtnText, { color: '#D4AF37' }]}>QR Pass</Text>
@@ -505,95 +642,76 @@ export default function PactCirclesHub() {
             </View>
           </View>
 
-          {/* Circle Chat Quick Action Card (PACT V2) */}
+          {/* Core Decision Navigation Cards */}
           <TouchableOpacity
             onPress={() => {
               haptics.tap();
-              router.push(`/circle/${currentGroup.id}/chat` as any);
+              router.push(`/circle/${currentGroup.id}/ranked-matrix` as any);
             }}
             activeOpacity={0.85}
-            style={[styles.pactPollCard, { borderColor: 'rgba(61, 224, 160, 0.25)', marginBottom: 10 }]}
-            accessibilityLabel="Open Circle Chat"
+            style={styles.navCard}
+            accessibilityLabel="Open Ranked Matrix"
           >
-            <View style={styles.pactPollLeft}>
-              <View style={[styles.pactPollIconBox, { backgroundColor: 'rgba(61, 224, 160, 0.12)' }]}>
-                <MessageSquare size={18} color="#3DE0A0" />
+            <View style={styles.navCardLeft}>
+              <View style={styles.navCardIconBox}>
+                <Sparkles size={18} color="#3DE0A0" />
               </View>
               <View style={{ flex: 1 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <Text style={styles.pactPollTitle}>Circle Chat</Text>
-                  <View style={[styles.pactPollBadge, { backgroundColor: 'rgba(61, 224, 160, 0.15)' }]}>
-                    <Text style={[styles.pactPollBadgeText, { color: '#3DE0A0' }]}>LIVE</Text>
-                  </View>
-                </View>
-                <Text style={styles.pactPollSub}>
-                  Discuss dates, villas, and trip ideas live with all 24 members
+                <Text style={styles.navCardTitle}>Ranked Matrix</Text>
+                <Text style={styles.navCardSub}>
+                  View deterministic ranked destinations and overlap
                 </Text>
               </View>
             </View>
-            <ChevronRight size={16} color="#3DE0A0" />
+            <ChevronRight size={16} color="#8B8D98" />
           </TouchableOpacity>
 
-          {/* Silent Sealed Ballot Quick Action Card */}
           <TouchableOpacity
-            onPress={() => router.push(`/circle/${currentGroup.id}/silent-ballot` as any)}
+            onPress={() => {
+              haptics.tap();
+              router.push(`/circle/${currentGroup.id}/silent-ballot` as any);
+            }}
             activeOpacity={0.85}
-            style={styles.pactPollCard}
-            accessibilityLabel="Open Silent Sealed Ballot: Anti-Herd Voting"
+            style={styles.navCard}
+            accessibilityLabel="Open Silent Ballot"
           >
-            <View style={styles.pactPollLeft}>
-              <View style={styles.pactPollIconBox}>
-                <Vote size={18} color="#3DE0A0" />
+            <View style={styles.navCardLeft}>
+              <View style={[styles.navCardIconBox, { backgroundColor: 'rgba(255, 90, 95, 0.12)' }]}>
+                <Vote size={18} color="#FF5A5F" />
               </View>
               <View style={{ flex: 1 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <Text style={styles.pactPollTitle}>Silent Sealed Ballot</Text>
-                  <View style={styles.pactPollBadge}>
-                    <Text style={styles.pactPollBadgeText}>SEALED</Text>
-                  </View>
-                </View>
-                <Text style={styles.pactPollSub}>
-                  Cast your private Approve, Reject, or Rank votes without peer pressure
+                <Text style={styles.navCardTitle}>Silent Ballot</Text>
+                <Text style={styles.navCardSub}>
+                  Cast private Approve / Reject votes with zero peer pressure
                 </Text>
               </View>
             </View>
-            <ChevronRight size={16} color="#3DE0A0" />
+            <ChevronRight size={16} color="#8B8D98" />
           </TouchableOpacity>
 
-          {/* Quick Access to Consensus Matrix Preview */}
-          <TouchableOpacity
-            onPress={() => router.push(`/circle/${currentGroup.id}/ranked-matrix` as any)}
-            activeOpacity={0.8}
-            style={styles.matrixQuickCard}
-          >
-            <View style={styles.matrixQuickLeft}>
-              <View style={styles.matrixIconBox}>
-                <Sparkles size={16} color="#3DE0A0" />
-              </View>
-              <View>
-                <Text style={styles.matrixQuickTitle}>Live Consensus Engine</Text>
-                <Text style={styles.matrixQuickSub}>Preview ranked destinations & overlap</Text>
-              </View>
-            </View>
-            <ChevronRight size={16} color="#6C6F7A" />
-          </TouchableOpacity>
+          {/* Visually Isolated Demo / Tester Controls */}
+          <View style={styles.demoControlsContainer}>
+            <Text style={styles.demoControlsTitle}>DEMO & SIMULATION CONTROLS</Text>
+            <TouchableOpacity
+              onPress={toggleDemoSimulation}
+              activeOpacity={0.8}
+              style={styles.demoSimulationBtn}
+              accessibilityLabel="Simulate 3rd Member Locking In"
+            >
+              <RefreshCw size={12} color="#8B8D98" />
+              <Text style={styles.demoSimulationBtnText}>
+                {lockedCount <= 2 ? 'Simulate 3rd Member Lock-In (Unlock Match)' : 'Reset to Early Bird State'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </ScrollView>
+
         <NotificationCenterModal />
         <NotificationToast />
 
-        {/* Bottom Sticky Action Bar */}
-        <View style={styles.bottomBar}>
-          <TouchableOpacity
-            activeOpacity={0.88}
-            onPress={handleProceedToPreferences}
-            style={styles.primaryActionButton}
-          >
-            <Text style={styles.primaryActionButtonText}>
-              Set / Update My Preferences
-            </Text>
-          </TouchableOpacity>
-        </View>
-        {/* Add People Lightweight Share Sheet */}
+        {/* State-Dependent Dominant Action Sticky Bottom Bar */}
+        {renderDominantCTA()}
+
         <AddPeopleModal
           visible={isAddPeopleOpen}
           groupName={currentGroup.name || 'Trip Circle'}
@@ -602,85 +720,18 @@ export default function PactCirclesHub() {
           onOpenQR={() => setIsQROpen(true)}
         />
 
-        {/* In-Person QR Pass Modal */}
         <InviteQRModal
           visible={isQROpen}
           groupName={currentGroup.name || 'Trip Circle'}
           inviteCode={currentGroup.inviteCode || 'GOA-4F82'}
           onClose={() => setIsQROpen(false)}
         />
-
       </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  backHomeBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  pactPollCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#13151E',
-    borderWidth: 1,
-    borderColor: 'rgba(61, 224, 160, 0.3)',
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 12
-  },
-  pactPollLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    flex: 1
-  },
-  pactPollIconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: 'rgba(61, 224, 160, 0.12)',
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  pactPollTitle: {
-    fontFamily: fontDisplay,
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#F4F3F0'
-  },
-  pactPollBadge: {
-    backgroundColor: 'rgba(61, 224, 160, 0.15)',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4
-  },
-  pactPollBadgeText: {
-    fontFamily: fontUIBold,
-    fontSize: 9,
-    color: '#3DE0A0'
-  },
-  pactPollSub: {
-    fontFamily: fontUI,
-    fontSize: 11,
-    color: '#8B8D98',
-    marginTop: 2
-  },
-  hubNotifDot: {
-    position: 'absolute',
-    top: 4,
-    right: 4,
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
-    backgroundColor: '#EF4444'
-  },
   outerContainer: {
     flex: 1,
     backgroundColor: '#050608',
@@ -696,7 +747,13 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: 90
+    paddingBottom: 110
+  },
+  loadingHeaderPlaceholder: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 20
   },
   headerContainer: {
     marginBottom: 16
@@ -707,18 +764,55 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12
   },
+  headerTitleGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1
+  },
+  backHomeBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
   tripTitle: {
     fontFamily: fontDisplay,
-    fontSize: 22,
+    fontSize: 21,
+    fontWeight: '700',
     color: '#F4F3F0',
     flex: 1,
-    lineHeight: 28
+    lineHeight: 26
+  },
+  headerRightActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8
+  },
+  headerIconBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  hubNotifDot: {
+    position: 'absolute',
+    top: 5,
+    right: 5,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: '#EF4444'
   },
   headerMetaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginTop: 8
+    marginTop: 10
   },
   realtimePill: {
     flexDirection: 'row',
@@ -727,13 +821,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(61, 224, 160, 0.28)',
     borderRadius: 20,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
     gap: 5
   },
   realtimePillOffline: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderColor: 'rgba(255, 255, 255, 0.18)'
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: 'rgba(255, 255, 255, 0.15)'
   },
   realtimeDot: {
     width: 6,
@@ -742,11 +836,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#8B8D98'
   },
   realtimeDotConnected: {
-    backgroundColor: '#3DE0A0',
-    shadowColor: '#3DE0A0',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 4
+    backgroundColor: '#3DE0A0'
   },
   realtimeText: {
     fontFamily: fontUIBold,
@@ -761,56 +851,39 @@ const styles = StyleSheet.create({
   realtimeEventBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    gap: 5,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    paddingHorizontal: 9,
+    paddingVertical: 4,
     borderRadius: 12,
-    maxWidth: 240
+    flex: 1
   },
   realtimeEventText: {
     fontFamily: fontUI,
-    fontSize: 9.5,
+    fontSize: 10,
     color: '#8B8D98'
   },
-  headerRightActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8
-  },
-  inviteCodeBadge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.11)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+  errorBanner: {
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)'
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+    borderRadius: 12,
+    padding: 10,
+    marginBottom: 14
   },
-  inviteCodeText: {
-    fontFamily: fontUIBold,
-    fontSize: 11,
-    color: '#FF5A5F'
+  errorBannerText: {
+    fontFamily: fontUI,
+    fontSize: 11.5,
+    color: '#EF4444',
+    textAlign: 'center'
   },
-  settingsBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  // Early Bird Encouraging Banner Styles
   earlyBirdCard: {
     backgroundColor: '#13151E',
     borderWidth: 1,
     borderColor: 'rgba(61, 224, 160, 0.3)',
     borderRadius: 16,
     padding: 16,
-    marginBottom: 16,
-    shadowColor: '#3DE0A0',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 10
+    marginBottom: 16
   },
   earlyBirdBadgeRow: {
     flexDirection: 'row',
@@ -836,8 +909,7 @@ const styles = StyleSheet.create({
   earlyBirdCountText: {
     fontFamily: fontUIBold,
     fontSize: 11,
-    color: '#8B8D98',
-    letterSpacing: 0.5
+    color: '#8B8D98'
   },
   earlyBirdTitle: {
     fontFamily: fontDisplay,
@@ -854,10 +926,10 @@ const styles = StyleSheet.create({
   },
   earlyBirdProgressTrack: {
     height: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.14)',
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
     borderRadius: 3,
     position: 'relative',
-    marginBottom: 8
+    marginBottom: 6
   },
   earlyBirdProgressFill: {
     height: '100%',
@@ -867,7 +939,7 @@ const styles = StyleSheet.create({
   unlockThresholdMarker: {
     position: 'absolute',
     left: '60%',
-    top: 10,
+    top: 9,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4
@@ -883,7 +955,6 @@ const styles = StyleSheet.create({
     fontSize: 9.5,
     color: '#3DE0A0'
   },
-  // Standard Status Card Styles
   statusCard: {
     backgroundColor: '#13151E',
     borderWidth: 1,
@@ -910,14 +981,13 @@ const styles = StyleSheet.create({
   progressFractionText: {
     fontFamily: fontUIBold,
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#F4F3F0'
   },
   progressSubLabel: {
     fontFamily: fontUI,
     fontSize: 8.5,
-    color: '#6C6F7A',
-    textTransform: 'lowercase'
+    color: '#8B8D98'
   },
   statusTextCol: {
     flex: 1
@@ -931,11 +1001,10 @@ const styles = StyleSheet.create({
   },
   statusSubtext: {
     fontFamily: fontUI,
-    fontSize: 13,
+    fontSize: 12.5,
     color: '#F4F3F0',
     lineHeight: 18
   },
-  // Members List Styles
   membersCard: {
     backgroundColor: '#13151E',
     borderWidth: 1,
@@ -965,15 +1034,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingVertical: 10,
+    paddingVertical: 12,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)'
+    borderTopColor: 'rgba(255, 255, 255, 0.08)'
   },
   avatarCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.11)',
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -1007,44 +1076,43 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     backgroundColor: '#F59E0B'
   },
-  pulseDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#F59E0B'
-  },
   awaitingStatusText: {
     fontFamily: fontUI,
     fontSize: 11.5,
     color: '#FF5A5F'
   },
   nudgeButton: {
+    minHeight: 44,
+    justifyContent: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 6
+    borderRadius: 22,
+    paddingHorizontal: 14
   },
   nudgeButtonText: {
     fontFamily: fontUIBold,
     fontSize: 11.5,
     color: '#F4F3F0'
   },
-  bulkNudgeContainer: {
-    marginTop: 14,
-    paddingTop: 14,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.11)',
-    gap: 8
+  addPeopleHeaderBtn: {
+    minHeight: 36,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(61, 224, 160, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.28)'
   },
-  bulkNudgeSubtext: {
-    fontFamily: fontUI,
+  addPeopleHeaderBtnText: {
+    fontFamily: fontUIBold,
     fontSize: 11,
-    color: '#6C6F7A',
-    textAlign: 'center',
-    lineHeight: 15
+    fontWeight: '800',
+    color: '#3DE0A0',
+    letterSpacing: 0.4
   },
-  // Ticket Card Styles
   ticketCardContainer: {
     marginBottom: 16
   },
@@ -1066,11 +1134,21 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
     marginBottom: 4
   },
+  codeCopyTouchable: {
+    alignItems: 'center',
+    paddingVertical: 4
+  },
   ticketCodeHeading: {
     fontFamily: fontDisplay,
     fontSize: 26,
     color: '#F4F3F0',
     letterSpacing: 2
+  },
+  copyBadgeText: {
+    fontFamily: fontUIBold,
+    fontSize: 10,
+    color: '#FF5A5F',
+    marginTop: 2
   },
   perforationWrapper: {
     flexDirection: 'row',
@@ -1104,9 +1182,10 @@ const styles = StyleSheet.create({
     padding: 16
   },
   whatsAppButton: {
+    minHeight: 46,
     backgroundColor: '#3DE0A0',
     borderRadius: 12,
-    paddingVertical: 13,
+    paddingVertical: 12,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -1115,100 +1194,21 @@ const styles = StyleSheet.create({
   whatsAppButtonText: {
     fontFamily: fontUIBold,
     fontSize: 13.5,
+    fontWeight: '700',
     color: '#0B3B22'
-  },
-  // Matrix Quick Card Styles
-  matrixQuickCard: {
-    backgroundColor: '#13151E',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.14)',
-    borderRadius: 14,
-    padding: 14,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16
-  },
-  matrixQuickLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12
-  },
-  matrixIconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: 'rgba(61, 224, 160, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  matrixQuickTitle: {
-    fontFamily: fontUIBold,
-    fontSize: 14,
-    color: '#F4F3F0',
-    marginBottom: 2
-  },
-  matrixQuickSub: {
-    fontFamily: fontUI,
-    fontSize: 11.5,
-    color: '#8B8D98'
-  },
-  // Bottom Sticky Bar
-  bottomBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    backgroundColor: 'rgba(5, 6, 8, 0.95)',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.11)'
-  },
-  primaryActionButton: {
-    backgroundColor: '#FF5A5F',
-    borderWidth: 1,
-    borderColor: '#FF5A5F',
-    borderRadius: 12,
-    paddingVertical: 13,
-    alignItems: 'center'
-  },
-  primaryActionButtonText: {
-    fontFamily: fontUIBold,
-    fontSize: 13.5,
-    color: '#2E0805'
-  },
-  addPeopleHeaderBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: radius.pill,
-    backgroundColor: 'rgba(61, 224, 160, 0.12)',
-    borderWidth: 1,
-    borderColor: 'rgba(61, 224, 160, 0.28)'
-  },
-  addPeopleHeaderBtnText: {
-    fontFamily: fontUIBold,
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#3DE0A0',
-    letterSpacing: 0.4
   },
   ticketSecondaryActionsRow: {
     flexDirection: 'row',
     gap: 8,
-    marginTop: 8,
-    width: '100%'
+    marginTop: 10
   },
   ticketSecondaryBtn: {
     flex: 1,
+    minHeight: 44,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    paddingVertical: 9,
     borderRadius: radius.btn,
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderWidth: 1,
@@ -1220,5 +1220,110 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#E8ECF2'
   },
+  navCard: {
+    minHeight: 64,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#13151E',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 12
+  },
+  navCardLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1
+  },
+  navCardIconBox: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: 'rgba(61, 224, 160, 0.12)',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  navCardTitle: {
+    fontFamily: fontDisplay,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#F4F3F0'
+  },
+  navCardSub: {
+    fontFamily: fontUI,
+    fontSize: 11,
+    color: '#8B8D98',
+    marginTop: 2
+  },
+  demoControlsContainer: {
+    marginTop: 12,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    alignItems: 'center',
+    gap: 8
+  },
+  demoControlsTitle: {
+    fontFamily: fontUIBold,
+    fontSize: 9.5,
+    color: '#6C6F7A',
+    letterSpacing: 0.8
+  },
+  demoSimulationBtn: {
+    minHeight: 40,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)'
+  },
+  demoSimulationBtnText: {
+    fontFamily: fontUIBold,
+    fontSize: 11,
+    color: '#8B8D98'
+  },
+  bottomBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 22,
+    backgroundColor: '#050608',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.11)',
+    alignItems: 'center'
+  },
+  primaryActionButton: {
+    width: '100%',
+    minHeight: 48,
+    backgroundColor: '#FF5A5F',
+    borderRadius: 12,
+    paddingVertical: 13,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8
+  },
+  primaryActionButtonText: {
+    fontFamily: fontUIBold,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#2E0805'
+  },
+  ctaSubtext: {
+    fontFamily: fontUI,
+    fontSize: 10.5,
+    color: '#8B8D98',
+    marginTop: 6,
+    textAlign: 'center'
+  }
 });
-
