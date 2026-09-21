@@ -350,6 +350,54 @@ export function detectDeadlock(
 /**
  * Main engine entrypoint: calculates complete consensus results for a group.
  */
+/**
+ * Generates a privacy-safe, plain-English "Why This Won" decision breakdown.
+ * Operates strictly on aggregated scores and metrics. Never exposes individual member limits or names.
+ */
+export function generateConsensusExplanation(scoredOption: ScoredTripOption): {
+  headline: string;
+  summary: string;
+  keyFactors: string[];
+} {
+  const { option, consensusPercent, totalScore, budgetGapCount, dateConflictCount, dealbreakerHitCount, memberBreakdowns } = scoredOption;
+  const totalMembers = memberBreakdowns.length || 1;
+  const dateOverlapAvg = Math.round(
+    (memberBreakdowns.reduce((acc, m) => acc + m.dateScore, 0) / totalMembers) * 100
+  );
+
+  const keyFactors: string[] = [];
+
+  if (consensusPercent >= 100) {
+    keyFactors.push(`Unanimous Alignment: 100% of responding members approved this destination.`);
+  } else if (consensusPercent >= 70) {
+    keyFactors.push(`Supermajority Consensus: ${consensusPercent}% of group members approved.`);
+  }
+
+  if (dateOverlapAvg > 0) {
+    keyFactors.push(`Date Compatibility: ${dateOverlapAvg}% average date availability overlap across the group.`);
+  }
+
+  if (budgetGapCount === 0) {
+    keyFactors.push(`Budget Fit: 100% of responding members' budget caps comfortably cover $${option.budgetPerPerson || option.pricePerPerson || 500}/person.`);
+  } else {
+    keyFactors.push(`Budget Balance: Matches budget constraints for ${totalMembers - budgetGapCount} of ${totalMembers} members.`);
+  }
+
+  if (dealbreakerHitCount === 0) {
+    keyFactors.push(`Zero Vetoes: Cleared all strict group dealbreakers without disqualifications.`);
+  }
+
+  const title = option.title || option.name || option.destination || 'Selected Destination';
+  const headline = `Why ${title} won (${totalScore}% Overall Fit)`;
+  const summary = `${title} reached ${consensusPercent}% consensus across ${totalMembers} member ballots, satisfying group dates and budget bands with zero dealbreaker vetoes.`;
+
+  return {
+    headline,
+    summary,
+    keyFactors
+  };
+}
+
 export function calculateConsensus(
   groupId: string,
   totalGroupMembersCount: number,

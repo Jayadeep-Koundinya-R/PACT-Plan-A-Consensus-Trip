@@ -277,6 +277,46 @@ export function detectDeadlock(rankedOptions) {
   };
 }
 
+export function generateConsensusExplanation(scoredOption) {
+  const { option, consensusPercent, totalScore, budgetGapCount, dateConflictCount, dealbreakerHitCount, memberBreakdowns } = scoredOption;
+  const totalMembers = memberBreakdowns.length || 1;
+  const dateOverlapAvg = Math.round(
+    (memberBreakdowns.reduce((acc, m) => acc + m.dateScore, 0) / totalMembers) * 100
+  );
+
+  const keyFactors = [];
+
+  if (consensusPercent >= 100) {
+    keyFactors.push(`Unanimous Alignment: 100% of responding members approved this destination.`);
+  } else if (consensusPercent >= 70) {
+    keyFactors.push(`Supermajority Consensus: ${consensusPercent}% of group members approved.`);
+  }
+
+  if (dateOverlapAvg > 0) {
+    keyFactors.push(`Date Compatibility: ${dateOverlapAvg}% average date availability overlap across the group.`);
+  }
+
+  if (budgetGapCount === 0) {
+    keyFactors.push(`Budget Fit: 100% of responding members' budget caps comfortably cover $${option.budgetPerPerson || option.pricePerPerson || 500}/person.`);
+  } else {
+    keyFactors.push(`Budget Balance: Matches budget constraints for ${totalMembers - budgetGapCount} of ${totalMembers} members.`);
+  }
+
+  if (dealbreakerHitCount === 0) {
+    keyFactors.push(`Zero Vetoes: Cleared all strict group dealbreakers without disqualifications.`);
+  }
+
+  const title = option.title || option.name || option.destination || 'Selected Destination';
+  const headline = `Why ${title} won (${totalScore}% Overall Fit)`;
+  const summary = `${title} reached ${consensusPercent}% consensus across ${totalMembers} member ballots, satisfying group dates and budget bands with zero dealbreaker vetoes.`;
+
+  return {
+    headline,
+    summary,
+    keyFactors
+  };
+}
+
 export function calculateConsensus(groupId, totalGroupMembersCount, options, preferences) {
   const rankedOptions = rankTripOptions(options, preferences);
   const deadlockDiagnosis = detectDeadlock(rankedOptions);

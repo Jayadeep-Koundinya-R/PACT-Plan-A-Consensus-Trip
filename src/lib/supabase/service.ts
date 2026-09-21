@@ -313,6 +313,64 @@ export async function fetchTripOptionsFromSupabase(groupId: string): Promise<Tri
   }));
 }
 
+export async function addTripOptionToGroup(groupId: string, option: TripOption): Promise<TripOption> {
+  const title = option.title || option.name || 'Compromise Option';
+  const destination = option.destination || option.destinationType || 'General';
+  const startDate = option.startDate || option.dateStart || '2026-10-12';
+  const endDate = option.endDate || option.dateEnd || '2026-10-18';
+  const price = option.pricePerPerson ?? option.budgetPerPerson ?? 500;
+
+  if (isLiveSupabaseConfigured) {
+    const { data, error } = await supabase.from('trip_options').insert({
+      group_id: groupId,
+      title,
+      destination,
+      description: option.description || '',
+      start_date: startDate,
+      end_date: endDate,
+      price_per_person: price,
+      tags: option.tags || []
+    }).select().single();
+
+    if (error) {
+      console.warn('Error inserting trip option to Supabase:', error);
+    } else if (data) {
+      return {
+        id: data.id,
+        groupId: data.group_id || groupId,
+        name: data.title || title,
+        destinationType: data.destination || destination,
+        dateStart: data.start_date || startDate,
+        dateEnd: data.end_date || endDate,
+        budgetPerPerson: data.price_per_person ?? price,
+        tags: data.tags || [],
+        description: data.description || '',
+        title: data.title || title,
+        destination: data.destination || destination,
+        startDate: data.start_date || startDate,
+        endDate: data.end_date || endDate,
+        pricePerPerson: data.price_per_person ?? price
+      };
+    }
+  }
+
+  return {
+    ...option,
+    id: option.id || `opt-${Date.now()}`,
+    groupId,
+    name: title,
+    title,
+    destinationType: destination,
+    destination,
+    dateStart: startDate,
+    startDate,
+    dateEnd: endDate,
+    endDate,
+    budgetPerPerson: price,
+    pricePerPerson: price
+  };
+}
+
 export async function castVoteInSupabase(groupId: string, optionId: string, userId: string, approved: boolean) {
   // Silent voting semantics: Record true (approved) or false (vetoed/rejected)
   // An unvoted state is the absence of a record.

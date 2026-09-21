@@ -30,6 +30,13 @@ export interface TripOption {
   budgetPerPerson: number;
   tags: string[];
   description?: string;
+
+  // Optional query alias properties for flexibility across UI components
+  title?: string;
+  destination?: string;
+  startDate?: string;
+  endDate?: string;
+  pricePerPerson?: number;
 }
 
 export interface MemberScoreBreakdown {

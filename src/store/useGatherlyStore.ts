@@ -725,6 +725,12 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   },
 
   addTripOption: (option: TripOption) => {
+    const { activeGroupId } = get();
+    const { addTripOptionToGroup } = require('../lib/supabase/service');
+    addTripOptionToGroup(activeGroupId, option).catch((e: any) => {
+      console.warn('Error persisting trip option:', e);
+    });
+
     set((state) => ({
       tripOptions: [option, ...state.tripOptions.filter((o) => o.id !== option.id)]
     }));
