@@ -52,7 +52,6 @@ Status legend: ✅ Done & verified · 🟡 Built but not verified · ⬜ Not sta
 | R16 | Archive/unarchive circles | ✅ | Migration added to `supabase/schema.sql` (`archived` boolean + index) | 2026-09-07 |
 | R17 | Push notifications never leak budget figures or individual vetoes | ✅ | `validateNotificationPrivacy` enforces regex check; 6/6 tests passing in `notifications.test.mjs` | 2026-09-07 |
 | R18 | Real-time sync of member response status across devices | 🟡 | `useCircleRealtime.ts` listens on Postgres changes; tested in `realtimeSync.test.mjs`; 2 real devices pending | 2026-09-07 |
-| R31 | Sealed Vault Privacy Guarantee Banner on Preferences screen | ✅ | Added "100% Private & Sealed" banner card in `app/circle/[id]/preferences.tsx` with Emerald lock icon, title, highlighted text, and accessibility aria role; verified with 131 passing tests and 0 TypeScript errors. | 2026-09-19 |
 | R19 | Demo Mode never triggers a real Supabase write | ✅ | Store skips Supabase writes when `currentUserId.startsWith('user-')` or `DEMO_GROUP_ID` | 2026-09-07 |
 
 ## Stability
@@ -75,6 +74,7 @@ Status legend: ✅ Done & verified · 🟡 Built but not verified · ⬜ Not sta
 | R28 | User-directory / friend-request system | ❌ Non-Goal | Intentionally excluded to protect private, invite-only circles; documented in `README.md` Section 8 | 2026-09-10 |
 | R29 | One flat Organizer Pass, maximum 20 members | ✅ | Single flat $9.99 USD pass; free up to 5 and one pass covers 6–20 members. Multi-currency, extra tiers, and concierge flow removed per PRD. | 2026-09-14 |
 | R30 | Global AI Chat Advisor (Out-of-scope non-goal) | ⛔ Non-Goal | Removed from bottom tabs & root modals per PRD scope decision; Compromise Whisperer remains the sole AI surface. | 2026-09-12 |
+| R31 | Sealed Vault Privacy Guarantee Banner on Preferences screen | ✅ | Added "100% Private & Sealed" banner card in `app/circle/[id]/preferences.tsx` with Emerald lock icon, title, highlighted text, and accessibility aria role; verified with 131 passing tests and 0 TypeScript errors. | 2026-09-19 |
 
 ---
 
