@@ -104,8 +104,8 @@ $$\\text{Member Score} = (\\text{Date Score} \\times 0.35) + (\\text{Budget Scor
 
 PACT incorporates a sustainable, fair monetization model powered by RevenueCat:
 
-- **Free Tier**: Up to 1 active trip circle and 5 members, standard destination scoring, basic Trip Brief.
-- **PACT Organizer Pass** ($9.99 per trip, up to 20 members):
+- **Free Tier**: Up to 1 active trip circle and 8 members, standard destination scoring, basic Trip Brief.
+- **PACT Organizer Pass** ($9.99 per trip, up to 24 members):
   - Only the organizer pays; invited members join free.
   - AI Compromise Whisperer & AI Budget Advisor live calls.
   - **Circle Inheritance**: When the organizer has Pro, all invited circle members get Pro features for that trip.

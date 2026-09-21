@@ -62,7 +62,7 @@ const PACT_FEATURES: PactFeature[] = [
     tagline: 'Budgets & vetoes 100% confidential',
     badge: '100% Confidential',
     badgeColor: '#3DE0A0',
-    desc: 'Enter your real budget & blackout dates in complete privacy. Friends only see the resulting group overlap � never individual numbers.',
+    desc: 'Enter your real budget & blackout dates in complete privacy. Friends only see the resulting group overlap — never individual numbers.',
     solveInsight: 'Breaks the budget shame barrier where people silently drop out of trips.',
     icon: ShieldCheck
   },
@@ -96,7 +96,7 @@ const PACT_FEATURES: PactFeature[] = [
     badge: 'Instant Viral Sync',
     badgeColor: '#3DE0A0',
     desc: 'Dispatch pre-filled WhatsApp invites, deadline nudges, and formatted itinerary summaries directly into your existing friend group chats.',
-    solveInsight: 'Friends join in 5 seconds via a simple 6-digit code or link � no friend requests.',
+    solveInsight: 'Friends join in 5 seconds via a simple 6-digit code or link — no friend requests.',
     icon: Share2
   },
   {
@@ -136,10 +136,10 @@ const PACT_FEATURES: PactFeature[] = [
     id: 'fair-pricing',
     category: 'consensus',
     title: 'Fair Organizer Pass ($9.99 Flat)',
-    tagline: 'One pass covers up to 20 friends',
+    tagline: 'One pass covers up to 24 friends',
     badge: 'No Per-Seat Tax',
     badgeColor: '#F59E0B',
-    desc: 'Only 1 organizer pays flat $9.99 for up to 20 travelers. No per-seat ticketing, no monthly subscriptions, and no hidden booking markups.',
+    desc: 'Only 1 organizer pays flat $9.99 for up to 24 travelers. No per-seat ticketing, no monthly subscriptions, and no hidden booking markups.',
     solveInsight: 'Aligned with group economics: native RevenueCat purchasing with instant receipt restore.',
     icon: CheckCircle2
   }
