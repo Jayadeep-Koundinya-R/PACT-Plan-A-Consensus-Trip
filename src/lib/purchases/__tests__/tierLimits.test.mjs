@@ -44,7 +44,7 @@ describe('Tier Limits: Free (1-8), Organizer Pass (9-24), Enterprise (25+)', () 
 
   test('8 members = Allowed (Free Tier)', () => {
     assert.equal(MAX_FREE_MEMBERS, 8);
-    
+
     // Free tier user creating 1 to 8 members
     for (let count = 1; count <= 8; count++) {
       const res = validateCircleCreation(count, 'free');

@@ -313,6 +313,57 @@ export async function fetchTripOptionsFromSupabase(groupId: string): Promise<Tri
   }));
 }
 
+export async function addTripOptionToGroup(groupId: string, option: TripOption): Promise<TripOption> {
+  const name = option.name || 'Compromise Option';
+  const destinationType = option.destinationType || 'General';
+  const dateStart = option.dateStart || '2026-10-12';
+  const dateEnd = option.dateEnd || '2026-10-18';
+  const budgetPerPerson = option.budgetPerPerson ?? 500;
+
+  if (isLiveSupabaseConfigured) {
+    const { data, error } = await supabase.from('trip_options').insert({
+      group_id: groupId,
+      name,
+      destination_type: destinationType,
+      description: option.description || '',
+      date_start: dateStart,
+      date_end: dateEnd,
+      budget_per_person: budgetPerPerson,
+      tags: option.tags || []
+    }).select().single();
+
+    if (error) {
+      console.warn('Error inserting trip option to Supabase:', error);
+      throw error;
+    }
+
+    if (data) {
+      return {
+        id: data.id,
+        groupId: data.group_id || groupId,
+        name: data.name || name,
+        destinationType: data.destination_type || destinationType,
+        dateStart: data.date_start || dateStart,
+        dateEnd: data.date_end || dateEnd,
+        budgetPerPerson: data.budget_per_person ?? budgetPerPerson,
+        tags: data.tags || [],
+        description: data.description || ''
+      };
+    }
+  }
+
+  return {
+    ...option,
+    id: option.id || `opt-${Date.now()}`,
+    groupId,
+    name,
+    destinationType,
+    dateStart,
+    dateEnd,
+    budgetPerPerson
+  };
+}
+
 export async function castVoteInSupabase(groupId: string, optionId: string, userId: string, approved: boolean) {
   // Silent voting semantics: Record true (approved) or false (vetoed/rejected)
   // An unvoted state is the absence of a record.

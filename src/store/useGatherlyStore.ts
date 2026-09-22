@@ -29,6 +29,7 @@ import {
   GroupConsensusSnapshot,
   saveTripBriefToSupabase,
   fetchTripBriefFromSupabase,
+  addTripOptionToGroup,
   signOutUser
 } from '../lib/supabase/service';
 import { supabase } from '../lib/supabase/client';
@@ -728,9 +729,38 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     });
   },
 
-  addTripOption: (option: TripOption) => {
+  addTripOption: async (option: TripOption) => {
+    const { activeGroupId, currentUserId, tripOptions } = get();
+
+    // Prevent duplicate proposal insertion by matching name, destination, and dates
+    const isDuplicate = tripOptions.some((existing) =>
+      existing.id === option.id ||
+      (existing.name.toLowerCase().trim() === option.name.toLowerCase().trim() &&
+       existing.dateStart === option.dateStart &&
+       existing.dateEnd === option.dateEnd)
+    );
+    if (isDuplicate) {
+      console.warn('[addTripOption] Duplicate proposal ignored:', option.name);
+      return;
+    }
+
+    const isDemoUser = !currentUserId || currentUserId.startsWith('user-') || currentUserId.startsWith('guest-');
+    const isDemoGroup = !activeGroupId || activeGroupId === DEMO_GROUP_ID;
+
+    let persistedOption = option;
+
+    // Persist to Supabase if in live authenticated mode
+    if (!isDemoUser && !isDemoGroup) {
+      try {
+        persistedOption = await addTripOptionToGroup(activeGroupId, option);
+      } catch (err) {
+        console.error('[addTripOption] Failed to persist option to Supabase:', err);
+        return; // Fail reliably without corrupting state if server write fails
+      }
+    }
+
     set((state) => ({
-      tripOptions: [option, ...state.tripOptions.filter((o) => o.id !== option.id)]
+      tripOptions: [persistedOption, ...state.tripOptions.filter((o) => o.id !== persistedOption.id)]
     }));
   },
 

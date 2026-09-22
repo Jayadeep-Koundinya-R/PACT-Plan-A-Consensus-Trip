@@ -80,15 +80,23 @@ export const AICompromiseModal: React.FC<AICompromiseModalProps> = ({
     }
   }, [visible, groupId]);
 
-  const handleApply = () => {
-    if (!proposal) return;
+  const [isApplying, setIsApplying] = useState(false);
+
+  const handleApply = async () => {
+    if (!proposal || isApplying) return;
+    setIsApplying(true);
     triggerHaptic(Haptics.ImpactFeedbackStyle.Heavy);
-    applyAICompromise(proposal);
-    setStage('applied');
-    setTimeout(() => {
-      onClose();
-      if (onApplied) onApplied();
-    }, 1500);
+    try {
+      await applyAICompromise(proposal);
+      setStage('applied');
+      setTimeout(() => {
+        setIsApplying(false);
+        onClose();
+        if (onApplied) onApplied();
+      }, 1500);
+    } catch (e) {
+      setIsApplying(false);
+    }
   };
 
   const stepsText = [
@@ -242,12 +250,19 @@ export const AICompromiseModal: React.FC<AICompromiseModalProps> = ({
               {/* Action Button */}
               <TouchableOpacity
                 activeOpacity={0.85}
+                disabled={isApplying}
                 onPress={handleApply}
-                style={[styles.applyBtn, { backgroundColor: theme.primary }, shadows.glowPrimary]}
+                style={[styles.applyBtn, { backgroundColor: theme.primary }, shadows.glowPrimary, isApplying && { opacity: 0.7 }]}
+                accessibilityRole="button"
+                accessibilityLabel="Apply to Ballot"
               >
-                <Sparkles size={18} color="#FFFFFF" />
+                {isApplying ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Sparkles size={18} color="#FFFFFF" />
+                )}
                 <Text style={styles.applyBtnText}>
-                  Add to Group Ballot & Vote Yes
+                  {isApplying ? 'Applying Proposal...' : 'Apply to Ballot'}
                 </Text>
                 <ArrowRight size={18} color="#FFFFFF" />
               </TouchableOpacity>

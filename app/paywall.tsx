@@ -236,7 +236,7 @@ export default function PactPaywall() {
                 </TouchableOpacity>
               )}
             </View>
-          
+
           {/* Enterprise Custom Plan Note */}
           <View style={[styles.card, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border, marginTop: 12 }]}>
             <View style={styles.cardHeader}>
@@ -251,7 +251,6 @@ export default function PactPaywall() {
             </Text>
           </View>
         </View>
-
         {/* Privacy & Guarantee Note */}
           <View style={[styles.guaranteeBox, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}>
             <ShieldCheck size={18} color="#3DE0A0" />

@@ -22,6 +22,7 @@ import { usePactHaptics } from '../../../src/hooks/usePactHaptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
 import { colors, radius } from '../../../src/theme/colors';
+import { generateConsensusExplanation } from '../../../src/lib/consensus/engine';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
 import {
   ArrowLeft,
@@ -298,16 +299,60 @@ export default function PactConsensusResults() {
                 </View>
 
                 <View style={styles.winnerBody}>
-                  <View style={styles.checklistContainer}>
-                    {checklist.map((item, idx) => (
-                      <View key={idx} style={styles.checkRow}>
-                        <View style={styles.checkCircle}>
-                          <Check size={11} color="#3DE0A0" />
+{(() => {
+                    const topScoredOption = {
+                      option: {
+                        id: 'opt-goa-01',
+                        groupId: currentGroup.id,
+                        name: 'Goa',
+                        destinationType: 'Beach & Culture',
+                        dateStart: '2026-10-14',
+                        dateEnd: '2026-10-19',
+                        budgetPerPerson: 540,
+                        tags: ['beach', 'nightlife', 'seafood']
+                      },
+                      rank: 1,
+                      totalScore: 96,
+                      consensusPercent: 100,
+                      budgetGapFlag: false,
+                      budgetGapCount: 0,
+                      dateConflictCount: 0,
+                      dealbreakerHitCount: 0,
+                      memberBreakdowns: members.map((m) => ({
+                        userId: m.userId,
+                        userName: m.userName,
+                        dateScore: 1.0,
+                        dateOverlapDays: 5,
+                        tripDurationDays: 5,
+                        budgetScore: 1.0,
+                        tagScore: 1.0,
+                        matchedTags: ['beach'],
+                        dealbreakerHit: false,
+                        memberScore: 1.0,
+                        isViable: true
+                      })),
+                      plainEnglishReason: 'Unanimous 100% agreement across all members.'
+                    };
+
+                    const explanation = generateConsensusExplanation(topScoredOption);
+
+                    return (
+                      <View style={styles.explanationBox} accessibilityRole="summary">
+                        <Text style={styles.explanationHeadline}>{explanation.headline}</Text>
+                        <Text style={styles.explanationSummary}>{explanation.summary}</Text>
+                        <View style={styles.checklistContainer}>
+                          {explanation.keyFactors.map((factor, idx) => (
+                            <View key={idx} style={styles.checkRow}>
+                              <View style={styles.checkCircle}>
+                                <Check size={11} color="#3DE0A0" />
+                              </View>
+                              <Text style={styles.checkItemText}>{factor}</Text>
+                            </View>
+                          ))}
                         </View>
-                        <Text style={styles.checkItemText}>{item}</Text>
                       </View>
-                    ))}
-                  </View>
+                    );
+                  })()}
 
                   <View style={{ marginTop: 12 }}>
                     <ExplorePlaceSection destination="Goa" />
@@ -775,6 +820,23 @@ const styles = StyleSheet.create({
     fontFamily: fontUI,
     fontSize: 12,
     color: '#F4F3F0'
+  },
+  explanationBox: {
+    marginBottom: 8
+  },
+  explanationHeadline: {
+    fontFamily: fontUIBold,
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#3DE0A0',
+    marginBottom: 4
+  },
+  explanationSummary: {
+    fontFamily: fontUI,
+    fontSize: 12,
+    color: '#8B8D98',
+    lineHeight: 17,
+    marginBottom: 10
   },
   subOptionWrapper: {
     backgroundColor: '#13151E',
