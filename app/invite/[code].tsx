@@ -39,7 +39,15 @@ export default function InviteCodeScreen() {
   } = useGatherlyStore();
 
   const theme = isDarkMode ? colors.dark : colors.light;
-  const inviteCode = (code || '').toUpperCase();
+
+  // Sanitize deep links: strip protocol, trailing slashes, and query params
+  const rawCode = Array.isArray(code) ? code[0] : code || '';
+  const sanitizedCode = rawCode
+    .replace(/^pact:\/\/(join\/|invite\/)?/i, '')
+    .split('?')[0]
+    .replace(/\/+$/, '')
+    .trim();
+  const inviteCode = sanitizedCode.toUpperCase();
 
   const [status, setStatus] = useState<'loading' | 'preview' | 'joining' | 'joined' | 'error' | 'already_member'>('loading');
   const [errorMsg, setErrorMsg] = useState('');

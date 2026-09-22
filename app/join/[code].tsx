@@ -28,7 +28,14 @@ export default function JoinConfirmationScreen() {
   const router = useRouter();
   const haptics = usePactHaptics();
 
-  const inviteCode = (code || '').toUpperCase().trim();
+  // Sanitize deep links: strip protocol, trailing slashes, and query params
+  const rawCode = Array.isArray(code) ? code[0] : code || '';
+  const sanitizedCode = rawCode
+    .replace(/^pact:\/\/(join\/|invite\/)?/i, '')
+    .split('?')[0]
+    .replace(/\/+$/, '')
+    .trim();
+  const inviteCode = sanitizedCode.toUpperCase();
 
   // Stores
   const { circles, getCircleByInviteCode, addMember } = useCircleStore();

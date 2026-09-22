@@ -37,6 +37,9 @@ export const ScreenHeader: React.FC<ScreenHeaderProps> = ({
         <TouchableOpacity
           activeOpacity={0.7}
           onPress={onBack}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
           style={[
             styles.backButton,
             {

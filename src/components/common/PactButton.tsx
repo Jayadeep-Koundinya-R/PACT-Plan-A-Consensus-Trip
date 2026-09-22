@@ -96,6 +96,10 @@ export const PactButton: React.FC<PactButtonProps> = ({
       onPress={handlePress}
       disabled={disabled || loading}
       style={getContainerStyles()}
+      accessibilityRole="button"
+      accessibilityLabel={title || (typeof children === 'string' ? children : 'Button')}
+      accessibilityState={{ disabled: disabled || loading }}
+      hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
       testID={testID}
     >
       {variant === 'gradient' && (

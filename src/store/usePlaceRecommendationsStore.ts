@@ -50,8 +50,13 @@ export const usePlaceRecommendationsStore = create<PlaceRecommendationsState>((s
   },
 
   getRecommendations: (destination: string) => {
+    if (!destination) return null;
     const key = destination.trim().toLowerCase();
-    return get().recommendations[key] || null;
+    const result = get().recommendations[key];
+    if (result && Array.isArray(result.places)) {
+      return result;
+    }
+    return null;
   },
 
   loadRecommendations: async (destination: string, forceRefresh = false) => {
