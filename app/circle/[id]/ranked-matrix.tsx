@@ -107,9 +107,10 @@ export default function PactConsensusResults() {
   const budgetSpread = maxBudget - minBudget;
   const hasWideBudgetGap = budgetSpread > 1000;
 
+  const totalMemberCount = members.length || currentGroup.totalMembersCount || 5;
   const checklist = [
-    'Dates: 100% date window overlap across all 5 members',
-    'Budget: fits all 5 member caps privately',
+    `Dates: 100% date window overlap across all ${totalMemberCount} members`,
+    `Budget: fits all ${totalMemberCount} member caps privately`,
     'Vibes: beach, nightlife & seafood matched'
   ];
 

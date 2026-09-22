@@ -369,7 +369,7 @@ export default function PactSilentBallot() {
             <Shield size={16} color="#3DE0A0" style={{ marginTop: 2 }} />
             <Text style={styles.guaranteeText}>
               <Text style={styles.guaranteeBold}>Zero peer pressure. </Text>
-              Individual votes are sealed and revealed simultaneously when all 5 members finish.
+              Individual votes are sealed and revealed simultaneously when all circle members finish.
             </Text>
           </View>
 
