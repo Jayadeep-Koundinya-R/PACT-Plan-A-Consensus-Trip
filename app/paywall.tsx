@@ -251,7 +251,6 @@ export default function PactPaywall() {
             </Text>
           </View>
         </View>
-
         {/* Privacy & Guarantee Note */}
           <View style={[styles.guaranteeBox, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}>
             <ShieldCheck size={18} color="#3DE0A0" />

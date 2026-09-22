@@ -299,7 +299,7 @@ export default function PactConsensusResults() {
                 </View>
 
                 <View style={styles.winnerBody}>
-                  {(() => {
+{(() => {
                     const topScoredOption = {
                       option: {
                         id: 'opt-goa-01',
