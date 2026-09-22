@@ -668,8 +668,8 @@ const styles = StyleSheet.create({
   },
   deadlockCard: {
     backgroundColor: '#13151E',
-    borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.4)',
+    borderWidth: 1.5,
+    borderColor: '#3DE0A0',
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
@@ -824,43 +824,54 @@ const styles = StyleSheet.create({
   },
   checklistContainer: {
     gap: 8,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.08)'
+    paddingTop: 4
   },
   checkRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8
+    gap: 8,
+    backgroundColor: 'rgba(61, 224, 160, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.25)',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 7
   },
   checkCircle: {
     width: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: 'rgba(61, 224, 160, 0.15)',
+    backgroundColor: 'rgba(61, 224, 160, 0.2)',
     justifyContent: 'center',
     alignItems: 'center'
   },
   checkItemText: {
-    fontFamily: fontUI,
-    fontSize: 12,
-    color: '#F4F3F0'
+    fontFamily: fontUIBold,
+    fontSize: 11.5,
+    color: '#F4F3F0',
+    flex: 1
   },
   explanationBox: {
-    marginBottom: 8
+    backgroundColor: 'rgba(61, 224, 160, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.22)',
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 14
   },
   explanationHeadline: {
     fontFamily: fontUIBold,
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '800',
     color: '#3DE0A0',
-    marginBottom: 4
+    letterSpacing: 0.2,
+    marginBottom: 6
   },
   explanationSummary: {
     fontFamily: fontUI,
-    fontSize: 12,
-    color: '#8B8D98',
-    lineHeight: 17,
+    fontSize: 12.5,
+    color: '#D1D5DB',
+    lineHeight: 18,
     marginBottom: 10
   },
   subOptionWrapper: {
@@ -914,16 +925,19 @@ const styles = StyleSheet.create({
   },
   alternativeBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    marginBottom: 3
+    backgroundColor: 'rgba(61, 224, 160, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.3)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    marginBottom: 4
   },
   alternativeBadgeText: {
     fontFamily: fontUIBold,
-    fontSize: 9,
-    color: '#8B8D98'
+    fontSize: 9.5,
+    fontWeight: '700',
+    color: '#3DE0A0'
   },
   subOptionName: {
     fontFamily: fontUIBold,
