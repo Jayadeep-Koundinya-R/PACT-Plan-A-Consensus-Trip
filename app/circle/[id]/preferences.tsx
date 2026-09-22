@@ -44,30 +44,7 @@ import {
   Sparkles
 } from 'lucide-react-native';
 import { PactButton } from '../../../src/components/common';
-
-interface DealbreakerMeta {
-  label: string;
-  sub: string;
-  Icon: any;
-}
-
-const DEALBREAKER_METADATA: Record<string, DealbreakerMeta> = {
-  'No dorm hostels': {
-    label: 'No dorms',
-    sub: 'Private rooms only',
-    Icon: Bed
-  },
-  'Flight time > 5 hrs': {
-    label: 'No red-eye flights',
-    sub: 'Max 5h / direct',
-    Icon: Plane
-  },
-  'Shared bathrooms': {
-    label: 'No shared bath',
-    sub: 'Ensuite required',
-    Icon: Bath
-  }
-};
+import { VetoSelector, DEFAULT_DEALBREAKER_METADATA as DEALBREAKER_METADATA } from '../../../src/components/VetoSelector';
 
 const BUDGET_PRESETS = [400, 600, 800, 1200, 1800, 2500];
 
@@ -501,117 +478,18 @@ export default function PactConstraintsForm() {
 
           {/* 4. Strict Dealbreakers Card */}
           <View style={[styles.card, styles.dealbreakerCard]}>
-            <View style={styles.dealbreakerHeaderRow}>
-              <View>
-                <Text style={styles.cardLabel}>Strict dealbreakers</Text>
-                <Text style={styles.dealbreakerSub}>
-                  Any option with these is removed, no exceptions.
-                </Text>
-              </View>
-              <View style={styles.vetoCountBadge}>
-                <Text style={styles.vetoCountText}>
-                  {Object.values(draft.dealbreakers).filter(Boolean).length} Active Vetoes
-                </Text>
-              </View>
-            </View>
-
-            {/* Interactive Icon Tile Grid */}
-            <View style={styles.dealbreakerGrid}>
-              {Object.keys(draft.dealbreakers).map((k) => {
-                const isVetoed = Boolean(draft.dealbreakers[k]);
-                const meta = DEALBREAKER_METADATA[k] || {
-                  label: k,
-                  sub: 'Strict constraint',
-                  Icon: ShieldAlert
-                };
-                const IconComponent = meta.Icon;
-
-                return (
-                  <TouchableOpacity
-                    key={k}
-                    activeOpacity={0.82}
-                    onPress={() => {
-                      if (isVetoed) {
-                        haptics.tap();
-                      } else {
-                        haptics.warning();
-                      }
-                      toggleDealbreaker(circleId, k);
-                    }}
-                    style={[
-                      styles.dealbreakerTile,
-                      isVetoed
-                        ? styles.dealbreakerTileVetoed
-                        : styles.dealbreakerTileAllowed
-                    ]}
-                  >
-                    {/* Top Tile Row: Icon Box + Status Pill */}
-                    <View style={styles.tileHeaderRow}>
-                      <View
-                        style={[
-                          styles.tileIconBox,
-                          isVetoed
-                            ? styles.tileIconBoxVetoed
-                            : styles.tileIconBoxAllowed
-                        ]}
-                      >
-                        <IconComponent
-                          size={18}
-                          color={isVetoed ? '#EF4444' : '#3DE0A0'}
-                        />
-                      </View>
-
-                      <View
-                        style={[
-                          styles.tileStatusBadge,
-                          isVetoed
-                            ? styles.tileStatusBadgeVetoed
-                            : styles.tileStatusBadgeAllowed
-                        ]}
-                      >
-                        {isVetoed ? (
-                          <Ban size={9} color="#EF4444" style={{ marginRight: 3 }} />
-                        ) : (
-                          <Check size={9} color="#3DE0A0" style={{ marginRight: 3 }} />
-                        )}
-                        <Text
-                          style={[
-                            styles.tileStatusText,
-                            isVetoed
-                              ? styles.tileStatusTextVetoed
-                              : styles.tileStatusTextAllowed
-                          ]}
-                        >
-                          {isVetoed ? 'VETO' : 'ALLOWED'}
-                        </Text>
-                      </View>
-                    </View>
-
-                    {/* Tile Label & Subtitle */}
-                    <Text
-                      style={[
-                        styles.tileTitle,
-                        isVetoed ? styles.tileTitleVetoed : styles.tileTitleAllowed
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {meta.label}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.tileSubtitle,
-                        isVetoed
-                          ? styles.tileSubtitleVetoed
-                          : styles.tileSubtitleAllowed
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {meta.sub}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
+            <VetoSelector
+              dealbreakers={draft.dealbreakers}
+              onToggleDealbreaker={(k) => {
+                if (draft.dealbreakers[k]) {
+                  haptics.tap();
+                } else {
+                  haptics.warning();
+                }
+                toggleDealbreaker(circleId, k);
+              }}
+              metadata={DEALBREAKER_METADATA}
+            />
           </View>
           </Animated.View>
         </ScrollView>
@@ -1021,118 +899,8 @@ const styles = StyleSheet.create({
 
   /* === Dealbreakers Icon Tile Grid === */
   dealbreakerCard: {
-    borderColor: 'rgba(239, 68, 68,0.25)',
+    borderColor: 'rgba(255, 90, 95, 0.25)',
     marginBottom: 20
-  },
-  dealbreakerHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 14
-  },
-  dealbreakerSub: {
-    fontFamily: fontUI,
-    fontSize: 11.5,
-    color: '#6C6F7A',
-    marginTop: 2
-  },
-  vetoCountBadge: {
-    backgroundColor: 'rgba(239, 68, 68, 0.12)',
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.25)'
-  },
-  vetoCountText: {
-    fontFamily: fontUIBold,
-    fontSize: 10.5,
-    color: '#EF4444',
-    letterSpacing: 0.3
-  },
-  dealbreakerGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10
-  },
-  dealbreakerTile: {
-    flexBasis: '48%',
-    flexGrow: 1,
-    borderRadius: 14,
-    padding: 14,
-    borderWidth: 1.5
-  },
-  dealbreakerTileVetoed: {
-    backgroundColor: 'rgba(239, 68, 68, 0.12)',
-    borderColor: '#EF4444'
-  },
-  dealbreakerTileAllowed: {
-    backgroundColor: 'rgba(61, 224, 160, 0.08)',
-    borderColor: 'rgba(61, 224, 160, 0.35)'
-  },
-  tileHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10
-  },
-  tileIconBox: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  tileIconBoxVetoed: {
-    backgroundColor: 'rgba(239, 68, 68, 0.2)'
-  },
-  tileIconBoxAllowed: {
-    backgroundColor: 'rgba(61, 224, 160, 0.15)'
-  },
-  tileStatusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 3,
-    paddingHorizontal: 7,
-    borderRadius: radius.pill
-  },
-  tileStatusBadgeVetoed: {
-    backgroundColor: 'rgba(239, 68, 68, 0.25)'
-  },
-  tileStatusBadgeAllowed: {
-    backgroundColor: 'rgba(61, 224, 160, 0.18)'
-  },
-  tileStatusText: {
-    fontFamily: fontUIBold,
-    fontSize: 9.5,
-    letterSpacing: 0.6
-  },
-  tileStatusTextVetoed: {
-    color: '#EF4444'
-  },
-  tileStatusTextAllowed: {
-    color: '#3DE0A0'
-  },
-  tileTitle: {
-    fontFamily: fontUIBold,
-    fontSize: 13.5,
-    marginBottom: 2
-  },
-  tileTitleVetoed: {
-    color: '#F4F3F0'
-  },
-  tileTitleAllowed: {
-    color: '#F4F3F0'
-  },
-  tileSubtitle: {
-    fontFamily: fontUI,
-    fontSize: 11
-  },
-  tileSubtitleVetoed: {
-    color: 'rgba(239, 68, 68, 0.9)'
-  },
-  tileSubtitleAllowed: {
-    color: '#8B8D98'
   },
 
   /* === Bottom Bar === */
