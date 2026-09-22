@@ -40,6 +40,7 @@ import {
   Layers,
   RefreshCw
 } from 'lucide-react-native';
+import { AICompromiseModal } from '../../../src/components/AICompromiseModal';
 
 export default function PactConsensusResults() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -77,6 +78,7 @@ export default function PactConsensusResults() {
 
   const [privateNudgeSent, setPrivateNudgeSent] = useState(false);
   const [whispererResult, setWhispererResult] = useState<CompromiseWhispererResult | null>(null);
+  const [isAIModalVisible, setIsAIModalVisible] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -261,14 +263,26 @@ export default function PactConsensusResults() {
 
               {/* Resolution Action */}
               <View style={styles.resolutionPathBox}>
-                <Text style={styles.resolutionPathNumber}>Resolution path — private nudge</Text>
-                <PactButton
-                  variant="glass"
-                  onPress={handleSendPrivateNudge}
-                  icon={<Send size={13} color="#F4F3F0" />}
-                >
-                  {privateNudgeSent ? 'Private Nudge Dispatched ✓' : 'Send generic private nudge'}
-                </PactButton>
+                  <Text style={styles.resolutionPathNumber}>Resolution path — private nudge & proposal</Text>
+                  <View style={{ gap: 8 }}>
+                    <PactButton
+                      variant="glass"
+                      onPress={handleSendPrivateNudge}
+                      icon={<Send size={13} color="#F4F3F0" />}
+                    >
+                      {privateNudgeSent ? 'Private Nudge Dispatched ✓' : 'Send generic private nudge'}
+                    </PactButton>
+                    <PactButton
+                      variant="solid"
+                      onPress={() => {
+                        haptics.action();
+                        setIsAIModalVisible(true);
+                      }}
+                      icon={<Sparkles size={13} color="#2E0805" />}
+                    >
+                      Explore AI Compromise Proposal
+                    </PactButton>
+                  </View>
                 <Text style={styles.resolutionPathDetail}>
                   Anonymously nudges members with pending room constraints. Zero names, budgets, or personal veto details revealed.
                 </Text>
@@ -460,6 +474,17 @@ export default function PactConsensusResults() {
             </>
           )}
         </ScrollView>
+
+        {/* AI Compromise Modal Integration */}
+        <AICompromiseModal
+          visible={isAIModalVisible}
+          groupId={currentGroup.id}
+          isDarkMode={true}
+          onClose={() => setIsAIModalVisible(false)}
+          onApplied={() => {
+            setDeadlockMode(false);
+          }}
+        />
 
         {/* Sticky Bottom Bar */}
         <View style={styles.bottomBar}>

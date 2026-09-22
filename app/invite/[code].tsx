@@ -23,6 +23,7 @@ import {
   ArrowRight,
   ShieldCheck,
   ArrowLeft,
+  Sparkles,
   X
 } from 'lucide-react-native';
 
@@ -248,6 +249,13 @@ export default function InviteCodeScreen() {
             </Text>
 
             <View style={[styles.previewInnerBox, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}>
+              {Boolean((groupPreview as any)?.hasPro || (groupPreview as any)?.has_pro || (groups.find(g => g?.inviteCode?.toUpperCase() === inviteCode) as any)?.hasPro) && (
+                <View style={styles.proInheritanceBadge}>
+                  <Sparkles size={11} color="#3DE0A0" />
+                  <Text style={styles.proInheritanceBadgeText}>Pro Circle — All Members Upgraded</Text>
+                </View>
+              )}
+
               <Text style={[styles.codeBadge, { color: theme.primary }]}>
                 INVITE CODE: {inviteCode}
               </Text>
@@ -405,6 +413,25 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginBottom: 16,
     lineHeight: 17
+  },
+  proInheritanceBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(61, 224, 160, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.35)',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    marginBottom: 8,
+    alignSelf: 'flex-start'
+  },
+  proInheritanceBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#3DE0A0',
+    letterSpacing: 0.3
   },
   previewInnerBox: {
     width: '100%',
