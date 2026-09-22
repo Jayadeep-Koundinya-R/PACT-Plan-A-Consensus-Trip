@@ -132,6 +132,9 @@ export function useCircleChat(
     return () => {
       if (channel) {
         try {
+          channel.unsubscribe?.();
+        } catch (e) {}
+        try {
           supabase.removeChannel(channel);
         } catch (e) {}
       }
