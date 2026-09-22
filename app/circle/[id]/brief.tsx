@@ -252,36 +252,30 @@ export default function PactTripBrief() {
               activeOpacity={0.88}
               onPress={handleShareWhatsApp}
               style={styles.whatsAppBriefBtn}
+              accessibilityLabel="Share Trip Brief to WhatsApp Group"
             >
-              <Svg width="15" height="15" viewBox="0 0 15 15">
-                <Path d="M7.5 1.3A6.2 6.2 0 0 0 2.2 10.8L1.3 13.7l3-1a6.2 6.2 0 1 0 3.2-11.4z" fill="#0B3B22" />
-              </Svg>
-              <Text style={styles.whatsAppBriefBtnText}>Send WhatsApp group brief</Text>
+              <Share2 size={16} color="#0B3B22" />
+              <Text style={styles.whatsAppBriefBtnText}>Share Trip Brief to WhatsApp</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               activeOpacity={0.85}
               onPress={handleExportIcsCalendar}
               style={styles.secondaryActionBtn}
+              accessibilityLabel="Add to Apple / Google Calendar"
             >
-              <Svg width="15" height="15" viewBox="0 0 15 15">
-                <Rect x="1.5" y="2.7" width="12" height="10.5" rx="1.5" fill="none" stroke="#8B8D98" strokeWidth="1.1" />
-                <Path d="M1.5 5.5h12M4.3 1.3v2.3M10.7 1.3v2.3" stroke="#8B8D98" strokeWidth="1.1" strokeLinecap="round" />
-              </Svg>
-              <Text style={styles.secondaryActionBtnText}>Add to Apple / Google calendar</Text>
+              <Calendar size={16} color="#F4F3F0" />
+              <Text style={styles.secondaryActionBtnText}>Add to Apple / Google Calendar</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               activeOpacity={0.85}
               onPress={() => { haptics.tap(); setShowStoryModal(true); }}
               style={styles.secondaryActionBtn}
+              accessibilityLabel="Export Story Card for Instagram and Snap"
             >
-              <Svg width="15" height="15" viewBox="0 0 15 15">
-                <Rect x="1.5" y="1.5" width="12" height="12" rx="3.5" fill="none" stroke="#FF5A5F" strokeWidth="1.1" />
-                <Circle cx="7.5" cy="7.5" r="3" fill="none" stroke="#FF5A5F" strokeWidth="1.1" />
-                <Circle cx="10.8" cy="4.2" r="0.7" fill="#FF5A5F" />
-              </Svg>
-              <Text style={styles.secondaryActionBtnText}>Export story card (Instagram / Snap)</Text>
+              <Share2 size={16} color="#FF5A5F" />
+              <Text style={styles.secondaryActionBtnText}>Export Story Card (Instagram / Snap)</Text>
             </TouchableOpacity>
           </View>
 

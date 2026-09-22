@@ -97,8 +97,11 @@ export default function PactCirclesHub() {
       inviteCode: 'GOA-4F82',
       organizerId: 'user-maya-001',
       status: 'voting' as const,
-      totalMembersCount: 5
+      totalMembersCount: 5,
+      hasPro: true
     };
+
+  const isProCircle = Boolean((currentGroup as any)?.hasPro || (currentGroup as any)?.has_pro || circleFromStore?.hasPro || useGatherlyStore.getState().subscriptionPlan !== 'free');
 
   const [nudged, setNudged] = useState<Record<string, boolean>>({});
   const [bulkNudged, setBulkNudged] = useState(false);
@@ -376,6 +379,14 @@ export default function PactCirclesHub() {
                 </TouchableOpacity>
               </View>
             </View>
+
+            {/* Pro Circle Banner (if organizer is Pro) */}
+            {isProCircle && (
+              <View style={styles.proCircleBanner} accessibilityLabel="Pro Circle — All Members Upgraded">
+                <Sparkles size={12} color="#3DE0A0" />
+                <Text style={styles.proCircleBannerText}>Pro Circle — All Members Upgraded</Text>
+              </View>
+            )}
 
             {/* Status and Live Event Bar */}
             <View style={styles.headerMetaRow}>
@@ -813,6 +824,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     marginTop: 10
+  },
+  proCircleBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(61, 224, 160, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.35)',
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    marginTop: 8,
+    alignSelf: 'flex-start'
+  },
+  proCircleBannerText: {
+    fontFamily: fontUIBold,
+    fontSize: 10.5,
+    fontWeight: '800',
+    color: '#3DE0A0',
+    letterSpacing: 0.3
   },
   realtimePill: {
     flexDirection: 'row',
