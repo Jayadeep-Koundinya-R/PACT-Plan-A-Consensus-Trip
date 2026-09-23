@@ -25,7 +25,10 @@ import {
   ShieldCheck,
   BrainCircuit,
   Zap,
-  Tag
+  Tag,
+  AlertCircle,
+  RefreshCw,
+  Check
 } from 'lucide-react-native';
 
 interface AICompromiseModalProps {
@@ -49,6 +52,8 @@ export const AICompromiseModal: React.FC<AICompromiseModalProps> = ({
   const [stage, setStage] = useState<'analyzing' | 'proposal' | 'applied'>('analyzing');
   const [analysisStep, setAnalysisStep] = useState(0);
   const [proposal, setProposal] = useState<CompromiseProposal | null>(null);
+  const [isApplying, setIsApplying] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const triggerHaptic = (style = Haptics.ImpactFeedbackStyle.Light) => {
     if (Platform.OS !== 'web') {
@@ -58,44 +63,61 @@ export const AICompromiseModal: React.FC<AICompromiseModalProps> = ({
     }
   };
 
-  useEffect(() => {
-    if (visible) {
-      setStage('analyzing');
-      setAnalysisStep(0);
-      
-      const t1 = setTimeout(() => setAnalysisStep(1), 700);
-      const t2 = setTimeout(() => setAnalysisStep(2), 1400);
-      const t3 = setTimeout(() => {
+  const startAnalysis = () => {
+    setStage('analyzing');
+    setAnalysisStep(0);
+    setErrorMsg(null);
+    setProposal(null);
+
+    const t1 = setTimeout(() => setAnalysisStep(1), 700);
+    const t2 = setTimeout(() => setAnalysisStep(2), 1400);
+    const t3 = setTimeout(() => {
+      try {
         const prop = generateAICompromise(groupId);
+        if (!prop) {
+          setErrorMsg('Unable to synthesize an AI compromise. Please ensure circle options exist.');
+          return;
+        }
         setProposal(prop);
         setStage('proposal');
         triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
-      }, 2100);
+      } catch (err: any) {
+        setErrorMsg(err?.message || 'An error occurred while generating the AI compromise.');
+      }
+    }, 2100);
 
-      return () => {
-        clearTimeout(t1);
-        clearTimeout(t2);
-        clearTimeout(t3);
-      };
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+  };
+
+  useEffect(() => {
+    if (visible) {
+      const cleanup = startAnalysis();
+      return cleanup;
     }
   }, [visible, groupId]);
-
-  const [isApplying, setIsApplying] = useState(false);
 
   const handleApply = async () => {
     if (!proposal || isApplying) return;
     setIsApplying(true);
+    setErrorMsg(null);
     triggerHaptic(Haptics.ImpactFeedbackStyle.Heavy);
+
     try {
       await applyAICompromise(proposal);
       setStage('applied');
+      triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
       setTimeout(() => {
         setIsApplying(false);
         onClose();
         if (onApplied) onApplied();
       }, 1500);
-    } catch (e) {
+    } catch (e: any) {
       setIsApplying(false);
+      setErrorMsg(e?.message || 'Failed to apply proposal to ballot. Please check network connection and try again.');
     }
   };
 
@@ -111,6 +133,7 @@ export const AICompromiseModal: React.FC<AICompromiseModalProps> = ({
       transparent={true}
       animationType="fade"
       onRequestClose={onClose}
+      accessibilityViewIsModal={true}
     >
       <View style={styles.modalOverlay}>
         <View
@@ -130,10 +153,45 @@ export const AICompromiseModal: React.FC<AICompromiseModalProps> = ({
                 AI Compromise Whisperer
               </Text>
             </View>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+            <TouchableOpacity
+              onPress={onClose}
+              style={styles.closeBtn}
+              accessibilityRole="button"
+              accessibilityLabel="Close AI Compromise modal"
+              accessibilityHint="Dismisses the compromise modal"
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
               <X size={20} color={theme.textSecondary} />
             </TouchableOpacity>
           </View>
+
+          {/* Inline Error Alert */}
+          {errorMsg && (
+            <View
+              style={[
+                styles.errorCard,
+                { backgroundColor: isDarkMode ? '#3B181A' : '#FEE2E2', borderColor: theme.danger }
+              ]}
+              accessibilityRole="alert"
+              accessibilityLabel={`Error: ${errorMsg}`}
+            >
+              <View style={styles.errorContent}>
+                <AlertCircle size={18} color={theme.danger} style={styles.errorIcon} />
+                <Text style={[styles.errorText, { color: isDarkMode ? '#FCA5A5' : '#991B1B' }]}>
+                  {errorMsg}
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={styles.errorDismissBtn}
+                onPress={() => setErrorMsg(null)}
+                accessibilityRole="button"
+                accessibilityLabel="Dismiss error alert"
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <X size={16} color={isDarkMode ? '#FCA5A5' : '#991B1B'} />
+              </TouchableOpacity>
+            </View>
+          )}
 
           {/* 1. Analyzing Animation State */}
           {stage === 'analyzing' && (
@@ -168,6 +226,19 @@ export const AICompromiseModal: React.FC<AICompromiseModalProps> = ({
                   </View>
                 ))}
               </View>
+
+              {errorMsg && (
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  style={[styles.retryBtn, { backgroundColor: theme.primary }]}
+                  onPress={startAnalysis}
+                  accessibilityRole="button"
+                  accessibilityLabel="Retry AI Analysis"
+                >
+                  <RefreshCw size={16} color="#FFFFFF" />
+                  <Text style={styles.retryBtnText}>Retry Analysis</Text>
+                </TouchableOpacity>
+              )}
             </View>
           )}
 
@@ -252,9 +323,15 @@ export const AICompromiseModal: React.FC<AICompromiseModalProps> = ({
                 activeOpacity={0.85}
                 disabled={isApplying}
                 onPress={handleApply}
-                style={[styles.applyBtn, { backgroundColor: theme.primary }, shadows.glowPrimary, isApplying && { opacity: 0.7 }]}
+                style={[
+                  styles.applyBtn,
+                  { backgroundColor: theme.primary },
+                  shadows.glowPrimary,
+                  isApplying && { opacity: 0.8 }
+                ]}
                 accessibilityRole="button"
-                accessibilityLabel="Apply to Ballot"
+                accessibilityLabel={isApplying ? "Applying proposal to ballot" : "Apply proposal to ballot"}
+                accessibilityState={{ disabled: isApplying, busy: isApplying }}
               >
                 {isApplying ? (
                   <ActivityIndicator size="small" color="#FFFFFF" />
@@ -262,9 +339,9 @@ export const AICompromiseModal: React.FC<AICompromiseModalProps> = ({
                   <Sparkles size={18} color="#FFFFFF" />
                 )}
                 <Text style={styles.applyBtnText}>
-                  {isApplying ? 'Applying Proposal...' : 'Apply to Ballot'}
+                  {isApplying ? 'Applying to Ballot...' : 'Apply to Ballot'}
                 </Text>
-                <ArrowRight size={18} color="#FFFFFF" />
+                {!isApplying && <ArrowRight size={18} color="#FFFFFF" />}
               </TouchableOpacity>
             </ScrollView>
           )}
@@ -273,7 +350,11 @@ export const AICompromiseModal: React.FC<AICompromiseModalProps> = ({
           {stage === 'applied' && (
             <View style={styles.appliedBox}>
               <View style={[styles.successCircle, { backgroundColor: '#3DE0A0' }]}>
-                <CheckCircle2 size={40} color="#FFFFFF" />
+                <CheckCircle2 size={44} color="#FFFFFF" />
+              </View>
+              <View style={[styles.successBadge, { backgroundColor: isDarkMode ? '#052E20' : '#DCFCE7', borderColor: '#3DE0A0' }]}>
+                <Check size={14} color="#3DE0A0" />
+                <Text style={styles.successBadgeText}>Applied to Ballot</Text>
               </View>
               <Text style={[styles.appliedTitle, { color: theme.textPrimary }]}>
                 Compromise Added to Ballot!
@@ -328,7 +409,41 @@ const styles = StyleSheet.create({
     fontWeight: '800'
   },
   closeBtn: {
-    padding: 4
+    minWidth: 44,
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  errorCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderRadius: radius.md,
+    padding: 10,
+    marginBottom: 12
+  },
+  errorContent: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    flex: 1,
+    marginRight: 8
+  },
+  errorIcon: {
+    marginTop: 2
+  },
+  errorText: {
+    fontSize: 12,
+    fontWeight: '600',
+    lineHeight: 16,
+    flex: 1
+  },
+  errorDismissBtn: {
+    minWidth: 44,
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   analyzingBox: {
     paddingVertical: 30,
@@ -368,6 +483,22 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     flex: 1
+  },
+  retryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    minHeight: 44,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: radius.btn,
+    marginTop: 16
+  },
+  retryBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700'
   },
   proposalScroll: {
     width: '100%'
@@ -479,7 +610,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
+    minHeight: 48,
     paddingVertical: 14,
+    paddingHorizontal: 16,
     borderRadius: radius.btn,
     marginBottom: 8
   },
@@ -498,7 +631,22 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 14
+    marginBottom: 12
+  },
+  successBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    marginBottom: 12
+  },
+  successBadgeText: {
+    color: '#3DE0A0',
+    fontSize: 12,
+    fontWeight: '800'
   },
   appliedTitle: {
     fontSize: 18,
