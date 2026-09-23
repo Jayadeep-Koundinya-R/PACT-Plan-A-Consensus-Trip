@@ -137,9 +137,10 @@ export default function PactCirclesHub() {
   const isCurrentUserLocked = currentUserMember?.status === 'locked';
 
   const lockedCount = demoMembers.filter((m) => m.status === 'locked').length;
-  const totalCount = demoMembers.length;
+  const rawTotalCount = demoMembers.length;
+  const totalCount = rawTotalCount > 0 ? rawTotalCount : 1;
   const isEarlyBird = lockedCount <= 2;
-  const pct = totalCount > 0 ? lockedCount / totalCount : 0;
+  const pct = lockedCount / totalCount;
   const r = 34;
   const circumference = 2 * Math.PI * r;
   const waitingMembers = demoMembers.filter((m) => m.status === 'waiting');

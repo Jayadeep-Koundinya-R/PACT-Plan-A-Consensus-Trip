@@ -315,7 +315,7 @@ export default function PactConstraintsForm() {
                       </View>
                     )}
                     <Text style={[styles.dateStripMonth, w.active && { color: '#3DE0A0' }]}>
-                      {w.label.split(' ')[0]}
+                      {(w.label || '').split(' ')[0] || ''}
                     </Text>
                   </View>
                   <Text style={[styles.dateStripRange, w.active && { color: '#F4F3F0' }]}>

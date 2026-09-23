@@ -234,18 +234,20 @@ export function scoreTripOption(
   const memberBreakdowns = preferences.map((p) => scoreMemberForOption(p, option));
   const totalMembers = preferences.length;
 
+  const safeTotalMembers = Math.max(1, totalMembers);
+
   const totalScoreSum = memberBreakdowns.reduce((acc, m) => acc + m.memberScore, 0);
-  const totalScore = Number(((totalScoreSum / totalMembers) * 100).toFixed(2));
+  const totalScore = Number(((totalScoreSum / safeTotalMembers) * 100).toFixed(2));
 
   const viableCount = memberBreakdowns.filter((m) => m.isViable).length;
-  const consensusPercent = Number(((viableCount / totalMembers) * 100).toFixed(1));
+  const consensusPercent = Number(((viableCount / safeTotalMembers) * 100).toFixed(1));
 
   const budgetGapCount = memberBreakdowns.filter((m) => m.budgetScore === 0).length;
   const dateConflictCount = memberBreakdowns.filter((m) => m.dateScore === 0).length;
   const dealbreakerHitCount = memberBreakdowns.filter((m) => m.dealbreakerHit).length;
 
   // Flag if > 30% of responding members cannot afford it
-  const budgetGapFlag = budgetGapCount / totalMembers > 0.3;
+  const budgetGapFlag = budgetGapCount / safeTotalMembers > 0.3;
 
   const plainEnglishReason = generatePlainEnglishReason(
     option,
@@ -360,7 +362,7 @@ export function generateConsensusExplanation(scoredOption: ScoredTripOption): {
   keyFactors: string[];
 } {
   const { option, consensusPercent, totalScore, budgetGapCount, dateConflictCount, dealbreakerHitCount, memberBreakdowns } = scoredOption;
-  const totalMembers = memberBreakdowns.length || 1;
+  const totalMembers = Math.max(1, memberBreakdowns.length || 1);
   const dateOverlapAvg = Math.round(
     (memberBreakdowns.reduce((acc, m) => acc + m.dateScore, 0) / totalMembers) * 100
   );

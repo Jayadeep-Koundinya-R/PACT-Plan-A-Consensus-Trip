@@ -8,8 +8,9 @@ export function generatePlainEnglishReason(
   breakdowns: MemberScoreBreakdown[],
   totalMembers: number
 ): string {
-  if (totalMembers === 0) return 'No member preferences submitted yet.';
+  if (!totalMembers || totalMembers <= 0) return 'No member preferences submitted yet.';
 
+  const safeTotalMembers = Math.max(1, totalMembers);
   const viableCount = breakdowns.filter((b) => b.isViable).length;
   const budgetFitCount = breakdowns.filter((b) => b.budgetScore > 0).length;
   const dateFitCount = breakdowns.filter((b) => b.dateScore > 0).length;
@@ -51,7 +52,7 @@ export function generatePlainEnglishReason(
     return `Fits everyone's budget, but dates have no overlap for ${names}.`;
   }
 
-  return `Matches ${viableCount}/${totalMembers} members' constraints with moderate preference alignment.`;
+  return `Matches ${viableCount}/${safeTotalMembers} members' constraints with moderate preference alignment.`;
 }
 
 /**
