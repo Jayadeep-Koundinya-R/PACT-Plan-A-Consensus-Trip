@@ -31,6 +31,8 @@ interface AddPeopleModalProps {
   groupName: string;
   inviteCode: string;
   isDarkMode?: boolean;
+  isPro?: boolean;
+  hasPro?: boolean;
   onClose: () => void;
   onOpenQR?: () => void;
 }
@@ -40,6 +42,8 @@ export const AddPeopleModal: React.FC<AddPeopleModalProps> = ({
   groupName,
   inviteCode,
   isDarkMode = true,
+  isPro,
+  hasPro,
   onClose,
   onOpenQR
 }) => {
@@ -56,6 +60,7 @@ export const AddPeopleModal: React.FC<AddPeopleModalProps> = ({
 
   const [copiedLink, setCopiedLink] = useState(false);
   const joinUrl = `pact://join/${inviteCode}`;
+  const isProCircle = isPro ?? hasPro ?? true;
 
   const handleCopyLink = async () => {
     haptics.tap();
@@ -131,12 +136,21 @@ export const AddPeopleModal: React.FC<AddPeopleModalProps> = ({
               <Text style={styles.subtitle}>
                 Invite friends to &ldquo;{groupName}&rdquo;. Anyone with the invite link locks their dates &amp; budget 100% confidentially.
               </Text>
+
+              {/* Pro Inheritance Banner */}
+              {isProCircle && (
+                <View style={styles.proBannerPill} accessibilityLabel="Pro Circle Active — All invited friends inherit Pro features automatically">
+                  <Text style={styles.proBannerText}>
+                    ✨ Pro Circle Active — All invited friends inherit Pro features automatically
+                  </Text>
+                </View>
+              )}
             </View>
 
             {/* Invite Code & Join Link Card */}
             <View style={styles.codeCard}>
               <View style={styles.codeRow}>
-                <View>
+                <View style={{ flex: 1 }}>
                   <Text style={styles.codeLabel}>INVITE CODE</Text>
                   <Text style={styles.codeValue}>{inviteCode}</Text>
                 </View>
@@ -144,6 +158,7 @@ export const AddPeopleModal: React.FC<AddPeopleModalProps> = ({
                   activeOpacity={0.8}
                   onPress={handleCopyCodeOnly}
                   style={styles.codeCopyPill}
+                  accessibilityLabel={copiedCode === inviteCode ? 'Invite code copied' : 'Copy invite code'}
                 >
                   {copiedCode === inviteCode ? (
                     <>
@@ -163,7 +178,7 @@ export const AddPeopleModal: React.FC<AddPeopleModalProps> = ({
 
               <View style={styles.linkRow}>
                 <View style={styles.linkTextWrapper}>
-                <Text style={styles.linkLabel}>APP LINK (CODE IS THE FALLBACK)</Text>
+                  <Text style={styles.linkLabel}>APP LINK (CODE IS THE FALLBACK)</Text>
                   <Text style={styles.linkUrl} numberOfLines={1} ellipsizeMode="middle">
                     {joinUrl}
                   </Text>
@@ -172,6 +187,7 @@ export const AddPeopleModal: React.FC<AddPeopleModalProps> = ({
                   activeOpacity={0.8}
                   onPress={handleCopyLink}
                   style={[styles.linkCopyBtn, copiedLink && styles.linkCopyBtnActive]}
+                  accessibilityLabel={copiedLink ? 'App invite link copied' : 'Copy app invite link'}
                 >
                   {copiedLink ? (
                     <>
@@ -196,6 +212,7 @@ export const AddPeopleModal: React.FC<AddPeopleModalProps> = ({
                 activeOpacity={0.75}
                 onPress={handleWhatsApp}
                 style={styles.channelTile}
+                accessibilityLabel="Share invite via WhatsApp"
               >
                 <View style={[styles.channelIconBox, { backgroundColor: 'rgba(37, 211, 102, 0.15)' }]}>
                   <Send size={18} color="#25D366" />
@@ -211,6 +228,7 @@ export const AddPeopleModal: React.FC<AddPeopleModalProps> = ({
                 activeOpacity={0.75}
                 onPress={handleSMS}
                 style={styles.channelTile}
+                accessibilityLabel="Share invite via SMS"
               >
                 <View style={[styles.channelIconBox, { backgroundColor: 'rgba(59, 130, 246, 0.15)' }]}>
                   <MessageSquare size={18} color="#60A5FA" />
@@ -226,6 +244,7 @@ export const AddPeopleModal: React.FC<AddPeopleModalProps> = ({
                 activeOpacity={0.75}
                 onPress={handleEmail}
                 style={styles.channelTile}
+                accessibilityLabel="Share invite via Email"
               >
                 <View style={[styles.channelIconBox, { backgroundColor: 'rgba(168, 85, 247, 0.15)' }]}>
                   <Mail size={18} color="#C084FC" />
@@ -241,6 +260,7 @@ export const AddPeopleModal: React.FC<AddPeopleModalProps> = ({
                 activeOpacity={0.75}
                 onPress={handleNativeShare}
                 style={styles.channelTile}
+                accessibilityLabel="Share invite via device share sheet"
               >
                 <View style={[styles.channelIconBox, { backgroundColor: 'rgba(255, 90, 95, 0.15)' }]}>
                   <Share2 size={18} color="#FF5A5F" />
@@ -257,6 +277,7 @@ export const AddPeopleModal: React.FC<AddPeopleModalProps> = ({
                   activeOpacity={0.75}
                   onPress={handleLaunchQR}
                   style={[styles.channelTile, { borderStyle: 'dashed' }]}
+                  accessibilityLabel="Show in-person QR code pass"
                 >
                   <View style={[styles.channelIconBox, { backgroundColor: 'rgba(212, 175, 55, 0.15)' }]}>
                     <QrCode size={18} color="#D4AF37" />
@@ -318,12 +339,12 @@ const styles = StyleSheet.create({
   },
   closeBtn: {
     position: 'absolute',
-    top: 16,
-    right: 16,
+    top: 12,
+    right: 12,
     zIndex: 10,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: 'rgba(255, 255, 255, 0.06)',
     justifyContent: 'center',
     alignItems: 'center'
@@ -362,6 +383,25 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     maxWidth: 380
   },
+  proBannerPill: {
+    marginTop: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    backgroundColor: 'rgba(61, 224, 160, 0.12)',
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.28)',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  proBannerText: {
+    fontFamily: fontUIBold,
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: '#3DE0A0',
+    textAlign: 'center',
+    lineHeight: 16
+  },
   codeCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.03)',
     borderRadius: radius.md,
@@ -393,6 +433,9 @@ const styles = StyleSheet.create({
   codeCopyPill: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 44,
+    minWidth: 44,
     gap: 6,
     paddingHorizontal: 12,
     paddingVertical: 7,
@@ -438,6 +481,8 @@ const styles = StyleSheet.create({
   linkCopyBtn: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 44,
     gap: 6,
     backgroundColor: '#3DE0A0',
     paddingHorizontal: 12,
@@ -476,6 +521,7 @@ const styles = StyleSheet.create({
   channelTile: {
     flexDirection: 'row',
     alignItems: 'center',
+    minHeight: 48,
     backgroundColor: 'rgba(255, 255, 255, 0.03)',
     borderRadius: radius.md,
     borderWidth: 1,
