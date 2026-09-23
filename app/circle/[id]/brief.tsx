@@ -1,4 +1,4 @@
-﻿import { useShareInvite } from '../../../src/hooks/useShareInvite';
+import { useShareInvite } from '../../../src/hooks/useShareInvite';
 import { SocialStoryModal } from '../../../src/components/SocialStoryModal';
 import { NotificationToast } from '../../../src/components/NotificationToast';
 import { useNotificationStore } from '../../../src/store/useNotificationStore';
@@ -102,7 +102,7 @@ export default function PactTripBrief() {
     }
   };
 
-    const handleOpenGoogleCalendar = () => {
+  const handleOpenGoogleCalendar = () => {
     triggerHaptic();
     const title = encodeURIComponent((currentGroup.name || 'Goa Beach Escape 2026') + ' (PACT Consensus)');
     const dest = encodeURIComponent(currentGroup.name || 'Goa, India');
@@ -176,13 +176,25 @@ export default function PactTripBrief() {
           {/* Header Row */}
           <View style={styles.headerRow}>
             <View style={styles.headerLeft}>
-              <TouchableOpacity onPress={() => { haptics.tap(); if (router.canGoBack()) { router.back(); } else { router.push('/circle/' + currentGroup.id + '/hub'); } }} activeOpacity={0.7} style={styles.backBtn} accessibilityLabel="Go back to Circle Hub"><ArrowLeft size={18} color="#F4F3F0" /></TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => { haptics.tap(); if (router.canGoBack()) { router.back(); } else { router.push('/circle/' + currentGroup.id + '/hub'); } }}
+                activeOpacity={0.7}
+                style={styles.backBtn}
+                accessibilityLabel="Go back to Circle Hub"
+              >
+                <ArrowLeft size={18} color="#F4F3F0" />
+              </TouchableOpacity>
               <Text style={styles.briefCodeTitle} numberOfLines={1}>
                 Trip brief #PACT-8821
               </Text>
             </View>
 
-            <TouchableOpacity onPress={handleShareWhatsApp} activeOpacity={0.7} style={styles.shareTopBtn}>
+            <TouchableOpacity
+              onPress={handleShareWhatsApp}
+              activeOpacity={0.7}
+              style={styles.shareTopBtn}
+              accessibilityLabel="Share Trip Brief"
+            >
               <Svg width="13" height="13" viewBox="0 0 13 13">
                 <Circle cx="10" cy="2.8" r="1.6" fill="none" stroke="#F4F3F0" strokeWidth="1.1" />
                 <Circle cx="3" cy="6.5" r="1.6" fill="none" stroke="#F4F3F0" strokeWidth="1.1" />
@@ -246,16 +258,16 @@ export default function PactTripBrief() {
             </View>
           </View>
 
-          {/* Share & Export Buttons */}
+          {/* Hero Action Stack */}
           <View style={styles.actionsStack}>
             <TouchableOpacity
               activeOpacity={0.88}
               onPress={handleShareWhatsApp}
-              style={styles.whatsAppBriefBtn}
-              accessibilityLabel="Share Trip Brief to WhatsApp Group"
+              style={styles.primaryShareBriefBtn}
+              accessibilityLabel="Share Trip Brief"
             >
-              <Share2 size={16} color="#0B3B22" />
-              <Text style={styles.whatsAppBriefBtnText}>Share Trip Brief to WhatsApp</Text>
+              <Share2 size={18} color="#090A0F" />
+              <Text style={styles.primaryShareBriefBtnText}>Share Trip Brief</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -298,6 +310,7 @@ export default function PactTripBrief() {
               activeOpacity={0.8}
               onPress={() => router.push(`/circle/${currentGroup.id}/vault` as any)}
               style={styles.quickNavTile}
+              accessibilityLabel="Open Trip Vault"
             >
               <FolderArchive size={16} color="#FF5A5F" />
               <Text style={styles.quickNavTileText}>Trip Vault</Text>
@@ -307,11 +320,11 @@ export default function PactTripBrief() {
               activeOpacity={0.8}
               onPress={() => router.push(`/circle/${currentGroup.id}/memories` as any)}
               style={styles.quickNavTile}
+              accessibilityLabel="Open Memories"
             >
               <ImageIcon size={16} color="#3DE0A0" />
               <Text style={styles.quickNavTileText}>Memories</Text>
             </TouchableOpacity>
-
           </View>
         </ScrollView>
 
@@ -321,13 +334,15 @@ export default function PactTripBrief() {
             activeOpacity={0.88}
             onPress={() => router.push(`/circle/${currentGroup.id}/vault` as any)}
             style={styles.primaryCtaBtn}
+            accessibilityLabel="Explore flight and villa options"
           >
             <Text style={styles.primaryCtaBtnText}>
               Explore flight & villa options
             </Text>
           </TouchableOpacity>
         </View>
-              <SocialStoryModal
+
+        <SocialStoryModal
           visible={showStoryModal}
           onClose={() => setShowStoryModal(false)}
           groupName={currentGroup.name || 'Goa Beach Trip'}
@@ -338,7 +353,6 @@ export default function PactTripBrief() {
           tags={['Beach', 'Nightlife', 'Seafood', 'Sunset']}
           isDarkMode={true}
         />
-
       </View>
     </SafeAreaView>
   );
@@ -381,8 +395,8 @@ const styles = StyleSheet.create({
     marginRight: 8
   },
   backBtn: {
-    width: 32,
-    height: 32,
+    minWidth: 44,
+    minHeight: 44,
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -395,6 +409,10 @@ const styles = StyleSheet.create({
   shareTopBtn: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 44,
+    minHeight: 44,
+    paddingHorizontal: 8,
     gap: 6
   },
   shareTopBtnText: {
@@ -542,25 +560,35 @@ const styles = StyleSheet.create({
     gap: 10,
     marginBottom: 18
   },
-  whatsAppBriefBtn: {
+  primaryShareBriefBtn: {
     width: '100%',
+    minHeight: 48,
     paddingVertical: 13,
+    paddingHorizontal: 16,
     borderRadius: 12,
-    backgroundColor: '#25D366',
+    backgroundColor: '#3DE0A0',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8
+    gap: 8,
+    shadowColor: '#3DE0A0',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 4
   },
-  whatsAppBriefBtnText: {
+  primaryShareBriefBtnText: {
     fontFamily: fontUIBold,
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#0B3B22'
+    fontSize: 14.5,
+    fontWeight: '800',
+    color: '#090A0F',
+    letterSpacing: -0.2
   },
   secondaryActionBtn: {
     width: '100%',
+    minHeight: 48,
     paddingVertical: 13,
+    paddingHorizontal: 16,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.18)',
@@ -619,11 +647,13 @@ const styles = StyleSheet.create({
   },
   quickNavTile: {
     flex: 1,
+    minHeight: 48,
     backgroundColor: '#13151E',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.14)',
     borderRadius: 12,
     paddingVertical: 12,
+    paddingHorizontal: 8,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6
@@ -643,6 +673,7 @@ const styles = StyleSheet.create({
   },
   primaryCtaBtn: {
     width: '100%',
+    minHeight: 48,
     paddingVertical: 14,
     borderRadius: 12,
     backgroundColor: '#FF5A5F',
@@ -656,5 +687,3 @@ const styles = StyleSheet.create({
     color: '#2E0805'
   }
 });
-
-
