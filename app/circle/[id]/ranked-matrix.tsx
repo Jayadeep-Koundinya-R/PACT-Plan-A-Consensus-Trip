@@ -41,6 +41,7 @@ import {
   RefreshCw
 } from 'lucide-react-native';
 import { AICompromiseModal } from '../../../src/components/AICompromiseModal';
+import { ConsensusHeatmap } from '../../../src/components/consensus/ConsensusHeatmap';
 
 export default function PactConsensusResults() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -313,60 +314,17 @@ export default function PactConsensusResults() {
                 </View>
 
                 <View style={styles.winnerBody}>
-{(() => {
-                    const topScoredOption = {
-                      option: {
-                        id: 'opt-goa-01',
-                        groupId: currentGroup.id,
-                        name: 'Goa',
-                        destinationType: 'Beach & Culture',
-                        dateStart: '2026-10-14',
-                        dateEnd: '2026-10-19',
-                        budgetPerPerson: 540,
-                        tags: ['beach', 'nightlife', 'seafood']
-                      },
-                      rank: 1,
-                      totalScore: 96,
-                      consensusPercent: 100,
-                      budgetGapFlag: false,
-                      budgetGapCount: 0,
-                      dateConflictCount: 0,
-                      dealbreakerHitCount: 0,
-                      memberBreakdowns: members.map((m) => ({
-                        userId: m.userId,
-                        userName: m.userName,
-                        dateScore: 1.0,
-                        dateOverlapDays: 5,
-                        tripDurationDays: 5,
-                        budgetScore: 1.0,
-                        tagScore: 1.0,
-                        matchedTags: ['beach'],
-                        dealbreakerHit: false,
-                        memberScore: 1.0,
-                        isViable: true
-                      })),
-                      plainEnglishReason: 'Unanimous 100% agreement across all members.'
-                    };
-
-                    const explanation = generateConsensusExplanation(topScoredOption);
-
-                    return (
-                      <View style={styles.explanationBox} accessibilityRole="summary">
-                        <Text style={styles.explanationHeadline}>{explanation.headline}</Text>
-                        <Text style={styles.explanationSummary}>{explanation.summary}</Text>
-                        <View style={styles.checklistContainer}>
-                          {explanation.keyFactors.map((factor, idx) => (
-                            <View key={idx} style={styles.checkRow}>
-                              <View style={styles.checkCircle}>
-                                <Check size={11} color="#3DE0A0" />
-                              </View>
-                              <Text style={styles.checkItemText}>{factor}</Text>
-                            </View>
-                          ))}
-                        </View>
-                      </View>
-                    );
-                  })()}
+                  <ConsensusHeatmap
+                    datesScore={100}
+                    datesCaption={`100% date window overlap across all ${totalMemberCount} members`}
+                    budgetScore={100}
+                    budgetCaption={`Fits all ${totalMemberCount} member caps privately`}
+                    vibeScore={96}
+                    vibeTags={['beach', 'nightlife', 'seafood']}
+                    hasVeto={false}
+                    destinationName="Goa"
+                    totalScore={96}
+                  />
 
                   <View style={{ marginTop: 12 }}>
                     <ExplorePlaceSection destination="Goa" />
@@ -419,7 +377,21 @@ export default function PactConsensusResults() {
                   </View>
                 </TouchableOpacity>
                 <View style={{ paddingHorizontal: 12, paddingBottom: 10 }}>
-                  <ExplorePlaceSection destination="Puducherry" />
+                  <ConsensusHeatmap
+                    datesScore={80}
+                    datesCaption="Full date overlap for 4 of 5 travelers"
+                    budgetScore={100}
+                    budgetCaption="Budget fits comfortably at $480/traveler"
+                    vibeScore={82}
+                    vibeTags={['heritage', 'coastal', 'cafes']}
+                    hasVeto={false}
+                    isCompact={true}
+                    destinationName="Puducherry"
+                    totalScore={82}
+                  />
+                  <View style={{ marginTop: 10 }}>
+                    <ExplorePlaceSection destination="Puducherry" />
+                  </View>
                 </View>
               </View>
 
@@ -468,7 +440,21 @@ export default function PactConsensusResults() {
                   </View>
                 </TouchableOpacity>
                 <View style={{ paddingHorizontal: 12, paddingBottom: 10 }}>
-                  <ExplorePlaceSection destination="Manali" />
+                  <ConsensusHeatmap
+                    datesScore={70}
+                    datesCaption="Dates work for majority of travelers"
+                    budgetScore={75}
+                    budgetCaption="Flights + transfers fit 4 of 5 members"
+                    vibeScore={74}
+                    vibeTags={['mountain', 'adventure', 'cafes']}
+                    hasVeto={false}
+                    isCompact={true}
+                    destinationName="Manali"
+                    totalScore={74}
+                  />
+                  <View style={{ marginTop: 10 }}>
+                    <ExplorePlaceSection destination="Manali" />
+                  </View>
                 </View>
               </View>
             </>
