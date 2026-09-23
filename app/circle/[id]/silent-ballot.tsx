@@ -15,7 +15,6 @@ import {
   BackHandler
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import Svg, { Rect, Path } from 'react-native-svg';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -27,10 +26,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
 import { usePactHaptics } from '../../../src/hooks/usePactHaptics';
-import { colors, radius } from '../../../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
-import { ArrowLeft, Check, X, Shield, Lock, Users, Sparkles, CheckCircle2 } from 'lucide-react-native';
-import { PactButton } from '../../../src/components/common';
+import { ArrowLeft, Check, X, Shield, Lock } from 'lucide-react-native';
 import { WaxSealStamp } from '../../../src/components/WaxSealStamp';
 
 interface StampBallotCardProps {
@@ -69,56 +66,99 @@ const StampBallotCard: React.FC<StampBallotCardProps> = ({
       }
       haptics.success();
     } else {
+      if (Platform.OS !== 'web') {
+        try {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        } catch (e) {}
+      }
       haptics.action();
     }
   };
 
   const handleDecision = (decision: 'approve' | 'reject') => {
     const isApprove = decision === 'approve';
-    glowColor.value = isApprove ? '#3DE0A0' : '#EF4444';
+    glowColor.value = isApprove ? '#3DE0A0' : '#FF5A5F';
 
-    // Fast stamp-down: scale down to 0.9 and spring back rapidly
+    // Fast stamp-down: scale down to 0.92 and spring back with responsive tension
     cardScale.value = withSequence(
-      withTiming(0.9, { duration: 65 }, (finished) => {
+      withTiming(0.92, { duration: 60 }, (finished) => {
         if (finished) {
           runOnJS(triggerImpactHaptic)(decision);
         }
       }),
-      withSpring(1, { damping: 7, stiffness: 380 })
+      withSpring(1, { damping: 8, stiffness: 360 })
     );
 
     glowPulse.value = withSequence(
-      withTiming(1, { duration: 80 }),
-      withTiming(0, { duration: 400 })
+      withTiming(1, { duration: 75 }),
+      withTiming(0, { duration: 380 })
     );
 
     onVote(opt.key, decision);
   };
 
   const animatedCardStyle = useAnimatedStyle(() => {
+    const baseBorderColor =
+      vote === 'approve'
+        ? '#3DE0A0'
+        : vote === 'reject'
+        ? '#FF5A5F'
+        : 'rgba(255, 255, 255, 0.14)';
+
     return {
       transform: [{ scale: cardScale.value }],
       borderColor: interpolateColor(
         glowPulse.value,
         [0, 1],
-        ['rgba(255, 255, 255, 0.14)', glowColor.value]
+        [baseBorderColor, glowColor.value]
       )
     };
   });
 
   return (
-    <Animated.View style={[styles.ballotCard, animatedCardStyle]}>
-      {vote === 'approve' && <WaxSealStamp label="SEALED" sublabel="APPROVED" />}
+    <Animated.View
+      style={[
+        styles.ballotCard,
+        vote === 'approve' && styles.ballotCardApproved,
+        vote === 'reject' && styles.ballotCardRejected,
+        animatedCardStyle
+      ]}
+    >
+      {/* Wax Seal Stamp feedback for both Approved (Emerald) and Vetoed (Crimson) */}
+      {vote === 'approve' && (
+        <WaxSealStamp
+          key={`approved-${opt.key}`}
+          label="SEALED"
+          sublabel="APPROVED"
+          variant="emerald"
+        />
+      )}
+      {vote === 'reject' && (
+        <WaxSealStamp
+          key={`vetoed-${opt.key}`}
+          label="SEALED"
+          sublabel="VETOED"
+          variant="crimson"
+        />
+      )}
+
       <View style={styles.cardHeaderRow}>
         <Text style={styles.destName}>{opt.name}</Text>
-        <Text style={styles.matchScore}>{opt.match}% match</Text>
+        <Text
+          style={[
+            styles.matchScore,
+            vote === 'reject' && { color: '#FF5A5F' }
+          ]}
+        >
+          {opt.match}% match
+        </Text>
       </View>
 
       <Text style={styles.destMeta}>
         {opt.dates}  •  Est. {opt.price}
       </Text>
 
-      {/* Voting Action Buttons */}
+      {/* Voting Action Buttons ($44x44pt minimum touch target) */}
       <View style={[styles.voteButtonsRow, vote === 'approve' && { marginBottom: 14 }]}>
         <TouchableOpacity
           activeOpacity={0.85}
@@ -127,9 +167,12 @@ const StampBallotCard: React.FC<StampBallotCardProps> = ({
             styles.approveBtn,
             vote === 'approve' && styles.approveBtnActive
           ]}
+          accessibilityRole="button"
+          accessibilityState={{ selected: vote === 'approve' }}
           accessibilityLabel={`Approve ${opt.name}`}
+          accessibilityHint="Marks option as approved and enables preference ranking"
         >
-          <Check size={16} color={vote === 'approve' ? '#052E20' : '#8B8D98'} />
+          <Check size={18} color={vote === 'approve' ? '#052E20' : '#8B8D98'} />
           <Text
             style={[
               styles.approveBtnText,
@@ -147,9 +190,12 @@ const StampBallotCard: React.FC<StampBallotCardProps> = ({
             styles.rejectBtn,
             vote === 'reject' && styles.rejectBtnActive
           ]}
-          accessibilityLabel={`Reject ${opt.name}`}
+          accessibilityRole="button"
+          accessibilityState={{ selected: vote === 'reject' }}
+          accessibilityLabel={`Veto ${opt.name}`}
+          accessibilityHint="Vetoes option from your preferences and clears ranking"
         >
-          <X size={16} color={vote === 'reject' ? '#2E0805' : '#8B8D98'} />
+          <X size={18} color={vote === 'reject' ? '#2E0805' : '#8B8D98'} />
           <Text
             style={[
               styles.rejectBtnText,
@@ -178,12 +224,15 @@ const StampBallotCard: React.FC<StampBallotCardProps> = ({
                   styles.rankChip,
                   rank === r && styles.rankChipActive
                 ]}
-                accessibilityLabel={`Rank ${opt.name} as #${r} choice`}
+                accessibilityRole="button"
+                accessibilityState={{ selected: rank === r }}
+                accessibilityLabel={`Rank ${opt.name} as number ${r} choice`}
+                accessibilityHint={`Sets preference rank for ${opt.name} to #${r}`}
               >
                 <Text
                   style={[
                     styles.rankChipText,
-                    rank === r && { color: '#2E0805', fontWeight: '800' }
+                    rank === r && { color: '#052E20', fontWeight: '800' }
                   ]}
                 >
                   Rank #{r} Choice
@@ -197,7 +246,9 @@ const StampBallotCard: React.FC<StampBallotCardProps> = ({
       {/* Clear indicator if option was rejected */}
       {vote === 'reject' && (
         <View style={styles.rejectedBanner}>
-          <Text style={styles.rejectedBannerText}>Vetoed from your preferences (Ranking disabled)</Text>
+          <Text style={styles.rejectedBannerText}>
+            Vetoed from your preferences (Ranking disabled)
+          </Text>
         </View>
       )}
     </Animated.View>
@@ -208,7 +259,11 @@ export default function PactSilentBallot() {
   const { id } = useLocalSearchParams<{ id: string }>();
 
   if (!id || id === 'undefined' || id === '[id]') {
-    return <CircleRouteGuard id={id}><View /></CircleRouteGuard>;
+    return (
+      <CircleRouteGuard id={id}>
+        <View />
+      </CircleRouteGuard>
+    );
   }
 
   const router = useRouter();
@@ -218,12 +273,12 @@ export default function PactSilentBallot() {
   const currentGroup =
     groups.find((g) => g && g.id === id) ||
     groups[0] || {
-      id: (id && id !== 'undefined') ? id : 'circle-college-reunion-2026',
+      id: id && id !== 'undefined' ? id : 'circle-college-reunion-2026',
       name: 'Goa Beach Escape 2026',
       inviteCode: 'GOA-4F82'
     };
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const [votes, setVotes] = useState<Record<string, 'approve' | 'reject' | null>>({
@@ -276,9 +331,10 @@ export default function PactSilentBallot() {
     const nextVal = votes[key] === decision ? null : decision;
     setVotes((prev) => ({ ...prev, [key]: nextVal }));
 
-    // CRITICAL FIX: Ensure rejected options cannot retain ranking controls or rank selection
+    // CRITICAL: Immediately purge ranking when option is vetoed/unselected
     if (nextVal !== 'approve') {
       setRanks((prevRanks) => {
+        if (!(key in prevRanks)) return prevRanks;
         const updated = { ...prevRanks };
         delete updated[key];
         return updated;
@@ -334,7 +390,10 @@ export default function PactSilentBallot() {
   return (
     <SafeAreaView style={styles.outerContainer}>
       <View style={styles.phoneFrame}>
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
           {/* Header Row */}
           <View style={styles.headerRow}>
             <TouchableOpacity
@@ -348,7 +407,9 @@ export default function PactSilentBallot() {
               }}
               activeOpacity={0.7}
               style={styles.backBtn}
+              accessibilityRole="button"
               accessibilityLabel="Back to Circle Hub"
+              accessibilityHint="Returns to the main Circle Hub screen"
             >
               <ArrowLeft size={18} color="#F4F3F0" />
             </TouchableOpacity>
@@ -410,7 +471,9 @@ export default function PactSilentBallot() {
             onPress={handleCastBallot}
             disabled={isSubmitting}
             style={styles.lockBallotBtn}
+            accessibilityRole="button"
             accessibilityLabel="Lock & Cast Sealed Ballot"
+            accessibilityHint="Submits your sealed ballot for this circle"
           >
             <Lock size={16} color="#2E0805" />
             <Text style={styles.lockBallotBtnText}>
@@ -450,9 +513,9 @@ const styles = StyleSheet.create({
     marginBottom: 16
   },
   backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
     justifyContent: 'center',
     alignItems: 'center'
@@ -525,12 +588,20 @@ const styles = StyleSheet.create({
   },
   ballotCard: {
     backgroundColor: '#13151E',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: 'rgba(255, 255, 255, 0.14)',
     borderRadius: 18,
     padding: 18,
     marginBottom: 16,
     position: 'relative'
+  },
+  ballotCardApproved: {
+    borderColor: '#3DE0A0',
+    backgroundColor: 'rgba(61, 224, 160, 0.08)'
+  },
+  ballotCardRejected: {
+    borderColor: '#FF5A5F',
+    backgroundColor: 'rgba(255, 90, 95, 0.08)'
   },
   cardHeaderRow: {
     flexDirection: 'row',
@@ -563,6 +634,7 @@ const styles = StyleSheet.create({
   approveBtn: {
     flex: 1,
     minHeight: 44,
+    minWidth: 44,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.18)',
@@ -585,6 +657,7 @@ const styles = StyleSheet.create({
   rejectBtn: {
     flex: 1,
     minHeight: 44,
+    minWidth: 44,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.18)',
@@ -595,8 +668,8 @@ const styles = StyleSheet.create({
     gap: 6
   },
   rejectBtnActive: {
-    backgroundColor: '#EF4444',
-    borderColor: '#EF4444'
+    backgroundColor: '#FF5A5F',
+    borderColor: '#FF5A5F'
   },
   rejectBtnText: {
     fontFamily: fontUIBold,
@@ -619,7 +692,8 @@ const styles = StyleSheet.create({
   },
   rankChip: {
     flex: 1,
-    minHeight: 42,
+    minHeight: 44,
+    minWidth: 44,
     borderRadius: 10,
     backgroundColor: 'rgba(255, 255, 255, 0.06)',
     borderWidth: 1,
@@ -628,27 +702,27 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   rankChipActive: {
-    backgroundColor: '#FF5A5F',
-    borderColor: '#FF5A5F'
+    backgroundColor: '#3DE0A0',
+    borderColor: '#3DE0A0'
   },
   rankChipText: {
-    fontFamily: fontUI,
+    fontFamily: fontUIBold,
     fontSize: 12,
     color: '#8B8D98'
   },
   rejectedBanner: {
     marginTop: 10,
-    padding: 8,
+    padding: 10,
     borderRadius: 8,
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    backgroundColor: 'rgba(255, 90, 95, 0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.25)',
+    borderColor: 'rgba(255, 90, 95, 0.3)',
     alignItems: 'center'
   },
   rejectedBannerText: {
-    fontFamily: fontUI,
+    fontFamily: fontUIBold,
     fontSize: 11,
-    color: '#EF4444'
+    color: '#FF5A5F'
   },
   bottomBar: {
     position: 'absolute',
@@ -666,6 +740,7 @@ const styles = StyleSheet.create({
   lockBallotBtn: {
     width: '100%',
     minHeight: 48,
+    minWidth: 44,
     borderRadius: 12,
     backgroundColor: '#FF5A5F',
     flexDirection: 'row',
