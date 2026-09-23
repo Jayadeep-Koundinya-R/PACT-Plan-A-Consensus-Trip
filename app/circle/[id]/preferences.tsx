@@ -818,7 +818,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#13151E',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.14)',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
     borderRadius: 18,
     padding: 18,
     marginBottom: 14
@@ -840,14 +840,15 @@ const styles = StyleSheet.create({
     width: 130,
     backgroundColor: '#0F1017',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
     borderRadius: 14,
     padding: 14,
     justifyContent: 'center'
   },
   dateStripCardActive: {
+    borderWidth: 1.5,
     borderColor: '#3DE0A0',
-    backgroundColor: 'rgba(61, 224, 160,0.06)'
+    backgroundColor: 'rgba(61, 224, 160, 0.12)'
   },
   dateStripTopRow: {
     flexDirection: 'row',
