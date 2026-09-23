@@ -1,4 +1,9 @@
-import { Platform } from 'react-native';
+let Platform: any = { OS: 'web' };
+try {
+  Platform = require('react-native').Platform || Platform;
+} catch {
+  // Safe fallback for Node test environment
+}
 
 export interface CalendarEventDetails {
   title: string;
@@ -7,6 +12,20 @@ export interface CalendarEventDetails {
   startDate: string; // YYYY-MM-DD
   endDate: string;   // YYYY-MM-DD
   attendees?: string[];
+}
+
+/**
+ * Sanitizes text fields for iCalendar (RFC 5545) formatting.
+ * Escapes backslashes, semicolons, commas, and normalizes all newlines to '\n'.
+ * Prevents CRLF / iCalendar property injection vulnerabilities.
+ */
+export function escapeICSValue(value: string = ''): string {
+  if (!value) return '';
+  return value
+    .replace(/\\/g, '\\\\')
+    .replace(/;/g, '\\;')
+    .replace(/,/g, '\\,')
+    .replace(/\r\n|\r|\n/g, '\\n');
 }
 
 export function generateICSContent(event: CalendarEventDetails): string {
@@ -29,9 +48,9 @@ export function generateICSContent(event: CalendarEventDetails): string {
     `DTSTAMP:${nowFormatted}`,
     `DTSTART:${startFormatted}`,
     `DTEND:${endFormatted}`,
-    `SUMMARY:🌴 ${event.title}`,
-    `DESCRIPTION:${event.description.replace(/\n/g, '\\n')}`,
-    `LOCATION:${event.location}`,
+    `SUMMARY:🌴 ${escapeICSValue(event.title)}`,
+    `DESCRIPTION:${escapeICSValue(event.description)}`,
+    `LOCATION:${escapeICSValue(event.location)}`,
     'STATUS:CONFIRMED',
     'BEGIN:VALARM',
     'TRIGGER:-P1D',
