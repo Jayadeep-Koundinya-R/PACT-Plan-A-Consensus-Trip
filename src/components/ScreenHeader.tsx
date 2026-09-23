@@ -106,16 +106,20 @@ const styles = StyleSheet.create({
     height: 52
   },
   backButton: {
-    width: 32,
-    height: 32,
+    width: 44,
+    height: 44,
+    minWidth: 44,
+    minHeight: 44,
     borderRadius: radius.sm,
     borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center'
   },
   spacer: {
-    width: 32,
-    height: 32
+    width: 44,
+    height: 44,
+    minWidth: 44,
+    minHeight: 44
   },
   center: {
     flex: 1,

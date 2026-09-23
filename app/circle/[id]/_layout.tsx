@@ -1,6 +1,6 @@
 import { useTheme } from '../../../src/hooks/useTheme';
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform, SafeAreaView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform, SafeAreaView, StatusBar } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter, usePathname } from 'expo-router';
 import { useCircleStore } from '../../../src/store/useCircleStore';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
@@ -153,7 +153,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#0B0F17',
     borderBottomWidth: 1,
     borderBottomColor: '#262938',
-    zIndex: 50
+    zIndex: 50,
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) : 0
   },
   headerBar: {
     height: 48,

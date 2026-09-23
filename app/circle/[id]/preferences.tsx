@@ -251,10 +251,30 @@ export default function PactConstraintsForm() {
           {/* Header */}
           <View style={styles.headerRow}>
             <View style={styles.headerLeft}>
-              <TouchableOpacity onPress={() => { haptics.tap(); if (router.canGoBack()) { router.back(); } else { router.push('/circle/' + currentGroup.id + '/hub'); } }} activeOpacity={0.7} style={styles.backBtn} accessibilityLabel="Go back to Circle Hub"><ArrowLeft size={18} color="#F4F3F0" /></TouchableOpacity>
-              <Text style={styles.headerTitle} numberOfLines={1}>
-                {currentGroup.name || 'Goa Beach Escape 2026'} constraints
-              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  haptics.tap();
+                  if (router.canGoBack()) {
+                    router.back();
+                  } else {
+                    router.push('/circle/' + currentGroup.id + '/hub');
+                  }
+                }}
+                activeOpacity={0.7}
+                style={styles.backBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Go back to Circle Hub"
+              >
+                <ArrowLeft size={18} color="#F4F3F0" />
+              </TouchableOpacity>
+              <View style={styles.titleContainer}>
+                <Text style={styles.headerTitle} numberOfLines={1}>
+                  Trip Constraints
+                </Text>
+                <Text style={styles.headerSubtitle} numberOfLines={1}>
+                  {currentGroup.name || 'Goa Beach Escape 2026'}
+                </Text>
+              </View>
             </View>
             <View style={styles.stepBadge}>
               <Text style={styles.stepBadgeText}>Step 2 of 5</Text>
@@ -718,17 +738,28 @@ const styles = StyleSheet.create({
     marginRight: 8
   },
   backBtn: {
-    width: 32,
-    height: 32,
+    width: 44,
+    height: 44,
+    minWidth: 44,
+    minHeight: 44,
     justifyContent: 'center',
     alignItems: 'center'
+  },
+  titleContainer: {
+    flex: 1,
+    justifyContent: 'center'
   },
   headerTitle: {
     fontFamily: fontDisplay,
     fontWeight: '700',
     fontSize: 16,
-    color: '#F4F3F0',
-    flex: 1
+    color: '#F4F3F0'
+  },
+  headerSubtitle: {
+    fontFamily: fontUI,
+    fontSize: 11,
+    color: '#8B8D98',
+    marginTop: 1
   },
   stepBadge: {
     borderWidth: 1,
