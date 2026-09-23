@@ -243,7 +243,9 @@ export async function fetchPlaceRecommendations(
           };
         }
       }
-    } catch (e) {}
+    } catch (e) {
+      console.warn('Place cache lookup skipped:', e);
+    }
   }
 
   // 2. Invoke Edge Function if available
@@ -256,7 +258,9 @@ export async function fetchPlaceRecommendations(
         return data as PlaceRecommendationsResult;
       }
     }
-  } catch (e) {}
+  } catch (e) {
+    console.warn('Place recommendations edge function invocation error, falling back to local market database:', e);
+  }
 
   // 3. Fallback to verified destination dataset & persist into Supabase cache table
   const matchKey = Object.keys(VERIFIED_REAL_PLACES).find((k) => norm.includes(k));

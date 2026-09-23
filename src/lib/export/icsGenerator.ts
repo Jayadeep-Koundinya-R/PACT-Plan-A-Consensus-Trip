@@ -30,7 +30,19 @@ export function escapeICSValue(value: string = ''): string {
 
 export function generateICSContent(event: CalendarEventDetails): string {
   const formatICSDate = (dateStr: string) => {
-    return dateStr.replace(/-/g, '') + 'T090000Z';
+    if (!dateStr || typeof dateStr !== 'string') {
+      const fallback = new Date().toISOString().split('T')[0].replace(/-/g, '');
+      return fallback + 'T090000Z';
+    }
+    const clean = dateStr.trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(clean)) {
+      const parsed = new Date(clean);
+      if (!isNaN(parsed.getTime())) {
+        return parsed.toISOString().split('T')[0].replace(/-/g, '') + 'T090000Z';
+      }
+      return new Date().toISOString().split('T')[0].replace(/-/g, '') + 'T090000Z';
+    }
+    return clean.replace(/-/g, '') + 'T090000Z';
   };
 
   const startFormatted = formatICSDate(event.startDate);

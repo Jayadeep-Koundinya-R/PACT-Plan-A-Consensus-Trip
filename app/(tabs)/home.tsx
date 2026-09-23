@@ -338,7 +338,8 @@ export default function MyCirclesScreen() {
           {displayCircles.map((circle) => {
             const isOrganizer = circle.organizerId === 'user-maya-001' || circle.organizerName === 'Alex Rivers';
             const lockedCount = circle.members?.filter((m) => m.status === 'locked').length || 0;
-            const totalCount = circle.totalMembersCount || circle.members?.length || 5;
+            const rawTotalCount = circle.totalMembersCount || circle.members?.length || 0;
+            const totalCount = rawTotalCount > 0 ? rawTotalCount : 1;
             const progressPercent = Math.round((lockedCount / totalCount) * 100);
 
             return (
@@ -556,8 +557,8 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   notifBellBtn: {
-    width: 36,
-    height: 36,
+    minWidth: 44,
+    minHeight: 44,
     borderRadius: 10,
     backgroundColor: 'rgba(255, 90, 95, 0.12)',
     justifyContent: 'center',
@@ -704,11 +705,12 @@ const styles = StyleSheet.create({
     gap: 6
   },
   archiveBtn: {
+    minHeight: 44,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
     borderRadius: 6,
     backgroundColor: '#1B1D27',
     borderWidth: 1,
@@ -1039,14 +1041,15 @@ const styles = StyleSheet.create({
     fontWeight: '600'
   },
   invitePill: {
+    minHeight: 44,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     backgroundColor: '#1B1D27',
     borderWidth: 1,
     borderColor: '#2D3144',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
     borderRadius: 8
   },
   invitePillText: {
