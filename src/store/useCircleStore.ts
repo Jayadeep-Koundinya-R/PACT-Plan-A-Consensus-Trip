@@ -50,6 +50,11 @@ interface CircleState {
   nudgeMember: (circleId: string, userId: string) => void;
   addMember: (circleId: string, member: CircleMember) => boolean;
   removeMember: (circleId: string, userId: string) => void;
+  /**
+   * Safe removal that blocks the organizer from leaving if other members exist.
+   * Returns { ok: true } on success or { ok: false, reason: string } on block.
+   */
+  safeRemoveMember: (circleId: string, userId: string) => { ok: boolean; reason?: string };
   claimMemberSlot: (circleId: string, name: string, userId: string) => boolean;
   archiveCircle: (id: string) => void;
   unarchiveCircle: (id: string) => void;
@@ -287,6 +292,19 @@ export const useCircleStore = create<CircleState>((set, get) => ({
       saveCirclesToStorage(updated);
       return { circles: updated };
     }),
+
+  safeRemoveMember: (circleId, userId) => {
+    const circle = get().circles.find((c) => c.id === circleId);
+    if (!circle) return { ok: false, reason: 'Circle not found' };
+
+    // Block the organizer from leaving if other members remain
+    if (circle.organizerId === userId && circle.members.length > 1) {
+      return { ok: false, reason: 'Transfer organizer role before leaving' };
+    }
+
+    get().removeMember(circleId, userId);
+    return { ok: true };
+  },
 
   claimMemberSlot: (circleId, name, userId) => {
     const cleanTargetName = name.replace(/\s*\(You\)/gi, '').replace(/\s*\(Organizer\)/gi, '').trim().toLowerCase();
