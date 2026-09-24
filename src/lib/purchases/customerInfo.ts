@@ -1,4 +1,4 @@
-import { CustomerInfo } from 'react-native-purchases';
+import type { CustomerInfo } from 'react-native-purchases';
 
 export type SubscriptionPlan = 'free' | 'premium_monthly' | 'premium_annual';
 

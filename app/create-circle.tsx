@@ -118,6 +118,7 @@ export default function PactCreateJoinScreen() {
           organizerName: activeName,
           status: 'collecting',
           totalMembersCount: total,
+          hasPro: subscriptionPlan !== 'free',
           members: [
             { userId: activeId, name: `${activeName} (Organizer)`, status: 'locked' as MemberStatus, nudgedAt: null }
           ],

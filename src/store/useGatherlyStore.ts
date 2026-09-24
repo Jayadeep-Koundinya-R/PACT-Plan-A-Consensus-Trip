@@ -30,7 +30,10 @@ import {
   saveTripBriefToSupabase,
   fetchTripBriefFromSupabase,
   addTripOptionToGroup,
-  signOutUser
+  signOutUser,
+  signUpWithEmail,
+  signInWithEmail,
+  fetchUserSubscription
 } from '../lib/supabase/service';
 import { supabase } from '../lib/supabase/client';
 
@@ -193,13 +196,17 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
 
   login: async (email: string, password: string) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-      if (data.user) {
+      const cleanEmail = email.trim().toLowerCase();
+      const data = await signInWithEmail(cleanEmail, password);
+      const user = data?.user;
+      if (user) {
+        const plan = await fetchUserSubscription(user.id, user.email || cleanEmail);
+        const displayName = user.user_metadata?.display_name || cleanEmail.split('@')[0];
         set({
-          currentUserId: data.user.id,
-          userEmail: data.user.email || null,
-          userName: data.user.user_metadata?.display_name || data.user.email?.split('@')[0] || null,
+          currentUserId: user.id,
+          userEmail: user.email || cleanEmail,
+          userName: displayName,
+          subscriptionPlan: plan,
           groups: [],
           activeGroupId: '',
           members: [],
@@ -207,10 +214,17 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
           preferenceDrafts: {},
           votes: {},
           finalizedBrief: null,
-  consensusSnapshot: null,
+          consensusSnapshot: null,
           vaultDocuments: {},
           memoryPhotos: {}
         });
+        useUserStore.getState().setProfile({
+          userId: user.id,
+          displayName: displayName,
+          email: user.email || cleanEmail
+        });
+        useUserStore.getState().setSubscriptionPlan(plan);
+        useUserStore.getState().setAuthenticated(true);
         await get().fetchUserGroupsFromCloud();
       }
       return { data, error: null };
@@ -222,18 +236,19 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
 
   register: async (email: string, password: string, displayName?: string) => {
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { display_name: displayName } }
-      });
-      if (error) throw error;
-      const uid = data.user ? data.user.id : `user-real-${Date.now()}`;
+      const cleanEmail = email.trim().toLowerCase();
+      const cleanName = displayName?.trim() || cleanEmail.split('@')[0] || 'Traveler';
+      const data = await signUpWithEmail(cleanEmail, password, cleanName);
+      const user = data?.user;
+      const uid = user ? user.id : `user-real-${Date.now()}`;
+      const plan = await fetchUserSubscription(uid, cleanEmail);
+
       // Fresh user isolation: Clean empty state, Maya's demo trip is NOT shown
       set({
         currentUserId: uid,
-        userEmail: email,
-        userName: displayName || email.split('@')[0] || 'Traveler',
+        userEmail: cleanEmail,
+        userName: cleanName,
+        subscriptionPlan: plan,
         groups: [],
         activeGroupId: '',
         members: [],
@@ -241,9 +256,17 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
         preferenceDrafts: {},
         votes: {},
         finalizedBrief: null,
+        consensusSnapshot: null,
         vaultDocuments: {},
         memoryPhotos: {}
       });
+      useUserStore.getState().setProfile({
+        userId: uid,
+        displayName: cleanName,
+        email: cleanEmail
+      });
+      useUserStore.getState().setSubscriptionPlan(plan);
+      useUserStore.getState().setAuthenticated(true);
       return { data, error: null };
     } catch (err: any) {
       console.warn('Register error, falling back to isolated offline account:', err);
@@ -252,6 +275,7 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
         currentUserId: fallbackId,
         userEmail: email,
         userName: displayName || email.split('@')[0] || 'Traveler',
+        subscriptionPlan: 'free',
         groups: [],
         activeGroupId: '',
         members: [],
@@ -259,6 +283,7 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
         preferenceDrafts: {},
         votes: {},
         finalizedBrief: null,
+        consensusSnapshot: null,
         vaultDocuments: {},
         memoryPhotos: {}
       });
@@ -368,10 +393,13 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     try {
       const { data } = await supabase.auth.getSession();
       if (data.session?.user) {
+        const u = data.session.user;
+        const plan = await fetchUserSubscription(u.id, u.email);
         set({
-          currentUserId: data.session.user.id,
-          userEmail: data.session.user.email || null,
-          userName: data.session.user.user_metadata?.display_name || null,
+          currentUserId: u.id,
+          userEmail: u.email || null,
+          userName: u.user_metadata?.display_name || null,
+          subscriptionPlan: plan,
           groups: [],
           activeGroupId: '',
           members: [],
@@ -382,12 +410,21 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
           vaultDocuments: {},
           memoryPhotos: {}
         });
+        useUserStore.getState().setProfile({
+          userId: u.id,
+          displayName: u.user_metadata?.display_name || u.email?.split('@')[0] || 'Traveler',
+          email: u.email || null
+        });
+        useUserStore.getState().setSubscriptionPlan(plan);
+        useUserStore.getState().setAuthenticated(true);
         await get().fetchUserGroupsFromCloud();
       }
     } catch (e) {
       console.warn('Error checking Supabase session:', e);
     }
   },
+
+
 
   logout: async () => {
     try {
