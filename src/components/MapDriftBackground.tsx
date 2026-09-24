@@ -71,7 +71,7 @@ export function MapDriftBackground({ isDarkMode }: MapDriftBackgroundProps) {
       >
         {TOPO_PATHS.map((d, i) => (
           <Path
-            key={i}
+            key={`topo-path-${i}-${d.slice(0, 15)}`}
             d={d}
             stroke={theme.primary}
             strokeWidth={1}

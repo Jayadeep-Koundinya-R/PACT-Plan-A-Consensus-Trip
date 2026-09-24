@@ -179,49 +179,54 @@ export async function fetchCompromiseWhisperer(
     dealbreakerSummary: string;
   }
 ): Promise<CompromiseWhispererResult> {
-  const cacheKey = `whisperer:${destination.toLowerCase()}:${groupSize}:${JSON.stringify(aggregatedData)}`;
-  if (advisorCache.has(cacheKey)) {
-    return advisorCache.get(cacheKey)!;
-  }
+  try {
+    const cacheKey = `whisperer:${(destination || '').toLowerCase()}:${groupSize}:${JSON.stringify(aggregatedData || {})}`;
+    if (advisorCache.has(cacheKey)) {
+      return advisorCache.get(cacheKey)!;
+    }
 
-  // The only live AI path is the authenticated Edge Function.
-  if (isLiveSupabaseConfigured) {
-    try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData?.session) {
-        // Unauthenticated visitor: use instant deterministic fallback without triggering 401
-        throw new Error('No active session for Edge Function');
-      }
-      const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('AI Whisperer timeout (>3.5s)')), 3500)
-      );
-
-      const callPromise = supabase.functions.invoke('ai-advisor', {
-        body: {
-          action: 'compromise_whisperer',
-          destination,
-          groupSize,
-          aggregatedData
+    // The only live AI path is the authenticated Edge Function.
+    if (isLiveSupabaseConfigured) {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        if (!sessionData?.session) {
+          // Unauthenticated visitor: use instant deterministic fallback without triggering 401
+          throw new Error('No active session for Edge Function');
         }
-      });
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('AI Whisperer timeout (>3.5s)')), 3500)
+        );
 
-      const { data, error } = await Promise.race([callPromise, timeoutPromise]) as any;
-      if (!error && data && data.compromise) {
-        const result: CompromiseWhispererResult = {
-          compromise: data.compromise,
-          anonymizedSummary: data.anonymizedSummary || 'Aggregated group consensus analyzed.',
-          source: data.source || 'gemini_live'
-        };
-        advisorCache.set(cacheKey, result);
-        return result;
-      }
-    } catch (e) {}
+        const callPromise = supabase.functions.invoke('ai-advisor', {
+          body: {
+            action: 'compromise_whisperer',
+            destination,
+            groupSize,
+            aggregatedData
+          }
+        });
+
+        const { data, error } = await Promise.race([callPromise, timeoutPromise]) as any;
+        if (!error && data && data.compromise) {
+          const result: CompromiseWhispererResult = {
+            compromise: data.compromise,
+            anonymizedSummary: data.anonymizedSummary || 'Aggregated group consensus analyzed.',
+            source: data.source || 'gemini_live'
+          };
+          advisorCache.set(cacheKey, result);
+          return result;
+        }
+      } catch (e) {}
+    }
+
+    // Instant Local Heuristics Fallback
+    const fallback = getLocalWhispererFallback(destination, groupSize, aggregatedData || {});
+    advisorCache.set(cacheKey, fallback);
+    return fallback;
+  } catch (err) {
+    console.warn('[aiAdvisorClient] fetchCompromiseWhisperer error fallback:', err);
+    return getLocalWhispererFallback(destination || 'Goa', groupSize || 5, aggregatedData || {});
   }
-
-  // Instant Local Heuristics Fallback
-  const fallback = getLocalWhispererFallback(destination, groupSize, aggregatedData);
-  advisorCache.set(cacheKey, fallback);
-  return fallback;
 }
 
 /**

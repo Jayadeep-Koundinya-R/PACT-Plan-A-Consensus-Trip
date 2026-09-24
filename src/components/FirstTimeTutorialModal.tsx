@@ -170,9 +170,9 @@ export const FirstTimeTutorialModal: React.FC<FirstTimeTutorialModalProps> = ({
 
           {/* Interactive Dots Indicator */}
           <View style={styles.dotsRow}>
-            {TUTORIAL_SLIDES.map((_, idx) => (
+            {TUTORIAL_SLIDES.map((slideItem, idx) => (
               <TouchableOpacity
-                key={idx}
+                key={`tutorial-dot-${slideItem.step}`}
                 onPress={() => {
                   triggerHaptic(Haptics.ImpactFeedbackStyle.Light);
                   setCurrentSlide(idx);

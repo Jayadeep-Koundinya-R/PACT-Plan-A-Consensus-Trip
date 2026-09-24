@@ -1,7 +1,7 @@
 import { CircleRouteGuard } from '../../../src/components/common';
 import { SkeletonLoader } from '../../../src/components/SkeletonLoader';
 import { EmptyState } from '../../../src/components/EmptyState';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { fetchCompromiseWhisperer, CompromiseWhispererResult } from '../../../src/lib/ai/aiAdvisorClient';
 import { sendPactNotification, buildNudgeNotification } from '../../../src/lib/notifications/pactNotifications';
 import {
@@ -122,14 +122,27 @@ export default function PactConsensusResults() {
     };
   }, [deadlockMode, currentGroup?.name, topDestinationName]);
 
-  // Budget calculations for Wide Budget Gap Banner
-  const budgetCaps = members.length > 0 ? members.map((m) => m.budgetMax) : [600, 2000, 1200, 500, 1800];
-  const minBudget = Math.min(...budgetCaps);
-  const maxBudget = Math.max(...budgetCaps);
-  const budgetSpread = maxBudget - minBudget;
-  const hasWideBudgetGap = budgetSpread > 1000;
+  // Memoized budget calculations for Wide Budget Gap Banner to prevent re-computation bottlenecks
+  const { minBudget, maxBudget, budgetSpread, hasWideBudgetGap, totalMemberCount } = useMemo(() => {
+    const budgetCaps = members.length > 0 ? members.map((m) => m.budgetMax) : [600, 2000, 1200, 500, 1800];
+    const minB = Math.min(...budgetCaps);
+    const maxB = Math.max(...budgetCaps);
+    const spread = maxB - minB;
+    const totalCount = members.length || currentGroup.totalMembersCount || 5;
+    return {
+      minBudget: minB,
+      maxBudget: maxB,
+      budgetSpread: spread,
+      hasWideBudgetGap: spread > 1000,
+      totalMemberCount: totalCount
+    };
+  }, [members, currentGroup.totalMembersCount]);
 
-  const totalMemberCount = members.length || currentGroup.totalMembersCount || 5;
+  const checklist = useMemo(() => [
+    `Dates: 100% date window overlap across all ${totalMemberCount} members`,
+    `Budget: fits all ${totalMemberCount} member caps privately`,
+    'Vibes: beach, nightlife & seafood matched'
+  ], [totalMemberCount]);
 
   const handleProceedToSilentVoting = () => {
     haptics.action();

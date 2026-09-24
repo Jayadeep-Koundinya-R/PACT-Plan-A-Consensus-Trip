@@ -157,6 +157,15 @@ const initialGroup: Group = {
   totalMembersCount: 5
 };
 
+function safeDeepClone<T>(data: T, fallback: T): T {
+  try {
+    return JSON.parse(JSON.stringify(data));
+  } catch (err) {
+    console.warn('[useGatherlyStore] safeDeepClone failed, using fallback', err);
+    return fallback;
+  }
+}
+
 export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   currentUserId: '',
   userEmail: null,
@@ -953,8 +962,8 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     get().resetDemoState();
   },
   setDemoScenario: (scenario: string) => {
-    const freshOptions: TripOption[] = JSON.parse(JSON.stringify(DEMO_TRIP_OPTIONS));
-    const freshMembers: MemberPreference[] = JSON.parse(JSON.stringify(DEMO_MEMBERS));
+    const freshOptions: TripOption[] = safeDeepClone(DEMO_TRIP_OPTIONS, DEMO_TRIP_OPTIONS);
+    const freshMembers: MemberPreference[] = safeDeepClone(DEMO_MEMBERS, DEMO_MEMBERS);
 
     if (scenario === 'early_bird') {
       // Only 1 or 2 members locked in, rest awaiting
@@ -1030,8 +1039,8 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
       currentUserId: 'user-maya-001',
       groups: [initialGroup],
       activeGroupId: DEMO_GROUP_ID,
-      members: JSON.parse(JSON.stringify(DEMO_MEMBERS)),
-      tripOptions: JSON.parse(JSON.stringify(DEMO_TRIP_OPTIONS)),
+      members: safeDeepClone(DEMO_MEMBERS, DEMO_MEMBERS),
+      tripOptions: safeDeepClone(DEMO_TRIP_OPTIONS, DEMO_TRIP_OPTIONS),
       preferenceDrafts: {},
       votes: {
         'opt-goa-01_user-maya-001': true,
