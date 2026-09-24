@@ -48,7 +48,7 @@ interface CircleState {
   updateCircleStatus: (id: string, status: Circle['status']) => void;
   setMemberStatus: (circleId: string, userId: string, status: MemberStatus) => void;
   nudgeMember: (circleId: string, userId: string) => void;
-  addMember: (circleId: string, member: CircleMember) => void;
+  addMember: (circleId: string, member: CircleMember) => boolean;
   removeMember: (circleId: string, userId: string) => void;
   claimMemberSlot: (circleId: string, name: string, userId: string) => boolean;
   archiveCircle: (id: string) => void;
@@ -233,24 +233,46 @@ export const useCircleStore = create<CircleState>((set, get) => ({
       return { circles: updated };
     }),
 
-  addMember: (circleId, member) =>
+  addMember: (circleId, member) => {
+    let added = false;
     set((s) => {
+      const circle = s.circles.find((c) => c.id === circleId);
+      if (!circle) return { circles: s.circles };
+
       const cleanMember: CircleMember = {
         ...member,
         name: member.name.replace(/\s*\(You\)/gi, '').trim()
       };
+
+      const existingIndex = circle.members.findIndex((m) => m.userId === cleanMember.userId);
+      if (existingIndex >= 0) {
+        const updatedMembers = [...circle.members];
+        updatedMembers[existingIndex] = cleanMember;
+        const updated = s.circles.map((c) => (c.id === circleId ? { ...c, members: updatedMembers } : c));
+        saveCirclesToStorage(updated);
+        added = true;
+        return { circles: updated };
+      }
+
+      // Strictly enforce circle capacity: reject if current members already meet or exceed capacity
+      if (circle.members.length >= circle.totalMembersCount) {
+        return { circles: s.circles };
+      }
+
       const updated = s.circles.map((c) =>
         c.id === circleId
           ? {
               ...c,
-              members: [...c.members.filter((m) => m.userId !== cleanMember.userId), cleanMember],
-              totalMembersCount: Math.max(c.totalMembersCount, c.members.length + 1)
+              members: [...c.members, cleanMember]
             }
           : c
       );
       saveCirclesToStorage(updated);
+      added = true;
       return { circles: updated };
-    }),
+    });
+    return added;
+  },
 
   removeMember: (circleId, userId) =>
     set((s) => {
