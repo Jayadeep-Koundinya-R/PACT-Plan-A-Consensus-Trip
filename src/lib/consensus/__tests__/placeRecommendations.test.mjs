@@ -76,9 +76,7 @@ test('PACT V2 Step 3: Cache Prevents Redundant API Calls on Repeat Views', async
 test('PACT V2 Step 3: Ranked Matrix UI Integration with Expandable Place Section', (t) => {
   const matrixCode = fs.readFileSync('app/circle/[id]/ranked-matrix.tsx', 'utf8');
   assert.ok(matrixCode.includes('<ExplorePlaceSection'), 'Ranked matrix integrates ExplorePlaceSection');
-  assert.ok(matrixCode.includes('destination="Goa"'), 'ExplorePlaceSection passed top destination Goa');
-  assert.ok(matrixCode.includes('destination="Puducherry"'), 'ExplorePlaceSection passed runner-up Puducherry');
-  assert.ok(matrixCode.includes('destination="Manali"'), 'ExplorePlaceSection passed runner-up Manali');
+  assert.ok(matrixCode.includes('destination={topDestinationName}'), 'ExplorePlaceSection passed top destination dynamically');
   
   const exploreCode = fs.readFileSync('src/components/ExplorePlaceSection.tsx', 'utf8');
   assert.ok(exploreCode.includes('Explore {destination}') || exploreCode.includes('Explore this place'), 'Header title Explore exists');
@@ -87,4 +85,3 @@ test('PACT V2 Step 3: Ranked Matrix UI Integration with Expandable Place Section
   assert.ok(exploreCode.includes('Cached'), 'Displays cache status badge');
   assert.ok(exploreCode.includes('Group Safety Tip'), 'Displays safety note');
 });
-

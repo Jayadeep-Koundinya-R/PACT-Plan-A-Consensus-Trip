@@ -2,7 +2,7 @@ import * as Haptics from 'expo-haptics';
 import { CircleRouteGuard } from '../../../src/components/common';
 import { SkeletonLoader } from '../../../src/components/SkeletonLoader';
 import { EmptyState } from '../../../src/components/EmptyState';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -29,6 +29,7 @@ import { usePactHaptics } from '../../../src/hooks/usePactHaptics';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
 import { ArrowLeft, Check, X, Shield, Lock } from 'lucide-react-native';
 import { WaxSealStamp } from '../../../src/components/WaxSealStamp';
+import { resolveTripOptionsForCircle } from '../../../src/lib/consensus/dynamicOptions';
 
 interface StampBallotCardProps {
   opt: {
@@ -267,7 +268,7 @@ export default function PactSilentBallot() {
   }
 
   const router = useRouter();
-  const { groups = [], castVote } = useGatherlyStore();
+  const { groups = [], members = [], castVote } = useGatherlyStore();
   const haptics = usePactHaptics();
 
   const currentGroup =
@@ -281,16 +282,43 @@ export default function PactSilentBallot() {
   const [isLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const [votes, setVotes] = useState<Record<string, 'approve' | 'reject' | null>>({
-    goa: 'approve',
-    pondy: 'reject'
-  });
+  // Dynamically resolve options for voting
+  const resolved = useMemo(() => {
+    return resolveTripOptionsForCircle(currentGroup.id, currentGroup.name, members);
+  }, [currentGroup.id, currentGroup.name, members]);
 
-  const [ranks, setRanks] = useState<Record<string, number>>({
-    goa: 1
-  });
+  const options = useMemo(() => {
+    return resolved.scoredOptions.map((so) => ({
+      key: so.option.id,
+      name: so.option.name,
+      match: Math.round(so.totalScore),
+      dates: `${so.option.dateStart} – ${so.option.dateEnd}`,
+      price: `$${so.option.budgetPerPerson} / person`
+    }));
+  }, [resolved]);
 
+  const [votes, setVotes] = useState<Record<string, 'approve' | 'reject' | null>>({});
+  const [ranks, setRanks] = useState<Record<string, number>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (options.length > 0 && Object.keys(votes).length === 0) {
+      const initialVotes: Record<string, 'approve' | 'reject' | null> = {};
+      const initialRanks: Record<string, number> = {};
+
+      options.forEach((opt, idx) => {
+        if (idx === 0) {
+          initialVotes[opt.key] = 'approve';
+          initialRanks[opt.key] = 1;
+        } else {
+          initialVotes[opt.key] = 'reject';
+        }
+      });
+
+      setVotes(initialVotes);
+      setRanks(initialRanks);
+    }
+  }, [options]);
 
   useEffect(() => {
     if (Platform.OS === 'android') {
@@ -309,23 +337,6 @@ export default function PactSilentBallot() {
       return () => backSub.remove();
     }
   }, [router]);
-
-  const options = [
-    {
-      key: 'goa',
-      name: 'Goa, India',
-      match: 96,
-      dates: 'Oct 14 – Oct 19',
-      price: '$540 / person'
-    },
-    {
-      key: 'pondy',
-      name: 'Puducherry, India',
-      match: 82,
-      dates: 'Oct 12 – Oct 17',
-      price: '$480 / person'
-    }
-  ];
 
   const handleVote = (key: string, decision: 'approve' | 'reject') => {
     const nextVal = votes[key] === decision ? null : decision;
@@ -352,11 +363,11 @@ export default function PactSilentBallot() {
     setSubmitError(null);
 
     try {
-      if (votes.goa) {
-        await castVote('opt-goa-001', votes.goa === 'approve');
-      }
-      if (votes.pondy) {
-        await castVote('opt-pondy-002', votes.pondy === 'approve');
+      for (const opt of options) {
+        const v = votes[opt.key];
+        if (v) {
+          await castVote(opt.key, v === 'approve');
+        }
       }
       router.push(`/circle/${currentGroup.id}/brief` as any);
     } catch (e) {
