@@ -237,7 +237,8 @@ export async function joinGroupWithCode(inviteCode: string, userId: string): Pro
     .from('group_members')
     .select('*', { count: 'exact', head: true })
     .eq('group_id', group.id);
-  if ((count || 0) >= MAX_GROUP_MEMBERS) throw new Error('GROUP_FULL');
+  const maxAllowed = group.total_members_count || MAX_GROUP_MEMBERS;
+  if ((count || 0) >= maxAllowed) throw new Error('GROUP_FULL');
 
   const { error: joinError } = await supabase
     .from('group_members')

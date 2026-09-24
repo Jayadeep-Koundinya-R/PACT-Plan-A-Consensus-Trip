@@ -88,19 +88,32 @@ export const AddPeopleModal: React.FC<AddPeopleModalProps> = ({
     const targetCircleId = circle?.id || circleId;
     if (!targetCircleId) return;
 
+    if (currentMembers.length >= targetCapacity) {
+      haptics.warning();
+      setAddFeedback(`Circle is at capacity (${targetCapacity}/${targetCapacity}). Remove a member to add another.`);
+      setTimeout(() => setAddFeedback(null), 3500);
+      return;
+    }
+
     haptics.success();
     const newMemberId = `user-guest-${Date.now().toString(36)}`;
-    addMember(targetCircleId, {
+    const added = addMember(targetCircleId, {
       userId: newMemberId,
       name: cleanName,
       status: 'waiting',
       nudgedAt: null
     });
 
-    setFriendName('');
-    setAddFeedback(`Added ${cleanName} to circle!`);
-    onMemberAdded?.(cleanName);
-    setTimeout(() => setAddFeedback(null), 3000);
+    if (added !== false) {
+      setFriendName('');
+      setAddFeedback(`Added ${cleanName} to circle!`);
+      onMemberAdded?.(cleanName);
+      setTimeout(() => setAddFeedback(null), 3000);
+    } else {
+      haptics.warning();
+      setAddFeedback(`Circle is full (${targetCapacity}/${targetCapacity}).`);
+      setTimeout(() => setAddFeedback(null), 3000);
+    }
   };
 
   const handleCopyLink = async () => {
@@ -200,19 +213,21 @@ export const AddPeopleModal: React.FC<AddPeopleModalProps> = ({
 
               <View style={styles.inputActionRow}>
                 <TextInput
-                  style={styles.directInput}
+                  style={[styles.directInput, openSeats === 0 && { opacity: 0.6 }]}
                   value={friendName}
                   onChangeText={setFriendName}
-                  placeholder="e.g. Liam, Aisha, Carlos"
+                  placeholder={openSeats === 0 ? `All ${targetCapacity} seats allocated` : "e.g. Liam, Aisha, Carlos"}
                   placeholderTextColor="#454857"
                   returnKeyType="done"
+                  editable={openSeats > 0}
                   onSubmitEditing={handleAddDirectMember}
                   accessibilityLabel="Friend name to add to circle"
                 />
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={handleAddDirectMember}
-                  style={styles.addDirectBtn}
+                  disabled={openSeats === 0}
+                  style={[styles.addDirectBtn, openSeats === 0 && { opacity: 0.35 }]}
                   accessibilityLabel="Add traveler to circle"
                 >
                   <Text style={styles.addDirectBtnText}>+ Add</Text>
