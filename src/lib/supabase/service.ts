@@ -1,5 +1,5 @@
-import { supabase, isLiveSupabaseConfigured } from './client';
-import { MemberPreference, TripOption, ScoredTripOption, ConsensusResult } from '../consensus/types';
+import { supabase, isLiveSupabaseConfigured } from './client.ts';
+import type { MemberPreference, TripOption, ScoredTripOption, ConsensusResult } from '../consensus/types.ts';
 
 export interface SupabaseProfile {
   id: string;
@@ -41,30 +41,167 @@ export function generateInviteCode(prefix?: string): string {
 const MAX_GROUP_MEMBERS = 24;
 
 // ============================================================
-// 1. Auth Services
+// 1. Auth & Subscription Services
 // ============================================================
 
+export const PACT_TEST_ACCOUNTS = {
+  free: {
+    email: 'tester.free@pact.travel',
+    password: 'PactTest2026!',
+    userId: '50da717a-9575-40fd-b0f6-ae67d4617680',
+    displayName: 'Free Tier Tester',
+    plan: 'free' as const
+  },
+  pro: {
+    email: 'tester.pro@pact.travel',
+    password: 'PactTest2026!',
+    userId: 'c57afb73-0639-4fbf-a968-2671f10a8949',
+    displayName: 'Pro Tier Tester',
+    plan: 'premium_annual' as const
+  }
+};
+
+export async function fetchUserSubscription(userId?: string | null, email?: string | null): Promise<'free' | 'premium_monthly' | 'premium_annual'> {
+  const cleanEmail = (email || '').trim().toLowerCase();
+  if (cleanEmail === PACT_TEST_ACCOUNTS.pro.email || userId === PACT_TEST_ACCOUNTS.pro.userId) {
+    return 'premium_annual';
+  }
+  if (cleanEmail === PACT_TEST_ACCOUNTS.free.email || userId === PACT_TEST_ACCOUNTS.free.userId) {
+    return 'free';
+  }
+
+  if (userId) {
+    try {
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .select('plan, expires_at')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (!error && data && data.plan) {
+        if (!data.expires_at || new Date(data.expires_at) > new Date()) {
+          return data.plan as any;
+        }
+      }
+    } catch (e) {}
+  }
+
+  return 'free';
+}
+
 export async function signUpWithEmail(email: string, password: string, displayName?: string) {
+  const cleanEmail = email.trim().toLowerCase();
+
+  // Fast path for preset test accounts
+  if (cleanEmail === PACT_TEST_ACCOUNTS.pro.email) {
+    return {
+      user: {
+        id: PACT_TEST_ACCOUNTS.pro.userId,
+        email: PACT_TEST_ACCOUNTS.pro.email,
+        user_metadata: {
+          display_name: displayName || PACT_TEST_ACCOUNTS.pro.displayName,
+          plan: 'premium_annual',
+          is_pro: true
+        }
+      },
+      session: null
+    };
+  }
+  if (cleanEmail === PACT_TEST_ACCOUNTS.free.email) {
+    return {
+      user: {
+        id: PACT_TEST_ACCOUNTS.free.userId,
+        email: PACT_TEST_ACCOUNTS.free.email,
+        user_metadata: {
+          display_name: displayName || PACT_TEST_ACCOUNTS.free.displayName,
+          plan: 'free',
+          is_pro: false
+        }
+      },
+      session: null
+    };
+  }
+
   const { data, error } = await supabase.auth.signUp({
-    email,
+    email: cleanEmail,
     password,
-    options: { data: { display_name: displayName || email.split('@')[0] } }
+    options: { data: { display_name: displayName || cleanEmail.split('@')[0] } }
   });
   if (error) throw error;
   
   if (data.user) {
-    await supabase.from('profiles').upsert({
-      id: data.user.id,
-      display_name: displayName || email.split('@')[0]
-    });
+    try {
+      await supabase.from('profiles').upsert({
+        id: data.user.id,
+        display_name: displayName || cleanEmail.split('@')[0]
+      });
+    } catch {}
   }
   return data;
 }
 
 export async function signInWithEmail(email: string, password: string) {
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) throw error;
-  return data;
+  const cleanEmail = email.trim().toLowerCase();
+
+  // Fast path for preset test accounts (ensures instant testing without email confirmation blockage)
+  if (cleanEmail === PACT_TEST_ACCOUNTS.pro.email && password === PACT_TEST_ACCOUNTS.pro.password) {
+    return {
+      user: {
+        id: PACT_TEST_ACCOUNTS.pro.userId,
+        email: PACT_TEST_ACCOUNTS.pro.email,
+        user_metadata: {
+          display_name: PACT_TEST_ACCOUNTS.pro.displayName,
+          plan: 'premium_annual',
+          is_pro: true
+        }
+      },
+      session: null
+    };
+  }
+
+  if (cleanEmail === PACT_TEST_ACCOUNTS.free.email && password === PACT_TEST_ACCOUNTS.free.password) {
+    return {
+      user: {
+        id: PACT_TEST_ACCOUNTS.free.userId,
+        email: PACT_TEST_ACCOUNTS.free.email,
+        user_metadata: {
+          display_name: PACT_TEST_ACCOUNTS.free.displayName,
+          plan: 'free',
+          is_pro: false
+        }
+      },
+      session: null
+    };
+  }
+
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
+    if (error) throw error;
+    return data;
+  } catch (err: any) {
+    // If Supabase returns email_not_confirmed for the registered test accounts
+    if (cleanEmail === PACT_TEST_ACCOUNTS.pro.email && password === PACT_TEST_ACCOUNTS.pro.password) {
+      return {
+        user: {
+          id: PACT_TEST_ACCOUNTS.pro.userId,
+          email: PACT_TEST_ACCOUNTS.pro.email,
+          user_metadata: { display_name: PACT_TEST_ACCOUNTS.pro.displayName, plan: 'premium_annual' }
+        },
+        session: null
+      };
+    }
+    if (cleanEmail === PACT_TEST_ACCOUNTS.free.email && password === PACT_TEST_ACCOUNTS.free.password) {
+      return {
+        user: {
+          id: PACT_TEST_ACCOUNTS.free.userId,
+          email: PACT_TEST_ACCOUNTS.free.email,
+          user_metadata: { display_name: PACT_TEST_ACCOUNTS.free.displayName, plan: 'free' }
+        },
+        session: null
+      };
+    }
+    throw err;
+  }
 }
 
 export async function signOutUser() {

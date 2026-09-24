@@ -6,7 +6,7 @@
  * this store syncs key fields and can be used by new screens.
  */
 import { create } from 'zustand';
-import { SubscriptionPlan } from '../lib/purchases/customerInfo';
+import type { SubscriptionPlan } from '../lib/purchases/customerInfo.ts';
 
 export interface UserProfile {
   userId: string;
@@ -81,6 +81,16 @@ const getPersistedTutorial = (): boolean => {
   return false;
 };
 
+const getPersistedPlan = (): SubscriptionPlan => {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      const saved = window.localStorage.getItem('pact_subscription_plan');
+      if (saved === 'premium_monthly' || saved === 'premium_annual') return saved;
+    } catch (e) {}
+  }
+  return 'free';
+};
+
 export const useUserStore = create<UserState>((set, get) => ({
   profile: {
     userId: getPersistedUserId(),
@@ -90,7 +100,7 @@ export const useUserStore = create<UserState>((set, get) => ({
     createdAt: new Date().toISOString()
   },
   isAuthenticated: false,
-  subscriptionPlan: 'free',
+  subscriptionPlan: getPersistedPlan(),
   isCheckingEntitlement: false,
   purchaseError: null,
   isDarkMode: true,
@@ -153,7 +163,14 @@ export const useUserStore = create<UserState>((set, get) => ({
     return guestProfile;
   },
 
-  setSubscriptionPlan: (plan) => set({ subscriptionPlan: plan }),
+  setSubscriptionPlan: (plan) => {
+    set({ subscriptionPlan: plan });
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        window.localStorage.setItem('pact_subscription_plan', plan);
+      } catch (e) {}
+    }
+  },
   setCheckingEntitlement: (v) => set({ isCheckingEntitlement: v }),
   setPurchaseError: (msg) => set({ purchaseError: msg }),
 
@@ -176,6 +193,6 @@ export const useUserStore = create<UserState>((set, get) => ({
 }));
 
 // Register with unified identity resolver
-import { registerUserStore } from '../lib/user/identity';
+import { registerUserStore } from '../lib/user/identity.ts';
 registerUserStore(useUserStore);
 
