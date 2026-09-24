@@ -40,7 +40,7 @@ export default function PactTripVault() {
     groups.find((g) => g && g.id === id) ||
     groups[0] || {
       id: (id && id !== 'undefined') ? id : 'circle-college-reunion-2026',
-      name: 'Goa',
+      name: 'College Reunion 2026',
       inviteCode: 'GOA-4F82'
     };
 
@@ -63,23 +63,42 @@ export default function PactTripVault() {
     ? circleFromStore.members.map(m => m.name.replace(/\s*\(You\)/gi, '').trim())
     : (isDemoCircle ? [`${getActiveUserName()}`, 'Sam', 'Jordan', 'Maya', 'Chris'] : [`${getActiveUserName()} (Organizer)`]);
 
-  // Demo docs strictly isolated to demo circle
-  const [documents, setDocsList] = useState(
-    isDemoCircle ? [
-    { section: 'FLIGHTS & TRANSPORT', items: [
-      { name: 'IndiGo_Flight_All5.pdf', meta: `Uploaded by ${getActiveUserName()}  ·  1.2 MB`, type: 'flight' },
-      { name: 'Airport_Transfer_Receipt.pdf', meta: 'Uploaded by Sam', type: 'transfer' }
-    ]},
-    { section: 'ACCOMMODATION BOOKINGS', items: [
-      { name: 'South_Goa_Villa_Confirmation.pdf', meta: `Uploaded by ${getActiveUserName()} (You)  ·  Code #PACT-9921`, type: 'villa' }
-    ]}
-  ] : []);
+  const circleCleanName = (currentGroup.name || 'Trip').replace(/\s+/g, '_');
+
+  // Documents parameterized per circle
+  const [documents, setDocsList] = useState([
+    {
+      section: 'FLIGHTS & TRANSPORT',
+      items: [
+        {
+          name: isDemoCircle ? 'IndiGo_Flight_All5.pdf' : `${circleCleanName}_Flight_Vouchers.pdf`,
+          meta: `Uploaded by ${getActiveUserName()}  ·  1.2 MB`,
+          type: 'flight'
+        },
+        {
+          name: `${circleCleanName}_Airport_Transfer_Receipt.pdf`,
+          meta: 'Uploaded by Circle Member',
+          type: 'transfer'
+        }
+      ]
+    },
+    {
+      section: 'ACCOMMODATION BOOKINGS',
+      items: [
+        {
+          name: isDemoCircle ? 'South_Goa_Villa_Confirmation.pdf' : `${circleCleanName}_Accommodation_Confirmation.pdf`,
+          meta: `Uploaded by ${getActiveUserName()} (You)  ·  Code #PACT-9921`,
+          type: 'villa'
+        }
+      ]
+    }
+  ]);
 
   const hasDocuments = finalizedBrief !== null || documents.length > 0;
 
-  const aiText = '✈️ Goa trip update: flights & villa confirmed! All PDF vouchers are ready in the vault.';
+  const aiText = `✈️ ${currentGroup.name || 'Trip'} update: flights & accommodation confirmed! All PDF vouchers are ready in the vault.`;
 
-    const handleUploadDocument = async () => {
+  const handleUploadDocument = async () => {
     haptics.tap();
     if (Platform.OS === 'web' && typeof document !== 'undefined') {
       const input = document.createElement('input');
@@ -202,10 +221,10 @@ export default function PactTripVault() {
                   code: '#PACT-9921',
                   passengers: attendeesList,
                   details: type === 'flight'
-                    ? 'IndiGo 6E-241 • BOM → GOI • Confirmed Seats 12A-12E'
+                    ? `Flight Voucher • ${currentGroup.name || 'Trip'} • Confirmed Seats`
                     : type === 'villa'
-                    ? 'Heritage 5BHK Pool Villa • South Goa • Check-in Oct 14'
-                    : 'Airport Private Van • Dabolim Airport Pickup'
+                    ? `Accommodation Booking • ${currentGroup.name || 'Trip'} • Check-in Confirmed`
+                    : `Airport Private Transfer • ${currentGroup.name || 'Trip'} Pickup`
                 });
               }}
               style={styles.docChip}
@@ -270,9 +289,9 @@ export default function PactTripVault() {
           {/* Header Row */}
           <View style={styles.headerRow}>
             <View style={styles.headerLeft}>
-              <TouchableOpacity onPress={() => { haptics.tap(); if (router.canGoBack()) { router.back(); } else { router.push('/circle/' + currentGroup.id + '/hub'); } }} activeOpacity={0.7} style={styles.backBtn} accessibilityLabel="Go back to Circle Hub"><ArrowLeft size={18} color="#F4F3F0" /></TouchableOpacity>
+              <TouchableOpacity onPress={() => { haptics.tap(); if (router.canGoBack()) { router.back(); } else { router.push('/circle/' + currentGroup.id + '/hub' as any); } }} activeOpacity={0.7} style={styles.backBtn} accessibilityLabel="Go back to Circle Hub"><ArrowLeft size={18} color="#F4F3F0" /></TouchableOpacity>
               <Text style={styles.headerTitle}>
-                {currentGroup.name ? (currentGroup.name.toLowerCase().includes('vault') ? currentGroup.name : currentGroup.name.replace(/\s*trip$/i, '') + ' Vault') : 'Goa Beach Escape Vault'}
+                {currentGroup.name ? (currentGroup.name.toLowerCase().includes('vault') ? currentGroup.name : currentGroup.name.replace(/\s*trip$/i, '') + ' Vault') : 'Trip Vault'}
               </Text>
             </View>
 
@@ -412,7 +431,7 @@ export default function PactTripVault() {
               <Text style={styles.modalDetailLabel}>Details & booking summary</Text>
               <Text style={styles.modalDetailValue}>{selectedDoc?.details}</Text>
 
-              <Text style={[styles.modalDetailLabel, { marginTop: 12 }]}>Confirmed attendees (5)</Text>
+              <Text style={[styles.modalDetailLabel, { marginTop: 12 }]}>Confirmed attendees ({attendeesList.length})</Text>
               <View style={styles.passengerChipsRow}>
                 {selectedDoc?.passengers?.map((p: string, idx: number) => (
                   <View key={idx} style={styles.passengerChip}>
