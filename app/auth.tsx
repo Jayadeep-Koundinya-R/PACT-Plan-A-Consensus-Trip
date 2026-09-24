@@ -227,8 +227,20 @@ export default function AuthScreen() {
     try {
       if (isSignUp) {
         await register(email.trim(), password, name.trim());
+        const g = useGatherlyStore.getState();
+        useUserStore.getState().setProfile({
+          userId: g.currentUserId,
+          displayName: name.trim() || g.userName || 'Traveler',
+          email: email.trim()
+        });
       } else {
         await login(email.trim(), password);
+        const g = useGatherlyStore.getState();
+        useUserStore.getState().setProfile({
+          userId: g.currentUserId,
+          displayName: g.userName || 'Traveler',
+          email: email.trim()
+        });
       }
       useUserStore.getState().setAuthenticated(true);
       router.replace('/(tabs)/home');
@@ -242,6 +254,11 @@ export default function AuthScreen() {
   const handleInstantGuest = () => {
     triggerHaptic(Haptics.ImpactFeedbackStyle.Light);
     loginAsPersona('user-maya-001');
+    useUserStore.getState().setProfile({
+      userId: 'user-maya-001',
+      displayName: 'Maya',
+      email: 'maya@pact.travel'
+    });
     useUserStore.getState().setAuthenticated(true);
     router.replace('/(tabs)/home');
   };

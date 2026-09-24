@@ -22,7 +22,9 @@ import { colors, radius } from '../../../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
 import { ArrowLeft, Share2, Plus, Download, Sparkles, Image as ImageIcon, Check, Copy, RefreshCw, MessageSquare, Lock, ChevronDown, ChevronUp } from 'lucide-react-native';
 import { useCircleChatStore } from '../../../src/store/useCircleChatStore';
+import { useCircleStore } from '../../../src/store/useCircleStore';
 import { MemoryPhotoSkeleton } from '../../../src/components/SkeletonLoader';
+import { getActiveUserName } from '../../../src/lib/user/identity';
 
 export default function PactMemoryLibrary() {
   const { theme, isDarkMode } = useTheme();
@@ -60,13 +62,15 @@ export default function PactMemoryLibrary() {
     }, 1200);
   };
 
-  // Seeded photos from central store — never blank in offline or preview mode
-  const storePhotos = memoryPhotos[currentGroup.id] || memoryPhotos['circle-college-reunion-2026'] || [];
+  const isDemoCircle = currentGroup?.id === 'circle-college-reunion-2026';
+  const circleFromStore = id ? useCircleStore.getState().getCircle(id as string) : null;
+  const memberCount = circleFromStore?.members?.length || 1;
+  const storePhotos = memoryPhotos[currentGroup.id] || (isDemoCircle ? memoryPhotos['circle-college-reunion-2026'] : []) || [];
   const curatedPhotos = [
     {
       id: 'p1',
       uri: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=800',
-      by: 'Alex',
+      by: getActiveUserName(),
       caption: 'Goa Sunset Beach',
       bg: '#1B1D27'
     },
@@ -93,11 +97,13 @@ export default function PactMemoryLibrary() {
     }
   ];
   const [uploadedPhotos, setUploadedPhotos] = useState<any[]>([]);
-  const photos = [...uploadedPhotos, ...storePhotos, ...(storePhotos.length === 0 && uploadedPhotos.length === 0 ? curatedPhotos : [])];
+  const photos = [...uploadedPhotos, ...storePhotos, ...(isDemoCircle && storePhotos.length === 0 && uploadedPhotos.length === 0 ? curatedPhotos : [])];
 
   const hasMemories = finalizedBrief !== null || photos.length > 0;
 
-  const recap = '5 days, 5 friends, 100% consensus maintained. Favorite memory: South Goa sunset cruise.';
+  const recap = isDemoCircle
+    ? '5 days, 5 friends, 100% consensus maintained. Favorite memory: South Goa sunset cruise.'
+    : `Consensus trip finalized with ${memberCount} friends. 100% alignment maintained.`;
 
     const handleAddPhotos = async () => {
     haptics.tap();
@@ -115,7 +121,7 @@ export default function PactMemoryLibrary() {
               const newPhoto = {
                 id: 'up_' + Date.now(),
                 uri,
-                by: 'You',
+                by: `${getActiveUserName()} (You)`,
                 caption: file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' '),
                 bg: '#13151E'
               };

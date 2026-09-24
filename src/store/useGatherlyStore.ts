@@ -1,4 +1,4 @@
-﻿import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ThemeId, pactThemes, DEFAULT_THEME_ID, getThemeById } from '../theme/colors';
 import { useCircleStore } from './useCircleStore';
 import { useUserStore } from './useUserStore';
@@ -48,6 +48,7 @@ export interface Group {
   name: string;
   inviteCode: string;
   organizerId: string;
+  organizerName?: string;
   status: 'collecting' | 'voting' | 'finalized' | 'cancelled';
   totalMembersCount: number;
 }
@@ -630,11 +631,11 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
         name: newGroup.name,
         inviteCode: newGroup.inviteCode,
         organizerId: newGroup.organizerId,
-        organizerName: 'Alex Rivers',
+        organizerName: newGroup.organizerName || get().userName || 'You',
         status: 'collecting',
         totalMembersCount: newGroup.totalMembersCount,
         members: [
-          { userId: organizer, name: 'Alex (You)', status: 'locked', nudgedAt: null }
+          { userId: organizer, name: `${newGroup.organizerName || get().userName || 'You'} (Organizer)`, status: 'locked', nudgedAt: null }
         ],
         createdAt: new Date().toISOString()
       });
@@ -1050,4 +1051,9 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     });
   }
 }));
+
+// Register with unified identity resolver
+import { registerGatherlyStore } from '../lib/user/identity';
+registerGatherlyStore(useGatherlyStore);
+
 

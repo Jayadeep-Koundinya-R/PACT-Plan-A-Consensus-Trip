@@ -26,6 +26,8 @@ import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
 import { colors, radius } from '../../../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
 import { ArrowLeft, Share2, Calendar, Lock, FolderArchive, Image as ImageIcon } from 'lucide-react-native';
+import { useCircleStore } from '../../../src/store/useCircleStore';
+import { getActiveUserName } from '../../../src/lib/user/identity';
 
 export default function PactTripBrief() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -36,8 +38,10 @@ export default function PactTripBrief() {
   const router = useRouter();
   const { groups = [], members = [], formatCurrency, currency, currencySymbol, finalizedBrief, getConsensusResults } = useGatherlyStore();
 
+  const circleFromStore = id ? useCircleStore.getState().getCircle(id as string) : null;
   const currentGroup =
     groups.find((g) => g && g.id === id) ||
+    (circleFromStore ? { id: circleFromStore.id, name: circleFromStore.name, inviteCode: circleFromStore.inviteCode, organizerId: circleFromStore.organizerId, status: circleFromStore.status, totalMembersCount: circleFromStore.totalMembersCount } : undefined) ||
     groups[0] || {
       id: (id && id !== 'undefined') ? id : 'circle-college-reunion-2026',
       name: 'Goa Beach Escape 2026',
@@ -74,9 +78,16 @@ export default function PactTripBrief() {
   const destinationName = (winningOpt && winningOpt.option && (winningOpt.option.name || (winningOpt.option as any).destination)) || currentGroup.name || 'Goa, India';
   const tripDates = (finalizedBrief && finalizedBrief.travelWindow) || (winningOpt && winningOpt.option && winningOpt.option.dateStart && winningOpt.option.dateEnd ? (winningOpt.option.dateStart + ' - ' + winningOpt.option.dateEnd) : 'Oct 14 - Oct 19, 2026');
   const targetBudgetStr = (winningOpt && winningOpt.option && winningOpt.option.budgetPerPerson) ? (formatCurrency ? formatCurrency(winningOpt.option.budgetPerPerson) : ('$' + winningOpt.option.budgetPerPerson)) : (formatCurrency ? formatCurrency(540) : '$540');
-  const attendeeList = (finalizedBrief && finalizedBrief.confirmedParticipants && finalizedBrief.confirmedParticipants.length > 0)
-    ? finalizedBrief.confirmedParticipants.join(', ')
-    : (members && members.length > 0 ? members.map((m) => m.userName || 'Member').join(', ') : 'Alex, Sam, Jordan, Maya, You');
+  const activeUserName = getActiveUserName();
+  const storeMemberNames = circleFromStore?.members?.map((m) => m.name).filter(Boolean);
+  const effectiveMembers: string[] = (finalizedBrief && finalizedBrief.confirmedParticipants && finalizedBrief.confirmedParticipants.length > 0)
+    ? finalizedBrief.confirmedParticipants
+    : (members && members.length > 0)
+      ? members.map((m) => m.userName || (m as any).name || 'Member')
+      : (storeMemberNames && storeMemberNames.length > 0)
+        ? (storeMemberNames as string[])
+        : (id === 'circle-college-reunion-2026' ? [`${activeUserName} (You)`, 'Sam', 'Jordan', 'Maya', 'Chris'] : [`${activeUserName} (Organizer)`]);
+  const attendeeList = effectiveMembers.join(', ');
   const stayType = (winningOpt && winningOpt.option && winningOpt.option.destinationType)
     ? (winningOpt.option.destinationType + ' (fits ' + (currentGroup.totalMembersCount || 5) + ')')
     : ('Private stay (fits ' + (currentGroup.totalMembersCount || 5) + ')');
@@ -349,7 +360,7 @@ export default function PactTripBrief() {
           destinationName="Goa, India"
           dates="Oct 12 - Oct 17, 2026"
           budget="$850"
-          participants={['Alex', 'Maya', 'Jordan', 'Sam', 'Taylor']}
+          participants={effectiveMembers}
           tags={['Beach', 'Nightlife', 'Seafood', 'Sunset']}
           isDarkMode={true}
         />

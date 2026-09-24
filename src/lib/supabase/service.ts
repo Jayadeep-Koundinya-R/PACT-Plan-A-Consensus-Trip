@@ -246,6 +246,49 @@ export async function joinGroupWithCode(inviteCode: string, userId: string): Pro
   return group;
 }
 
+export interface CloudMember {
+  userId: string;
+  name: string;
+  role: 'organizer' | 'member';
+  status: 'locked' | 'waiting';
+}
+
+export async function fetchGroupMembersFromSupabase(groupId: string): Promise<CloudMember[]> {
+  try {
+    const { data: members, error } = await supabase
+      .from('group_members')
+      .select('user_id, role, status')
+      .eq('group_id', groupId);
+
+    if (error || !members || members.length === 0) return [];
+
+    const userIds = members.map((m: any) => m.user_id);
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, display_name')
+      .in('id', userIds);
+
+    const profileMap = new Map((profiles || []).map((p: any) => [p.id, p.display_name]));
+
+    // Check preference submission status
+    const { data: prefs } = await supabase
+      .from('preferences')
+      .select('user_id')
+      .eq('group_id', groupId);
+    const lockedUserIds = new Set((prefs || []).map((p: any) => p.user_id));
+
+    return members.map((m: any) => ({
+      userId: m.user_id,
+      name: profileMap.get(m.user_id) || (m.role === 'organizer' ? 'Organizer' : 'Member'),
+      role: (m.role as 'organizer' | 'member') || 'member',
+      status: lockedUserIds.has(m.user_id) ? 'locked' : 'waiting'
+    }));
+  } catch (e) {
+    console.warn('Error fetching group members from Supabase:', e);
+    return [];
+  }
+}
+
 // ============================================================
 // 3. Preference Services
 // ============================================================

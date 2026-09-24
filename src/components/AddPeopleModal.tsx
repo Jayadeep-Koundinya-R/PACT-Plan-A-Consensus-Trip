@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
+  TextInput,
   TouchableOpacity,
   Modal,
   StyleSheet,
@@ -19,33 +20,39 @@ import {
   QrCode,
   ShieldCheck,
   Send,
-  ExternalLink
+  ExternalLink,
+  Users
 } from 'lucide-react-native';
 import { colors, radius, shadows } from '../theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../theme/typography';
 import { useShareInvite, formatInviteMessage } from '../hooks/useShareInvite';
 import { usePactHaptics } from '../hooks/usePactHaptics';
+import { useCircleStore } from '../store/useCircleStore';
 
 interface AddPeopleModalProps {
   visible: boolean;
   groupName: string;
   inviteCode: string;
+  circleId?: string;
   isDarkMode?: boolean;
   isPro?: boolean;
   hasPro?: boolean;
   onClose: () => void;
   onOpenQR?: () => void;
+  onMemberAdded?: (name: string) => void;
 }
 
 export const AddPeopleModal: React.FC<AddPeopleModalProps> = ({
   visible,
   groupName,
   inviteCode,
+  circleId,
   isDarkMode = true,
   isPro,
   hasPro,
   onClose,
-  onOpenQR
+  onOpenQR,
+  onMemberAdded
 }) => {
   const haptics = usePactHaptics();
   const {
@@ -61,6 +68,40 @@ export const AddPeopleModal: React.FC<AddPeopleModalProps> = ({
   const [copiedLink, setCopiedLink] = useState(false);
   const joinUrl = `pact://join/${inviteCode}`;
   const isProCircle = isPro ?? hasPro ?? true;
+
+  const { circles, addMember, removeMember } = useCircleStore();
+  const circle = (circleId ? circles.find((c) => c.id === circleId) : null) || circles.find((c) => (c.inviteCode || '').toUpperCase() === (inviteCode || '').toUpperCase());
+
+  const currentMembers = circle?.members || [];
+  const targetCapacity = circle?.totalMembersCount || 5;
+  const openSeats = Math.max(0, targetCapacity - currentMembers.length);
+
+  const [friendName, setFriendName] = useState('');
+  const [addFeedback, setAddFeedback] = useState<string | null>(null);
+
+  const handleAddDirectMember = () => {
+    const cleanName = friendName.trim();
+    if (!cleanName) {
+      haptics.warning();
+      return;
+    }
+    const targetCircleId = circle?.id || circleId;
+    if (!targetCircleId) return;
+
+    haptics.success();
+    const newMemberId = `user-guest-${Date.now().toString(36)}`;
+    addMember(targetCircleId, {
+      userId: newMemberId,
+      name: cleanName,
+      status: 'waiting',
+      nudgedAt: null
+    });
+
+    setFriendName('');
+    setAddFeedback(`Added ${cleanName} to circle!`);
+    onMemberAdded?.(cleanName);
+    setTimeout(() => setAddFeedback(null), 3000);
+  };
 
   const handleCopyLink = async () => {
     haptics.tap();
@@ -146,6 +187,86 @@ export const AddPeopleModal: React.FC<AddPeopleModalProps> = ({
                 </View>
               )}
             </View>
+
+            {/* Direct Member Addition by Name */}
+            <View style={styles.addDirectCard}>
+              <View style={styles.addDirectHeader}>
+                <UserPlus size={15} color="#3DE0A0" />
+                <Text style={styles.addDirectTitle}>ADD TRAVELER BY NAME</Text>
+              </View>
+              <Text style={styles.addDirectSubtitle}>
+                Add friends directly to this circle. When they open the invite link, they join their reserved spot.
+              </Text>
+
+              <View style={styles.inputActionRow}>
+                <TextInput
+                  style={styles.directInput}
+                  value={friendName}
+                  onChangeText={setFriendName}
+                  placeholder="e.g. Liam, Aisha, Carlos"
+                  placeholderTextColor="#454857"
+                  returnKeyType="done"
+                  onSubmitEditing={handleAddDirectMember}
+                  accessibilityLabel="Friend name to add to circle"
+                />
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={handleAddDirectMember}
+                  style={styles.addDirectBtn}
+                  accessibilityLabel="Add traveler to circle"
+                >
+                  <Text style={styles.addDirectBtnText}>+ Add</Text>
+                </TouchableOpacity>
+              </View>
+
+              {addFeedback && (
+                <View style={styles.feedbackRow}>
+                  <Check size={12} color="#3DE0A0" />
+                  <Text style={styles.feedbackText}>{addFeedback}</Text>
+                </View>
+              )}
+            </View>
+
+            {/* Current Circle Members List */}
+            {currentMembers.length > 0 && (
+              <View style={styles.membersListCard}>
+                <View style={styles.membersListHeader}>
+                  <Text style={styles.membersListTitle}>
+                    CURRENT TRAVELERS ({currentMembers.length}{targetCapacity ? `/${targetCapacity}` : ''})
+                  </Text>
+                  <Text style={styles.membersListSeats}>
+                    {openSeats > 0 ? `${openSeats} open seats` : 'Circle full'}
+                  </Text>
+                </View>
+                <View style={styles.membersChipsWrap}>
+                  {currentMembers.map((m, idx) => {
+                    const isOrg = m.userId === circle?.organizerId || m.name.includes('(Organizer)');
+                    const clean = m.name.replace(/\s*\(You\)/gi, '').replace(/\s*\(Organizer\)/gi, '').trim();
+                    return (
+                      <View key={m.userId || idx} style={styles.memberTagChip}>
+                        <View style={[styles.memberTagDot, { backgroundColor: m.status === 'locked' ? '#3DE0A0' : '#EAB308' }]} />
+                        <Text style={styles.memberTagName} numberOfLines={1}>
+                          {clean} {isOrg ? '(Org)' : ''}
+                        </Text>
+                        {!isOrg && (
+                          <TouchableOpacity
+                            onPress={() => {
+                              haptics.tap();
+                              if (circle?.id) removeMember(circle.id, m.userId);
+                            }}
+                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                            style={styles.removeTagBtn}
+                            accessibilityLabel={`Remove ${clean} from circle`}
+                          >
+                            <X size={12} color="#8A8F9E" />
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    );
+                  })}
+                </View>
+              </View>
+            )}
 
             {/* Invite Code & Join Link Card */}
             <View style={styles.codeCard}>
@@ -551,6 +672,137 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#8A8F9E',
     marginTop: 1
+  },
+  addDirectCard: {
+    backgroundColor: '#1E2130',
+    borderRadius: radius.card,
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.25)',
+    padding: 14,
+    marginBottom: 14
+  },
+  addDirectHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4
+  },
+  addDirectTitle: {
+    fontFamily: fontUIBold,
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#3DE0A0',
+    letterSpacing: 0.8
+  },
+  addDirectSubtitle: {
+    fontFamily: fontUI,
+    fontSize: 11.5,
+    color: '#8A8F9E',
+    lineHeight: 16,
+    marginBottom: 10
+  },
+  inputActionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8
+  },
+  directInput: {
+    flex: 1,
+    minHeight: 44,
+    backgroundColor: '#090A0F',
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    paddingHorizontal: 12,
+    fontFamily: fontUI,
+    fontSize: 13.5,
+    color: '#F4F3F0'
+  },
+  addDirectBtn: {
+    minHeight: 44,
+    minWidth: 70,
+    backgroundColor: '#3DE0A0',
+    borderRadius: radius.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 14
+  },
+  addDirectBtnText: {
+    fontFamily: fontUIBold,
+    fontSize: 12.5,
+    fontWeight: '800',
+    color: '#090A0F'
+  },
+  feedbackRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 8
+  },
+  feedbackText: {
+    fontFamily: fontUIBold,
+    fontSize: 11.5,
+    color: '#3DE0A0'
+  },
+  membersListCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    padding: 12,
+    marginBottom: 14
+  },
+  membersListHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8
+  },
+  membersListTitle: {
+    fontFamily: fontUIBold,
+    fontSize: 10.5,
+    fontWeight: '800',
+    color: '#8A8F9E',
+    letterSpacing: 0.6
+  },
+  membersListSeats: {
+    fontFamily: fontUI,
+    fontSize: 11,
+    color: '#3DE0A0'
+  },
+  membersChipsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6
+  },
+  memberTagChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#13151E',
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    gap: 6
+  },
+  memberTagDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3
+  },
+  memberTagName: {
+    fontFamily: fontUI,
+    fontSize: 11.5,
+    color: '#F4F3F0'
+  },
+  removeTagBtn: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 2
   },
   privacyCard: {
     flexDirection: 'row',

@@ -24,6 +24,8 @@ import Animated, {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Svg, { Rect, Path } from 'react-native-svg';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
+import { useCircleStore } from '../../../src/store/useCircleStore';
+import { getActiveUserId, getActiveUserName } from '../../../src/lib/user/identity';
 import { useVoteStore, DEFAULT_DRAFT, bandToMax, bandToMin } from '../../../src/store/useVoteStore';
 import { usePactHaptics } from '../../../src/hooks/usePactHaptics';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
@@ -65,7 +67,7 @@ export default function PactConstraintsForm() {
 
   const {
     groups = [],
-    currentUserId = 'user-maya-001',
+    currentUserId = getActiveUserId(),
     members = [],
     submitPreferences
   } = useGatherlyStore();
@@ -203,7 +205,7 @@ export default function PactConstraintsForm() {
     try {
       await submitPreferences({
         userId: currentUserId,
-        userName: existingMember?.userName || 'You',
+        userName: existingMember?.userName || getActiveUserName(),
         groupId: currentGroup.id,
         dateRanges: activeDates.length > 0 ? activeDates : [{ start: '2026-10-12', end: '2026-10-18' }],
         budgetMin,
@@ -213,6 +215,9 @@ export default function PactConstraintsForm() {
         submittedAt: new Date().toISOString()
       });
       markSubmitted(circleId);
+      try {
+        useCircleStore.getState().setMemberStatus(currentGroup.id, currentUserId, 'locked');
+      } catch (e) {}
       router.push(`/circle/${currentGroup.id}/ranked-matrix` as any);
     } catch (e: any) {
       router.push(`/circle/${currentGroup.id}/ranked-matrix` as any);

@@ -1,4 +1,4 @@
-﻿import { useTheme } from '../src/hooks/useTheme';
+import { useTheme } from '../src/hooks/useTheme';
 import { useNotificationStore } from '../src/store/useNotificationStore';
 import { NotificationCenterModal } from '../src/components/NotificationCenterModal';
 import { NotificationToast } from '../src/components/NotificationToast';
@@ -15,12 +15,15 @@ import {
   Platform,
   Alert,
   Modal,
-  ActivityIndicator
+  ActivityIndicator,
+  TextInput
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import Svg, { Path, Circle } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../src/store/useGatherlyStore';
+import { getActiveUserName, getActiveUserId, updateActiveUserName } from '../src/lib/user/identity';
+import { FirstTimeTutorialModal } from '../src/components/FirstTimeTutorialModal';
 import { colors, radius, shadows } from '../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../src/theme/typography';
 import {
@@ -42,6 +45,8 @@ import {
   AlertTriangle,
   X,
   RefreshCw,
+  Pencil,
+  Compass,
 } from 'lucide-react-native';
 
 export default function PactSettings() {
@@ -51,7 +56,7 @@ export default function PactSettings() {
   const unreadCount = notifications.filter((n) => !n.read).length;
   const {
     groups = [],
-    currentUserId = 'user-maya-001',
+    currentUserId = getActiveUserId(),
     subscriptionPlan,
     clearLocalAccountData,
     logout: gatherlyLogout
@@ -79,8 +84,24 @@ export default function PactSettings() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showSignOutModal, setShowSignOutModal] = useState(false);
   const [showBillingModal, setShowBillingModal] = useState(false);
+  const [showEditNameModal, setShowEditNameModal] = useState(false);
+  const [showTutorialModal, setShowTutorialModal] = useState(false);
+  const [editNameInput, setEditNameInput] = useState('');
   const [isPurging, setIsPurging] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
+
+  const activeUserName = getActiveUserName() || profile?.displayName || 'Traveler';
+
+  const handleSaveName = () => {
+    const trimmed = editNameInput.trim();
+    if (!trimmed) {
+      Alert.alert('Invalid Name', 'Please enter a valid traveler name.');
+      return;
+    }
+    triggerHaptic();
+    updateActiveUserName(trimmed);
+    setShowEditNameModal(false);
+  };
 
   const triggerHaptic = () => {
     if (Platform.OS !== 'web') {
@@ -203,14 +224,13 @@ export default function PactSettings() {
             <View style={styles.avatarContainer}>
               <View style={styles.avatarBox}>
                 <Text style={styles.avatarInitials}>
-                  {profile?.displayName
-                    ? profile.displayName
-                        .split(' ')
-                        .map((n: string) => n[0])
-                        .slice(0, 2)
-                        .join('')
-                        .toUpperCase()
-                    : 'AR'}
+                  {activeUserName
+                    .split(' ')
+                    .filter(Boolean)
+                    .map((n: string) => n[0])
+                    .slice(0, 2)
+                    .join('')
+                    .toUpperCase() || 'TR'}
                 </Text>
               </View>
               {subscriptionPlan !== 'free' && (
@@ -221,8 +241,23 @@ export default function PactSettings() {
             </View>
 
             <View style={styles.profileTextCol}>
-              <Text style={styles.profileName}>{profile?.displayName || 'Alex Rivers'}</Text>
-              <Text style={styles.profileHandle}>{profile?.email || 'alex@pact.travel'}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Text style={[styles.profileName, { flex: 1, marginRight: 8 }]} numberOfLines={1}>{activeUserName}</Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    triggerHaptic();
+                    setEditNameInput(activeUserName);
+                    setShowEditNameModal(true);
+                  }}
+                  activeOpacity={0.7}
+                  style={styles.editNameBtn}
+                  accessibilityLabel="Edit Profile Name"
+                >
+                  <Pencil size={13} color="#FF5A5F" />
+                  <Text style={styles.editNameBtnText}>Edit</Text>
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.profileHandle}>{profile?.email || 'traveler@pact.app'}</Text>
 
               <View style={styles.proStatusPill}>
                 <Svg width="9" height="9" viewBox="0 0 9 9">
@@ -249,6 +284,33 @@ export default function PactSettings() {
                 </Text>
               </View>
             </View>
+          </View>
+
+          {/* Guide & Tutorial Section */}
+          <Text style={[styles.sectionHeading, { color: isDarkMode ? '#8B8D98' : '#6B6252' }]}>Guide & Walkthrough</Text>
+          <View style={[styles.settingsGroupCard, { backgroundColor: isDarkMode ? '#13151E' : '#FFFFFF', borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0,0,0,0.08)' }]}>
+            <TouchableOpacity
+              onPress={() => {
+                triggerHaptic();
+                setShowTutorialModal(true);
+              }}
+              activeOpacity={0.7}
+              style={[styles.settingRow, { minHeight: 44 }]}
+              accessibilityLabel="Replay App Tutorial"
+            >
+              <View style={styles.settingTextCol}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 2 }}>
+                  <Compass size={15} color="#FF5A5F" />
+                  <Text style={[styles.settingLabel, { color: isDarkMode ? '#F4F3F0' : '#1E1A14' }]}>
+                    Replay App Tutorial
+                  </Text>
+                </View>
+                <Text style={[styles.settingDesc, { color: isDarkMode ? '#6C6F7A' : '#6B6252' }]}>
+                  View the 4-step PACT consensus walkthrough (Vault, Engine, Silent Ballot, Brief).
+                </Text>
+              </View>
+              <ChevronRight size={16} color="#8B8D98" />
+            </TouchableOpacity>
           </View>
 
           {/* Active Trip Circles Section */}
@@ -649,8 +711,71 @@ export default function PactSettings() {
           </View>
         </Modal>
 
+        {/* --- MODAL 4: EDIT PROFILE NAME --- */}
+        <Modal
+          visible={showEditNameModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowEditNameModal(false)}
+        >
+          <View style={styles.modalBackdrop}>
+            <View style={[styles.dialogCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <View style={[styles.dialogIconBox, { backgroundColor: 'rgba(255, 90, 95, 0.15)' }]}>
+                <Pencil size={24} color="#FF5A5F" />
+              </View>
+
+              <Text style={[styles.dialogTitle, { color: theme.textPrimary }]}>
+                Edit Profile Name
+              </Text>
+              <Text style={[styles.dialogDesc, { color: theme.textSecondary }]}>
+                Update your traveler name across all circles, chat rooms, and decision briefs.
+              </Text>
+
+              <TextInput
+                value={editNameInput}
+                onChangeText={setEditNameInput}
+                placeholder="Your full name"
+                placeholderTextColor={isDarkMode ? '#6C6F7A' : '#A09D98'}
+                style={[
+                  styles.editNameInput,
+                  {
+                    backgroundColor: isDarkMode ? '#0E1017' : '#F4F3F0',
+                    borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0,0,0,0.12)',
+                    color: theme.textPrimary
+                  }
+                ]}
+                autoFocus
+                maxLength={32}
+              />
+
+              <View style={styles.dialogActions}>
+                <TouchableOpacity
+                  onPress={() => setShowEditNameModal(false)}
+                  activeOpacity={0.7}
+                  style={[styles.dialogCancelBtn, { borderColor: theme.border }]}
+                >
+                  <Text style={[styles.dialogCancelText, { color: theme.textSecondary }]}>Cancel</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={handleSaveName}
+                  activeOpacity={0.8}
+                  style={[styles.dialogDeleteBtn, { backgroundColor: theme.primary }]}
+                >
+                  <Check size={16} color="#050608" />
+                  <Text style={[styles.dialogDeleteText, { color: '#050608' }]}>Save Name</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
         <NotificationCenterModal />
         <NotificationToast />
+        <FirstTimeTutorialModal
+          visible={showTutorialModal}
+          onClose={() => setShowTutorialModal(false)}
+        />
         
       </View>
     </SafeAreaView>
@@ -863,6 +988,37 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: '#F4F3F0'
+  },
+  editNameBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(255, 90, 95, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 90, 95, 0.3)',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    minHeight: 44,
+    minWidth: 44,
+    justifyContent: 'center'
+  },
+  editNameBtnText: {
+    fontFamily: fontUIBold,
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FF5A5F'
+  },
+  editNameInput: {
+    width: '100%',
+    fontFamily: fontUI,
+    fontSize: 15,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginTop: 14,
+    marginBottom: 6
   },
   profileHandle: {
     fontFamily: fontUI,

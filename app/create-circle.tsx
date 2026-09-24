@@ -19,6 +19,7 @@ import { useGatherlyStore } from '../src/store/useGatherlyStore';
 import { useCircleStore, CircleMember, MemberStatus } from '../src/store/useCircleStore';
 import { fontDisplay, fontUI, fontUIBold } from '../src/theme/typography';
 import { ArrowLeft, Plus, Sparkles, Minus } from 'lucide-react-native';
+import { getActiveUserName, getActiveUserId } from '../src/lib/user/identity';
 
 export default function PactCreateJoinScreen() {
   const router = useRouter();
@@ -94,12 +95,15 @@ export default function PactCreateJoinScreen() {
       return;
     }
 
+    const activeName = getActiveUserName();
+    const activeId = getActiveUserId();
+
     setCreateError('');
     try {
       const newGroup = await createGroup({
         name,
-        organizerName: 'You',
-        organizerId: 'user-maya-001',
+        organizerName: activeName,
+        organizerId: activeId,
         totalMembersCount: total
       });
 
@@ -110,23 +114,13 @@ export default function PactCreateJoinScreen() {
           id: groupId,
           name: newGroup?.name || name,
           inviteCode: newGroup?.inviteCode || (name.slice(0, 4).toUpperCase() + '-2026'),
-          organizerId: 'user-maya-001',
-          organizerName: 'Alex Rivers',
+          organizerId: activeId,
+          organizerName: activeName,
           status: 'collecting',
           totalMembersCount: total,
-          members: (function(): CircleMember[] {
-            const list: CircleMember[] = [{ userId: 'user-maya-001', name: 'Alex (You)', status: 'locked' as MemberStatus, nudgedAt: null }];
-            const names = ['Jordan', 'Sam', 'Maya', 'Chris', 'Taylor', 'Morgan', 'Casey', 'Riley'];
-            for (let i = 1; i < total; i++) {
-              list.push({
-                userId: 'user-pending-' + i + '-' + Date.now(),
-                name: names[i - 1] || ('Friend ' + (i + 1)),
-                status: 'waiting' as MemberStatus,
-                nudgedAt: null
-              });
-            }
-            return list;
-          })(),
+          members: [
+            { userId: activeId, name: `${activeName} (Organizer)`, status: 'locked' as MemberStatus, nudgedAt: null }
+          ],
           createdAt: new Date().toISOString()
         });
       } catch (e) {}

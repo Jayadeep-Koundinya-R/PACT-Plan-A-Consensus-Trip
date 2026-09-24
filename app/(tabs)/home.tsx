@@ -3,6 +3,7 @@ import { useTheme } from '../../src/hooks/useTheme';
 import { useNotificationStore } from '../../src/store/useNotificationStore';
 import { NotificationCenterModal } from '../../src/components/NotificationCenterModal';
 import { NotificationToast } from '../../src/components/NotificationToast';
+import { FirstTimeTutorialModal } from '../../src/components/FirstTimeTutorialModal';
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -20,6 +21,7 @@ import * as Clipboard from 'expo-clipboard';
 import { useCircleStore } from '../../src/store/useCircleStore';
 import { useUserStore } from '../../src/store/useUserStore';
 import { useGatherlyStore } from '../../src/store/useGatherlyStore';
+import { getActiveUserId, getActiveUserName } from '../../src/lib/user/identity';
 import { usePactHaptics } from '../../src/hooks/usePactHaptics';
 import { colors, radius, shadows } from '../../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../../src/theme/typography';
@@ -50,8 +52,20 @@ export default function MyCirclesScreen() {
   const { openNotificationCenter, notifications } = useNotificationStore();
   const unreadCount = notifications.filter((n) => !n.read).length;
   const [circleTab, setCircleTab] = useState<'active' | 'archived'>('active');
-  const { profile, subscriptionPlan } = useUserStore();
+  const { profile, subscriptionPlan, hasSeenTutorial, setHasSeenTutorial } = useUserStore();
   const { groups = [], fetchUserGroupsFromCloud, currentUserId, resetDemoState } = useGatherlyStore();
+  const [showTutorial, setShowTutorial] = useState(false);
+
+  useEffect(() => {
+    if (!hasSeenTutorial) {
+      setShowTutorial(true);
+    }
+  }, [hasSeenTutorial]);
+
+  const activeName = getActiveUserName();
+  const avatarInitials = activeName
+    ? activeName.split(' ').filter(Boolean).map((n: string) => n[0]).slice(0, 2).join('').toUpperCase() || 'TR'
+    : 'TR';
 
   useEffect(() => {
     if (currentUserId) {
@@ -166,7 +180,7 @@ export default function MyCirclesScreen() {
                 style={styles.profilePill}
               >
               <View style={styles.avatarMini}>
-                <Text style={styles.avatarMiniText}>{profile?.displayName ? profile.displayName.slice(0, 2).toUpperCase() : 'ME'}</Text>
+                <Text style={styles.avatarMiniText}>{avatarInitials}</Text>
               </View>
               <View style={[styles.proMiniBadge, subscriptionPlan === 'free' && { backgroundColor: 'rgba(255,255,255,0.1)' }]}>
                 <Text style={[styles.proMiniBadgeText, subscriptionPlan === 'free' && { color: '#8B8D98' }]}>
@@ -336,7 +350,7 @@ export default function MyCirclesScreen() {
           )}
 
           {displayCircles.map((circle) => {
-            const isOrganizer = circle.organizerId === 'user-maya-001' || circle.organizerName === 'Alex Rivers';
+            const isOrganizer = circle.organizerId === getActiveUserId() || circle.organizerName === getActiveUserName() || circle.organizerId === 'user-maya-001';
             const lockedCount = circle.members?.filter((m) => m.status === 'locked').length || 0;
             const rawTotalCount = circle.totalMembersCount || circle.members?.length || 0;
             const totalCount = rawTotalCount > 0 ? rawTotalCount : 1;
@@ -483,7 +497,7 @@ export default function MyCirclesScreen() {
                       </View>
                     ))}
                     <Text style={styles.membersCountText}>
-                      {circle.members?.length || 5} friends
+                      {(circle.members?.length || 1)} {(circle.members?.length || 1) === 1 ? 'traveler' : 'travelers'}
                     </Text>
                   </View>
 
@@ -507,6 +521,13 @@ export default function MyCirclesScreen() {
         </ScrollView>
         <NotificationCenterModal />
         <NotificationToast />
+        <FirstTimeTutorialModal
+          visible={showTutorial}
+          onClose={() => {
+            setShowTutorial(false);
+            setHasSeenTutorial(true);
+          }}
+        />
         
       </View>
     </SafeAreaView>

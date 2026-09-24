@@ -22,6 +22,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
 import { useCircleStore } from '../../../src/store/useCircleStore';
+import { getActiveUserName, getActiveUserId } from '../../../src/lib/user/identity';
 import { useCircleRealtime } from '../../../src/hooks/useCircleRealtime';
 import { colors, radius } from '../../../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
@@ -90,7 +91,27 @@ export default function PactCirclesHub() {
   const rawId = (id && id !== 'undefined') ? id : undefined;
   const currentGroup =
     (rawId ? groups.find((g) => g && g.id === rawId) : undefined) ||
+    (rawId && circleFromStore ? {
+      id: circleFromStore.id,
+      name: circleFromStore.name,
+      inviteCode: circleFromStore.inviteCode,
+      organizerId: circleFromStore.organizerId,
+      organizerName: circleFromStore.organizerName,
+      status: circleFromStore.status,
+      totalMembersCount: circleFromStore.totalMembersCount,
+      hasPro: circleFromStore.hasPro
+    } : undefined) ||
     (activeGroupId && activeGroupId !== 'undefined' ? groups.find((g) => g && g.id === activeGroupId) : undefined) ||
+    (circleFromStore ? {
+      id: circleFromStore.id,
+      name: circleFromStore.name,
+      inviteCode: circleFromStore.inviteCode,
+      organizerId: circleFromStore.organizerId,
+      organizerName: circleFromStore.organizerName,
+      status: circleFromStore.status,
+      totalMembersCount: circleFromStore.totalMembersCount,
+      hasPro: circleFromStore.hasPro
+    } : undefined) ||
     groups[0] || {
       id: 'circle-college-reunion-2026',
       name: 'Goa Beach Escape 2026',
@@ -112,38 +133,65 @@ export default function PactCirclesHub() {
   const { openNotificationCenter, notifications } = useNotificationStore();
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  const storeMembers = circleFromStore?.members?.map(m => ({
-    name: m.name,
-    status: m.status
-  }));
+  const activeUserId = getActiveUserId();
+  const activeUserName = getActiveUserName();
+  const isDemoCircle = currentGroup?.id === 'circle-college-reunion-2026';
+
+  const storeMembers = circleFromStore?.members?.map(m => {
+    const isCurrentUser = m.userId === activeUserId || m.name.toLowerCase() === activeUserName.toLowerCase();
+    const isOrganizer = m.userId === (circleFromStore.organizerId || currentGroup.organizerId) || m.name.includes('(Organizer)');
+    let cleanName = m.name.replace(/\s*\(You\)/gi, '').replace(/\s*\(Organizer\)/gi, '').trim();
+    let displayName = cleanName;
+    if (isOrganizer && isCurrentUser) {
+      displayName = `${cleanName} (Organizer, You)`;
+    } else if (isOrganizer) {
+      displayName = `${cleanName} (Organizer)`;
+    } else if (isCurrentUser) {
+      displayName = `${cleanName} (You)`;
+    }
+    return {
+      userId: m.userId,
+      name: displayName,
+      rawName: cleanName,
+      status: m.status
+    };
+  });
 
   const [localMembersOverride, setLocalMembersOverride] = useState<any[] | null>(null);
 
-  const demoMembers = localMembersOverride || (storeMembers && storeMembers.length > 0 ? storeMembers : (activeDemoScenario === 'early_bird' ? [
-    { name: 'You', status: 'locked' as const },
-    { name: 'Alex', status: 'waiting' as const },
+  const demoMembers: any[] = localMembersOverride || (storeMembers && storeMembers.length > 0 ? storeMembers : (isDemoCircle ? (activeDemoScenario === 'early_bird' ? [
+    { name: `${activeUserName} (You)`, status: 'locked' as const },
+    { name: 'Alex P.', status: 'waiting' as const },
     { name: 'Sam', status: 'waiting' as const },
     { name: 'Jordan', status: 'waiting' as const },
     { name: 'Maya', status: 'waiting' as const }
   ] : [
-    { name: 'You', status: 'locked' as const },
-    { name: 'Alex', status: 'locked' as const },
+    { name: `${activeUserName} (You)`, status: 'locked' as const },
+    { name: 'Alex P.', status: 'locked' as const },
     { name: 'Sam', status: 'locked' as const },
     { name: 'Jordan', status: 'locked' as const },
     { name: 'Maya', status: 'locked' as const }
+  ]) : [
+    { name: `${currentGroup?.organizerName || activeUserName} (Organizer, You)`, status: 'locked' as const }
   ]));
 
-  const currentUserMember = demoMembers.find((m) => m.name === 'You') || demoMembers[0];
+  const currentUserMember = demoMembers.find((m: any) =>
+    (m.userId && m.userId === activeUserId) ||
+    m.name.includes('(You)') ||
+    m.name === `${activeUserName} (You)` ||
+    m.name === activeUserName
+  ) || demoMembers[0];
   const isCurrentUserLocked = currentUserMember?.status === 'locked';
 
-  const lockedCount = demoMembers.filter((m) => m.status === 'locked').length;
-  const rawTotalCount = demoMembers.length;
-  const totalCount = rawTotalCount > 0 ? rawTotalCount : 1;
+  const lockedCount = demoMembers.filter((m: any) => m.status === 'locked').length;
+  const targetCapacity = circleFromStore?.totalMembersCount || currentGroup?.totalMembersCount || 5;
+  const totalCount = Math.max(targetCapacity, demoMembers.length);
   const isEarlyBird = lockedCount <= 2;
-  const pct = lockedCount / totalCount;
+  const pct = Math.min(1, lockedCount / totalCount);
   const r = 34;
   const circumference = 2 * Math.PI * r;
-  const waitingMembers = demoMembers.filter((m) => m.status === 'waiting');
+  const waitingMembers = demoMembers.filter((m: any) => m.status === 'waiting');
+  const openSeatsCount = Math.max(0, targetCapacity - demoMembers.length);
 
   const initials = (name: string) => name.slice(0, 2).toUpperCase();
 
@@ -510,7 +558,11 @@ export default function PactCirclesHub() {
               <View>
                 <Text style={styles.membersCardTitle}>Member responses</Text>
                 <Text style={styles.membersCardSubtitle}>
-                  {waitingMembers.length > 0 ? `${waitingMembers.length} pending` : 'All responses locked'}
+                  {waitingMembers.length > 0
+                    ? `${waitingMembers.length} pending`
+                    : (demoMembers.length <= 1
+                      ? `${openSeatsCount} open seats remaining`
+                      : 'All responses locked')}
                 </Text>
               </View>
               <TouchableOpacity
@@ -536,7 +588,7 @@ export default function PactCirclesHub() {
                 onAction={() => setIsAddPeopleOpen(true)}
               />
             ) : (
-              demoMembers.map((m, i) => (
+              demoMembers.map((m: any, i: number) => (
                 <View
                   key={m.name}
                   style={[
@@ -585,6 +637,33 @@ export default function PactCirclesHub() {
                   )}
                 </View>
               ))
+            )}
+
+            {openSeatsCount > 0 && (
+              <View style={styles.openSeatsRow}>
+                <View style={styles.openSeatsAvatar}>
+                  <UserPlus size={15} color="#8B8D98" />
+                </View>
+                <View style={styles.memberInfoCol}>
+                  <Text style={styles.openSeatsTitle}>
+                    {openSeatsCount} open seat{openSeatsCount > 1 ? 's' : ''} awaiting friends
+                  </Text>
+                  <Text style={styles.openSeatsSubtext}>
+                    Share code {currentGroup.inviteCode || '...'} to join
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => {
+                    haptics.tap();
+                    setIsAddPeopleOpen(true);
+                  }}
+                  activeOpacity={0.8}
+                  style={styles.openSeatsActionBtn}
+                  accessibilityLabel="Invite friends to open seat"
+                >
+                  <Text style={styles.openSeatsActionBtnText}>+ Invite</Text>
+                </TouchableOpacity>
+              </View>
             )}
           </View>
 
@@ -728,6 +807,7 @@ export default function PactCirclesHub() {
           visible={isAddPeopleOpen}
           groupName={currentGroup.name || 'Trip Circle'}
           inviteCode={currentGroup.inviteCode || 'GOA-4F82'}
+          circleId={currentGroup.id}
           onClose={() => setIsAddPeopleOpen(false)}
           onOpenQR={() => setIsQROpen(true)}
         />
@@ -1144,6 +1224,56 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#3DE0A0',
     letterSpacing: 0.4
+  },
+  openSeatsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+    borderStyle: 'dashed'
+  },
+  openSeatsAvatar: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: 'rgba(255, 255, 255, 0.22)',
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  openSeatsTitle: {
+    fontFamily: fontUIBold,
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#8B8D98'
+  },
+  openSeatsSubtext: {
+    fontFamily: fontUI,
+    fontSize: 11,
+    color: '#6C6F7A',
+    marginTop: 1
+  },
+  openSeatsActionBtn: {
+    minHeight: 36,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(255, 90, 95, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 90, 95, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  openSeatsActionBtnText: {
+    fontFamily: fontUIBold,
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#FF5A5F'
   },
   ticketCardContainer: {
     marginBottom: 16

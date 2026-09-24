@@ -49,6 +49,8 @@ interface CircleState {
   setMemberStatus: (circleId: string, userId: string, status: MemberStatus) => void;
   nudgeMember: (circleId: string, userId: string) => void;
   addMember: (circleId: string, member: CircleMember) => void;
+  removeMember: (circleId: string, userId: string) => void;
+  claimMemberSlot: (circleId: string, name: string, userId: string) => boolean;
   archiveCircle: (id: string) => void;
   unarchiveCircle: (id: string) => void;
   syncFromLegacy: (groups: any[], activeGroupId: string) => void;
@@ -59,11 +61,11 @@ interface CircleState {
 }
 
 const DEMO_MEMBERS: CircleMember[] = [
-  { userId: 'user-maya-001', name: 'Alex', status: 'locked', nudgedAt: null },
-  { userId: 'user-jake-002', name: 'You', status: 'locked', nudgedAt: null },
-  { userId: 'user-priya-003', name: 'Sam', status: 'locked', nudgedAt: null },
-  { userId: 'user-alex-004', name: 'Jordan', status: 'waiting', nudgedAt: null },
-  { userId: 'user-sam-005', name: 'Maya', status: 'waiting', nudgedAt: null }
+  { userId: 'user-maya-001', name: 'Maya (Organizer)', status: 'locked', nudgedAt: null },
+  { userId: 'user-jake-002', name: 'Jake', status: 'locked', nudgedAt: null },
+  { userId: 'user-priya-003', name: 'Priya', status: 'locked', nudgedAt: null },
+  { userId: 'user-alex-004', name: 'Alex', status: 'waiting', nudgedAt: null },
+  { userId: 'user-sam-005', name: 'Sam', status: 'waiting', nudgedAt: null }
 ];
 
 const DEMO_CIRCLE: Circle = {
@@ -71,7 +73,7 @@ const DEMO_CIRCLE: Circle = {
   name: 'Goa Beach Escape 2026',
   inviteCode: 'GOA-4F82',
   organizerId: 'user-maya-001',
-  organizerName: 'Alex Rivers',
+  organizerName: 'Maya',
   status: 'voting',
   totalMembersCount: 5,
   hasPro: true,
@@ -79,8 +81,31 @@ const DEMO_CIRCLE: Circle = {
   createdAt: new Date().toISOString()
 };
 
+const getInitialCircles = (): Circle[] => {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      const saved = window.localStorage.getItem('pact_circles');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch (e) {}
+  }
+  return [];
+};
+
+const saveCirclesToStorage = (circles: Circle[]) => {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      window.localStorage.setItem('pact_circles', JSON.stringify(circles));
+    } catch (e) {}
+  }
+};
+
 export const useCircleStore = create<CircleState>((set, get) => ({
-  circles: [],
+  circles: getInitialCircles(),
   activeCircleId: null,
 
   getCircle: (id) => get().circles.find((c) => c.id === id),
@@ -117,25 +142,35 @@ export const useCircleStore = create<CircleState>((set, get) => ({
   setActiveCircle: (id) => set({ activeCircleId: id }),
 
   addCircle: (circle) =>
-    set((s) => ({
-      circles: [circle, ...s.circles.filter((c) => c.id !== circle.id)],
-      activeCircleId: circle.id
-    })),
+    set((s) => {
+      const updated = [circle, ...s.circles.filter((c) => c.id !== circle.id)];
+      saveCirclesToStorage(updated);
+      return {
+        circles: updated,
+        activeCircleId: circle.id
+      };
+    }),
 
   removeCircle: (id) =>
-    set((s) => ({
-      circles: s.circles.filter((c) => c.id !== id),
-      activeCircleId: s.activeCircleId === id ? (s.circles[0]?.id || null) : s.activeCircleId
-    })),
+    set((s) => {
+      const updated = s.circles.filter((c) => c.id !== id);
+      saveCirclesToStorage(updated);
+      return {
+        circles: updated,
+        activeCircleId: s.activeCircleId === id ? (s.circles[0]?.id || null) : s.activeCircleId
+      };
+    }),
 
   updateCircleStatus: (id, status) =>
-    set((s) => ({
-      circles: s.circles.map((c) => (c.id === id ? { ...c, status } : c))
-    })),
+    set((s) => {
+      const updated = s.circles.map((c) => (c.id === id ? { ...c, status } : c));
+      saveCirclesToStorage(updated);
+      return { circles: updated };
+    }),
 
   setMemberStatus: (circleId, userId, status) =>
-    set((s) => ({
-      circles: s.circles.map((c) =>
+    set((s) => {
+      const updated = s.circles.map((c) =>
         c.id === circleId
           ? {
               ...c,
@@ -144,23 +179,32 @@ export const useCircleStore = create<CircleState>((set, get) => ({
               )
             }
           : c
-      )
-    })),
+      );
+      saveCirclesToStorage(updated);
+      return { circles: updated };
+    }),
 
   setCircleProStatus: (circleId, hasPro) =>
-    set((s) => ({
-      circles: s.circles.map((c) =>
+    set((s) => {
+      const updated = s.circles.map((c) =>
         c.id === circleId ? { ...c, hasPro } : c
-      )
-    })),
+      );
+      saveCirclesToStorage(updated);
+      return { circles: updated };
+    }),
 
   loadDemoCircle: () => {
-    set({
-      circles: [DEMO_CIRCLE],
-      activeCircleId: DEMO_CIRCLE.id
+    set((s) => {
+      const updated = [DEMO_CIRCLE, ...s.circles.filter((c) => c.id !== DEMO_CIRCLE.id)];
+      saveCirclesToStorage(updated);
+      return {
+        circles: updated,
+        activeCircleId: DEMO_CIRCLE.id
+      };
     });
   },
   clearCircles: () => {
+    saveCirclesToStorage([]);
     set({
       circles: [],
       activeCircleId: null
@@ -172,8 +216,8 @@ export const useCircleStore = create<CircleState>((set, get) => ({
   },
 
   nudgeMember: (circleId, userId) =>
-    set((s) => ({
-      circles: s.circles.map((c) =>
+    set((s) => {
+      const updated = s.circles.map((c) =>
         c.id === circleId
           ? {
               ...c,
@@ -184,44 +228,117 @@ export const useCircleStore = create<CircleState>((set, get) => ({
               )
             }
           : c
-      )
-    })),
+      );
+      saveCirclesToStorage(updated);
+      return { circles: updated };
+    }),
 
   addMember: (circleId, member) =>
-    set((s) => ({
-      circles: s.circles.map((c) =>
+    set((s) => {
+      const cleanMember: CircleMember = {
+        ...member,
+        name: member.name.replace(/\s*\(You\)/gi, '').trim()
+      };
+      const updated = s.circles.map((c) =>
         c.id === circleId
           ? {
               ...c,
-              members: [...c.members.filter((m) => m.userId !== member.userId), member],
+              members: [...c.members.filter((m) => m.userId !== cleanMember.userId), cleanMember],
               totalMembersCount: Math.max(c.totalMembersCount, c.members.length + 1)
             }
           : c
-      )
-    })),
+      );
+      saveCirclesToStorage(updated);
+      return { circles: updated };
+    }),
+
+  removeMember: (circleId, userId) =>
+    set((s) => {
+      const updated = s.circles.map((c) =>
+        c.id === circleId
+          ? {
+              ...c,
+              members: c.members.filter((m) => m.userId !== userId)
+            }
+          : c
+      );
+      saveCirclesToStorage(updated);
+      return { circles: updated };
+    }),
+
+  claimMemberSlot: (circleId, name, userId) => {
+    const cleanTargetName = name.replace(/\s*\(You\)/gi, '').replace(/\s*\(Organizer\)/gi, '').trim().toLowerCase();
+    const circle = get().circles.find((c) => c.id === circleId);
+    if (!circle) return false;
+    const existingIndex = circle.members.findIndex(
+      (m) => m.name.replace(/\s*\(You\)/gi, '').replace(/\s*\(Organizer\)/gi, '').trim().toLowerCase() === cleanTargetName
+    );
+    if (existingIndex >= 0) {
+      set((s) => {
+        const updated = s.circles.map((c) => {
+          if (c.id !== circleId) return c;
+          const updatedMembers = [...c.members];
+          updatedMembers[existingIndex] = {
+            ...updatedMembers[existingIndex],
+            userId
+          };
+          return { ...c, members: updatedMembers };
+        });
+        saveCirclesToStorage(updated);
+        return { circles: updated };
+      });
+      return true;
+    }
+    return false;
+  },
 
   archiveCircle: (id) =>
-    set((s) => ({
-      circles: s.circles.map((c) => (c.id === id ? { ...c, archived: true } : c))
-    })),
+    set((s) => {
+      const updated = s.circles.map((c) => (c.id === id ? { ...c, archived: true } : c));
+      saveCirclesToStorage(updated);
+      return { circles: updated };
+    }),
 
   unarchiveCircle: (id) =>
-    set((s) => ({
-      circles: s.circles.map((c) => (c.id === id ? { ...c, archived: false } : c))
-    })),
+    set((s) => {
+      const updated = s.circles.map((c) => (c.id === id ? { ...c, archived: false } : c));
+      saveCirclesToStorage(updated);
+      return { circles: updated };
+    }),
 
   syncFromLegacy: (groups, activeGroupId) => {
-    const circles: Circle[] = groups.map((g: any) => ({
-      id: g.id,
-      name: g.name,
-      inviteCode: g.inviteCode,
-      organizerId: g.organizerId,
-      organizerName: 'Alex Rivers',
-      status: g.status,
-      totalMembersCount: g.totalMembersCount || 5,
-      members: DEMO_MEMBERS,
-      createdAt: new Date().toISOString()
-    }));
+    const existingCircles = get().circles;
+    const circles: Circle[] = groups.map((g: any) => {
+      const existing = existingCircles.find((c) => c.id === g.id);
+      return {
+        id: g.id,
+        name: g.name,
+        inviteCode: g.inviteCode,
+        organizerId: g.organizerId,
+        organizerName: g.organizerName || existing?.organizerName || 'Organizer',
+        status: g.status,
+        totalMembersCount: g.totalMembersCount || existing?.totalMembersCount || 5,
+        members: g.id === 'circle-college-reunion-2026'
+          ? DEMO_MEMBERS
+          : (existing?.members && existing.members.length > 0
+            ? existing.members
+            : (g.members && g.members.length > 0
+              ? g.members.map((m: any) => ({
+                  userId: m.userId || m.user_id,
+                  name: (m.userName || m.name || (m.userId === g.organizerId ? `${g.organizerName || 'Organizer'} (Organizer)` : 'Member')).replace(/\s*\(You\)/gi, '').trim(),
+                  status: m.status || 'waiting',
+                  nudgedAt: m.nudgedAt || null
+                }))
+              : [{ userId: g.organizerId, name: `${g.organizerName || 'Organizer'} (Organizer)`, status: 'locked' as MemberStatus, nudgedAt: null }])),
+        createdAt: existing?.createdAt || new Date().toISOString()
+      };
+    });
+    saveCirclesToStorage(circles);
     set({ circles, activeCircleId: activeGroupId });
   }
 }));
+
+// Register with unified identity resolver
+import { registerCircleStore } from '../lib/user/identity.ts';
+registerCircleStore(useCircleStore);
+

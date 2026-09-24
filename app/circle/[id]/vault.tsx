@@ -22,7 +22,8 @@ import { EmptyState } from '../../../src/components/EmptyState';
 import { colors, radius } from '../../../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
 import { ArrowLeft, FileText, Home, Shield, Copy, Check, Plus, RefreshCw, Upload } from 'lucide-react-native';
-import { VaultDocSkeleton } from '../../../src/components/SkeletonLoader';
+import { getActiveUserName } from '../../../src/lib/user/identity';
+import { useCircleStore } from '../../../src/store/useCircleStore';
 
 export default function PactTripVault() {
   const { theme, isDarkMode } = useTheme();
@@ -56,16 +57,23 @@ export default function PactTripVault() {
     }, 1200);
   };
 
-  // Demo docs — in production, this would come from Supabase storage
-  const [documents, setDocsList] = useState([
+  const circleFromStore = id ? useCircleStore.getState().getCircle(id as string) : null;
+  const isDemoCircle = id === 'circle-college-reunion-2026';
+  const attendeesList = (circleFromStore?.members && circleFromStore.members.length > 0)
+    ? circleFromStore.members.map(m => m.name.replace(/\s*\(You\)/gi, '').trim())
+    : (isDemoCircle ? [`${getActiveUserName()}`, 'Sam', 'Jordan', 'Maya', 'Chris'] : [`${getActiveUserName()} (Organizer)`]);
+
+  // Demo docs strictly isolated to demo circle
+  const [documents, setDocsList] = useState(
+    isDemoCircle ? [
     { section: 'FLIGHTS & TRANSPORT', items: [
-      { name: 'IndiGo_Flight_All5.pdf', meta: 'Uploaded by Alex  ·  1.2 MB', type: 'flight' },
+      { name: 'IndiGo_Flight_All5.pdf', meta: `Uploaded by ${getActiveUserName()}  ·  1.2 MB`, type: 'flight' },
       { name: 'Airport_Transfer_Receipt.pdf', meta: 'Uploaded by Sam', type: 'transfer' }
     ]},
     { section: 'ACCOMMODATION BOOKINGS', items: [
-      { name: 'South_Goa_Villa_Confirmation.pdf', meta: 'Uploaded by You  ·  Code #PACT-9921', type: 'villa' }
+      { name: 'South_Goa_Villa_Confirmation.pdf', meta: `Uploaded by ${getActiveUserName()} (You)  ·  Code #PACT-9921`, type: 'villa' }
     ]}
-  ]);
+  ] : []);
 
   const hasDocuments = finalizedBrief !== null || documents.length > 0;
 
@@ -92,7 +100,7 @@ export default function PactTripVault() {
             type,
             code: 'PACT-' + Math.floor(1000 + Math.random() * 9000),
             details: `Confirmed ${file.name.replace(/\.[^/.]+$/, '')} voucher uploaded to circle vault. Verified with group consensus.`,
-            passengers: ['Alex (You)', 'Sam', 'Jordan', 'Maya', 'Chris']
+            passengers: attendeesList
           };
           setDocsList((prev: any[]) => {
             const targetSection = isVilla ? 'ACCOMMODATION BOOKINGS' : 'FLIGHTS & TRANSPORT';
@@ -130,7 +138,7 @@ export default function PactTripVault() {
             type: 'flight',
             code: 'PACT-' + Math.floor(1000 + Math.random() * 9000),
             details: 'Confirmed booking screenshot uploaded to circle vault. Verified with group consensus.',
-            passengers: ['Alex (You)', 'Sam', 'Jordan', 'Maya', 'Chris']
+            passengers: attendeesList
           };
           setDocsList((prev: any[]) => {
             return prev.map((sec: any) => {
@@ -192,7 +200,7 @@ export default function PactTripVault() {
                   meta,
                   type,
                   code: '#PACT-9921',
-                  passengers: ['Alex (Organizer)', 'You', 'Sam', 'Jordan', 'Maya'],
+                  passengers: attendeesList,
                   details: type === 'flight'
                     ? 'IndiGo 6E-241 • BOM → GOI • Confirmed Seats 12A-12E'
                     : type === 'villa'

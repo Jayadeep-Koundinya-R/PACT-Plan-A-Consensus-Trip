@@ -5,7 +5,9 @@ import {
   StyleSheet,
   SafeAreaView,
   ScrollView,
-  Platform
+  Platform,
+  TextInput,
+  TouchableOpacity
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
@@ -13,7 +15,8 @@ import {
   Compass,
   ShieldCheck,
   ArrowRight,
-  Sparkles
+  Sparkles,
+  UserPlus
 } from 'lucide-react-native';
 import { useCircleStore } from '../../src/store/useCircleStore';
 import { useUserStore } from '../../src/store/useUserStore';
@@ -22,6 +25,7 @@ import { usePactHaptics } from '../../src/hooks/usePactHaptics';
 import { PactCard, PactButton, PactTicketCard } from '../../src/components/common';
 import { colors, radius, shadows, spacing } from '../../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../../src/theme/typography';
+import { getActiveUserName } from '../../src/lib/user/identity';
 
 export default function JoinConfirmationScreen() {
   const { code } = useLocalSearchParams<{ code: string }>();
@@ -45,16 +49,23 @@ export default function JoinConfirmationScreen() {
   const [isJoining, setIsJoining] = useState(false);
   const [hasJoined, setHasJoined] = useState(false);
 
+  const activeName = getActiveUserName();
+  const [travelerName, setTravelerName] = useState(activeName !== 'Traveler' ? activeName : '');
+
   // Look up circle by code in Zustand circleStore first, then gatherlyStore fallback
-  const foundCircle = getCircleByInviteCode(inviteCode) || circles[0];
+  const foundCircle = getCircleByInviteCode(inviteCode) || circles.find((c) => (c.inviteCode || '').toUpperCase() === inviteCode);
   const legacyGroup = groups.find(
     (g) => (g.inviteCode || '').toUpperCase() === inviteCode
-  ) || groups[0];
+  );
 
-  const tripTitle = foundCircle?.name || legacyGroup?.name || 'Goa Beach Escape 2026';
-  const organizerName = foundCircle?.organizerName || 'Alex Rivers';
-  const memberCount = foundCircle?.totalMembersCount || foundCircle?.members?.length || legacyGroup?.totalMembersCount || 5;
-  const circleId = foundCircle?.id || legacyGroup?.id || 'circle-college-reunion-2026';
+  const tripTitle = foundCircle?.name || legacyGroup?.name || '';
+  const organizerName = foundCircle?.organizerName || legacyGroup?.organizerName || 'Organizer';
+  const circleId = foundCircle?.id || legacyGroup?.id || '';
+
+  const currentMembers = (foundCircle?.members && foundCircle.members.length > 0)
+    ? foundCircle.members
+    : [{ userId: 'org', name: `${organizerName} (Organizer)`, status: 'locked' as const, nudgedAt: null }];
+  const realMemberCount = currentMembers.length;
 
   const isAlreadyMember = Boolean(
     foundCircle?.members?.some((m) => m.userId === profile.userId)
@@ -63,23 +74,27 @@ export default function JoinConfirmationScreen() {
   const handleJoinTrip = async () => {
     setIsJoining(true);
     try {
-      // 1. Ensure zero-friction guest session
-      const guestProfile = ensureGuestSession(profile.displayName || 'Guest Explorer');
+      // 1. Ensure zero-friction guest session with explicit entered name
+      const cleanGuestName = travelerName.trim() || (activeName && activeName !== 'Traveler' ? activeName : profile.displayName) || `Friend ${realMemberCount + 1}`;
+      const guestProfile = ensureGuestSession(cleanGuestName);
 
-      // 2. Add to circle members in useCircleStore
+      // 2. Claim reserved slot if pre-added by organizer, or add new member to circle
       if (foundCircle) {
-        addMember(foundCircle.id, {
-          userId: guestProfile.userId,
-          name: guestProfile.displayName || 'You (Guest)',
-          status: 'waiting',
-          nudgedAt: null
-        });
+        const claimed = useCircleStore.getState().claimMemberSlot(foundCircle.id, cleanGuestName, guestProfile.userId);
+        if (!claimed) {
+          addMember(foundCircle.id, {
+            userId: guestProfile.userId,
+            name: cleanGuestName,
+            status: 'waiting',
+            nudgedAt: null
+          });
+        }
       }
 
       // 3. Sync legacy store if present
       if (inviteCode && joinGroupByCode) {
         try {
-          joinGroupByCode(inviteCode);
+          await joinGroupByCode(inviteCode);
         } catch {}
       }
 
@@ -98,6 +113,27 @@ export default function JoinConfirmationScreen() {
       setIsJoining(false);
     }
   };
+
+  if (!foundCircle && !legacyGroup) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+          <View style={[styles.avatarCircle, { width: 64, height: 64, borderRadius: 32, marginBottom: 16, backgroundColor: 'rgba(255, 90, 95, 0.15)' }]}>
+            <Compass size={28} color="#FF5A5F" />
+          </View>
+          <Text style={[styles.tripTitleHeading, { textAlign: 'center', marginBottom: 8 }]}>Circle Not Found</Text>
+          <Text style={{ fontFamily: fontUI, fontSize: 14, color: '#8B8D98', textAlign: 'center', marginBottom: 24, lineHeight: 20 }}>
+            We could not find any active trip circle with code "{inviteCode}". Please verify the code with your organizer.
+          </Text>
+          <PactButton
+            title="Return to Home"
+            variant="solid"
+            onPress={() => router.replace('/(tabs)/home')}
+          />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -143,11 +179,11 @@ export default function JoinConfirmationScreen() {
                 <View style={styles.metaDivider} />
 
                 <View style={styles.metaItem}>
-                  <Text style={styles.metaLabel}>Members</Text>
+                  <Text style={styles.metaLabel}>Joined</Text>
                   <View style={styles.memberCountRow}>
                     <Users size={14} color="#3DE0A0" />
                     <Text style={styles.metaValueHighlight}>
-                      {memberCount} friends
+                      {realMemberCount} {realMemberCount === 1 ? 'traveler' : 'travelers'}
                     </Text>
                   </View>
                 </View>
@@ -156,7 +192,9 @@ export default function JoinConfirmationScreen() {
 
                 <View style={styles.metaItem}>
                   <Text style={styles.metaLabel}>Status</Text>
-                  <Text style={styles.metaValueStatus}>Voting</Text>
+                  <Text style={styles.metaValueStatus}>
+                    {foundCircle?.status === 'voting' ? 'Voting' : 'Collecting'}
+                  </Text>
                 </View>
               </View>
             </View>
@@ -176,27 +214,62 @@ export default function JoinConfirmationScreen() {
           }
         />
 
-        {/* Member Preview Avatars */}
+        {/* Member Preview Avatars: Shows all previously joined members */}
         <PactCard style={styles.membersPreviewCard}>
-          <Text style={styles.membersCardTitle}>Current Circle Members</Text>
+          <Text style={styles.membersCardTitle}>
+            Current Circle Members ({realMemberCount})
+          </Text>
           <View style={styles.avatarList}>
-            {(foundCircle?.members || [
-              { name: 'Alex (Host)' },
-              { name: 'Sam' },
-              { name: 'Jordan' },
-              { name: 'Maya' }
-            ]).map((m, idx) => (
+            {currentMembers.map((m, idx) => (
               <View key={idx} style={styles.memberChip}>
                 <View style={styles.avatarCircle}>
                   <Text style={styles.avatarInitial}>
                     {(m.name || 'M').charAt(0).toUpperCase()}
                   </Text>
                 </View>
-                <Text style={styles.memberName}>{m.name}</Text>
+                <Text style={styles.memberName}>
+                  {m.name.replace(/\s*\(You\)/gi, '')}
+                </Text>
               </View>
             ))}
           </View>
         </PactCard>
+
+        {/* Traveler Name Input */}
+        {!isAlreadyMember && (
+          <View style={styles.nameInputContainer}>
+            <Text style={styles.nameInputLabel}>YOUR NAME (AS IT APPEARS TO THE GROUP)</Text>
+            <TextInput
+              style={styles.nameInput}
+              value={travelerName}
+              onChangeText={setTravelerName}
+              placeholder="e.g. Sarah Patel"
+              placeholderTextColor="#454857"
+              autoCapitalize="words"
+              accessibilityLabel="Your traveler name"
+            />
+          </View>
+        )}
+
+        {/* If already joined notice with option to switch */}
+        {isAlreadyMember && (
+          <View style={styles.alreadyMemberNotice}>
+            <Text style={styles.alreadyMemberText}>
+              You are currently recognized as a member of this circle.
+            </Text>
+            <TouchableOpacity
+              onPress={() => {
+                haptics.tap();
+                ensureGuestSession(`Friend ${realMemberCount + 1}`);
+                setTravelerName('');
+              }}
+              style={styles.switchFriendLink}
+              accessibilityLabel="Join as a different traveler"
+            >
+              <Text style={styles.switchFriendLinkText}>+ Join as a different friend / device</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Primary CTA */}
         <View style={styles.ctaContainer}>
@@ -433,5 +506,52 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
     color: '#6C6F7A',
     textAlign: 'center'
+  },
+  nameInputContainer: {
+    width: '100%',
+    marginBottom: 20
+  },
+  nameInputLabel: {
+    fontFamily: fontUIBold,
+    fontSize: 11,
+    color: '#8B8D98',
+    letterSpacing: 0.8,
+    marginBottom: 8
+  },
+  nameInput: {
+    height: 48,
+    backgroundColor: '#13151E',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.14)',
+    borderRadius: radius.card,
+    paddingHorizontal: 16,
+    fontFamily: fontUI,
+    fontSize: 14,
+    color: '#F4F3F0'
+  },
+  alreadyMemberNotice: {
+    width: '100%',
+    backgroundColor: 'rgba(61, 224, 160, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.2)',
+    borderRadius: radius.card,
+    padding: 12,
+    marginBottom: 16,
+    alignItems: 'center'
+  },
+  alreadyMemberText: {
+    fontFamily: fontUI,
+    fontSize: 12,
+    color: '#3DE0A0',
+    textAlign: 'center',
+    marginBottom: 6
+  },
+  switchFriendLink: {
+    paddingVertical: 4
+  },
+  switchFriendLinkText: {
+    fontFamily: fontUIBold,
+    fontSize: 11.5,
+    color: '#FF5A5F'
   }
 });

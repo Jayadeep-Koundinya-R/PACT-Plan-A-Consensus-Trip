@@ -18,6 +18,7 @@ import { usePactHaptics } from '../../../src/hooks/usePactHaptics';
 import { useCircleChat } from '../../../src/hooks/useCircleChat';
 import { CircleMessage } from '../../../src/store/useCircleChatStore';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
+import { getActiveUserName, getActiveUserId } from '../../../src/lib/user/identity';
 import {
   ArrowLeft,
   Send,
@@ -43,8 +44,10 @@ export default function PactCircleChatScreen() {
   const haptics = usePactHaptics();
   const { groups = [], currentUserId: storeUserId = 'user-maya-001' } = useGatherlyStore();
 
+  const circleFromStore = id ? useCircleStore.getState().getCircle(id as string) : null;
   const currentGroup =
     groups.find((g) => g && g.id === id) ||
+    (circleFromStore ? { id: circleFromStore.id, name: circleFromStore.name, inviteCode: circleFromStore.inviteCode, organizerId: circleFromStore.organizerId, status: circleFromStore.status } : undefined) ||
     groups[0] || {
       id: (id && id !== 'undefined') ? id : 'circle-college-reunion-2026',
       name: 'Goa Beach Escape 2026',
@@ -53,9 +56,12 @@ export default function PactCircleChatScreen() {
 
   const isFinalized = currentGroup?.status === 'finalized';
 
+  const currentUserName = getActiveUserName();
+  const currentUserId = getActiveUserId();
+
   // Switchable sender persona for live 2-account interaction testing
-  const [activeSenderId, setActiveSenderId] = useState<string>('user-maya-001');
-  const [activeSenderName, setActiveSenderName] = useState<string>('Alex (You)');
+  const [activeSenderId, setActiveSenderId] = useState<string>(currentUserId);
+  const [activeSenderName, setActiveSenderName] = useState<string>(`${currentUserName} (You)`);
   const [inputText, setInputText] = useState<string>('');
 
   const { messages, sendMessage, isConnected, isSending } = useCircleChat(
@@ -81,11 +87,22 @@ export default function PactCircleChatScreen() {
     await sendMessage(textToSend, activeSenderId, activeSenderName);
   };
 
-  const personas = [
-    { id: 'user-maya-001', name: 'Alex (You)', role: 'Organizer' },
-    { id: 'user-jordan-002', name: 'Jordan Lee', role: 'Member' },
-    { id: 'user-sam-003', name: 'Sam Patel', role: 'Member' }
-  ];
+  const isDemoCircle = currentGroup?.id === 'circle-college-reunion-2026';
+  const circleMembers = circleFromStore?.members || [];
+
+  const personas = circleMembers.length > 0
+    ? circleMembers.map((m) => ({
+        id: m.userId,
+        name: m.name.includes('(Organizer)') || m.name.includes('(You)') ? m.name : `${m.name}`,
+        role: (m.userId === currentGroup?.organizerId || m.name.includes('(Organizer)')) ? 'Organizer' : 'Member'
+      }))
+    : (isDemoCircle ? [
+        { id: currentUserId, name: `${currentUserName} (You)`, role: 'Organizer' },
+        { id: 'user-jordan-002', name: 'Jordan Lee', role: 'Member' },
+        { id: 'user-sam-003', name: 'Sam Patel', role: 'Member' }
+      ] : [
+        { id: currentUserId, name: `${currentUserName} (You)`, role: 'Organizer' }
+      ]);
 
   return (
     <CircleRouteGuard id={id}>

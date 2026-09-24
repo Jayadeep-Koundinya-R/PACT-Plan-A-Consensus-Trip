@@ -40,7 +40,7 @@ export default function InviteIndexScreen() {
     triggerHaptic();
     const clean = manualCode.trim().toUpperCase();
     if (clean.length >= 4) {
-      router.push(`/invite/${clean}` as any);
+      router.push(`/join/${clean}` as any);
     }
   };
 
