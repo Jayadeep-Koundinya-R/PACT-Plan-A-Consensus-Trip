@@ -219,9 +219,13 @@ export default function PactCirclesHub() {
   const handleCopyCode = async () => {
     haptics.tap();
     const code = currentGroup.inviteCode || 'GOA-4F82';
-    await copyInviteCode(code);
-    setCopiedCode(true);
-    setTimeout(() => setCopiedCode(false), 2000);
+    try {
+      await copyInviteCode(code);
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 2000);
+    } catch (err) {
+      console.warn('[Hub] Failed to copy invite code:', err);
+    }
   };
 
   const handleShareWhatsApp = async () => {

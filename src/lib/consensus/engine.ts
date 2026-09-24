@@ -104,7 +104,7 @@ export function calculateTagScore(
     return { score: 1.0, matchedTags: [] };
   }
 
-  const tripTagSet = new Set(tripTags.map((t) => t.toLowerCase().trim()));
+  const tripTagSet = new Set((tripTags || []).map((t) => t.toLowerCase().trim()));
   const matchedTags: string[] = [];
 
   for (const tag of memberTags) {
@@ -114,7 +114,8 @@ export function calculateTagScore(
     }
   }
 
-  const score = matchedTags.length / memberTags.length;
+  const safeMemberLength = Math.max(1, memberTags.length);
+  const score = matchedTags.length / safeMemberLength;
   return {
     score: Number(score.toFixed(4)),
     matchedTags

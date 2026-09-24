@@ -209,7 +209,7 @@ export const AICompromiseModal: React.FC<AICompromiseModalProps> = ({
               {/* Progress Steps */}
               <View style={styles.stepsList}>
                 {stepsText.map((txt, idx) => (
-                  <View key={idx} style={styles.stepItem}>
+                  <View key={`compromise-step-${idx}-${txt.slice(0, 15)}`} style={styles.stepItem}>
                     {idx <= analysisStep ? (
                       <CheckCircle2 size={16} color={theme.primary} />
                     ) : (

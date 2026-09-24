@@ -84,7 +84,11 @@ export default function PactCircleChatScreen() {
     if (!inputText.trim()) return;
     const textToSend = inputText.trim();
     setInputText('');
-    await sendMessage(textToSend, activeSenderId, activeSenderName);
+    try {
+      await sendMessage(textToSend, activeSenderId, activeSenderName);
+    } catch (err) {
+      console.warn('[CircleChat] Failed to send message:', err);
+    }
   };
 
   const isDemoCircle = currentGroup?.id === 'circle-college-reunion-2026';

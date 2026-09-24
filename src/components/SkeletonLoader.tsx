@@ -63,7 +63,7 @@ export const VaultDocSkeleton: React.FC<{ count?: number }> = ({ count = 3 }) =>
   return (
     <View style={styles.vaultContainer}>
       {Array.from({ length: count }).map((_, i) => (
-        <ShimmerView key={i} style={styles.vaultCard}>
+        <ShimmerView key={`vault-skeleton-${i}`} style={styles.vaultCard}>
           <View style={styles.docIconBox} />
           <View style={styles.docContent}>
             <View style={styles.docTitleSkeleton} />
@@ -83,7 +83,7 @@ export const MemoryPhotoSkeleton: React.FC<{ count?: number }> = ({ count = 4 })
   return (
     <View style={styles.photoGrid}>
       {Array.from({ length: count }).map((_, i) => (
-        <ShimmerView key={i} style={styles.photoCard}>
+        <ShimmerView key={`photo-skeleton-${i}`} style={styles.photoCard}>
           <View style={styles.photoAuthorSkeleton} />
         </ShimmerView>
       ))}
@@ -117,7 +117,7 @@ export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({
     <View style={[styles.container, style]}>
       {Array.from({ length: count }).map((_, idx) => (
         <ShimmerView
-          key={idx}
+          key={`general-skeleton-${idx}`}
           style={[
             styles.skeletonCard,
             {
