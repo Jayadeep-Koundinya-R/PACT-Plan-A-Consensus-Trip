@@ -3,7 +3,7 @@ import { SocialStoryModal } from '../../../src/components/SocialStoryModal';
 import { NotificationToast } from '../../../src/components/NotificationToast';
 import { useNotificationStore } from '../../../src/store/useNotificationStore';
 import { CircleRouteGuard } from '../../../src/components/common';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -28,6 +28,7 @@ import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
 import { ArrowLeft, Share2, Calendar, Lock, FolderArchive, Image as ImageIcon } from 'lucide-react-native';
 import { useCircleStore } from '../../../src/store/useCircleStore';
 import { getActiveUserName } from '../../../src/lib/user/identity';
+import { resolveTripOptionsForCircle, extractDestinationAndVibe } from '../../../src/lib/consensus/dynamicOptions';
 
 export default function PactTripBrief() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -44,8 +45,8 @@ export default function PactTripBrief() {
     (circleFromStore ? { id: circleFromStore.id, name: circleFromStore.name, inviteCode: circleFromStore.inviteCode, organizerId: circleFromStore.organizerId, status: circleFromStore.status, totalMembersCount: circleFromStore.totalMembersCount } : undefined) ||
     groups[0] || {
       id: (id && id !== 'undefined') ? id : 'circle-college-reunion-2026',
-      name: 'Goa Beach Escape 2026',
-      inviteCode: 'GOA-4F82'
+      name: 'College Reunion 2026',
+      inviteCode: 'PACT-4F82'
     };
 
   const haptics = usePactHaptics();
@@ -73,11 +74,32 @@ export default function PactTripBrief() {
     };
   }, []);
 
+  // Dynamically resolve winning option for this circle
+  const dynamicResolved = useMemo(() => {
+    return resolveTripOptionsForCircle(currentGroup.id, currentGroup.name, members);
+  }, [currentGroup.id, currentGroup.name, members]);
+
   const consensus = getConsensusResults ? getConsensusResults() : null;
-  const winningOpt = finalizedBrief ? finalizedBrief.winningOption : (consensus ? consensus.winningOption : null);
-  const destinationName = (winningOpt && winningOpt.option && (winningOpt.option.name || (winningOpt.option as any).destination)) || currentGroup.name || 'Goa, India';
-  const tripDates = (finalizedBrief && finalizedBrief.travelWindow) || (winningOpt && winningOpt.option && winningOpt.option.dateStart && winningOpt.option.dateEnd ? (winningOpt.option.dateStart + ' - ' + winningOpt.option.dateEnd) : 'Oct 14 - Oct 19, 2026');
-  const targetBudgetStr = (winningOpt && winningOpt.option && winningOpt.option.budgetPerPerson) ? (formatCurrency ? formatCurrency(winningOpt.option.budgetPerPerson) : ('$' + winningOpt.option.budgetPerPerson)) : (formatCurrency ? formatCurrency(540) : '$540');
+  const winningOpt = finalizedBrief
+    ? finalizedBrief.winningOption
+    : (consensus && consensus.winningOption ? consensus.winningOption : dynamicResolved.scoredOptions[0]);
+
+  const destinationName =
+    (winningOpt && winningOpt.option && (winningOpt.option.name || (winningOpt.option as any).destination)) ||
+    currentGroup.name ||
+    'Selected Destination';
+
+  const { destination: rawDestName, category: vibeCat } = extractDestinationAndVibe(destinationName);
+
+  const tripDates =
+    (finalizedBrief && finalizedBrief.travelWindow) ||
+    (winningOpt && winningOpt.option && winningOpt.option.dateStart && winningOpt.option.dateEnd
+      ? `${winningOpt.option.dateStart} - ${winningOpt.option.dateEnd}`
+      : 'Oct 14 - Oct 19, 2026');
+
+  const budgetNum = winningOpt && winningOpt.option && winningOpt.option.budgetPerPerson ? winningOpt.option.budgetPerPerson : 540;
+  const targetBudgetStr = formatCurrency ? formatCurrency(budgetNum) : `$${budgetNum}`;
+
   const activeUserName = getActiveUserName();
   const storeMemberNames = circleFromStore?.members?.map((m) => m.name).filter(Boolean);
   const effectiveMembers: string[] = (finalizedBrief && finalizedBrief.confirmedParticipants && finalizedBrief.confirmedParticipants.length > 0)
@@ -87,22 +109,33 @@ export default function PactTripBrief() {
       : (storeMemberNames && storeMemberNames.length > 0)
         ? (storeMemberNames as string[])
         : (id === 'circle-college-reunion-2026' ? [`${activeUserName} (You)`, 'Sam', 'Jordan', 'Maya', 'Chris'] : [`${activeUserName} (Organizer)`]);
+
   const attendeeList = effectiveMembers.join(', ');
   const stayType = (winningOpt && winningOpt.option && winningOpt.option.destinationType)
-    ? (winningOpt.option.destinationType + ' (fits ' + (currentGroup.totalMembersCount || 5) + ')')
-    : ('Private stay (fits ' + (currentGroup.totalMembersCount || 5) + ')');
+    ? (`${winningOpt.option.destinationType} (fits ${currentGroup.totalMembersCount || 5})`)
+    : (`Private stay (fits ${currentGroup.totalMembersCount || 5})`);
 
   const details = [
     { label: 'DATES', value: tripDates },
-    { label: 'TARGET BUDGET', value: '~' + targetBudgetStr + ' / person' },
+    { label: 'TARGET BUDGET', value: `~${targetBudgetStr} / person` },
     { label: 'ATTENDEES', value: attendeeList },
     { label: 'STAY TYPE', value: stayType }
   ];
 
   const itinerary = [
-    { day: 'Day 1', text: 'Arrival, villa check-in & sunset cocktails' },
-    { day: 'Day 2', text: 'South Goa heritage tour & spice plantation' },
-    { day: 'Day 3', text: 'Catamaran cruise & beach nightlife' }
+    { day: 'Day 1', text: `Arrival in ${rawDestName}, accommodation check-in & welcome dinner` },
+    {
+      day: 'Day 2',
+      text:
+        vibeCat === 'coastal'
+          ? `${rawDestName} coastal tour, beachside lunch & water activities`
+          : vibeCat === 'mountains'
+          ? `${rawDestName} scenic trail hike & mountain cafe tasting`
+          : vibeCat === 'urban'
+          ? `${rawDestName} skyline exploration & local gastronomy walk`
+          : `${rawDestName} cultural highlights & heritage exploration`
+    },
+    { day: 'Day 3', text: `Local leisure, group celebration & sunset gathering in ${rawDestName}` }
   ];
 
   const triggerHaptic = () => {
@@ -115,8 +148,8 @@ export default function PactTripBrief() {
 
   const handleOpenGoogleCalendar = () => {
     triggerHaptic();
-    const title = encodeURIComponent((currentGroup.name || 'Goa Beach Escape 2026') + ' (PACT Consensus)');
-    const dest = encodeURIComponent(currentGroup.name || 'Goa, India');
+    const title = encodeURIComponent(`${currentGroup.name || rawDestName} (PACT Consensus)`);
+    const dest = encodeURIComponent(rawDestName);
     const details = encodeURIComponent('Consensus reached on PACT!\n\nOpen PACT and use the invite code to view the confirmed Trip Brief.');
     const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=20261014/20261020&details=${details}&location=${dest}`;
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
@@ -128,8 +161,8 @@ export default function PactTripBrief() {
 
   const handleExportIcsCalendar = () => {
     haptics.action();
-    const title = currentGroup.name || 'Goa Beach Escape 2026';
-    const dest = currentGroup.name || 'Goa';
+    const title = currentGroup.name || `${rawDestName} Getaway`;
+    const dest = rawDestName;
     const nowStr = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
     const icsData = [
       'BEGIN:VCALENDAR',
@@ -138,13 +171,13 @@ export default function PactTripBrief() {
       'CALSCALE:GREGORIAN',
       'METHOD:PUBLISH',
       'BEGIN:VEVENT',
-      'UID:pact-' + Date.now() + '@pact.travel',
-      'DTSTAMP:' + nowStr,
-      'DTSTART;VALUE=DATE:20261012',
-      'DTEND;VALUE=DATE:20261017',
-      'SUMMARY:' + title + ' (PACT Consensus Trip)',
-      'DESCRIPTION:Consensus Trip to ' + dest + ' backed by PACT.\\n100% agreement reached by all circle members.',
-      'LOCATION:' + dest,
+      `UID:pact-${Date.now()}@pact.travel`,
+      `DTSTAMP:${nowStr}`,
+      'DTSTART;VALUE=DATE:20261014',
+      'DTEND;VALUE=DATE:20261019',
+      `SUMMARY:${title} (PACT Consensus Trip)`,
+      `DESCRIPTION:Consensus Trip to ${dest} backed by PACT.\\n100% agreement reached by all circle members.`,
+      `LOCATION:${dest}`,
       'STATUS:CONFIRMED',
       'END:VEVENT',
       'END:VCALENDAR'
@@ -155,27 +188,27 @@ export default function PactTripBrief() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = title.replace(/\s+/g, '_') + '_Consensus.ics';
+      a.download = `${title.replace(/\s+/g, '_')}_Consensus.ics`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      Alert.alert('Calendar Exported', 'Downloaded ' + title.replace(/\s+/g, '_') + '_Consensus.ics! Import into Google or Apple Calendar.');
+      Alert.alert('Calendar Exported', `Downloaded ${title.replace(/\s+/g, '_')}_Consensus.ics! Import into Google or Apple Calendar.`);
     } else {
       Share.share({
-        title: title + ' Calendar Event',
-        message: 'PACT Trip: ' + title + ' in ' + dest + '! Dates: Oct 12 - 17, 2026. Import to your calendar.'
+        title: `${title} Calendar Event`,
+        message: `PACT Trip: ${title} in ${dest}! Dates: ${tripDates}. Import to your calendar.`
       });
     }
   };
 
   const handleShareWhatsApp = async () => {
     await shareTripBrief({
-      groupName: currentGroup.name || 'Goa Beach Escape 2026',
-      destination: 'Goa, India',
-      dates: 'Oct 14 - Oct 19, 2026',
-      budget: '$540',
-      memberCount: 5,
+      groupName: currentGroup.name || `${rawDestName} Trip`,
+      destination: rawDestName,
+      dates: tripDates,
+      budget: targetBudgetStr,
+      memberCount: currentGroup.totalMembersCount || effectiveMembers.length,
     });
   };
 
@@ -188,7 +221,7 @@ export default function PactTripBrief() {
           <View style={styles.headerRow}>
             <View style={styles.headerLeft}>
               <TouchableOpacity
-                onPress={() => { haptics.tap(); if (router.canGoBack()) { router.back(); } else { router.push('/circle/' + currentGroup.id + '/hub'); } }}
+                onPress={() => { haptics.tap(); if (router.canGoBack()) { router.back(); } else { router.push(`/circle/${currentGroup.id}/hub` as any); } }}
                 activeOpacity={0.7}
                 style={styles.backBtn}
                 accessibilityLabel="Go back to Circle Hub"
@@ -196,7 +229,7 @@ export default function PactTripBrief() {
                 <ArrowLeft size={18} color="#F4F3F0" />
               </TouchableOpacity>
               <Text style={styles.briefCodeTitle} numberOfLines={1}>
-                Trip brief #PACT-8821
+                Trip brief #{currentGroup.inviteCode || 'PACT-8821'}
               </Text>
             </View>
 
@@ -230,7 +263,7 @@ export default function PactTripBrief() {
               style={{ marginBottom: 12 }}
             />
             <Text style={styles.consensusTitle}>Consensus locked — 100%</Text>
-            <Text style={styles.consensusSub}>All {currentGroup.totalMembersCount || 5} members approved this plan.</Text>
+            <Text style={styles.consensusSub}>All {currentGroup.totalMembersCount || effectiveMembers.length} members approved this plan.</Text>
           </View>
 
           {/* Official Sealed Ticket Card */}
@@ -263,7 +296,7 @@ export default function PactTripBrief() {
 
               <View style={styles.ticketFooter}>
                 <Text style={styles.ticketFooterText}>
-                  PACT-8821  •  ISSUED BY GROUP CONSENSUS
+                  {currentGroup.inviteCode || 'PACT-8821'}  •  ISSUED BY GROUP CONSENSUS
                 </Text>
               </View>
             </View>
@@ -302,9 +335,9 @@ export default function PactTripBrief() {
             </TouchableOpacity>
           </View>
 
-          {/* Suggested 5-day Itinerary Outline */}
+          {/* Contextual 3-day Itinerary Outline */}
           <View style={styles.itineraryCard}>
-            <Text style={styles.itineraryCardTitle}>Suggested 5-day outline</Text>
+            <Text style={styles.itineraryCardTitle}>Suggested 3-day outline</Text>
             <View style={styles.itineraryList}>
               {itinerary.map((it) => (
                 <View key={it.day} style={styles.itineraryRow}>
@@ -348,7 +381,7 @@ export default function PactTripBrief() {
             accessibilityLabel="Explore flight and villa options"
           >
             <Text style={styles.primaryCtaBtnText}>
-              Explore flight & villa options
+              Explore flight & stay options
             </Text>
           </TouchableOpacity>
         </View>
@@ -356,12 +389,12 @@ export default function PactTripBrief() {
         <SocialStoryModal
           visible={showStoryModal}
           onClose={() => setShowStoryModal(false)}
-          groupName={currentGroup.name || 'Goa Beach Trip'}
-          destinationName="Goa, India"
-          dates="Oct 12 - Oct 17, 2026"
-          budget="$850"
+          groupName={currentGroup.name || `${rawDestName} Trip`}
+          destinationName={rawDestName}
+          dates={tripDates}
+          budget={targetBudgetStr}
           participants={effectiveMembers}
-          tags={['Beach', 'Nightlife', 'Seafood', 'Sunset']}
+          tags={['Consensus', 'GroupTrip', rawDestName]}
           isDarkMode={true}
         />
       </View>

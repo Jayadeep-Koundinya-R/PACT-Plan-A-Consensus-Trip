@@ -25,6 +25,7 @@ import { useCircleChatStore } from '../../../src/store/useCircleChatStore';
 import { useCircleStore } from '../../../src/store/useCircleStore';
 import { MemoryPhotoSkeleton } from '../../../src/components/SkeletonLoader';
 import { getActiveUserName } from '../../../src/lib/user/identity';
+import { extractDestinationAndVibe } from '../../../src/lib/consensus/dynamicOptions';
 
 export default function PactMemoryLibrary() {
   const { theme, isDarkMode } = useTheme();
@@ -41,7 +42,7 @@ export default function PactMemoryLibrary() {
     groups.find((g) => g && g.id === id) ||
     groups[0] || {
       id: (id && id !== 'undefined') ? id : 'circle-college-reunion-2026',
-      name: 'Goa',
+      name: 'College Reunion 2026',
       inviteCode: 'GOA-4F82'
     };
 
@@ -66,46 +67,50 @@ export default function PactMemoryLibrary() {
   const circleFromStore = id ? useCircleStore.getState().getCircle(id as string) : null;
   const memberCount = circleFromStore?.members?.length || 1;
   const storePhotos = memoryPhotos[currentGroup.id] || (isDemoCircle ? memoryPhotos['circle-college-reunion-2026'] : []) || [];
+
+  const { destination: rawDest } = extractDestinationAndVibe(currentGroup.name);
+
   const curatedPhotos = [
     {
       id: 'p1',
       uri: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?w=800',
       by: getActiveUserName(),
-      caption: 'Goa Sunset Beach',
+      caption: isDemoCircle ? 'Goa Sunset Beach' : `${rawDest} Sunset View`,
       bg: '#1B1D27'
     },
     {
       id: 'p2',
       uri: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=800',
       by: 'Maya',
-      caption: 'Luxury South Goa Villa',
+      caption: isDemoCircle ? 'Luxury South Goa Villa' : `${rawDest} Private Stay`,
       bg: '#1B1D27'
     },
     {
       id: 'p3',
       uri: 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=800',
       by: 'Sam',
-      caption: 'Coastal Scooter Ride',
+      caption: isDemoCircle ? 'Coastal Scooter Ride' : `${rawDest} Scenic Exploration`,
       bg: '#052E20'
     },
     {
       id: 'p4',
       uri: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800',
       by: 'Jordan',
-      caption: 'Beachside Dinner',
+      caption: isDemoCircle ? 'Beachside Dinner' : `${rawDest} Welcome Dinner`,
       bg: '#3A241E'
     }
   ];
+
   const [uploadedPhotos, setUploadedPhotos] = useState<any[]>([]);
-  const photos = [...uploadedPhotos, ...storePhotos, ...(isDemoCircle && storePhotos.length === 0 && uploadedPhotos.length === 0 ? curatedPhotos : [])];
+  const photos = [...uploadedPhotos, ...storePhotos, ...(storePhotos.length === 0 && uploadedPhotos.length === 0 ? curatedPhotos : [])];
 
   const hasMemories = finalizedBrief !== null || photos.length > 0;
 
   const recap = isDemoCircle
     ? '5 days, 5 friends, 100% consensus maintained. Favorite memory: South Goa sunset cruise.'
-    : `Consensus trip finalized with ${memberCount} friends. 100% alignment maintained.`;
+    : `Consensus trip finalized with ${memberCount} friends in ${rawDest}. 100% alignment maintained.`;
 
-    const handleAddPhotos = async () => {
+  const handleAddPhotos = async () => {
     haptics.tap();
     try {
       if (Platform.OS === 'web' && typeof document !== 'undefined') {
@@ -181,9 +186,9 @@ export default function PactMemoryLibrary() {
           {/* Header Row */}
           <View style={styles.headerRow}>
             <View style={styles.headerLeft}>
-              <TouchableOpacity onPress={() => { haptics.tap(); if (router.canGoBack()) { router.back(); } else { router.push('/circle/' + currentGroup.id + '/hub'); } }} activeOpacity={0.7} style={styles.backBtn} accessibilityLabel="Go back to Circle Hub"><ArrowLeft size={18} color="#F4F3F0" /></TouchableOpacity>
+              <TouchableOpacity onPress={() => { haptics.tap(); if (router.canGoBack()) { router.back(); } else { router.push('/circle/' + currentGroup.id + '/hub' as any); } }} activeOpacity={0.7} style={styles.backBtn} accessibilityLabel="Go back to Circle Hub"><ArrowLeft size={18} color="#F4F3F0" /></TouchableOpacity>
               <Text style={styles.headerTitle} numberOfLines={2}>
-                {currentGroup.name ? currentGroup.name.replace(/\s*trip$/i, '') : 'Goa Beach Escape'} Memories
+                {currentGroup.name ? currentGroup.name.replace(/\s*trip$/i, '') : 'Trip'} Memories
               </Text>
             </View>
 
@@ -196,7 +201,6 @@ export default function PactMemoryLibrary() {
                 <RefreshCw size={12} color="#8B8D98" />
                 <Text style={{ fontFamily: fontUI, fontSize: 11, color: '#8B8D98' }}>Sync</Text>
               </TouchableOpacity>
-
             </View>
           </View>
 
@@ -222,7 +226,7 @@ export default function PactMemoryLibrary() {
               {/* Memories Count Bar */}
               <View style={styles.countCard}>
                 <Text style={styles.countText}>
-                  <Text style={styles.countBold}>{`${photos.length} shared ${photos.length === 1 ? 'memory' : 'memories'}`}</Text>  ·  {currentGroup.name || 'Goa beach escape 2026'}
+                  <Text style={styles.countBold}>{`${photos.length} shared ${photos.length === 1 ? 'memory' : 'memories'}`}</Text>  ·  {currentGroup.name || 'Trip 2026'}
                 </Text>
               </View>
 
@@ -639,9 +643,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative'
-  },
-  photoCenterIcon: {
-    opacity: 0.4
   },
   photoTag: {
     position: 'absolute',

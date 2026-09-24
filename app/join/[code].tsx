@@ -16,7 +16,9 @@ import {
   ShieldCheck,
   ArrowRight,
   Sparkles,
-  UserPlus
+  UserPlus,
+  Check,
+  AlertCircle
 } from 'lucide-react-native';
 import { useCircleStore } from '../../src/store/useCircleStore';
 import { useUserStore } from '../../src/store/useUserStore';
@@ -67,11 +69,24 @@ export default function JoinConfirmationScreen() {
     : [{ userId: 'org', name: `${organizerName} (Organizer)`, status: 'locked' as const, nudgedAt: null }];
   const realMemberCount = currentMembers.length;
 
+  const targetCapacity = foundCircle?.totalMembersCount || legacyGroup?.totalMembersCount || 5;
   const isAlreadyMember = Boolean(
     foundCircle?.members?.some((m) => m.userId === profile.userId)
   );
+  const isFull = realMemberCount >= targetCapacity;
+
+  const cleanEnteredName = travelerName.replace(/\s*\(You\)/gi, '').replace(/\s*\(Organizer\)/gi, '').trim().toLowerCase();
+  const matchingReservedMember = foundCircle?.members?.find(
+    (m) => m.name.replace(/\s*\(You\)/gi, '').replace(/\s*\(Organizer\)/gi, '').trim().toLowerCase() === cleanEnteredName
+  );
+  const isClaimingSlot = Boolean(matchingReservedMember);
+  const isJoinBlocked = isFull && !isAlreadyMember && !isClaimingSlot;
 
   const handleJoinTrip = async () => {
+    if (isJoinBlocked) {
+      haptics.warning();
+      return;
+    }
     setIsJoining(true);
     try {
       // 1. Ensure zero-friction guest session with explicit entered name
@@ -81,7 +96,7 @@ export default function JoinConfirmationScreen() {
       // 2. Claim reserved slot if pre-added by organizer, or add new member to circle
       if (foundCircle) {
         const claimed = useCircleStore.getState().claimMemberSlot(foundCircle.id, cleanGuestName, guestProfile.userId);
-        if (!claimed) {
+        if (!claimed && !isFull) {
           addMember(foundCircle.id, {
             userId: guestProfile.userId,
             name: cleanGuestName,
@@ -271,16 +286,44 @@ export default function JoinConfirmationScreen() {
           </View>
         )}
 
+        {/* Reserved slot notification */}
+        {isClaimingSlot && !isAlreadyMember && (
+          <View style={styles.reservedSlotNotice}>
+            <Check size={15} color="#3DE0A0" />
+            <Text style={styles.reservedSlotText}>
+              Reserved seat found for "{matchingReservedMember?.name.replace(/\s*\(Organizer\)/gi, '')}". Ready to claim!
+            </Text>
+          </View>
+        )}
+
+        {/* Full capacity notification */}
+        {isJoinBlocked && (
+          <View style={styles.fullCapacityNotice}>
+            <View style={styles.fullCapacityHeader}>
+              <AlertCircle size={15} color="#F59E0B" />
+              <Text style={styles.fullCapacityTitle}>Circle at Capacity ({realMemberCount}/{targetCapacity} Seats Filled)</Text>
+            </View>
+            <Text style={styles.fullCapacityText}>
+              All {targetCapacity} seats for this circle are filled. If a seat was reserved for you by the organizer, enter your name above to claim it.
+            </Text>
+          </View>
+        )}
+
         {/* Primary CTA */}
         <View style={styles.ctaContainer}>
           <PactButton
             variant="solid"
             size="lg"
+            disabled={isJoinBlocked}
             title={
               hasJoined
                 ? 'Opening Circle...'
                 : isAlreadyMember
                 ? `Enter ${tripTitle}`
+                : isClaimingSlot
+                ? `Claim Seat & Enter ${tripTitle}`
+                : isJoinBlocked
+                ? `Circle Full (${realMemberCount}/${targetCapacity})`
                 : `Join ${tripTitle}`
             }
             loading={isJoining}
@@ -294,7 +337,9 @@ export default function JoinConfirmationScreen() {
           />
 
           <Text style={styles.ctaFooterNote}>
-            No password or credit card required. Free guest pass included.
+            {isJoinBlocked
+              ? 'Ask the organizer to expand the circle size in settings to add more travelers.'
+              : 'No password or credit card required. Free guest pass included.'}
           </Text>
         </View>
       </ScrollView>
@@ -553,5 +598,49 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 11.5,
     color: '#FF5A5F'
+  },
+  fullCapacityNotice: {
+    width: '100%',
+    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.3)',
+    borderRadius: radius.card,
+    padding: 14,
+    marginBottom: 16
+  },
+  fullCapacityHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 6
+  },
+  fullCapacityTitle: {
+    fontFamily: fontUIBold,
+    fontSize: 13,
+    color: '#F59E0B'
+  },
+  fullCapacityText: {
+    fontFamily: fontUI,
+    fontSize: 12,
+    color: '#8B8D98',
+    lineHeight: 18
+  },
+  reservedSlotNotice: {
+    width: '100%',
+    backgroundColor: 'rgba(61, 224, 160, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.3)',
+    borderRadius: radius.card,
+    padding: 12,
+    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10
+  },
+  reservedSlotText: {
+    fontFamily: fontUIBold,
+    fontSize: 12.5,
+    color: '#3DE0A0',
+    flex: 1
   }
 });

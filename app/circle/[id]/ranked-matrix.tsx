@@ -22,7 +22,6 @@ import { usePactHaptics } from '../../../src/hooks/usePactHaptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
 import { colors, radius } from '../../../src/theme/colors';
-import { generateConsensusExplanation } from '../../../src/lib/consensus/engine';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
 import {
   ArrowLeft,
@@ -42,6 +41,7 @@ import {
 } from 'lucide-react-native';
 import { AICompromiseModal } from '../../../src/components/AICompromiseModal';
 import { ConsensusHeatmap } from '../../../src/components/consensus/ConsensusHeatmap';
+import { resolveTripOptionsForCircle, extractDestinationAndVibe } from '../../../src/lib/consensus/dynamicOptions';
 
 export default function PactConsensusResults() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -66,6 +66,25 @@ export default function PactConsensusResults() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedDetails, setSelectedDetails] = useState<any | null>(null);
 
+  // Dynamically resolve candidate options and consensus scores
+  const resolved = resolveTripOptionsForCircle(currentGroup.id, currentGroup.name, members);
+  const scoredOptions = resolved.scoredOptions;
+  const topOption = scoredOptions[0] || {
+    option: {
+      id: 'opt-001',
+      name: currentGroup.name || 'Top Destination',
+      dateStart: '2026-10-14',
+      dateEnd: '2026-10-19',
+      budgetPerPerson: 540,
+      tags: ['beach', 'nightlife']
+    },
+    totalScore: 96
+  };
+  const altOption1 = scoredOptions[1];
+  const altOption2 = scoredOptions[2];
+
+  const topDestinationName = extractDestinationAndVibe(topOption.option.name || currentGroup.name).destination;
+
   // Deadlock state management
   const [deadlockModeLocal, setDeadlockModeLocal] = useState<boolean | null>(null);
   const deadlockMode = deadlockModeLocal !== null ? deadlockModeLocal : (activeDemoScenario === 'deadlock');
@@ -84,7 +103,7 @@ export default function PactConsensusResults() {
   useEffect(() => {
     let mounted = true;
     if (deadlockMode) {
-      const dest = currentGroup?.name || 'Goa';
+      const dest = topDestinationName || currentGroup?.name || 'Goa';
       // Strictly anonymized, aggregated group data only — NEVER individual entries or names
       fetchCompromiseWhisperer(dest, 5, {
         budgetBuckets: { '$400–$600': 2, '$800–$1,200': 3 },
@@ -101,7 +120,7 @@ export default function PactConsensusResults() {
     return () => {
       mounted = false;
     };
-  }, [deadlockMode, currentGroup?.name]);
+  }, [deadlockMode, currentGroup?.name, topDestinationName]);
 
   // Memoized budget calculations for Wide Budget Gap Banner to prevent re-computation bottlenecks
   const { minBudget, maxBudget, budgetSpread, hasWideBudgetGap, totalMemberCount } = useMemo(() => {
@@ -134,7 +153,7 @@ export default function PactConsensusResults() {
     haptics.action();
     setPrivateNudgeSent(true);
     try {
-      const notification = buildNudgeNotification('A member', currentGroup?.name || 'Goa trip');
+      const notification = buildNudgeNotification('A member', currentGroup?.name || 'Trip');
       sendPactNotification(notification);
     } catch {}
     if (Platform.OS !== 'web') {
@@ -247,7 +266,7 @@ export default function PactConsensusResults() {
                     )}
                   </View>
                   <Text style={styles.deadlockSubtitle}>
-                    {whispererResult?.anonymizedSummary || 'Analyzed 5 sealed ballots: 2 members capped at $600, 3 at $1,200.'}
+                    {whispererResult?.anonymizedSummary || 'Analyzed 5 sealed ballots: 2 members capped at lower tier, 3 at higher tier.'}
                   </Text>
                 </View>
               </View>
@@ -266,7 +285,7 @@ export default function PactConsensusResults() {
                   <Text style={styles.whispererBoxTag}>Recommended compromise</Text>
                 </View>
                 <Text style={styles.whispererBoxText}>
-                  {whispererResult?.compromise || 'Booking a 5-bedroom private villa with en-suite bathrooms in South Goa bridges accommodation constraints while preserving 100% date overlap (Oct 14–16). Tiered room splits maintain budget fairness.'}
+                  {whispererResult?.compromise || `Booking accommodation in ${topDestinationName} bridges constraints while preserving date overlap. Tiered room splits maintain budget fairness.`}
                 </Text>
               </View>
 
@@ -311,13 +330,15 @@ export default function PactConsensusResults() {
                   <View style={styles.winnerBadgeRow}>
                     <View style={styles.winnerBadge}>
                       <Trophy size={13} color="#052E20" />
-                      <Text style={styles.winnerBadgeText}>#1 Top Choice (96% Match)</Text>
+                      <Text style={styles.winnerBadgeText}>#1 Top Choice ({topOption.totalScore}% Match)</Text>
                     </View>
                   </View>
 
                   <View style={styles.winnerTitleBox}>
-                    <Text style={styles.winnerDestName}>Goa, India</Text>
-                    <Text style={styles.winnerMetaText}>Oct 14 – Oct 19  •  $540 / person</Text>
+                    <Text style={styles.winnerDestName}>{topOption.option.name}</Text>
+                    <Text style={styles.winnerMetaText}>
+                      {topOption.option.dateStart} – {topOption.option.dateEnd}  •  ${topOption.option.budgetPerPerson} / person
+                    </Text>
                   </View>
                 </View>
 
@@ -327,144 +348,152 @@ export default function PactConsensusResults() {
                     datesCaption={`100% date window overlap across all ${totalMemberCount} members`}
                     budgetScore={100}
                     budgetCaption={`Fits all ${totalMemberCount} member caps privately`}
-                    vibeScore={96}
-                    vibeTags={['beach', 'nightlife', 'seafood']}
+                    vibeScore={Math.round(topOption.totalScore)}
+                    vibeTags={topOption.option.tags || ['scenic', 'vibe']}
                     hasVeto={false}
-                    destinationName="Goa"
-                    totalScore={96}
+                    destinationName={topDestinationName}
+                    totalScore={Math.round(topOption.totalScore)}
                   />
 
                   <View style={{ marginTop: 12 }}>
-                    <ExplorePlaceSection destination="Goa" />
+                    <ExplorePlaceSection destination={topDestinationName} />
                   </View>
                 </View>
               </View>
 
               {/* #2 Alternative Option Ticket Card */}
-              <View style={styles.subOptionWrapper}>
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => {
-                    haptics.tap();
-                    setSelectedDetails({
-                      name: 'Puducherry, India',
-                      dates: 'Oct 12 - Oct 17, 2026',
-                      cost: '$480 / person',
-                      match: '82%',
-                      reasons: [
-                        'Full date overlap for 4 of 5 travelers',
-                        'Budget fits comfortably at $480/traveler',
-                        'French colonial heritage and coastal cafes'
-                      ]
-                    });
-                  }}
-                  style={styles.subOptionCard}
-                  accessibilityLabel="View Puducherry details"
-                >
-                  <View style={styles.subOptionStub}>
-                    <Text style={[styles.subOptionScore, { color: '#3DE0A0' }]}>82%</Text>
-                    <Text style={styles.subOptionStubLabel}>match</Text>
-                  </View>
-
-                  <View style={styles.subOptionPerforation} />
-
-                  <View style={styles.subOptionMain}>
-                    <Image
-                      source={{ uri: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=300' }}
-                      style={styles.subOptionThumb}
-                      resizeMode="cover"
-                    />
-                    <View style={{ flex: 1 }}>
-                      <View style={styles.alternativeBadge}>
-                        <Text style={styles.alternativeBadgeText}>#2 Alternative</Text>
-                      </View>
-                      <Text style={styles.subOptionName}>Puducherry, India</Text>
-                      <Text style={styles.subOptionMeta}>Oct 12 - Oct 17  |  $480 / person</Text>
+              {altOption1 && (
+                <View style={styles.subOptionWrapper}>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => {
+                      haptics.tap();
+                      setSelectedDetails({
+                        name: altOption1.option.name,
+                        dates: `${altOption1.option.dateStart} - ${altOption1.option.dateEnd}`,
+                        cost: `$${altOption1.option.budgetPerPerson} / person`,
+                        match: `${Math.round(altOption1.totalScore)}%`,
+                        reasons: [
+                          'Strong date overlap across group members',
+                          `Budget fits comfortably at $${altOption1.option.budgetPerPerson}/traveler`,
+                          'High vibe alignment for group'
+                        ]
+                      });
+                    }}
+                    style={styles.subOptionCard}
+                    accessibilityLabel={`View ${altOption1.option.name} details`}
+                  >
+                    <View style={styles.subOptionStub}>
+                      <Text style={[styles.subOptionScore, { color: '#3DE0A0' }]}>{Math.round(altOption1.totalScore)}%</Text>
+                      <Text style={styles.subOptionStubLabel}>match</Text>
                     </View>
-                    <ChevronRight size={16} color="#8B8D98" />
-                  </View>
-                </TouchableOpacity>
-                <View style={{ paddingHorizontal: 12, paddingBottom: 10 }}>
-                  <ConsensusHeatmap
-                    datesScore={80}
-                    datesCaption="Full date overlap for 4 of 5 travelers"
-                    budgetScore={100}
-                    budgetCaption="Budget fits comfortably at $480/traveler"
-                    vibeScore={82}
-                    vibeTags={['heritage', 'coastal', 'cafes']}
-                    hasVeto={false}
-                    isCompact={true}
-                    destinationName="Puducherry"
-                    totalScore={82}
-                  />
-                  <View style={{ marginTop: 10 }}>
-                    <ExplorePlaceSection destination="Puducherry" />
+
+                    <View style={styles.subOptionPerforation} />
+
+                    <View style={styles.subOptionMain}>
+                      <Image
+                        source={{ uri: 'https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=300' }}
+                        style={styles.subOptionThumb}
+                        resizeMode="cover"
+                      />
+                      <View style={{ flex: 1 }}>
+                        <View style={styles.alternativeBadge}>
+                          <Text style={styles.alternativeBadgeText}>#2 Alternative</Text>
+                        </View>
+                        <Text style={styles.subOptionName}>{altOption1.option.name}</Text>
+                        <Text style={styles.subOptionMeta}>
+                          {altOption1.option.dateStart} - {altOption1.option.dateEnd}  |  ${altOption1.option.budgetPerPerson} / person
+                        </Text>
+                      </View>
+                      <ChevronRight size={16} color="#8B8D98" />
+                    </View>
+                  </TouchableOpacity>
+                  <View style={{ paddingHorizontal: 12, paddingBottom: 10 }}>
+                    <ConsensusHeatmap
+                      datesScore={80}
+                      datesCaption="Full date overlap for majority of travelers"
+                      budgetScore={100}
+                      budgetCaption={`Budget fits at $${altOption1.option.budgetPerPerson}/traveler`}
+                      vibeScore={Math.round(altOption1.totalScore)}
+                      vibeTags={altOption1.option.tags || ['heritage', 'coastal']}
+                      hasVeto={false}
+                      isCompact={true}
+                      destinationName={extractDestinationAndVibe(altOption1.option.name).destination}
+                      totalScore={Math.round(altOption1.totalScore)}
+                    />
+                    <View style={{ marginTop: 10 }}>
+                      <ExplorePlaceSection destination={extractDestinationAndVibe(altOption1.option.name).destination} />
+                    </View>
                   </View>
                 </View>
-              </View>
+              )}
 
               {/* #3 Alternative Option Ticket Card */}
-              <View style={styles.subOptionWrapper}>
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => {
-                    haptics.tap();
-                    setSelectedDetails({
-                      name: 'Manali, Himachal Pradesh',
-                      dates: 'Oct 15 - Oct 20, 2026',
-                      cost: '$620 / person',
-                      match: '74%',
-                      reasons: [
-                        'Mountain adventure vibe matched',
-                        'Flights + mountain transfers fit 4 of 5 members',
-                        'Snow valley views and high-altitude cafes'
-                      ]
-                    });
-                  }}
-                  style={styles.subOptionCard}
-                  accessibilityLabel="View Manali details"
-                >
-                  <View style={styles.subOptionStub}>
-                    <Text style={[styles.subOptionScore, { color: '#3DE0A0' }]}>74%</Text>
-                    <Text style={styles.subOptionStubLabel}>match</Text>
-                  </View>
-
-                  <View style={styles.subOptionPerforation} />
-
-                  <View style={styles.subOptionMain}>
-                    <Image
-                      source={{ uri: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=300' }}
-                      style={styles.subOptionThumb}
-                      resizeMode="cover"
-                    />
-                    <View style={{ flex: 1 }}>
-                      <View style={styles.alternativeBadge}>
-                        <Text style={styles.alternativeBadgeText}>#3 Alternative</Text>
-                      </View>
-                      <Text style={styles.subOptionName}>Manali, Himachal</Text>
-                      <Text style={styles.subOptionMeta}>Oct 15 - Oct 20  |  $620 / person</Text>
+              {altOption2 && (
+                <View style={styles.subOptionWrapper}>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => {
+                      haptics.tap();
+                      setSelectedDetails({
+                        name: altOption2.option.name,
+                        dates: `${altOption2.option.dateStart} - ${altOption2.option.dateEnd}`,
+                        cost: `$${altOption2.option.budgetPerPerson} / person`,
+                        match: `${Math.round(altOption2.totalScore)}%`,
+                        reasons: [
+                          'Good candidate option',
+                          `Budget fits at $${altOption2.option.budgetPerPerson}/traveler`,
+                          'Unique vibe and scenery'
+                        ]
+                      });
+                    }}
+                    style={styles.subOptionCard}
+                    accessibilityLabel={`View ${altOption2.option.name} details`}
+                  >
+                    <View style={styles.subOptionStub}>
+                      <Text style={[styles.subOptionScore, { color: '#3DE0A0' }]}>{Math.round(altOption2.totalScore)}%</Text>
+                      <Text style={styles.subOptionStubLabel}>match</Text>
                     </View>
-                    <ChevronRight size={16} color="#8B8D98" />
-                  </View>
-                </TouchableOpacity>
-                <View style={{ paddingHorizontal: 12, paddingBottom: 10 }}>
-                  <ConsensusHeatmap
-                    datesScore={70}
-                    datesCaption="Dates work for majority of travelers"
-                    budgetScore={75}
-                    budgetCaption="Flights + transfers fit 4 of 5 members"
-                    vibeScore={74}
-                    vibeTags={['mountain', 'adventure', 'cafes']}
-                    hasVeto={false}
-                    isCompact={true}
-                    destinationName="Manali"
-                    totalScore={74}
-                  />
-                  <View style={{ marginTop: 10 }}>
-                    <ExplorePlaceSection destination="Manali" />
+
+                    <View style={styles.subOptionPerforation} />
+
+                    <View style={styles.subOptionMain}>
+                      <Image
+                        source={{ uri: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=300' }}
+                        style={styles.subOptionThumb}
+                        resizeMode="cover"
+                      />
+                      <View style={{ flex: 1 }}>
+                        <View style={styles.alternativeBadge}>
+                          <Text style={styles.alternativeBadgeText}>#3 Alternative</Text>
+                        </View>
+                        <Text style={styles.subOptionName}>{altOption2.option.name}</Text>
+                        <Text style={styles.subOptionMeta}>
+                          {altOption2.option.dateStart} - {altOption2.option.dateEnd}  |  ${altOption2.option.budgetPerPerson} / person
+                        </Text>
+                      </View>
+                      <ChevronRight size={16} color="#8B8D98" />
+                    </View>
+                  </TouchableOpacity>
+                  <View style={{ paddingHorizontal: 12, paddingBottom: 10 }}>
+                    <ConsensusHeatmap
+                      datesScore={70}
+                      datesCaption="Dates work for majority of travelers"
+                      budgetScore={75}
+                      budgetCaption={`Fits majority of budget caps at $${altOption2.option.budgetPerPerson}`}
+                      vibeScore={Math.round(altOption2.totalScore)}
+                      vibeTags={altOption2.option.tags || ['scenic', 'cafes']}
+                      hasVeto={false}
+                      isCompact={true}
+                      destinationName={extractDestinationAndVibe(altOption2.option.name).destination}
+                      totalScore={Math.round(altOption2.totalScore)}
+                    />
+                    <View style={{ marginTop: 10 }}>
+                      <ExplorePlaceSection destination={extractDestinationAndVibe(altOption2.option.name).destination} />
+                    </View>
                   </View>
                 </View>
-              </View>
+              )}
             </>
           )}
         </ScrollView>
@@ -815,58 +844,6 @@ const styles = StyleSheet.create({
   },
   winnerBody: {
     padding: 16
-  },
-  checklistContainer: {
-    gap: 8,
-    paddingTop: 4
-  },
-  checkRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: 'rgba(61, 224, 160, 0.08)',
-    borderWidth: 1,
-    borderColor: 'rgba(61, 224, 160, 0.25)',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 7
-  },
-  checkCircle: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: 'rgba(61, 224, 160, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  checkItemText: {
-    fontFamily: fontUIBold,
-    fontSize: 11.5,
-    color: '#F4F3F0',
-    flex: 1
-  },
-  explanationBox: {
-    backgroundColor: 'rgba(61, 224, 160, 0.05)',
-    borderWidth: 1,
-    borderColor: 'rgba(61, 224, 160, 0.22)',
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 14
-  },
-  explanationHeadline: {
-    fontFamily: fontUIBold,
-    fontSize: 15,
-    fontWeight: '800',
-    color: '#3DE0A0',
-    letterSpacing: 0.2,
-    marginBottom: 6
-  },
-  explanationSummary: {
-    fontFamily: fontUI,
-    fontSize: 12.5,
-    color: '#D1D5DB',
-    lineHeight: 18,
-    marginBottom: 10
   },
   subOptionWrapper: {
     backgroundColor: '#13151E',
