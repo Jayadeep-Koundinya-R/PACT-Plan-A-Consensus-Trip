@@ -191,9 +191,6 @@ export default function PactCreateJoinScreen() {
                 <Text style={[styles.tierTag, { color: liveTotal <= 8 ? '#3DE0A0' : (liveTotal <= 24 ? '#FF5A5F' : '#EF4444') }]}>
                   {liveTotal <= 24 ? `${liveTier.name} • ${liveTier.capacityLabel}` : 'Enterprise Custom Plan (25+)'}
                 </Text>
-                <Text style={{ fontSize: 11, color: theme.textSecondary, marginTop: 2, fontFamily: fontUI }}>
-                  Free: 1–8 members | Organizer Pass: 9–24 members | Custom: 25+ members
-                </Text>
               </View>
               <View style={styles.stepperBox}>
                 <TouchableOpacity
@@ -231,6 +228,13 @@ export default function PactCreateJoinScreen() {
               </View>
             </View>
 
+            {/* Distinct Centered Tier Legend Row */}
+            <View style={styles.legendRow}>
+              <Text style={[styles.legendText, { color: theme.textSecondary }]}>
+                Free: 1–8 members | Organizer Pass: 9–24 members | Custom: 25+ members
+              </Text>
+            </View>
+
             {/* Notice for 9-24 members vs Enterprise 25+ */}
             {liveTotal > 24 ? (
               <View style={[styles.tierNoticeBox, { backgroundColor: 'rgba(239, 68, 68, 0.12)', borderColor: 'rgba(239, 68, 68, 0.3)' }]}>
@@ -260,7 +264,11 @@ export default function PactCreateJoinScreen() {
             <TouchableOpacity
               activeOpacity={0.88}
               onPress={handleConfirmCreate}
-              style={styles.createButton}
+              disabled={tripName.trim().length < 2}
+              style={[
+                styles.createButton,
+                tripName.trim().length < 2 && { opacity: 0.5 }
+              ]}
             >
               <Sparkles size={16} color="#050608" />
               <Text style={styles.createButtonText}>Create Circle & Get Code</Text>
@@ -474,6 +482,17 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 16,
     minWidth: 24,
+    textAlign: 'center'
+  },
+  legendRow: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+    marginBottom: 14
+  },
+  legendText: {
+    fontSize: 11,
+    fontFamily: fontUI,
     textAlign: 'center'
   },
   tierNoticeBox: {

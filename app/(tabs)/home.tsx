@@ -94,6 +94,19 @@ export default function MyCirclesScreen() {
   const archivedCircles = allCircles.filter((c) => !!c.archived);
   const displayCircles = circleTab === 'active' ? activeCircles : archivedCircles;
 
+  // Computed dynamic metrics from active circles
+  const totalCircleMembers = activeCircles.reduce(
+    (acc, c) => acc + (c.totalMembersCount || c.members?.length || 1),
+    0
+  );
+  const totalLockedMembers = activeCircles.reduce(
+    (acc, c) => acc + (c.members?.filter((m) => m.status === 'locked').length || 0),
+    0
+  );
+  const computedSupermajorityPct = totalCircleMembers > 0
+    ? Math.round((totalLockedMembers / totalCircleMembers) * 100)
+    : 80;
+
   const handleCopy = async (code: string) => {
     await copyInviteCode(code);
     setCopiedCode(code);
@@ -138,35 +151,33 @@ export default function MyCirclesScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              tintColor="#FF5A5F"
-              colors={['#FF5A5F']}
+              tintColor={theme.primary}
+              colors={[theme.primary]}
             />
           }
         >
           {/* Header Row */}
           <View style={styles.headerRow}>
             <View style={styles.brandRow}>
-              <View style={styles.logoBadge}>
-                <Compass size={18} color="#FF5A5F" strokeWidth={2.5} />
+              <View style={[styles.logoBadge, { backgroundColor: theme.primaryLight, borderColor: theme.border }]}>
+                <Compass size={18} color={theme.primary} strokeWidth={2.5} />
               </View>
               <View>
-                <Text style={styles.brandTitle}>PACT</Text>
-                <Text style={styles.brandSubtitle}>CONSENSUS TRIP PLATFORM</Text>
+                <Text style={[styles.brandTitle, { color: theme.primary }]}>PACT</Text>
+                <Text style={[styles.brandSubtitle, { color: theme.textSecondary }]}>CONSENSUS TRIP PLATFORM</Text>
               </View>
             </View>
 
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              
-
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={() => {
                   haptics.tap();
                   openNotificationCenter();
                 }}
-                style={styles.notifBellBtn}
+                style={[styles.notifBellBtn, { backgroundColor: theme.primaryLight }]}
               >
-                <Bell size={18} color="#FF5A5F" />
+                <Bell size={18} color={theme.primary} />
                 {unreadCount > 0 && <View style={styles.notifDot} />}
               </TouchableOpacity>
 
@@ -177,13 +188,13 @@ export default function MyCirclesScreen() {
                   haptics.tap();
                   router.push('/(tabs)/settings');
                 }}
-                style={styles.profilePill}
+                style={[styles.profilePill, { backgroundColor: theme.surface, borderColor: theme.border }]}
               >
-              <View style={styles.avatarMini}>
+              <View style={[styles.avatarMini, { backgroundColor: theme.primary }]}>
                 <Text style={styles.avatarMiniText}>{avatarInitials}</Text>
               </View>
-              <View style={[styles.proMiniBadge, subscriptionPlan === 'free' && { backgroundColor: 'rgba(255,255,255,0.1)' }]}>
-                <Text style={[styles.proMiniBadgeText, subscriptionPlan === 'free' && { color: '#8B8D98' }]}>
+              <View style={[styles.proMiniBadge, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}>
+                <Text style={[styles.proMiniBadgeText, { color: subscriptionPlan !== 'free' ? theme.gold : theme.textSecondary }]}>
                   {subscriptionPlan !== 'free' ? 'PASS' : 'FREE ≤5'}
                 </Text>
               </View>
@@ -199,12 +210,12 @@ export default function MyCirclesScreen() {
             </View>
             <View style={[styles.metricDivider, { backgroundColor: theme.border }]} />
             <View style={styles.metricItem}>
-              <Text style={[styles.metricValue, { color: '#3DE0A0' }]}>80%</Text>
+              <Text style={[styles.metricValue, { color: theme.success }]}>{computedSupermajorityPct}%</Text>
               <Text style={[styles.metricLabel, { color: theme.textSecondary }]}>Supermajority</Text>
             </View>
             <View style={[styles.metricDivider, { backgroundColor: theme.border }]} />
             <View style={styles.metricItem}>
-              <Text style={[styles.metricValue, { color: '#FF5A5F' }]}>100%</Text>
+              <Text style={[styles.metricValue, { color: theme.primary }]}>100%</Text>
               <Text style={[styles.metricLabel, { color: theme.textSecondary }]}>Sealed privacy</Text>
             </View>
           </View>
@@ -217,7 +228,7 @@ export default function MyCirclesScreen() {
                 haptics.action();
                 router.push('/(tabs)/create');
               }}
-              style={styles.primaryActionBtn}
+              style={[styles.primaryActionBtn, { backgroundColor: theme.primary }]}
             >
               <Plus size={16} color="#050608" strokeWidth={2.5} />
               <Text style={styles.primaryActionBtnText}>New Trip Circle</Text>
@@ -229,9 +240,9 @@ export default function MyCirclesScreen() {
                 haptics.tap();
                 router.push('/invite');
               }}
-              style={[styles.secondaryActionBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
+              style={[styles.secondaryActionBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
             >
-              <KeyRound size={15} color="#F4F3F0" />
+              <KeyRound size={15} color={theme.textPrimary} />
               <Text style={[styles.secondaryActionBtnText, { color: theme.textPrimary }]}>Join Code</Text>
             </TouchableOpacity>
 
@@ -241,10 +252,10 @@ export default function MyCirclesScreen() {
                 haptics.tap();
                 router.push('/paywall');
               }}
-              style={[styles.secondaryActionBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
+              style={[styles.secondaryActionBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
               accessibilityLabel="View group passes and pricing"
             >
-              <Sparkles size={14} color="#FF5A5F" />
+              <Sparkles size={14} color={theme.primary} />
               <Text style={[styles.secondaryActionBtnText, { color: theme.textPrimary }]}>Passes</Text>
             </TouchableOpacity>
           </View>
@@ -309,7 +320,7 @@ export default function MyCirclesScreen() {
 
           {displayCircles.length === 0 && (
             <View style={[styles.emptyTabCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              <FolderArchive size={28} color="#2D3144" />
+              <FolderArchive size={28} color={theme.textMuted} />
               <Text style={[styles.emptyTabTitle, { color: theme.textPrimary }]}>
                 {circleTab === 'archived' ? 'No Archived Circles' : 'No Active Circles'}
               </Text>
@@ -335,13 +346,13 @@ export default function MyCirclesScreen() {
                     paddingVertical: 10,
                     paddingHorizontal: 16,
                     borderRadius: 8,
-                    backgroundColor: 'rgba(255, 90, 95, 0.12)',
+                    backgroundColor: theme.primaryLight,
                     borderWidth: 1,
-                    borderColor: 'rgba(255, 90, 95, 0.3)'
+                    borderColor: theme.border
                   }}
                 >
-                  <Sparkles size={14} color="#FF5A5F" />
-                  <Text style={{ color: '#FF5A5F', fontSize: 13, fontWeight: '700' }}>
+                  <Sparkles size={14} color={theme.primary} />
+                  <Text style={{ color: theme.primary, fontSize: 13, fontWeight: '700' }}>
                     Load Demo Circle (Goa Beach)
                   </Text>
                 </TouchableOpacity>
@@ -502,8 +513,8 @@ export default function MyCirclesScreen() {
                   </View>
 
                   <View style={styles.openLinkRow}>
-                    <Text style={styles.openLinkText}>Open Hub</Text>
-                    <ArrowRight size={13} color="#FF5A5F" />
+                    <Text style={[styles.openLinkText, { color: theme.primary }]}>Open Hub</Text>
+                    <ArrowRight size={13} color={theme.primary} />
                   </View>
                 </View>
                 </View>
@@ -512,8 +523,8 @@ export default function MyCirclesScreen() {
           })}
 
           {/* Privacy Guarantee Note */}
-          <View style={[styles.privacyNoteBox, { backgroundColor: isDarkMode ? 'rgba(61, 224, 160, 0.08)' : 'rgba(15, 164, 127, 0.1)', borderColor: isDarkMode ? 'rgba(61, 224, 160, 0.2)' : 'rgba(15, 164, 127, 0.25)' }]}>
-            <ShieldCheck size={16} color="#3DE0A0" />
+          <View style={[styles.privacyNoteBox, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}>
+            <ShieldCheck size={16} color={theme.success} />
             <Text style={[styles.privacyNoteText, { color: theme.textSecondary }]}>
               All participant constraints and vetoes are mathematically sealed with zero group peer pressure.
             </Text>

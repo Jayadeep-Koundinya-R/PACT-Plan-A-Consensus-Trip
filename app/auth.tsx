@@ -10,8 +10,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
-  Alert
+  ActivityIndicator
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -191,18 +190,18 @@ export default function AuthScreen() {
   const handleForgotPassword = async () => {
     triggerHaptic();
     if (!email.trim() || !email.includes('@')) {
-      Alert.alert('Email Required', 'Please enter your account email address above to reset password.');
+      setErrorMessage('Please enter your account email address above to reset password.');
       return;
     }
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
       if (error) {
-        Alert.alert('Password Reset', error.message);
+        setErrorMessage(error.message);
       } else {
-        Alert.alert('Check Your Inbox', 'A secure password reset link has been dispatched to ' + email + '.');
+        setErrorMessage('Check Your Inbox: A secure password reset link has been dispatched to ' + email + '.');
       }
     } catch (e: any) {
-      Alert.alert('Password Reset Sent', 'Reset link dispatched to ' + email + '.');
+      setErrorMessage('Password Reset Sent: Reset link dispatched to ' + email + '.');
     }
   };
 
@@ -397,21 +396,6 @@ export default function AuthScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Error Notice Banner */}
-            {Boolean(errorMessage) && (
-              <View
-                style={[
-                  styles.errorBox,
-                  { backgroundColor: isDarkMode ? '#3A241E' : '#FEE2E2', borderColor: '#F87171' }
-                ]}
-              >
-                <AlertCircle size={16} color={theme.danger} />
-                <Text style={[styles.errorText, { color: theme.danger }]}>
-                  {errorMessage}
-                </Text>
-              </View>
-            )}
-
             {/* Form Fields */}
             {isSignUp && (
               <View style={styles.inputGroup}>
@@ -526,6 +510,16 @@ export default function AuthScreen() {
                 </>
               )}
             </TouchableOpacity>
+
+            {/* High-contrast inline error banner beneath submit button */}
+            {Boolean(errorMessage) && (
+              <View style={styles.errorBox}>
+                <AlertCircle size={16} color="#FF5A5F" />
+                <Text style={styles.errorText}>
+                  {errorMessage}
+                </Text>
+              </View>
+            )}
 
             {/* Instant Demo Guest Access Button */}
             <TouchableOpacity
@@ -685,6 +679,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: radius.card,
     borderWidth: 1,
+    marginTop: 8,
     marginBottom: 16
   },
   heroLogoCircle: {
@@ -800,9 +795,13 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: radius.md,
     borderWidth: 1,
-    marginBottom: 14
+    backgroundColor: 'rgba(255, 90, 95, 0.12)',
+    borderColor: 'rgba(255, 90, 95, 0.3)',
+    marginTop: 4,
+    marginBottom: 12
   },
   errorText: {
+    color: '#FF5A5F',
     fontSize: 12,
     fontWeight: '600',
     flex: 1
