@@ -47,6 +47,7 @@ import {
   RefreshCw,
   Pencil,
   Compass,
+  Key
 } from 'lucide-react-native';
 
 export default function PactSettings() {
@@ -286,16 +287,36 @@ export default function PactSettings() {
             </View>
           </View>
 
-          {/* Guide & Tutorial Section */}
-          <Text style={[styles.sectionHeading, { color: isDarkMode ? '#8B8D98' : '#6B6252' }]}>Guide & Walkthrough</Text>
+          {/* Guide & Vault Section */}
+          <Text style={[styles.sectionHeading, { color: isDarkMode ? '#8B8D98' : '#6B6252' }]}>Archive & Guide</Text>
           <View style={[styles.settingsGroupCard, { backgroundColor: isDarkMode ? '#13151E' : '#FFFFFF', borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.11)' : 'rgba(0,0,0,0.08)' }]}>
+            <TouchableOpacity
+              onPress={() => router.push('/vault' as any)}
+              activeOpacity={0.7}
+              style={[styles.settingRow, { minHeight: 44 }]}
+              accessibilityLabel="Open The PACT Vault"
+            >
+              <View style={styles.settingTextCol}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 2 }}>
+                  <Key size={15} color="#D4AF37" />
+                  <Text style={[styles.settingLabel, { color: isDarkMode ? '#F4F3F0' : '#1E1A14' }]}>
+                    The PACT Vault (Past Trips)
+                  </Text>
+                </View>
+                <Text style={[styles.settingDesc, { color: isDarkMode ? '#6C6F7A' : '#6B6252' }]}>
+                  View historical sealed trip briefs, Pact Receipts, and anniversary reminders.
+                </Text>
+              </View>
+              <ChevronRight size={16} color="#8B8D98" />
+            </TouchableOpacity>
+
             <TouchableOpacity
               onPress={() => {
                 triggerHaptic();
                 setShowTutorialModal(true);
               }}
               activeOpacity={0.7}
-              style={[styles.settingRow, { minHeight: 44 }]}
+              style={[styles.settingRow, styles.settingRowBorder, { minHeight: 44 }]}
               accessibilityLabel="Replay App Tutorial"
             >
               <View style={styles.settingTextCol}>
@@ -556,6 +577,11 @@ export default function PactSettings() {
                 <Text style={styles.purgeBtnText}>Clear local account data</Text>
               </TouchableOpacity>
             </View>
+
+            {/* Hackathon Watermark */}
+            <Text style={{ fontFamily: fontUI, fontSize: 10, color: '#6C6F7A', textAlign: 'center', marginTop: 12 }}>
+              Built for RevenueCat Shipathon 2026 · Next Gen Track
+            </Text>
           </View>
         </ScrollView>
 
@@ -1314,4 +1340,3 @@ const styles = StyleSheet.create({
     fontWeight: '700'
   }
 });
-

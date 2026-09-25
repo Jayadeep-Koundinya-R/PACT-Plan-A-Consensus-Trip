@@ -8,16 +8,18 @@ import {
   SafeAreaView,
   Animated,
   Easing,
-  Platform
+  Platform,
+  Alert
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import Svg, { Circle, Path, Rect, Text as SvgText } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 import { useUserStore } from '../src/store/useUserStore';
+import { useGatherlyStore } from '../src/store/useGatherlyStore';
 import { supabase } from '../src/lib/supabase/client';
 import { colors, radius } from '../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../src/theme/typography';
-import { ArrowRight, Sparkles, ShieldCheck } from 'lucide-react-native';
+import { ArrowRight, Sparkles, ShieldCheck, Zap } from 'lucide-react-native';
 import { OnboardingCarousel } from '../src/components/OnboardingCarousel';
 
 export default function PactLandingScreen() {
@@ -108,6 +110,19 @@ export default function PactLandingScreen() {
     triggerHaptic();
     useUserStore.getState().setAuthenticated(true);
     router.replace('/(tabs)/home');
+  };
+
+  const handleJudgeSandboxFastForward = () => {
+    triggerHaptic();
+    useUserStore.getState().setAuthenticated(true);
+    useGatherlyStore.getState().setDemoScenario('consensus');
+    if (Platform.OS !== 'web') {
+      Alert.alert(
+        '⚡ Judge Sandbox Activated',
+        'Primed 5 mock travelers with 100% agreement on Goa Beach Escape (96% top match). Redirecting to circle hub...'
+      );
+    }
+    router.replace('/circle/circle-college-reunion-2026/hub' as any);
   };
 
   const scrollToSteps = () => {
@@ -412,6 +427,20 @@ export default function PactLandingScreen() {
 
         {/* Bottom CTA Actions */}
         <View style={styles.bottomCtaBar}>
+          {/* Dedicated Judge Sandbox Button */}
+          <TouchableOpacity
+            activeOpacity={0.88}
+            onPress={handleJudgeSandboxFastForward}
+            style={styles.judgeSandboxBtn}
+            accessibilityRole="button"
+            accessibilityLabel="Judge Sandbox: Fast-Forward Consensus"
+          >
+            <Zap size={16} color="#052E20" fill="#052E20" />
+            <Text style={styles.judgeSandboxBtnText}>
+              ⚡ Judge Sandbox: Fast-Forward Consensus
+            </Text>
+          </TouchableOpacity>
+
           {/* Primary High-Converting CTA */}
           <TouchableOpacity
             activeOpacity={0.88}
@@ -442,6 +471,27 @@ export default function PactLandingScreen() {
 }
 
 const styles = StyleSheet.create({
+  judgeSandboxBtn: {
+    width: '100%',
+    minHeight: 46,
+    borderRadius: 12,
+    backgroundColor: '#3DE0A0',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    shadowColor: '#3DE0A0',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 4
+  },
+  judgeSandboxBtnText: {
+    fontFamily: fontUIBold,
+    fontSize: 13.5,
+    fontWeight: '800',
+    color: '#052E20'
+  },
   outerContainer: {
     flex: 1,
     backgroundColor: '#050608',
