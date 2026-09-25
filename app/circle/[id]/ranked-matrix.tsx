@@ -138,8 +138,6 @@ export default function PactConsensusResults() {
     };
   }, [members, currentGroup.totalMembersCount]);
 
-  const totalMemberCount = members.length || currentGroup.totalMembersCount || 5;
-
   const handleProceedToSilentVoting = () => {
     haptics.action();
     router.push(`/circle/${currentGroup.id}/silent-ballot` as any);

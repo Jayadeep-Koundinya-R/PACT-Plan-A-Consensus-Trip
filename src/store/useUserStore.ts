@@ -191,5 +191,5 @@ export const useUserStore = create<UserState>((set, get) => ({
     })
 }));
 
-import { registerUserStore } from '../lib/user/identity';
+import { registerUserStore } from '../lib/user/identity.ts';
 registerUserStore(useUserStore);

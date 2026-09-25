@@ -201,6 +201,15 @@ const DEFAULT_PAST_TRIPS: PastTripItem[] = [
   }
 ];
 
+function safeDeepClone<T>(data: T, fallback: T): T {
+  try {
+    return JSON.parse(JSON.stringify(data));
+  } catch (err) {
+    console.warn('[useGatherlyStore] safeDeepClone failed, using fallback', err);
+    return fallback;
+  }
+}
+
 export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   currentUserId: '',
   userEmail: null,
@@ -278,13 +287,16 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
 
   register: async (email: string, password: string, displayName?: string) => {
     try {
+      const cleanEmail = email.trim().toLowerCase();
+      const cleanName = displayName?.trim() || cleanEmail.split('@')[0] || 'Traveler';
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: cleanEmail,
         password,
-        options: { data: { display_name: displayName } }
+        options: { data: { display_name: cleanName } }
       });
       if (error) throw error;
       const uid = data.user ? data.user.id : `user-real-${Date.now()}`;
+      const plan = await fetchUserSubscription(uid, cleanEmail);
       set({
         currentUserId: uid,
         userEmail: cleanEmail,
@@ -1090,5 +1102,5 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   }
 }));
 
-import { registerGatherlyStore } from '../lib/user/identity';
+import { registerGatherlyStore } from '../lib/user/identity.ts';
 registerGatherlyStore(useGatherlyStore);
