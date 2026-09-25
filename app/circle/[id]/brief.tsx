@@ -25,10 +25,12 @@ import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
 import { colors, radius } from '../../../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
-import { ArrowLeft, Share2, Calendar, Lock, FolderArchive, Image as ImageIcon } from 'lucide-react-native';
+import { ArrowLeft, Share2, Calendar, Lock, FolderArchive, Image as ImageIcon, ScrollText } from 'lucide-react-native';
 import { useCircleStore } from '../../../src/store/useCircleStore';
 import { getActiveUserName } from '../../../src/lib/user/identity';
 import { resolveTripOptionsForCircle, extractDestinationAndVibe } from '../../../src/lib/consensus/dynamicOptions';
+import { PactReceiptCard } from '../../../src/components/export/PactReceiptCard';
+import { VetoAwareConcierge } from '../../../src/components/itinerary/VetoAwareConcierge';
 
 export default function PactTripBrief() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -53,6 +55,7 @@ export default function PactTripBrief() {
   const { shareTripBrief } = useShareInvite();
   const [confettiKey, setConfettiKey] = useState(0);
   const [showStoryModal, setShowStoryModal] = useState(false);
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
   const { addNotification } = useNotificationStore();
 
   useEffect(() => {
@@ -143,19 +146,6 @@ export default function PactTripBrief() {
       try {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       } catch (e) {}
-    }
-  };
-
-  const handleOpenGoogleCalendar = () => {
-    triggerHaptic();
-    const title = encodeURIComponent(`${currentGroup.name || rawDestName} (PACT Consensus)`);
-    const dest = encodeURIComponent(rawDestName);
-    const details = encodeURIComponent('Consensus reached on PACT!\n\nOpen PACT and use the invite code to view the confirmed Trip Brief.');
-    const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=20261014/20261020&details=${details}&location=${dest}`;
-    if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      window.open(gcalUrl, '_blank');
-    } else {
-      Linking.openURL(gcalUrl);
     }
   };
 
@@ -263,7 +253,24 @@ export default function PactTripBrief() {
               style={{ marginBottom: 12 }}
             />
             <Text style={styles.consensusTitle}>Consensus locked — 100%</Text>
-            <Text style={styles.consensusSub}>All {currentGroup.totalMembersCount || effectiveMembers.length} members approved this plan.</Text>
+            <Text style={styles.consensusSub}>
+              All {currentGroup.totalMembersCount || effectiveMembers.length} members approved this plan.
+            </Text>
+
+            {/* Glowing Pact Receipt Button */}
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => {
+                haptics.action();
+                setShowReceiptModal(true);
+              }}
+              style={styles.viewReceiptBtn}
+              accessibilityRole="button"
+              accessibilityLabel="View and share The Pact Receipt"
+            >
+              <ScrollText size={15} color="#090A0F" />
+              <Text style={styles.viewReceiptBtnText}>📜 View & Share The Pact Receipt</Text>
+            </TouchableOpacity>
           </View>
 
           {/* Official Sealed Ticket Card */}
@@ -306,12 +313,15 @@ export default function PactTripBrief() {
           <View style={styles.actionsStack}>
             <TouchableOpacity
               activeOpacity={0.88}
-              onPress={handleShareWhatsApp}
+              onPress={() => {
+                haptics.action();
+                setShowReceiptModal(true);
+              }}
               style={styles.primaryShareBriefBtn}
-              accessibilityLabel="Share Trip Brief"
+              accessibilityLabel="View and Share The Pact Receipt"
             >
-              <Share2 size={18} color="#090A0F" />
-              <Text style={styles.primaryShareBriefBtnText}>Share Trip Brief</Text>
+              <ScrollText size={18} color="#090A0F" />
+              <Text style={styles.primaryShareBriefBtnText}>View & Share The Pact Receipt</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -334,6 +344,9 @@ export default function PactTripBrief() {
               <Text style={styles.secondaryActionBtnText}>Export Story Card (Instagram / Snap)</Text>
             </TouchableOpacity>
           </View>
+
+          {/* Veto-Aware AI Concierge Component */}
+          <VetoAwareConcierge destination={rawDestName} />
 
           {/* Contextual 3-day Itinerary Outline */}
           <View style={styles.itineraryCard}>
@@ -396,6 +409,14 @@ export default function PactTripBrief() {
           participants={effectiveMembers}
           tags={['Consensus', 'GroupTrip', rawDestName]}
           isDarkMode={true}
+        />
+
+        <PactReceiptCard
+          visible={showReceiptModal}
+          destinationName={destinationName}
+          dates={tripDates}
+          memberCount={effectiveMembers.length}
+          onClose={() => setShowReceiptModal(false)}
         />
       </View>
     </SafeAreaView>
@@ -478,12 +499,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 13,
     marginBottom: 18,
-    overflow: 'hidden'
-  },
-  confettiSvg: {
-    position: 'absolute',
-    top: 6,
-    right: 14
+    overflow: 'hidden',
+    alignItems: 'center'
   },
   consensusTitle: {
     fontFamily: fontUIBold,
@@ -495,7 +512,27 @@ const styles = StyleSheet.create({
     fontFamily: fontUI,
     fontSize: 12,
     color: '#7FC9A5',
-    marginTop: 3
+    marginTop: 3,
+    marginBottom: 12,
+    textAlign: 'center'
+  },
+  viewReceiptBtn: {
+    width: '100%',
+    minHeight: 44,
+    borderRadius: 10,
+    backgroundColor: '#D4AF37', // Subtle Gold Foil Accent
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8
+  },
+  viewReceiptBtnText: {
+    fontFamily: fontUIBold,
+    fontSize: 12.5,
+    fontWeight: '800',
+    color: '#090A0F'
   },
   sealedTicketContainer: {
     position: 'relative',

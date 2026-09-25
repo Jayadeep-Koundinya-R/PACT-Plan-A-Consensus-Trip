@@ -138,12 +138,6 @@ export default function PactConsensusResults() {
     };
   }, [members, currentGroup.totalMembersCount]);
 
-  const checklist = useMemo(() => [
-    `Dates: 100% date window overlap across all ${totalMemberCount} members`,
-    `Budget: fits all ${totalMemberCount} member caps privately`,
-    'Vibes: beach, nightlife & seafood matched'
-  ], [totalMemberCount]);
-
   const handleProceedToSilentVoting = () => {
     haptics.action();
     router.push(`/circle/${currentGroup.id}/silent-ballot` as any);

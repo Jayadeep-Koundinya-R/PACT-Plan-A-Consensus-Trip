@@ -135,7 +135,6 @@ export const useUserStore = create<UserState>((set, get) => ({
 
   ensureGuestSession: (suggestedName?: string) => {
     const current = get().profile;
-    // If a specific suggested name is passed and current profile doesn't match or is demo persona, create fresh guest session
     if (suggestedName && suggestedName.trim() && (current.displayName !== suggestedName.trim() || current.userId === 'user-maya-001')) {
       const guestId = 'guest-' + Math.random().toString(36).substring(2, 9);
       const guestProfile: UserProfile = {
@@ -192,7 +191,5 @@ export const useUserStore = create<UserState>((set, get) => ({
     })
 }));
 
-// Register with unified identity resolver
 import { registerUserStore } from '../lib/user/identity.ts';
 registerUserStore(useUserStore);
-

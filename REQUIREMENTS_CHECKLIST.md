@@ -84,7 +84,7 @@ Status legend: ✅ Done & verified · 🟡 Built but not verified · ⬜ Not sta
 |---|---|---|---|
 | N1 | Canonical PACT palette: Base (#090A0F), Card (#13151E), Coral (#FF5A5F), Emerald (#3DE0A0), Gold (#D4AF37) across all screens | ✅ | Evaluated in `colors.test.mjs` with 10 property tests (Properties 6-10) + live browser screenshots |
 | N2 | Haptics on key interactions (lock, seal, success, warning) | ✅ | `usePactHaptics.ts` wrapper with web safe no-op fallbacks |
-| N3 | Full automated test suite passing | ✅ | **115/115 tests passing across 27 suites**; `npx tsc --noEmit` exits with 0 errors |
+| N3 | Full automated test suite passing | ✅ | **226/226 tests passing across 51 suites**; `npx tsc --noEmit` exits with 0 errors |
 | N4 | No git push to `main` or production deploy without explicit approval | ✅ | Strict branch isolation on `pre-submission-review` |
 
 ---
