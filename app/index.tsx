@@ -20,6 +20,7 @@ import { supabase } from '../src/lib/supabase/client';
 import { colors, radius } from '../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../src/theme/typography';
 import { ArrowRight, Sparkles, ShieldCheck, Zap } from 'lucide-react-native';
+import Reanimated, { FadeInDown } from 'react-native-reanimated';
 import { OnboardingCarousel } from '../src/components/OnboardingCarousel';
 
 export default function PactLandingScreen() {
@@ -358,12 +359,18 @@ export default function PactLandingScreen() {
               </Animated.View>
             </View>
 
-            <Text style={styles.heroHeading}>
+            <Reanimated.Text
+              entering={FadeInDown.duration(500).springify()}
+              style={styles.heroHeading}
+            >
               5 friends. 47 messages. Zero plan.
-            </Text>
-            <Text style={styles.heroSubheading}>
+            </Reanimated.Text>
+            <Reanimated.Text
+              entering={FadeInDown.duration(500).delay(150).springify()}
+              style={styles.heroSubheading}
+            >
               Set budget and dates privately. Sealed votes. Zero peer pressure.
-            </Text>
+            </Reanimated.Text>
           </View>
 
           {/* Scroll Down Chevron */}
@@ -426,7 +433,10 @@ export default function PactLandingScreen() {
         </ScrollView>
 
         {/* Bottom CTA Actions */}
-        <View style={styles.bottomCtaBar}>
+        <Reanimated.View
+          entering={FadeInDown.duration(500).delay(300).springify()}
+          style={styles.bottomCtaBar}
+        >
           {/* Dedicated Judge Sandbox Button */}
           <TouchableOpacity
             activeOpacity={0.88}
@@ -464,7 +474,7 @@ export default function PactLandingScreen() {
           <Text style={styles.termsFooterText}>
             By continuing you agree to PACT's Terms and Privacy Policy.
           </Text>
-        </View>
+        </Reanimated.View>
       </View>
     </SafeAreaView>
   );

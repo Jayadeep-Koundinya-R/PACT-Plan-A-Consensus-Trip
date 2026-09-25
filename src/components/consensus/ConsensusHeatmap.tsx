@@ -1,5 +1,6 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, TouchableOpacity, ViewStyle } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { ShieldCheck, ShieldAlert, Calendar, DollarSign, Sparkles } from 'lucide-react-native';
 import { fontDisplay, fontUI, fontUIBold } from '../../theme/typography';
 
@@ -47,47 +48,33 @@ export const ConsensusHeatmap: React.FC<ConsensusHeatmapProps> = ({
   const budgetPct = normalizeScore(rawBudgetScore);
   const vibePct = normalizeScore(rawVibeScore);
 
-  const datesAnim = useRef(new Animated.Value(0)).current;
-  const budgetAnim = useRef(new Animated.Value(0)).current;
-  const vibeAnim = useRef(new Animated.Value(0)).current;
+  const datesAnim = useSharedValue(0);
+  const budgetAnim = useSharedValue(0);
+  const vibeAnim = useSharedValue(0);
+  const scoreScale = useSharedValue(0.7);
 
   useEffect(() => {
-    Animated.parallel([
-      Animated.timing(datesAnim, {
-        toValue: datesPct,
-        duration: 600,
-        useNativeDriver: false
-      }),
-      Animated.timing(budgetAnim, {
-        toValue: budgetPct,
-        duration: 600,
-        useNativeDriver: false
-      }),
-      Animated.timing(vibeAnim, {
-        toValue: vibePct,
-        duration: 600,
-        useNativeDriver: false
-      })
-    ]).start();
-  }, [datesPct, budgetPct, vibePct, datesAnim, budgetAnim, vibeAnim]);
+    datesAnim.value = withSpring(datesPct, { damping: 14, stiffness: 120 });
+    budgetAnim.value = withSpring(budgetPct, { damping: 14, stiffness: 120 });
+    vibeAnim.value = withSpring(vibePct, { damping: 14, stiffness: 120 });
+    scoreScale.value = withSpring(1, { damping: 10, stiffness: 180 });
+  }, [datesPct, budgetPct, vibePct]);
 
-  const datesBarWidth = datesAnim.interpolate({
-    inputRange: [0, 100],
-    outputRange: ['0%', '100%'],
-    extrapolate: 'clamp'
-  });
+  const datesAnimatedStyle = useAnimatedStyle(() => ({
+    width: `${datesAnim.value}%`
+  }));
 
-  const budgetBarWidth = budgetAnim.interpolate({
-    inputRange: [0, 100],
-    outputRange: ['0%', '100%'],
-    extrapolate: 'clamp'
-  });
+  const budgetAnimatedStyle = useAnimatedStyle(() => ({
+    width: `${budgetAnim.value}%`
+  }));
 
-  const vibeBarWidth = vibeAnim.interpolate({
-    inputRange: [0, 100],
-    outputRange: ['0%', '100%'],
-    extrapolate: 'clamp'
-  });
+  const vibeAnimatedStyle = useAnimatedStyle(() => ({
+    width: `${vibeAnim.value}%`
+  }));
+
+  const scoreAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scoreScale.value }]
+  }));
 
   const defaultVetoText = hasVeto
     ? 'Dealbreaker Veto Triggered'
@@ -120,9 +107,9 @@ export const ConsensusHeatmap: React.FC<ConsensusHeatmapProps> = ({
         </View>
 
         {typeof totalScore === 'number' && (
-          <View style={styles.totalScoreChip}>
+          <Animated.View style={[styles.totalScoreChip, scoreAnimatedStyle]}>
             <Text style={styles.totalScoreText}>{totalScore}% Match</Text>
-          </View>
+          </Animated.View>
         )}
       </View>
 
@@ -139,7 +126,8 @@ export const ConsensusHeatmap: React.FC<ConsensusHeatmapProps> = ({
           <Animated.View
             style={[
               styles.trackFill,
-              { width: datesBarWidth, backgroundColor: '#3DE0A0' }
+              datesAnimatedStyle,
+              { backgroundColor: '#3DE0A0' }
             ]}
           />
         </View>
@@ -161,7 +149,8 @@ export const ConsensusHeatmap: React.FC<ConsensusHeatmapProps> = ({
           <Animated.View
             style={[
               styles.trackFill,
-              { width: budgetBarWidth, backgroundColor: '#2DD4BF' }
+              budgetAnimatedStyle,
+              { backgroundColor: '#2DD4BF' }
             ]}
           />
         </View>
@@ -183,7 +172,8 @@ export const ConsensusHeatmap: React.FC<ConsensusHeatmapProps> = ({
           <Animated.View
             style={[
               styles.trackFill,
-              { width: vibeBarWidth, backgroundColor: '#D4AF37' }
+              vibeAnimatedStyle,
+              { backgroundColor: '#D4AF37' }
             ]}
           />
         </View>
