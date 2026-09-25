@@ -62,7 +62,7 @@ describe('Organizer Leave Safety', () => {
     assert.equal(result.reason, undefined, 'No reason should be provided on success');
 
     const circle = useCircleStore.getState().getCircle(circleId);
-    assert.equal(circle.members.length, 0, 'Circle should have 0 members');
+    assert.equal(circle, undefined, 'Circle should be removed when 0 members remain');
   });
 
   test('Non-organizer can leave a circle with other members freely', () => {

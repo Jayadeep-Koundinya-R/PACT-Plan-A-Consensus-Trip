@@ -281,11 +281,22 @@ export const useCircleStore = create<CircleState>((set, get) => ({
 
   removeMember: (circleId, userId) =>
     set((s) => {
+      const circle = s.circles.find((c) => c.id === circleId);
+      if (!circle) return { circles: s.circles };
+      const remainingMembers = circle.members.filter((m) => m.userId !== userId);
+      if (remainingMembers.length === 0) {
+        const updated = s.circles.filter((c) => c.id !== circleId);
+        saveCirclesToStorage(updated);
+        return {
+          circles: updated,
+          activeCircleId: s.activeCircleId === circleId ? (s.circles.find((c) => c.id !== circleId)?.id || null) : s.activeCircleId
+        };
+      }
       const updated = s.circles.map((c) =>
         c.id === circleId
           ? {
               ...c,
-              members: c.members.filter((m) => m.userId !== userId)
+              members: remainingMembers
             }
           : c
       );
