@@ -21,6 +21,7 @@ import { PactButton } from '../../../src/components/common';
 import { usePactHaptics } from '../../../src/hooks/usePactHaptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
+import { useCircleStore } from '../../../src/store/useCircleStore';
 import { colors, radius } from '../../../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
 import {
@@ -53,12 +54,14 @@ export default function PactConsensusResults() {
   const haptics = usePactHaptics();
   const { groups = [], members = [], activeDemoScenario = "early_bird" } = useGatherlyStore();
 
+  const circleFromStore = id ? useGatherlyStore.getState().groups.find(g => g.id === id) || useCircleStore.getState().getCircle(id as string) : null;
   const currentGroup =
     groups.find((g) => g && g.id === id) ||
-    groups[0] || {
+    (circleFromStore ? { id: circleFromStore.id, name: circleFromStore.name, inviteCode: circleFromStore.inviteCode, totalMembersCount: circleFromStore.totalMembersCount } : undefined) ||
+    (groups.length > 0 ? groups[0] : undefined) || {
       id: (id && id !== 'undefined') ? id : 'circle-college-reunion-2026',
-      name: 'Goa Beach Escape 2026',
-      inviteCode: 'GOA-4F82',
+      name: 'Trip Circle',
+      inviteCode: 'PACT-CODE',
       totalMembersCount: 5
     };
 

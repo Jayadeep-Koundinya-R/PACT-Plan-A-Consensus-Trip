@@ -25,6 +25,7 @@ import Animated, {
   runOnJS
 } from 'react-native-reanimated';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
+import { useCircleStore } from '../../../src/store/useCircleStore';
 import { usePactHaptics } from '../../../src/hooks/usePactHaptics';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
 import { ArrowLeft, Check, X, Shield, Lock } from 'lucide-react-native';
@@ -271,12 +272,14 @@ export default function PactSilentBallot() {
   const { groups = [], members = [], castVote } = useGatherlyStore();
   const haptics = usePactHaptics();
 
+  const circleFromStore = id ? useCircleStore.getState().getCircle(id as string) : null;
   const currentGroup =
     groups.find((g) => g && g.id === id) ||
-    groups[0] || {
+    (circleFromStore ? { id: circleFromStore.id, name: circleFromStore.name, inviteCode: circleFromStore.inviteCode } : undefined) ||
+    (groups.length > 0 ? groups[0] : undefined) || {
       id: id && id !== 'undefined' ? id : 'circle-college-reunion-2026',
-      name: 'Goa Beach Escape 2026',
-      inviteCode: 'GOA-4F82'
+      name: 'Trip Circle',
+      inviteCode: 'PACT-CODE'
     };
 
   const [isLoading] = useState(false);

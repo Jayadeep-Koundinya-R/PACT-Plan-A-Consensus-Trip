@@ -25,7 +25,7 @@ import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
 import { colors, radius } from '../../../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
-import { ArrowLeft, Share2, Calendar, Lock, FolderArchive, Image as ImageIcon, ScrollText } from 'lucide-react-native';
+import { ArrowLeft, Share2, Calendar, Lock, FolderArchive, Image as ImageIcon, ScrollText, Sparkles } from 'lucide-react-native';
 import { useCircleStore } from '../../../src/store/useCircleStore';
 import { getActiveUserName } from '../../../src/lib/user/identity';
 import { resolveTripOptionsForCircle, extractDestinationAndVibe } from '../../../src/lib/consensus/dynamicOptions';
@@ -45,11 +45,16 @@ export default function PactTripBrief() {
   const currentGroup =
     groups.find((g) => g && g.id === id) ||
     (circleFromStore ? { id: circleFromStore.id, name: circleFromStore.name, inviteCode: circleFromStore.inviteCode, organizerId: circleFromStore.organizerId, status: circleFromStore.status, totalMembersCount: circleFromStore.totalMembersCount } : undefined) ||
-    groups[0] || {
+    (groups.length > 0 ? groups[0] : undefined) || {
       id: (id && id !== 'undefined') ? id : 'circle-college-reunion-2026',
-      name: 'College Reunion 2026',
-      inviteCode: 'PACT-4F82'
+      name: 'Trip Circle',
+      inviteCode: 'PACT-CODE',
+      organizerId: 'user-maya-001',
+      status: 'finalized' as const,
+      totalMembersCount: 5
     };
+
+  const isProCircle = Boolean((currentGroup as any)?.hasPro || (currentGroup as any)?.has_pro || circleFromStore?.hasPro || useGatherlyStore.getState().subscriptionPlan !== 'free');
 
   const haptics = usePactHaptics();
   const { shareTripBrief } = useShareInvite();
@@ -241,6 +246,14 @@ export default function PactTripBrief() {
 
           {/* Reanimated 3 Particle Burst */}
           <ParticleBurst active={true} durationMs={2200} />
+
+          {/* Pro Circle Banner */}
+          {isProCircle && (
+            <View style={styles.proCircleBanner} accessibilityLabel="Pro Circle — All Members Upgraded">
+              <Sparkles size={12} color="#3DE0A0" />
+              <Text style={styles.proCircleBannerText}>Pro Circle — All Members Upgraded</Text>
+            </View>
+          )}
 
           {/* Consensus Reached Banner with Animated ConsensusGauge */}
           <View style={styles.consensusBanner}>
@@ -485,6 +498,26 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     fontWeight: '600',
     color: '#F4F3F0'
+  },
+  proCircleBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(61, 224, 160, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.35)',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginBottom: 12,
+    alignSelf: 'flex-start'
+  },
+  proCircleBannerText: {
+    fontFamily: fontUIBold,
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#3DE0A0',
+    letterSpacing: 0.3
   },
   consensusBanner: {
     position: 'relative',

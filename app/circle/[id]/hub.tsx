@@ -68,6 +68,9 @@ export default function PactCirclesHub() {
   const [voiceCapsules, setVoiceCapsules] = useState<VoiceCapsuleItem[]>([]);
   const [showVoiceDrawer, setShowVoiceDrawer] = useState(false);
 
+  const activeUserId = getActiveUserId();
+  const activeUserName = getActiveUserName();
+
   useEffect(() => {
     let mounted = true;
     if (id && id !== 'undefined' && id !== '[id]') {
@@ -118,14 +121,14 @@ export default function PactCirclesHub() {
       totalMembersCount: circleFromStore.totalMembersCount,
       hasPro: circleFromStore.hasPro
     } : undefined) ||
-    groups[0] || {
-      id: 'circle-college-reunion-2026',
-      name: 'Goa Beach Escape 2026',
-      inviteCode: 'GOA-4F82',
-      organizerId: 'user-maya-001',
-      status: 'voting' as const,
+    (groups.length > 0 ? groups[0] : undefined) || {
+      id: (rawId && rawId !== 'undefined') ? rawId : 'circle-college-reunion-2026',
+      name: 'Trip Circle',
+      inviteCode: 'PACT-CODE',
+      organizerId: activeUserId || 'user-maya-001',
+      status: 'collecting' as const,
       totalMembersCount: 5,
-      hasPro: true
+      hasPro: false
     };
 
   const isProCircle = Boolean((currentGroup as any)?.hasPro || (currentGroup as any)?.has_pro || circleFromStore?.hasPro || useGatherlyStore.getState().subscriptionPlan !== 'free');
@@ -139,8 +142,6 @@ export default function PactCirclesHub() {
   const { openNotificationCenter, notifications } = useNotificationStore();
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  const activeUserId = getActiveUserId();
-  const activeUserName = getActiveUserName();
   const isDemoCircle = currentGroup?.id === 'circle-college-reunion-2026';
 
   const storeMembers = circleFromStore?.members?.map(m => {

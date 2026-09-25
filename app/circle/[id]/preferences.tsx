@@ -83,14 +83,16 @@ export default function PactConstraintsForm() {
   const toggleDealbreaker = useVoteStore((s) => s.toggleDealbreaker);
   const markSubmitted = useVoteStore((s) => s.markSubmitted);
 
+  const circleFromStore = circleId ? useCircleStore.getState().getCircle(circleId) : null;
   const currentGroup =
     groups.find((g) => g && g.id === id) ||
-    groups[0] || {
+    (circleFromStore ? { id: circleFromStore.id, name: circleFromStore.name, inviteCode: circleFromStore.inviteCode, organizerId: circleFromStore.organizerId, status: circleFromStore.status, totalMembersCount: circleFromStore.totalMembersCount } : undefined) ||
+    (groups.length > 0 ? groups[0] : undefined) || {
       id: (circleId && circleId !== 'undefined') ? circleId : 'circle-college-reunion-2026',
-      name: 'Goa trip',
-      inviteCode: 'GOA-4F82',
+      name: 'Trip Circle',
+      inviteCode: 'PACT-CODE',
       organizerId: currentUserId,
-      status: 'voting' as const,
+      status: 'collecting' as const,
       totalMembersCount: 5
     };
 
