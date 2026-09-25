@@ -58,7 +58,11 @@ export default function PactPaywall() {
         if (offerings.current && offerings.current.availablePackages?.length > 0) {
           const pkg = offerings.current.availablePackages[0];
           const { customerInfo } = await Purchases.purchasePackage(pkg);
-          if (customerInfo?.entitlements?.active?.['pro_access']) {
+          const hasProEntitlement = Boolean(
+            customerInfo?.entitlements?.active?.['pro_access'] ||
+            customerInfo?.entitlements?.active?.['pact_pro']
+          );
+          if (hasProEntitlement) {
             useGatherlyStore.getState().setSubscriptionPlan('premium_monthly');
             useUserStore.getState().setSubscriptionPlan('premium_monthly');
             Alert.alert(
@@ -72,7 +76,7 @@ export default function PactPaywall() {
             setIsPurchasing(false);
             Alert.alert(
               'Purchase Failed',
-              'Payment was processed, but the pro_access entitlement is not active. Please restore purchases or try again.'
+              'Payment was processed, but the pro entitlement (pro_access or pact_pro) is not active. Please restore purchases or try again.'
             );
             return;
           }

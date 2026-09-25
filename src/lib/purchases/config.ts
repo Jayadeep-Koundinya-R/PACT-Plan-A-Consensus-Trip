@@ -2,8 +2,18 @@ import { Platform } from 'react-native';
 
 // API keys are injected at EAS build time via EXPO_PUBLIC_ env vars.
 // Never commit literal API key strings.
-const IOS_RC_KEY = process.env.EXPO_PUBLIC_RC_IOS_KEY ?? '';
-const ANDROID_RC_KEY = process.env.EXPO_PUBLIC_RC_ANDROID_KEY ?? '';
+const IOS_RC_KEY =
+  process.env.EXPO_PUBLIC_RC_IOS_KEY ||
+  process.env.EXPO_PUBLIC_REVENUECAT_APPLE_KEY ||
+  process.env.EXPO_PUBLIC_REVENUECAT_TEST_KEY ||
+  process.env.EXPO_PUBLIC_RC_TEST_KEY ||
+  '';
+const ANDROID_RC_KEY =
+  process.env.EXPO_PUBLIC_RC_ANDROID_KEY ||
+  process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY ||
+  process.env.EXPO_PUBLIC_REVENUECAT_TEST_KEY ||
+  process.env.EXPO_PUBLIC_RC_TEST_KEY ||
+  '';
 
 /**
  * Initialize the RevenueCat SDK.
