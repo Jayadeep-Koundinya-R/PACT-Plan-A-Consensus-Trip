@@ -368,7 +368,7 @@ export async function joinGroupWithCode(inviteCode: string, userId: string): Pro
   if (group.status === 'finalized') throw new Error('GROUP_FINALIZED');
 
   const alreadyMember = await isUserAlreadyInGroup(group.id, userId);
-  if (alreadyMember) throw new Error('ALREADY_MEMBER');
+  if (alreadyMember) throw new Error("You're already a member of this circle");
 
   const { count } = await supabase
     .from('group_members')

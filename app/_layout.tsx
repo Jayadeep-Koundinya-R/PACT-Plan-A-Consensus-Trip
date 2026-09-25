@@ -93,6 +93,7 @@ class RootErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState
 
 export default function RootLayout() {
   const isDarkMode = useGatherlyStore((state) => state.isDarkMode);
+  const [isRestoringAuth, setIsRestoringAuth] = React.useState(true);
 
   const [fontsLoaded] = useFonts({
     Fraunces_400Regular,
@@ -103,15 +104,39 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (fontsLoaded) {
-      useGatherlyStore.getState().initThemeFromStorage();
-      SplashScreen.hideAsync();
-      initPurchases();
+    let isMounted = true;
+    async function initApp() {
+      if (fontsLoaded) {
+        try {
+          await useGatherlyStore.getState().initThemeFromStorage();
+          await useGatherlyStore.getState().initAuthSession();
+        } catch (e) {
+          console.warn('Auth restore error:', e);
+        } finally {
+          if (isMounted) {
+            setIsRestoringAuth(false);
+            SplashScreen.hideAsync();
+            initPurchases();
+          }
+        }
+      }
     }
+    initApp();
+    return () => { isMounted = false; };
   }, [fontsLoaded]);
 
-  // Return null while fonts load â€” splash screen stays visible
-  if (!fontsLoaded) return null;
+  // Render centered Obsidian Midnight loading skeleton during auth restore / font load
+  if (!fontsLoaded || isRestoringAuth) {
+    return (
+      <SafeAreaView style={styles.splashSkeletonContainer}>
+        <View style={styles.splashLogoBadge}>
+          <Compass size={32} color="#FF5A5F" strokeWidth={2.5} />
+        </View>
+        <Text style={styles.splashBrandTitle}>PACT</Text>
+        <Text style={styles.splashBrandSubtitle}>Restoring Session...</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <RootErrorBoundary isDarkMode={isDarkMode}>
@@ -128,6 +153,35 @@ export default function RootLayout() {
 }
 
 const styles = StyleSheet.create({
+  splashSkeletonContainer: {
+    flex: 1,
+    backgroundColor: '#090A0F',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  splashLogoBadge: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    backgroundColor: '#13151E',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16
+  },
+  splashBrandTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#FF5A5F',
+    letterSpacing: 1.2,
+    marginBottom: 4
+  },
+  splashBrandSubtitle: {
+    fontSize: 12,
+    color: '#8B8D98',
+    letterSpacing: 0.8
+  },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',

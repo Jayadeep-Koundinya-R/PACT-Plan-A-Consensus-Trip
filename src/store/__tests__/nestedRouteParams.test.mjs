@@ -1,8 +1,13 @@
-import { test, describe } from 'node:test';
+import { test, describe, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { useCircleStore } from '../useCircleStore.js';
+import { useCircleStore } from '../useCircleStore.ts';
 
 describe('Nested useLocalSearchParams & Circle Switching', () => {
+  beforeEach(() => {
+    useCircleStore.getState().clearCircles();
+    useCircleStore.getState().loadDemoCircle();
+  });
+
   test('resolves Circle A and Circle B data correctly without collision', () => {
     const store = useCircleStore.getState();
 
