@@ -45,8 +45,11 @@ import {
   FileText,
   RefreshCw,
   SlidersHorizontal,
-  ChevronRight
+  ChevronRight,
+  Mic
 } from 'lucide-react-native';
+import { VoiceCapsuleRecorder } from '../../../src/components/audio/VoiceCapsuleRecorder';
+import { VoiceCapsuleList, VoiceCapsuleItem } from '../../../src/components/audio/VoiceCapsuleList';
 
 export default function PactCirclesHub() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -57,10 +60,13 @@ export default function PactCirclesHub() {
 
   const router = useRouter();
   const haptics = usePactHaptics();
-  const { groups = [], activeGroupId, activeDemoScenario = 'early_bird', fetchGroupDataFromCloud } = useGatherlyStore();
+  const { groups = [], activeGroupId, activeDemoScenario = 'early_bird', fetchGroupDataFromCloud, setDemoScenario } = useGatherlyStore();
 
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  const [voiceCapsules, setVoiceCapsules] = useState<VoiceCapsuleItem[]>([]);
+  const [showVoiceDrawer, setShowVoiceDrawer] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -244,6 +250,15 @@ export default function PactCirclesHub() {
     });
   };
 
+  const handleFastForwardConsensus = () => {
+    haptics.success();
+    setDemoScenario('consensus');
+    Alert.alert(
+      '⚡ Fast-Forward Consensus Active',
+      'Circle primed with 5 members, 100% agreement, and top option locked. Proceed to Silent Ballot or Ranked Matrix!'
+    );
+  };
+
   // State-Dependent Dominant Action Handler
   const renderDominantCTA = () => {
     const tripStatus = currentGroup.status || 'collecting';
@@ -396,6 +411,18 @@ export default function PactCirclesHub() {
                 <TouchableOpacity
                   onPress={() => {
                     haptics.tap();
+                    setShowVoiceDrawer((prev) => !prev);
+                  }}
+                  activeOpacity={0.7}
+                  style={[styles.headerIconBtn, showVoiceDrawer && { backgroundColor: 'rgba(255, 90, 95, 0.2)' }]}
+                  accessibilityLabel="Voice Capsules Drawer"
+                >
+                  <Mic size={16} color="#FF5A5F" />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => {
+                    haptics.tap();
                     openNotificationCenter();
                   }}
                   activeOpacity={0.7}
@@ -479,6 +506,26 @@ export default function PactCirclesHub() {
           {loadError && (
             <View style={styles.errorBanner}>
               <Text style={styles.errorBannerText}>{loadError}</Text>
+            </View>
+          )}
+
+          {/* Voice Capsules Section */}
+          {showVoiceDrawer && (
+            <View style={styles.voiceSectionBox}>
+              <VoiceCapsuleRecorder
+                onRecordingComplete={(newCap) => {
+                  setVoiceCapsules((prev) => [
+                    {
+                      id: newCap.id,
+                      authorName: newCap.authorName,
+                      durationSeconds: newCap.durationSeconds,
+                      createdAt: newCap.createdAt
+                    },
+                    ...prev
+                  ]);
+                }}
+              />
+              <VoiceCapsuleList capsules={voiceCapsules} />
             </View>
           )}
 
@@ -783,6 +830,19 @@ export default function PactCirclesHub() {
           {/* Visually Isolated Demo / Tester Controls */}
           <View style={styles.demoControlsContainer}>
             <Text style={styles.demoControlsTitle}>DEMO & SIMULATION CONTROLS</Text>
+
+            <TouchableOpacity
+              onPress={handleFastForwardConsensus}
+              activeOpacity={0.8}
+              style={styles.fastForwardBtn}
+              accessibilityLabel="Judge Sandbox: Fast-Forward Consensus"
+            >
+              <Zap size={13} color="#052E20" fill="#052E20" />
+              <Text style={styles.fastForwardBtnText}>
+                ⚡ Judge Sandbox: Fast-Forward Consensus
+              </Text>
+            </TouchableOpacity>
+
             <TouchableOpacity
               onPress={toggleDemoSimulation}
               activeOpacity={0.8}
@@ -794,6 +854,10 @@ export default function PactCirclesHub() {
                 {lockedCount <= 2 ? 'Simulate 3rd Member Lock-In (Unlock Match)' : 'Reset to Early Bird State'}
               </Text>
             </TouchableOpacity>
+
+            <Text style={styles.watermarkText}>
+              Built for RevenueCat Shipathon 2026 · Next Gen Track
+            </Text>
           </View>
         </ScrollView>
 
@@ -824,6 +888,34 @@ export default function PactCirclesHub() {
 }
 
 const styles = StyleSheet.create({
+  voiceSectionBox: {
+    marginBottom: 16
+  },
+  fastForwardBtn: {
+    width: '100%',
+    minHeight: 42,
+    borderRadius: 10,
+    backgroundColor: '#3DE0A0',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8
+  },
+  fastForwardBtnText: {
+    fontFamily: fontUIBold,
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#052E20'
+  },
+  watermarkText: {
+    fontFamily: fontUI,
+    fontSize: 9.5,
+    color: '#6C6F7A',
+    textAlign: 'center',
+    marginTop: 4
+  },
   outerContainer: {
     flex: 1,
     backgroundColor: '#050608',

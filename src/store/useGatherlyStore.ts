@@ -69,6 +69,18 @@ export interface MemoryPhotoItem {
   caption?: string;
 }
 
+export interface PastTripItem {
+  id: string;
+  name: string;
+  destinationName: string;
+  dates: string;
+  memberCount: number;
+  finalizedAt: string;
+  winningOptionName: string;
+  inviteCode: string;
+  anniversaryReminder: boolean;
+}
+
 export interface TripBrief {
   groupId: string;
   winningOption: ScoredTripOption;
@@ -83,6 +95,10 @@ interface GatherlyState {
   memoryPhotos: Record<string, MemoryPhotoItem[]>;
   addVaultDocument: (groupId: string, doc: Omit<VaultItem, 'id'>) => void;
   addMemoryPhoto: (groupId: string, photo: Omit<MemoryPhotoItem, 'id'>) => void;
+
+  pastTrips: PastTripItem[];
+  toggleAnniversaryReminder: (tripId: string) => void;
+
   // Auth & Profile
   currentUserId: string;
   userEmail: string | null;
@@ -157,6 +173,31 @@ const initialGroup: Group = {
   totalMembersCount: 5
 };
 
+const DEFAULT_PAST_TRIPS: PastTripItem[] = [
+  {
+    id: 'past-1',
+    name: 'Kyoto Machiya Getaway 2025',
+    destinationName: 'Kyoto, Japan',
+    dates: 'Nov 10 – Nov 15, 2025',
+    memberCount: 4,
+    finalizedAt: '2025-11-01T10:00:00.000Z',
+    winningOptionName: 'Kyoto Central Machiya',
+    inviteCode: 'KYOTO-2025',
+    anniversaryReminder: true
+  },
+  {
+    id: 'past-2',
+    name: 'Swiss Alps Ski Weekend 2025',
+    destinationName: 'Zermatt, Switzerland',
+    dates: 'Jan 15 – Jan 20, 2025',
+    memberCount: 5,
+    finalizedAt: '2025-01-05T10:00:00.000Z',
+    winningOptionName: 'Alpine Chalet Lodge',
+    inviteCode: 'ALPS-2025',
+    anniversaryReminder: false
+  }
+];
+
 export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   currentUserId: '',
   userEmail: null,
@@ -182,6 +223,16 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   isCheckingEntitlement: false,
   purchaseError: null,
 
+  pastTrips: DEFAULT_PAST_TRIPS,
+
+  toggleAnniversaryReminder: (tripId: string) => {
+    set((state) => ({
+      pastTrips: state.pastTrips.map((pt) =>
+        pt.id === tripId ? { ...pt, anniversaryReminder: !pt.anniversaryReminder } : pt
+      )
+    }));
+  },
+
   login: async (email: string, password: string) => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -198,7 +249,7 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
           preferenceDrafts: {},
           votes: {},
           finalizedBrief: null,
-  consensusSnapshot: null,
+          consensusSnapshot: null,
           vaultDocuments: {},
           memoryPhotos: {}
         });
@@ -220,7 +271,6 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
       });
       if (error) throw error;
       const uid = data.user ? data.user.id : `user-real-${Date.now()}`;
-      // Fresh user isolation: Clean empty state, Maya's demo trip is NOT shown
       set({
         currentUserId: uid,
         userEmail: email,
@@ -265,7 +315,6 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
       'user-alex-004': 'Alex',
       'user-sam-005': 'Sam'
     };
-    // Seed full demo data exclusively for demo personas
     get().resetDemoState();
     set({
       currentUserId: userId,
@@ -286,8 +335,32 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   consensusSnapshot: null,
   activeDemoScenario: 'early_bird',
 
-  vaultDocuments: {},
-  memoryPhotos: {},
+  vaultDocuments: {
+    'circle-college-reunion-2026': [
+      {
+        section: 'FLIGHTS & TRANSPORT',
+        items: [
+          { id: 'v1', name: 'IndiGo_Flight_All5.pdf', meta: 'Uploaded by Alex  •  1.2 MB', type: 'flight', section: 'FLIGHTS & TRANSPORT' },
+          { id: 'v2', name: 'Airport_Transfer_Receipt.pdf', meta: 'Uploaded by Sam  •  450 KB', type: 'transfer', section: 'FLIGHTS & TRANSPORT' }
+        ]
+      },
+      {
+        section: 'ACCOMMODATION BOOKINGS',
+        items: [
+          { id: 'v3', name: 'South_Goa_Villa_Confirmation.pdf', meta: 'Uploaded by You  •  Code #PACT-9921', type: 'villa', section: 'ACCOMMODATION BOOKINGS' }
+        ]
+      }
+    ]
+  },
+
+  memoryPhotos: {
+    'circle-college-reunion-2026': [
+      { id: 'p1', bg: '#3A241E', by: 'Alex', caption: 'Sunset at Palolem beach' },
+      { id: 'p2', bg: '#403012', by: 'Maya', caption: 'Old Goa cathedral walk' },
+      { id: 'p3', bg: '#052E20', by: 'Sam', caption: 'Scooter convoy morning' },
+      { id: 'p4', bg: '#1E1A2A', by: 'Jordan', caption: 'Seafood feast dinner' }
+    ]
+  },
 
   addVaultDocument: (groupId: string, doc: Omit<VaultItem, 'id'>) => {
     const id = 'v_' + Date.now();
@@ -320,7 +393,7 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     }));
   },
 
-    setTheme: (themeId: ThemeId) => {
+  setTheme: (themeId: ThemeId) => {
     const def = getThemeById(themeId);
     const isDark = def.category === 'dark';
     set({ currentThemeId: themeId, isDarkMode: isDark });
@@ -351,7 +424,6 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
       userEmail: email || null,
       userName: name || null
     });
-    // Fetch groups for the user
     get().fetchUserGroupsFromCloud();
   },
 
@@ -447,9 +519,6 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   },
 
   setSubscriptionPlan: (plan) => {
-    // Single source of truth: keep the user-profile store in sync so Home,
-    // Settings, and the Paywall always agree on the active plan.
-    // (Direct setState, not the other store's action, to avoid recursion.)
     set({ subscriptionPlan: plan });
     useUserStore.setState({ subscriptionPlan: plan });
   },
@@ -490,7 +559,6 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(groupId);
     if (!groupId || groupId === DEMO_GROUP_ID || !isUUID) return;
     try {
-      // Secure aggregate-only fetch: Never read peers' raw preferences or raw votes.
       const [cloudOptions, snapshot, cloudBrief] = await Promise.all([
         fetchTripOptionsFromSupabase(groupId),
         fetchGroupConsensusSnapshot(groupId),
@@ -500,7 +568,6 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
       set((state) => {
         let updatedTripOptions = cloudOptions.length > 0 ? cloudOptions : state.tripOptions;
 
-        // Map aggregate options from secure consensus snapshot
         if (snapshot && snapshot.options && snapshot.options.length > 0) {
           updatedTripOptions = snapshot.options.map((opt) => ({
             id: opt.option_id,
@@ -571,7 +638,6 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
       ? name.organizerId
       : (currentUserId || 'user-maya-001');
 
-    // Fail-closed plan caps (kept in sync with the create-circle screen so no bypasses).
     const isDemoPersona = !organizer || organizer.startsWith('user-') || organizer.startsWith('guest-');
     if (totalCount > 24) {
       throw new Error('Circles larger than 24 members require an Enterprise Custom Plan. Please contact the organizer / support team for pricing details.');
@@ -700,7 +766,6 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   submitPreferences: async (preference: MemberPreference) => {
     const { activeGroupId, currentUserId } = get();
     
-    // If connected to Supabase and not a demo user, insert to database
     if (currentUserId && !currentUserId.startsWith('user-') && activeGroupId && activeGroupId !== DEMO_GROUP_ID) {
       try {
         await savePreferencesToSupabase(activeGroupId, currentUserId, {
@@ -733,7 +798,6 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   addTripOption: async (option: TripOption) => {
     const { activeGroupId, currentUserId, tripOptions } = get();
 
-    // Prevent duplicate proposal insertion by matching name, destination, and dates
     const isDuplicate = tripOptions.some((existing) =>
       existing.id === option.id ||
       (existing.name.toLowerCase().trim() === option.name.toLowerCase().trim() &&
@@ -750,13 +814,12 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
 
     let persistedOption = option;
 
-    // Persist to Supabase if in live authenticated mode
     if (!isDemoUser && !isDemoGroup) {
       try {
         persistedOption = await addTripOptionToGroup(activeGroupId, option);
       } catch (err) {
         console.error('[addTripOption] Failed to persist option to Supabase:', err);
-        return; // Fail reliably without corrupting state if server write fails
+        return;
       }
     }
 
@@ -803,7 +866,6 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     set({ votes: newVotes });
   },
 
-
   getConsensusResults: () => {
     const { activeGroupId, groups, tripOptions, members } = get();
     const currentGroup = groups.find((g) => g.id === activeGroupId) || initialGroup;
@@ -832,7 +894,6 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
       throw new Error('No winning option meets the consensus criteria.');
     }
 
-    // Security assertion: Organizer authorization check
     assertOrganizerCanFinalize(
       effectiveCaller,
       currentGroup.organizerId,
@@ -882,69 +943,11 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
 
     set((state) => ({
       finalizedBrief: null,
-
-  vaultDocuments: {
-    'circle-college-reunion-2026': [
-      {
-        section: 'FLIGHTS & TRANSPORT',
-        items: [
-          { id: 'v1', name: 'IndiGo_Flight_All5.pdf', meta: 'Uploaded by Alex  •  1.2 MB', type: 'flight', section: 'FLIGHTS & TRANSPORT' },
-          { id: 'v2', name: 'Airport_Transfer_Receipt.pdf', meta: 'Uploaded by Sam  •  450 KB', type: 'transfer', section: 'FLIGHTS & TRANSPORT' }
-        ]
-      },
-      {
-        section: 'ACCOMMODATION BOOKINGS',
-        items: [
-          { id: 'v3', name: 'South_Goa_Villa_Confirmation.pdf', meta: 'Uploaded by You  •  Code #PACT-9921', type: 'villa', section: 'ACCOMMODATION BOOKINGS' }
-        ]
-      }
-    ]
-  },
-  memoryPhotos: {
-    'circle-college-reunion-2026': [
-      { id: 'p1', bg: '#3A241E', by: 'Alex', caption: 'Sunset at Palolem beach' },
-      { id: 'p2', bg: '#403012', by: 'Maya', caption: 'Old Goa cathedral walk' },
-      { id: 'p3', bg: '#052E20', by: 'Sam', caption: 'Scooter convoy morning' },
-      { id: 'p4', bg: '#1E1A2A', by: 'Jordan', caption: 'Seafood feast dinner' }
-    ]
-  },
-
-  addVaultDocument: (groupId: string, doc: Omit<VaultItem, 'id'>) => {
-    const id = 'v_' + Date.now();
-    const newItem: VaultItem = { ...doc, id };
-    set((state) => {
-      const existingSections = state.vaultDocuments[groupId] || [];
-      const sectionIdx = existingSections.findIndex((s) => s.section === doc.section);
-      let updatedSections;
-      if (sectionIdx >= 0) {
-        updatedSections = existingSections.map((s, idx) =>
-          idx === sectionIdx ? { ...s, items: [...s.items, newItem] } : s
-        );
-      } else {
-        updatedSections = [...existingSections, { section: doc.section, items: [newItem] }];
-      }
-      return {
-        vaultDocuments: { ...state.vaultDocuments, [groupId]: updatedSections }
-      };
-    });
-  },
-
-  addMemoryPhoto: (groupId: string, photo: Omit<MemoryPhotoItem, 'id'>) => {
-    const id = 'p_' + Date.now();
-    const newPhoto: MemoryPhotoItem = { ...photo, id };
-    set((state) => ({
-      memoryPhotos: {
-        ...state.memoryPhotos,
-        [groupId]: [...(state.memoryPhotos[groupId] || []), newPhoto]
-      }
-    }));
-  },
       groups: state.groups.map((g) =>
         g.id === groupId ? { ...g, status: 'voting' } : g
       )
     }));
   },
-
 
   setPendingInviteCode: (code: string | null) => set({ pendingInviteCode: code }),
 
@@ -952,12 +955,12 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     useCircleStore.getState().loadDemoCircle();
     get().resetDemoState();
   },
+
   setDemoScenario: (scenario: string) => {
     const freshOptions: TripOption[] = JSON.parse(JSON.stringify(DEMO_TRIP_OPTIONS));
     const freshMembers: MemberPreference[] = JSON.parse(JSON.stringify(DEMO_MEMBERS));
 
     if (scenario === 'early_bird') {
-      // Only 1 or 2 members locked in, rest awaiting
       const earlyMembers = freshMembers.map((m, idx) => ({
         ...m,
         status: idx === 0 ? 'locked' : 'waiting'
@@ -969,7 +972,6 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
         finalizedBrief: null
       });
     } else if (scenario === 'budget_gap' || scenario === 'budget_deadlock') {
-      // Wide budget gap: $700 cap vs $2500 cap
       const budgetGapMembers = freshMembers.map((m, idx) => {
         if (idx === 0) return { ...m, budgetMin: 2000, budgetMax: 2500, status: 'locked' };
         if (idx === 1) return { ...m, budgetMin: 500, budgetMax: 700, status: 'locked' };
@@ -985,7 +987,6 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
         finalizedBrief: null
       });
     } else if (scenario === 'deadlock' || scenario === 'dealbreaker_deadlock') {
-      // Conflicting dealbreakers across all members -> 0% match / deadlock
       const deadlockMembers = freshMembers.map((m) => ({
         ...m,
         dealbreakers: ['beach', 'nightlife', 'warm', 'cold', 'city', 'hiking'],
@@ -1001,7 +1002,6 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
         finalizedBrief: null
       });
     } else if (scenario === 'consensus' || scenario === 'consensus_winner') {
-      // Perfect consensus: 5/5 agreed on Goa Beach Escape
       const consensusMembers = freshMembers.map((m) => ({
         ...m,
         budgetMin: 400,
@@ -1025,7 +1025,7 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     }
   },
 
-    resetDemoState: () => {
+  resetDemoState: () => {
     set({
       currentUserId: 'user-maya-001',
       groups: [initialGroup],
@@ -1047,13 +1047,11 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
         'opt-manali-02_user-alex-004': true
       },
       finalizedBrief: null,
+      pastTrips: DEFAULT_PAST_TRIPS,
       subscriptionPlan: 'free'
     });
   }
 }));
 
-// Register with unified identity resolver
 import { registerGatherlyStore } from '../lib/user/identity';
 registerGatherlyStore(useGatherlyStore);
-
-

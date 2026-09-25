@@ -30,6 +30,7 @@ import { useCircleStore } from '../../../src/store/useCircleStore';
 import { getActiveUserName } from '../../../src/lib/user/identity';
 import { resolveTripOptionsForCircle, extractDestinationAndVibe } from '../../../src/lib/consensus/dynamicOptions';
 import { PactReceiptCard } from '../../../src/components/export/PactReceiptCard';
+import { VetoAwareConcierge } from '../../../src/components/itinerary/VetoAwareConcierge';
 
 export default function PactTripBrief() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -343,6 +344,9 @@ export default function PactTripBrief() {
               <Text style={styles.secondaryActionBtnText}>Export Story Card (Instagram / Snap)</Text>
             </TouchableOpacity>
           </View>
+
+          {/* Veto-Aware AI Concierge Component */}
+          <VetoAwareConcierge destination={rawDestName} />
 
           {/* Contextual 3-day Itinerary Outline */}
           <View style={styles.itineraryCard}>
