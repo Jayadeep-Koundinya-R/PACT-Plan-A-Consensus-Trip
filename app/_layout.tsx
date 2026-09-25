@@ -18,78 +18,10 @@ import { colors, radius, shadows } from '../src/theme/colors';
 import { initPurchases } from '../src/lib/purchases/config';
 import { supabase } from '../src/lib/supabase/client';
 import { SyncBadge } from '../src/components/common';
-import { Compass, RefreshCw, AlertTriangle } from 'lucide-react-native';
+import ErrorBoundary from '../src/components/ErrorBoundary';
 
 // Keep splash visible until fonts are loaded
 SplashScreen.preventAutoHideAsync();
-
-interface ErrorBoundaryProps {
-  children: ReactNode;
-  isDarkMode: boolean;
-}
-
-interface ErrorBoundaryState {
-  hasError: boolean;
-  error: Error | null;
-}
-
-class RootErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.state = { hasError: false, error: null };
-  }
-
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error: Error, errorInfo: any) {
-    console.error('PACT RootErrorBoundary caught an error:', error, errorInfo);
-  }
-
-  handleReload = () => {
-    this.setState({ hasError: false, error: null });
-  };
-
-  render() {
-    if (this.state.hasError) {
-      const theme = this.props.isDarkMode ? colors.dark : colors.light;
-      return (
-        <SafeAreaView style={[styles.errorContainer, { backgroundColor: theme.background }]}>
-          <View
-            style={[
-              styles.errorCard,
-              { backgroundColor: theme.surface, borderColor: theme.border },
-              shadows.md
-            ]}
-          >
-            <View style={[styles.errorIconBox, { backgroundColor: theme.primaryLight }]}>
-              <AlertTriangle size={32} color={theme.primary} />
-            </View>
-
-            <Text style={[styles.errorTitle, { color: theme.textPrimary }]}>
-              Something Went Wrong
-            </Text>
-            <Text style={[styles.errorDesc, { color: theme.textSecondary }]}>
-              PACT encountered an unexpected state. Your saved data and trip preferences are secure.
-            </Text>
-
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={this.handleReload}
-              style={[styles.reloadBtn, { backgroundColor: theme.primary }, shadows.glowPrimary]}
-            >
-              <RefreshCw size={18} color="#FFFFFF" />
-              <Text style={styles.reloadBtnText}>Reload PACT</Text>
-            </TouchableOpacity>
-          </View>
-        </SafeAreaView>
-      );
-    }
-
-    return this.props.children;
-  }
-}
 
 export default function RootLayout() {
   const isDarkMode = useGatherlyStore((state) => state.isDarkMode);
@@ -110,11 +42,11 @@ export default function RootLayout() {
     }
   }, [fontsLoaded]);
 
-  // Return null while fonts load â€” splash screen stays visible
+  // Return null while fonts load — splash screen stays visible
   if (!fontsLoaded) return null;
 
   return (
-    <RootErrorBoundary isDarkMode={isDarkMode}>
+    <ErrorBoundary>
       <StatusBar style={isDarkMode ? 'light' : 'dark'} />
       <SyncBadge />
       <Stack
@@ -123,7 +55,7 @@ export default function RootLayout() {
           animation: 'fade_from_bottom'
         }}
       />
-    </RootErrorBoundary>
+    </ErrorBoundary>
   );
 }
 

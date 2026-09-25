@@ -238,11 +238,13 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   pastTrips: DEFAULT_PAST_TRIPS,
 
   toggleAnniversaryReminder: (tripId: string) => {
-    set((state) => ({
-      pastTrips: state.pastTrips.map((pt) =>
+    set((state) => {
+      const updated = state.pastTrips.map((pt) =>
         pt.id === tripId ? { ...pt, anniversaryReminder: !pt.anniversaryReminder } : pt
-      )
-    }));
+      );
+      AsyncStorage.setItem('@pact_past_trips', JSON.stringify(updated)).catch(() => {});
+      return { pastTrips: updated };
+    });
   },
 
   login: async (email: string, password: string) => {
@@ -413,8 +415,10 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
       } else {
         updatedSections = [...existingSections, { section: doc.section, items: [newItem] }];
       }
+      const updatedVault = { ...state.vaultDocuments, [groupId]: updatedSections };
+      AsyncStorage.setItem('@pact_vault_docs', JSON.stringify(updatedVault)).catch(() => {});
       return {
-        vaultDocuments: { ...state.vaultDocuments, [groupId]: updatedSections }
+        vaultDocuments: updatedVault
       };
     });
   },
@@ -422,12 +426,16 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   addMemoryPhoto: (groupId: string, photo: Omit<MemoryPhotoItem, 'id'>) => {
     const id = 'p_' + Date.now();
     const newPhoto: MemoryPhotoItem = { ...photo, id };
-    set((state) => ({
-      memoryPhotos: {
+    set((state) => {
+      const updatedPhotos = {
         ...state.memoryPhotos,
         [groupId]: [...(state.memoryPhotos[groupId] || []), newPhoto]
-      }
-    }));
+      };
+      AsyncStorage.setItem('@pact_memory_photos', JSON.stringify(updatedPhotos)).catch(() => {});
+      return {
+        memoryPhotos: updatedPhotos
+      };
+    });
   },
 
   setTheme: (themeId: ThemeId) => {
@@ -448,10 +456,35 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
 
   initThemeFromStorage: async () => {
     try {
-      const savedDark = await AsyncStorage.getItem('@pact_dark_mode');
+      const [savedDark, savedVault, savedPhotos, savedTrips] = await Promise.all([
+        AsyncStorage.getItem('@pact_dark_mode'),
+        AsyncStorage.getItem('@pact_vault_docs'),
+        AsyncStorage.getItem('@pact_memory_photos'),
+        AsyncStorage.getItem('@pact_past_trips')
+      ]);
+
+      const updates: Partial<GatherlyState> = {};
       if (savedDark !== null) {
-        set({ isDarkMode: savedDark === 'true', currentThemeId: 'obsidian_dark' });
+        updates.isDarkMode = savedDark === 'true';
+        updates.currentThemeId = 'obsidian_dark';
       }
+      if (savedVault) {
+        try {
+          updates.vaultDocuments = JSON.parse(savedVault);
+        } catch (e) {}
+      }
+      if (savedPhotos) {
+        try {
+          updates.memoryPhotos = JSON.parse(savedPhotos);
+        } catch (e) {}
+      }
+      if (savedTrips) {
+        try {
+          updates.pastTrips = JSON.parse(savedTrips);
+        } catch (e) {}
+      }
+
+      set(updates);
     } catch (_err) {}
   },
 
