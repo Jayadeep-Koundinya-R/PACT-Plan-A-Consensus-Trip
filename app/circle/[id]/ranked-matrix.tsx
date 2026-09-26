@@ -43,6 +43,8 @@ import {
 import { AICompromiseModal } from '../../../src/components/AICompromiseModal';
 import { ConsensusHeatmap } from '../../../src/components/consensus/ConsensusHeatmap';
 import { resolveTripOptionsForCircle, extractDestinationAndVibe } from '../../../src/lib/consensus/dynamicOptions';
+import { JudgeSandboxBar } from '../../../src/components/JudgeSandboxBar';
+import { isDemoPersona } from '../../../src/lib/user/identity';
 
 export default function PactConsensusResults() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -182,6 +184,16 @@ export default function PactConsensusResults() {
   return (
     <SafeAreaView style={styles.outerContainer}>
       <View style={styles.phoneFrame}>
+        {(currentGroup.id === 'circle-college-reunion-2026' || isDemoPersona(useGatherlyStore.getState().currentUserId)) && (
+          <JudgeSandboxBar
+            circleId={currentGroup.id}
+            onFastForward={() => useGatherlyStore.getState().setDemoScenario('consensus')}
+            onReset={() => {
+              useCircleStore.getState().loadDemoCircle();
+              useGatherlyStore.getState().resetDemoState();
+            }}
+          />
+        )}
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           {/* Header Row */}
           <View style={styles.headerRow}>

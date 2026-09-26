@@ -22,7 +22,9 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
 import { useCircleStore } from '../../../src/store/useCircleStore';
-import { getActiveUserName, getActiveUserId } from '../../../src/lib/user/identity';
+import { getActiveUserName, getActiveUserId, isDemoPersona } from '../../../src/lib/user/identity';
+import { JudgeSandboxBar } from '../../../src/components/JudgeSandboxBar';
+import { ProCircleInheritanceCard } from '../../../src/components/ProCircleInheritanceCard';
 import { useCircleRealtime } from '../../../src/hooks/useCircleRealtime';
 import { colors, radius } from '../../../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
@@ -391,6 +393,16 @@ export default function PactCirclesHub() {
   return (
     <SafeAreaView style={styles.outerContainer}>
       <View style={styles.phoneFrame}>
+        {(isDemoCircle || isDemoPersona(activeUserId)) && (
+          <JudgeSandboxBar
+            circleId={currentGroup.id}
+            onFastForward={handleFastForwardConsensus}
+            onReset={() => {
+              useCircleStore.getState().loadDemoCircle();
+              useGatherlyStore.getState().resetDemoState();
+            }}
+          />
+        )}
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           {/* Header Row */}
           <View style={styles.headerContainer}>
@@ -461,14 +473,6 @@ export default function PactCirclesHub() {
               </View>
             </View>
 
-            {/* Pro Circle Banner (if organizer is Pro) */}
-            {isProCircle && (
-              <View style={styles.proCircleBanner} accessibilityLabel="Pro Circle — All Members Upgraded">
-                <Sparkles size={12} color="#3DE0A0" />
-                <Text style={styles.proCircleBannerText}>Pro Circle — All Members Upgraded</Text>
-              </View>
-            )}
-
             {/* Status and Live Event Bar */}
             <View style={styles.headerMetaRow}>
               <View
@@ -507,6 +511,13 @@ export default function PactCirclesHub() {
               )}
             </View>
           </View>
+
+          {/* Pro Circle Inheritance Card by RevenueCat */}
+          <ProCircleInheritanceCard
+            hasPro={isProCircle}
+            organizerName={currentGroup.organizerName || 'Maya'}
+            totalMembersCount={totalCount}
+          />
 
           {loadError && (
             <View style={styles.errorBanner}>
@@ -661,7 +672,15 @@ export default function PactCirclesHub() {
                   </View>
 
                   <View style={styles.memberInfoCol}>
-                    <Text style={styles.memberName}>{m.name}</Text>
+                    <View style={styles.memberNameRow}>
+                      <Text style={styles.memberName}>{m.name}</Text>
+                      {isProCircle && !m.name.toLowerCase().includes('organizer') && (
+                        <View style={styles.proGuestBadge}>
+                          <Sparkles size={9} color="#3DE0A0" />
+                          <Text style={styles.proGuestBadgeText}>Pro Guest</Text>
+                        </View>
+                      )}
+                    </View>
                     {m.status === 'locked' ? (
                       <View style={styles.statusBadgeRow}>
                         <CheckCircle2 size={12} color="#3DE0A0" />
@@ -1291,11 +1310,32 @@ const styles = StyleSheet.create({
   memberInfoCol: {
     flex: 1
   },
+  memberNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 3
+  },
+  proGuestBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: 'rgba(61, 224, 160, 0.12)',
+    borderColor: 'rgba(61, 224, 160, 0.3)',
+    borderWidth: 1,
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    borderRadius: 6
+  },
+  proGuestBadgeText: {
+    fontFamily: fontUIBold,
+    fontSize: 9.5,
+    color: '#3DE0A0'
+  },
   memberName: {
     fontFamily: fontUIBold,
     fontSize: 14,
-    color: '#F4F3F0',
-    marginBottom: 3
+    color: '#F4F3F0'
   },
   statusBadgeRow: {
     flexDirection: 'row',

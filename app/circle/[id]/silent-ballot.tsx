@@ -32,6 +32,8 @@ import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
 import { ArrowLeft, Check, X, Shield, Lock } from 'lucide-react-native';
 import { WaxSealStamp } from '../../../src/components/WaxSealStamp';
 import { resolveTripOptionsForCircle } from '../../../src/lib/consensus/dynamicOptions';
+import { JudgeSandboxBar } from '../../../src/components/JudgeSandboxBar';
+import { isDemoPersona } from '../../../src/lib/user/identity';
 
 interface StampBallotCardProps {
   opt: {
@@ -273,7 +275,7 @@ export default function PactSilentBallot() {
   }
 
   const router = useRouter();
-  const { groups = [], members = [], castVote } = useGatherlyStore();
+  const { groups = [], members = [], castVote, currentUserId } = useGatherlyStore();
   const haptics = usePactHaptics();
 
   const circleFromStore = id ? useCircleStore.getState().getCircle(id as string) : null;
@@ -285,6 +287,8 @@ export default function PactSilentBallot() {
       name: 'Trip Circle',
       inviteCode: 'PACT-CODE'
     };
+
+  const isDemoCircle = currentGroup.id === 'circle-college-reunion-2026';
 
   const [isLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -309,7 +313,7 @@ export default function PactSilentBallot() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (options.length > 0 && Object.keys(votes).length === 0) {
+    if (options.length > 0) {
       const initialVotes: Record<string, 'approve' | 'reject' | null> = {};
       const initialRanks: Record<string, number> = {};
 
@@ -325,7 +329,7 @@ export default function PactSilentBallot() {
       setVotes(initialVotes);
       setRanks(initialRanks);
     }
-  }, [options]);
+  }, [options, currentUserId]);
 
   useEffect(() => {
     if (Platform.OS === 'android') {
@@ -417,6 +421,16 @@ export default function PactSilentBallot() {
   return (
     <SafeAreaView style={styles.outerContainer}>
       <View style={styles.phoneFrame}>
+        {(isDemoCircle || isDemoPersona(currentUserId)) && (
+          <JudgeSandboxBar
+            circleId={currentGroup.id}
+            onFastForward={() => useGatherlyStore.getState().setDemoScenario('consensus')}
+            onReset={() => {
+              useCircleStore.getState().loadDemoCircle();
+              useGatherlyStore.getState().resetDemoState();
+            }}
+          />
+        )}
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}

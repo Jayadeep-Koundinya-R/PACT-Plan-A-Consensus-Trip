@@ -16,6 +16,7 @@ import { fontDisplay, fontUI, fontUIBold } from '../src/theme/typography';
 import { useTheme } from '../src/hooks/useTheme';
 import { useGatherlyStore } from '../src/store/useGatherlyStore';
 import { useUserStore } from '../src/store/useUserStore';
+import { useCircleStore } from '../src/store/useCircleStore';
 import {
   GROUP_TIERS,
   GroupTierId,
@@ -65,6 +66,8 @@ export default function PactPaywall() {
           if (hasProEntitlement) {
             useGatherlyStore.getState().setSubscriptionPlan('premium_monthly');
             useUserStore.getState().setSubscriptionPlan('premium_monthly');
+            const activeCircleId = useCircleStore.getState().activeCircleId || 'circle-college-reunion-2026';
+            useCircleStore.getState().setCircleProStatus(activeCircleId, true);
             Alert.alert(
               'Organizer Pass Active!',
               'Purchase confirmed via RevenueCat. You can now organize circles of up to 24 members.',
@@ -104,6 +107,8 @@ export default function PactPaywall() {
     if (Platform.OS === 'web') {
       useGatherlyStore.getState().setSubscriptionPlan('premium_monthly');
       useUserStore.getState().setSubscriptionPlan('premium_monthly');
+      const activeCircleId = useCircleStore.getState().activeCircleId || 'circle-college-reunion-2026';
+      useCircleStore.getState().setCircleProStatus(activeCircleId, true);
       Alert.alert(
         'Preview PACT Pro in Web Demo',
         'Unlocked Organizer Pass for this web demo session. Real in-app purchases run on native iOS and Android via RevenueCat.',
@@ -111,6 +116,19 @@ export default function PactPaywall() {
       );
       return;
     }
+  };
+
+  const handleSimulateJudgePro = () => {
+    triggerHaptic();
+    useGatherlyStore.getState().setSubscriptionPlan('premium_monthly');
+    useUserStore.getState().setSubscriptionPlan('premium_monthly');
+    const activeCircleId = useCircleStore.getState().activeCircleId || 'circle-college-reunion-2026';
+    useCircleStore.getState().setCircleProStatus(activeCircleId, true);
+    Alert.alert(
+      '✨ RevenueCat Pro Pass Unlocked!',
+      'Active Organizer Pass granted in Sandbox mode. All guests in your circle now inherit Pro capabilities.',
+      [{ text: 'Return to Hub', onPress: () => router.back() }]
+    );
   };
 
   const handleRestorePurchases = async () => {
@@ -224,20 +242,35 @@ export default function PactPaywall() {
                   </Text>
                 </View>
               ) : (
-                <TouchableOpacity
-                  onPress={handleActivatePass}
-                  disabled={isPurchasing}
-                  activeOpacity={0.85}
-                  style={[styles.actionBtn, { backgroundColor: '#FF5A5F' }]}
-                >
-                  <Text style={styles.actionBtnText}>
-                    {isPurchasing
-                      ? 'Connecting to Store...'
-                      : Platform.OS === 'web'
-                      ? 'Preview PACT Pro in Web Demo'
-                      : 'Unlock Organizer Pass • $9.99'}
-                  </Text>
-                </TouchableOpacity>
+                <View style={{ gap: 8 }}>
+                  <TouchableOpacity
+                    onPress={handleActivatePass}
+                    disabled={isPurchasing}
+                    activeOpacity={0.85}
+                    style={[styles.actionBtn, { backgroundColor: '#FF5A5F' }]}
+                  >
+                    <Text style={styles.actionBtnText}>
+                      {isPurchasing
+                        ? 'Connecting to Store...'
+                        : Platform.OS === 'web'
+                        ? 'Preview PACT Pro in Web Demo'
+                        : 'Unlock Organizer Pass • $9.99'}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={handleSimulateJudgePro}
+                    activeOpacity={0.8}
+                    style={styles.sandboxSimulateBtn}
+                    accessibilityRole="button"
+                    accessibilityLabel="Simulate Pro Purchase for Judge Sandbox"
+                  >
+                    <Sparkles size={13} color="#D4AF37" />
+                    <Text style={styles.sandboxSimulateBtnText}>
+                      ⚡ Judge Sandbox: 1-Tap Unlock Pro
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               )}
             </View>
 
@@ -458,6 +491,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: '#050608'
+  },
+  sandboxSimulateBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 11,
+    borderRadius: radius.btn,
+    backgroundColor: 'rgba(212, 175, 55, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.35)',
+    marginTop: 2
+  },
+  sandboxSimulateBtnText: {
+    fontFamily: fontUIBold,
+    fontSize: 13,
+    color: '#D4AF37'
   },
   guaranteeBox: {
     flexDirection: 'row',
