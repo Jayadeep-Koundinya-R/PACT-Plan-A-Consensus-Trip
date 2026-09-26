@@ -146,8 +146,8 @@ export const AICompromiseModal: React.FC<AICompromiseModalProps> = ({
           {/* Header */}
           <View style={styles.headerRow}>
             <View style={styles.headerTitleRow}>
-              <View style={[styles.aiBadge, { backgroundColor: theme.primary }]}>
-                <Sparkles size={14} color="#FFFFFF" />
+              <View style={[styles.aiBadge, { backgroundColor: '#3DE0A0' }]}>
+                <Sparkles size={14} color="#052E20" />
               </View>
               <Text style={[styles.headerTitle, { color: theme.textPrimary }]}>
                 AI Compromise Whisperer
@@ -163,6 +163,14 @@ export const AICompromiseModal: React.FC<AICompromiseModalProps> = ({
             >
               <X size={20} color={theme.textSecondary} />
             </TouchableOpacity>
+          </View>
+
+          {/* Zero-Knowledge Security Badge Front & Center */}
+          <View style={styles.zkSecurityBadge}>
+            <ShieldCheck size={14} color="#3DE0A0" />
+            <Text style={styles.zkSecurityBadgeText}>
+              🔒 Zero-Knowledge Analysis — Private budgets and dates were sealed locally.
+            </Text>
           </View>
 
           {/* Inline Error Alert */}
@@ -318,30 +326,30 @@ export const AICompromiseModal: React.FC<AICompromiseModalProps> = ({
                 ))}
               </View>
 
-              {/* Action Button */}
+              {/* Adopt Suggestion Action Button */}
               <TouchableOpacity
                 activeOpacity={0.85}
                 disabled={isApplying}
                 onPress={handleApply}
                 style={[
                   styles.applyBtn,
-                  { backgroundColor: theme.primary },
+                  { backgroundColor: '#3DE0A0' },
                   shadows.glowPrimary,
                   isApplying && { opacity: 0.8 }
                 ]}
                 accessibilityRole="button"
-                accessibilityLabel={isApplying ? "Applying proposal to ballot" : "Apply proposal to ballot"}
+                accessibilityLabel={isApplying ? "Adopting suggestion into ballot" : "Adopt Suggestion"}
                 accessibilityState={{ disabled: isApplying, busy: isApplying }}
               >
                 {isApplying ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
+                  <ActivityIndicator size="small" color="#052E20" />
                 ) : (
-                  <Sparkles size={18} color="#FFFFFF" />
+                  <Sparkles size={18} color="#052E20" />
                 )}
-                <Text style={styles.applyBtnText}>
-                  {isApplying ? 'Applying to Ballot...' : 'Apply to Ballot'}
+                <Text style={styles.adoptBtnText}>
+                  {isApplying ? 'Adopting Suggestion...' : 'Adopt Suggestion'}
                 </Text>
-                {!isApplying && <ArrowRight size={18} color="#FFFFFF" />}
+                {!isApplying && <ArrowRight size={18} color="#052E20" />}
               </TouchableOpacity>
             </ScrollView>
           )}
@@ -384,7 +392,8 @@ const styles = StyleSheet.create({
     maxHeight: '90%',
     borderRadius: radius.card,
     padding: 20,
-    borderWidth: 1
+    borderWidth: 1.5,
+    borderColor: '#3DE0A0'
   },
   headerRow: {
     flexDirection: 'row',
@@ -407,6 +416,29 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontWeight: '800'
+  },
+  zkSecurityBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(61, 224, 160, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.3)',
+    borderRadius: radius.md,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 14
+  },
+  zkSecurityBadgeText: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: '#3DE0A0',
+    flex: 1
+  },
+  adoptBtnText: {
+    color: '#052E20',
+    fontSize: 14,
+    fontWeight: '900'
   },
   closeBtn: {
     minWidth: 44,

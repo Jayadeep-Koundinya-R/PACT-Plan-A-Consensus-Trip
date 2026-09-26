@@ -42,6 +42,7 @@ import {
 } from 'lucide-react-native';
 import { AICompromiseModal } from '../../../src/components/AICompromiseModal';
 import { ConsensusHeatmap } from '../../../src/components/consensus/ConsensusHeatmap';
+import { WhatIfCompromiseSlider } from '../../../src/components/consensus/WhatIfCompromiseSlider';
 import { resolveTripOptionsForCircle, extractDestinationAndVibe } from '../../../src/lib/consensus/dynamicOptions';
 
 export default function PactConsensusResults() {
@@ -102,6 +103,7 @@ export default function PactConsensusResults() {
   const [privateNudgeSent, setPrivateNudgeSent] = useState(false);
   const [whispererResult, setWhispererResult] = useState<CompromiseWhispererResult | null>(null);
   const [isAIModalVisible, setIsAIModalVisible] = useState(false);
+  const [sliderDelta, setSliderDelta] = useState<number>(0);
 
   useEffect(() => {
     let mounted = true;
@@ -245,6 +247,12 @@ export default function PactConsensusResults() {
               </Text>
             </View>
           )}
+
+          {/* What-If Compromise Simulator */}
+          <WhatIfCompromiseSlider
+            currentScore={Math.round(topOption.totalScore)}
+            onSimulateShift={(delta) => setSliderDelta(delta)}
+          />
 
           {/* Deadlock / Vetoed Fallback Card OR Normal Ranked Destinations */}
           {deadlockMode ? (
