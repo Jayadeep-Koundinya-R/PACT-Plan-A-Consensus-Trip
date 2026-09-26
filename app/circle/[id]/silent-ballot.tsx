@@ -298,15 +298,18 @@ export default function PactSilentBallot() {
     return resolveTripOptionsForCircle(currentGroup.id, currentGroup.name, members);
   }, [currentGroup.id, currentGroup.name, members]);
 
+  const currencyCode = (currentGroup as any).currencyCode || useGatherlyStore.getState().currency || 'USD';
+  const formatCurrency = useGatherlyStore.getState().formatCurrency;
+
   const options = useMemo(() => {
     return resolved.scoredOptions.map((so) => ({
       key: so.option.id,
       name: so.option.name,
       match: Math.round(so.totalScore),
       dates: `${so.option.dateStart} – ${so.option.dateEnd}`,
-      price: `$${so.option.budgetPerPerson} / person`
+      price: `${formatCurrency(so.option.budgetPerPerson, currencyCode)} / person`
     }));
-  }, [resolved]);
+  }, [resolved, currencyCode, formatCurrency]);
 
   const [votes, setVotes] = useState<Record<string, 'approve' | 'reject' | null>>({});
   const [ranks, setRanks] = useState<Record<string, number>>({});

@@ -23,6 +23,8 @@ export interface Circle {
   organizerName?: string;
   status: 'collecting' | 'voting' | 'finalized' | 'cancelled';
   totalMembersCount: number;
+  currencyCode?: 'USD' | 'EUR' | 'INR' | 'GBP';
+  groupType?: string;
   hasPro?: boolean;
   archived?: boolean;
   members: CircleMember[];

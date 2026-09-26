@@ -71,6 +71,9 @@ export default function PactConsensusResults() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedDetails, setSelectedDetails] = useState<any | null>(null);
 
+  const currencyCode = (currentGroup as any).currencyCode || useGatherlyStore.getState().currency || 'USD';
+  const formatCurrency = useGatherlyStore.getState().formatCurrency;
+
   // Dynamically resolve candidate options and consensus scores
   const resolved = resolveTripOptionsForCircle(currentGroup.id, currentGroup.name, members);
   const scoredOptions = resolved.scoredOptions;
@@ -346,7 +349,7 @@ export default function PactConsensusResults() {
                   <View style={styles.winnerTitleBox}>
                     <Text style={styles.winnerDestName}>{topOption.option.name}</Text>
                     <Text style={styles.winnerMetaText}>
-                      {topOption.option.dateStart} – {topOption.option.dateEnd}  •  ${topOption.option.budgetPerPerson} / person
+                      {topOption.option.dateStart} – {topOption.option.dateEnd}  •  {formatCurrency(topOption.option.budgetPerPerson, currencyCode)} / person
                     </Text>
                   </View>
                 </View>
@@ -411,7 +414,7 @@ export default function PactConsensusResults() {
                         </View>
                         <Text style={styles.subOptionName}>{altOption1.option.name}</Text>
                         <Text style={styles.subOptionMeta}>
-                          {altOption1.option.dateStart} - {altOption1.option.dateEnd}  |  ${altOption1.option.budgetPerPerson} / person
+                          {altOption1.option.dateStart} - {altOption1.option.dateEnd}  |  {formatCurrency(altOption1.option.budgetPerPerson, currencyCode)} / person
                         </Text>
                       </View>
                       <ChevronRight size={16} color="#8B8D98" />
@@ -478,7 +481,7 @@ export default function PactConsensusResults() {
                         </View>
                         <Text style={styles.subOptionName}>{altOption2.option.name}</Text>
                         <Text style={styles.subOptionMeta}>
-                          {altOption2.option.dateStart} - {altOption2.option.dateEnd}  |  ${altOption2.option.budgetPerPerson} / person
+                          {altOption2.option.dateStart} - {altOption2.option.dateEnd}  |  {formatCurrency(altOption2.option.budgetPerPerson, currencyCode)} / person
                         </Text>
                       </View>
                       <ChevronRight size={16} color="#8B8D98" />
