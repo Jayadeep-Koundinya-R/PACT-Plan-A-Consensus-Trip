@@ -20,7 +20,9 @@ import {
   ScrollText,
   FileText,
   Bell,
-  Sparkles
+  Sparkles,
+  Ticket,
+  Clock
 } from 'lucide-react-native';
 import { useGatherlyStore, PastTripItem } from '../src/store/useGatherlyStore';
 import { PactReceiptCard } from '../src/components/export/PactReceiptCard';
@@ -87,95 +89,168 @@ export default function PastTripsVaultScreen() {
             </Text>
           </View>
 
-          {/* Past Trips List */}
-          <View style={styles.tripsListCol}>
-            {pastTrips.map((trip) => (
-              <View key={trip.id} style={styles.pastTripCard}>
-                {/* Top Badge & Title Row */}
-                <View style={styles.cardHeaderRow}>
-                  <View style={{ flex: 1, paddingRight: 10 }}>
-                    <Text style={styles.tripName}>{trip.name}</Text>
-                    <Text style={styles.destinationName}>{trip.destinationName}</Text>
-                  </View>
-
-                  <View style={styles.sealedStatusBadge}>
-                    <Text style={styles.sealedStatusBadgeText}>Sealed & Completed</Text>
-                  </View>
+          {/* PACT Flashback Featured Banner */}
+          {pastTrips.length > 0 && (
+            <View style={styles.flashbackCard}>
+              <View style={styles.flashbackHeaderRow}>
+                <View style={styles.flashbackBadge}>
+                  <Clock size={12} color="#D4AF37" />
+                  <Text style={styles.flashbackBadgeText}>PACT FLASHBACK</Text>
                 </View>
-
-                {/* Details Row */}
-                <View style={styles.metaRow}>
-                  <View style={styles.metaItem}>
-                    <Calendar size={13} color="#3DE0A0" />
-                    <Text style={styles.metaText}>{trip.dates}</Text>
-                  </View>
-
-                  <View style={styles.metaItem}>
-                    <Users size={13} color="#3DE0A0" />
-                    <Text style={styles.metaText}>{trip.memberCount} Travelers</Text>
-                  </View>
-                </View>
-
-                {/* Wax Seal Stamp Decoration */}
-                <View style={styles.stampWrapper}>
-                  <WaxSealStamp
-                    label="SEALED"
-                    sublabel="100% CONSENSUS"
-                    variant="emerald"
-                  />
-                </View>
-
-                {/* Anniversary Reminder Switch */}
-                <View style={styles.reminderRow}>
-                  <View style={styles.reminderTextCol}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Bell size={13} color="#D4AF37" />
-                      <Text style={styles.reminderTitle}>Annual Anniversary Reminder</Text>
-                    </View>
-                    <Text style={styles.reminderSub}>Recur annual notification for annual trip</Text>
-                  </View>
-
-                  <Switch
-                    value={trip.anniversaryReminder}
-                    onValueChange={() => handleToggleReminder(trip)}
-                    trackColor={{ false: 'rgba(255,255,255,0.12)', true: '#3DE0A0' }}
-                    thumbColor={trip.anniversaryReminder ? '#052E20' : '#8B8D98'}
-                  />
-                </View>
-
-                {/* Action CTAs */}
-                <View style={styles.cardActionsRow}>
-                  <TouchableOpacity
-                    activeOpacity={0.8}
-                    onPress={() => {
-                      haptics.tap();
-                      router.push('/circle/circle-college-reunion-2026/brief' as any);
-                    }}
-                    style={styles.briefActionBtn}
-                    accessibilityRole="button"
-                    accessibilityLabel={`View Brief for ${trip.name}`}
-                  >
-                    <FileText size={14} color="#F4F3F0" />
-                    <Text style={styles.briefActionBtnText}>View Brief</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    activeOpacity={0.8}
-                    onPress={() => {
-                      haptics.action();
-                      setSelectedReceipt(trip);
-                    }}
-                    style={styles.receiptActionBtn}
-                    accessibilityRole="button"
-                    accessibilityLabel={`View Receipt for ${trip.name}`}
-                  >
-                    <ScrollText size={14} color="#090A0F" />
-                    <Text style={styles.receiptActionBtnText}>View Receipt</Text>
-                  </TouchableOpacity>
-                </View>
+                <Text style={styles.flashbackTimeText}>1 Year Ago Today</Text>
               </View>
-            ))}
-          </View>
+
+              <Text style={styles.flashbackTitle}>{pastTrips[0].name}</Text>
+              <Text style={styles.flashbackSub}>
+                {pastTrips[0].destinationName}  •  {pastTrips[0].dates}
+              </Text>
+
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => {
+                  haptics.action();
+                  setSelectedReceipt(pastTrips[0]);
+                }}
+                style={styles.flashbackActionBtn}
+                accessibilityRole="button"
+                accessibilityLabel={`View Flashback Receipt for ${pastTrips[0].name}`}
+              >
+                <Sparkles size={14} color="#090A0F" />
+                <Text style={styles.flashbackActionText}>View Anniversary Receipt</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Grouped Past Trips Timeline */}
+          {(() => {
+            const groupedByYear: Record<string, PastTripItem[]> = {};
+            pastTrips.forEach((trip) => {
+              const yearMatch = trip.dates.match(/\b(20\d\d)\b/);
+              const year = yearMatch ? yearMatch[1] : '2025';
+              if (!groupedByYear[year]) groupedByYear[year] = [];
+              groupedByYear[year].push(trip);
+            });
+
+            const sortedYears = Object.keys(groupedByYear).sort((a, b) => Number(b) - Number(a));
+
+            return (
+              <View style={styles.tripsListCol}>
+                {sortedYears.map((year) => (
+                  <View key={year} style={styles.yearSection}>
+                    <View style={styles.yearHeaderRow}>
+                      <View style={styles.yearBadge}>
+                        <Text style={styles.yearBadgeText}>{year}</Text>
+                      </View>
+                      <View style={styles.yearLine} />
+                    </View>
+
+                    <View style={styles.yearTripsCol}>
+                      {groupedByYear[year].map((trip) => (
+                        <View key={trip.id} style={styles.pastTripCard}>
+                          {/* Top Badge & Title Row */}
+                          <View style={styles.cardHeaderRow}>
+                            <View style={{ flex: 1, paddingRight: 10 }}>
+                              <Text style={styles.tripName}>{trip.name}</Text>
+                              <Text style={styles.destinationName}>{trip.destinationName}</Text>
+                            </View>
+
+                            <View style={styles.sealedStatusBadge}>
+                              <Text style={styles.sealedStatusBadgeText}>Sealed & Completed</Text>
+                            </View>
+                          </View>
+
+                          {/* Details Row */}
+                          <View style={styles.metaRow}>
+                            <View style={styles.metaItem}>
+                              <Calendar size={13} color="#3DE0A0" />
+                              <Text style={styles.metaText}>{trip.dates}</Text>
+                            </View>
+
+                            <View style={styles.metaItem}>
+                              <Users size={13} color="#3DE0A0" />
+                              <Text style={styles.metaText}>{trip.memberCount} Travelers</Text>
+                            </View>
+                          </View>
+
+                          {/* Wax Seal Stamp Decoration */}
+                          <View style={styles.stampWrapper}>
+                            <WaxSealStamp
+                              label="SEALED"
+                              sublabel="100% CONSENSUS"
+                              variant="emerald"
+                            />
+                          </View>
+
+                          {/* Anniversary Reminder Switch */}
+                          <View style={styles.reminderRow}>
+                            <View style={styles.reminderTextCol}>
+                              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                <Bell size={13} color="#D4AF37" />
+                                <Text style={styles.reminderTitle}>Annual Anniversary Reminder</Text>
+                              </View>
+                              <Text style={styles.reminderSub}>Recur annual notification for annual trip</Text>
+                            </View>
+
+                            <Switch
+                              value={trip.anniversaryReminder}
+                              onValueChange={() => handleToggleReminder(trip)}
+                              trackColor={{ false: 'rgba(255,255,255,0.12)', true: '#3DE0A0' }}
+                              thumbColor={trip.anniversaryReminder ? '#052E20' : '#8B8D98'}
+                            />
+                          </View>
+
+                          {/* Action CTAs */}
+                          <View style={styles.cardActionsRow}>
+                            <TouchableOpacity
+                              activeOpacity={0.8}
+                              onPress={() => {
+                                haptics.tap();
+                                router.push('/circle/circle-college-reunion-2026/brief' as any);
+                              }}
+                              style={styles.briefActionBtn}
+                              accessibilityRole="button"
+                              accessibilityLabel={`View Brief for ${trip.name}`}
+                            >
+                              <FileText size={14} color="#F4F3F0" />
+                              <Text style={styles.briefActionBtnText}>View Brief</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                              activeOpacity={0.8}
+                              onPress={() => {
+                                haptics.action();
+                                setSelectedReceipt(trip);
+                              }}
+                              style={styles.receiptActionBtn}
+                              accessibilityRole="button"
+                              accessibilityLabel={`View Sealed Receipt for ${trip.name}`}
+                            >
+                              <ScrollText size={14} color="#090A0F" />
+                              <Text style={styles.receiptActionBtnText}>View Sealed Receipt</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                              activeOpacity={0.8}
+                              onPress={() => {
+                                haptics.action();
+                                Alert.alert('Boarding Pass Exported', `Exported official PACT Boarding Pass for ${trip.name}.`);
+                              }}
+                              style={styles.boardingPassActionBtn}
+                              accessibilityRole="button"
+                              accessibilityLabel={`Export Boarding Pass for ${trip.name}`}
+                            >
+                              <Ticket size={14} color="#3DE0A0" />
+                              <Text style={styles.boardingPassActionBtnText}>Export Boarding Pass</Text>
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                ))}
+              </View>
+            );
+          })()}
         </ScrollView>
 
         {/* Pact Receipt Card Modal */}
@@ -257,7 +332,102 @@ const styles = StyleSheet.create({
     color: '#D4AF37',
     flex: 1
   },
+  flashbackCard: {
+    backgroundColor: '#181A26',
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.4)',
+    borderRadius: 18,
+    padding: 16,
+    marginBottom: 20
+  },
+  flashbackHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8
+  },
+  flashbackBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.35)',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4
+  },
+  flashbackBadgeText: {
+    fontFamily: fontUIBold,
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#D4AF37',
+    letterSpacing: 0.5
+  },
+  flashbackTimeText: {
+    fontFamily: fontUI,
+    fontSize: 11,
+    color: '#8B8D98'
+  },
+  flashbackTitle: {
+    fontFamily: fontDisplay,
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#F4F3F0',
+    marginBottom: 2
+  },
+  flashbackSub: {
+    fontFamily: fontUI,
+    fontSize: 12,
+    color: '#3DE0A0',
+    marginBottom: 12
+  },
+  flashbackActionBtn: {
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: '#D4AF37',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8
+  },
+  flashbackActionText: {
+    fontFamily: fontUIBold,
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#090A0F'
+  },
   tripsListCol: {
+    gap: 20
+  },
+  yearSection: {
+    gap: 12
+  },
+  yearHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12
+  },
+  yearBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.16)',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4
+  },
+  yearBadgeText: {
+    fontFamily: fontUIBold,
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#F4F3F0'
+  },
+  yearLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)'
+  },
+  yearTripsCol: {
     gap: 16
   },
   pastTripCard: {
@@ -347,13 +517,12 @@ const styles = StyleSheet.create({
     marginTop: 2
   },
   cardActionsRow: {
-    flexDirection: 'row',
-    gap: 10,
+    flexDirection: 'column',
+    gap: 8,
     marginTop: 6
   },
   briefActionBtn: {
-    flex: 1,
-    minHeight: 44,
+    minHeight: 42,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.18)',
@@ -365,13 +534,12 @@ const styles = StyleSheet.create({
   },
   briefActionBtnText: {
     fontFamily: fontUIBold,
-    fontSize: 13,
+    fontSize: 12.5,
     fontWeight: '700',
     color: '#F4F3F0'
   },
   receiptActionBtn: {
-    flex: 1,
-    minHeight: 44,
+    minHeight: 42,
     borderRadius: 12,
     backgroundColor: '#D4AF37',
     flexDirection: 'row',
@@ -381,8 +549,25 @@ const styles = StyleSheet.create({
   },
   receiptActionBtnText: {
     fontFamily: fontUIBold,
-    fontSize: 13,
+    fontSize: 12.5,
     fontWeight: '800',
     color: '#090A0F'
+  },
+  boardingPassActionBtn: {
+    minHeight: 42,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.35)',
+    backgroundColor: 'rgba(61, 224, 160, 0.12)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6
+  },
+  boardingPassActionBtnText: {
+    fontFamily: fontUIBold,
+    fontSize: 12.5,
+    fontWeight: '700',
+    color: '#3DE0A0'
   }
 });

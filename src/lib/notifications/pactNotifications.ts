@@ -64,6 +64,60 @@ export function buildNudgeNotification(userName: string, tripName: string = 'you
 }
 
 /**
+ * Helper to build a safe pre-voting lifecycle alert
+ */
+export function buildPreVotingAlert(deadlineDate: string = 'Oct 20'): NotificationPayload {
+  const payload: NotificationPayload = {
+    title: 'Consensus Round Open',
+    body: `Consensus round is open. Lock in your sealed ballot before ${deadlineDate}.`,
+    data: { type: 'pre-voting', deadlineDate }
+  };
+
+  const validation = validateNotificationPrivacy(payload.title, payload.body);
+  if (!validation.valid) {
+    throw new Error(validation.reason);
+  }
+
+  return payload;
+}
+
+/**
+ * Helper to build a safe post-consensus lifecycle alert
+ */
+export function buildPostConsensusAlert(): NotificationPayload {
+  const payload: NotificationPayload = {
+    title: 'Supermajority Reached',
+    body: 'Supermajority reached! Time to finalize tickets and accommodations.',
+    data: { type: 'post-consensus' }
+  };
+
+  const validation = validateNotificationPrivacy(payload.title, payload.body);
+  if (!validation.valid) {
+    throw new Error(validation.reason);
+  }
+
+  return payload;
+}
+
+/**
+ * Helper to build a safe departure milestone alert
+ */
+export function buildDepartureMilestoneAlert(): NotificationPayload {
+  const payload: NotificationPayload = {
+    title: 'Departure Milestone',
+    body: 'Trip starts today! Open your PACT Boarding Pass.',
+    data: { type: 'departure' }
+  };
+
+  const validation = validateNotificationPrivacy(payload.title, payload.body);
+  if (!validation.valid) {
+    throw new Error(validation.reason);
+  }
+
+  return payload;
+}
+
+/**
  * Helper to build a safe deadline reminder notification
  */
 export function buildDeadlineReminder(tripName: string, hoursRemaining: number): NotificationPayload {
