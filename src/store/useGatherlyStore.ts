@@ -225,7 +225,7 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   formatCurrency: (amountInUSD: number) => {
     const state = get();
     const config = CURRENCIES[state.currency] || CURRENCIES.USD;
-    const converted = Math.round((amountInUSD * config.rate) / 5) * 5;
+    const converted = Math.round(amountInUSD * config.rate);
     if (state.currency === 'INR') {
       return `₹${converted.toLocaleString('en-IN')}`;
     }
@@ -613,11 +613,11 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   },
 
   fetchUserGroupsFromCloud: async () => {
-    const { currentUserId } = get();
+    const { currentUserId, groups } = get();
     if (!currentUserId || currentUserId.startsWith('user-')) return;
     try {
       const cloudGroups = await fetchUserGroups(currentUserId);
-      if (cloudGroups.length > 0) {
+      if (cloudGroups && Array.isArray(cloudGroups) && cloudGroups.length > 0) {
         const mappedGroups: Group[] = cloudGroups.map((g) => ({
           id: g.id,
           name: g.name,
@@ -633,7 +633,8 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
         get().fetchGroupDataFromCloud(mappedGroups[0].id);
       }
     } catch (e) {
-      console.warn('Error fetching groups from Supabase:', e);
+      console.warn('Error fetching groups from Supabase (preserving existing local state):', e);
+      // Retain current groups in state without resetting to empty
     }
   },
 
@@ -880,12 +881,23 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   addTripOption: async (option: TripOption) => {
     const { activeGroupId, currentUserId, tripOptions } = get();
 
-    const isDuplicate = tripOptions.some((existing) =>
-      existing.id === option.id ||
-      (existing.name.toLowerCase().trim() === option.name.toLowerCase().trim() &&
-       existing.dateStart === option.dateStart &&
-       existing.dateEnd === option.dateEnd)
-    );
+    const optAny = option as any;
+    const cleanOptionName = (option.name || optAny.title || '').trim().toLowerCase();
+    const cleanStart = (option.dateStart || optAny.startDate || '').trim().toLowerCase();
+    const cleanEnd = (option.dateEnd || optAny.endDate || '').trim().toLowerCase();
+
+    const isDuplicate = tripOptions.some((existing) => {
+      const existingAny = existing as any;
+      const existingName = (existing.name || existingAny.title || '').trim().toLowerCase();
+      const existingStart = (existing.dateStart || existingAny.startDate || '').trim().toLowerCase();
+      const existingEnd = (existing.dateEnd || existingAny.endDate || '').trim().toLowerCase();
+
+      return (
+        existing.id === option.id ||
+        (existingName === cleanOptionName && existingStart === cleanStart && existingEnd === cleanEnd)
+      );
+    });
+
     if (isDuplicate) {
       console.warn('[addTripOption] Duplicate proposal ignored:', option.name);
       return;
@@ -1025,6 +1037,7 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
 
     set((state) => ({
       finalizedBrief: null,
+      consensusSnapshot: null,
       groups: state.groups.map((g) =>
         g.id === groupId ? { ...g, status: 'voting' } : g
       )
