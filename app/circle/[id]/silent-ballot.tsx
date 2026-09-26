@@ -508,7 +508,7 @@ export default function PactSilentBallot() {
             </Text>
           </TouchableOpacity>
           <Text style={styles.bottomSubtext}>
-            You can modify your vote anytime until the final member locks in.
+            Your ballot is cryptographically sealed until all members vote.
           </Text>
         </View>
       </View>
@@ -548,15 +548,16 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   headerTitle: {
-    fontFamily: fontDisplay,
-    fontSize: 20,
-    fontWeight: '700',
+    fontFamily: fontUIBold,
+    fontSize: 22,
+    fontWeight: '800',
+    letterSpacing: -0.5,
     color: '#F4F3F0'
   },
   headerSub: {
     fontFamily: fontUI,
     fontSize: 11,
-    color: '#8B8D98'
+    color: '#94A3B8'
   },
   sealedBadge: {
     flexDirection: 'row',
@@ -637,21 +638,22 @@ const styles = StyleSheet.create({
     marginBottom: 6
   },
   destName: {
-    fontFamily: fontDisplay,
+    fontFamily: fontUIBold,
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: '800',
+    letterSpacing: -0.5,
     color: '#F4F3F0'
   },
   matchScore: {
     fontFamily: fontUIBold,
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#3DE0A0'
   },
   destMeta: {
     fontFamily: fontUI,
     fontSize: 11.5,
-    color: '#8B8D98',
+    color: '#94A3B8',
     marginBottom: 16
   },
   voteButtonsRow: {

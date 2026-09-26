@@ -548,10 +548,10 @@ const styles = StyleSheet.create({
     marginBottom: 22
   },
   brandTitle: {
-    fontFamily: fontDisplay,
-    fontWeight: '700',
+    fontFamily: fontUIBold,
+    fontWeight: '900',
     fontSize: 22,
-    letterSpacing: 0.3,
+    letterSpacing: -0.5,
     color: '#FF5A5F'
   },
   howItWorksPill: {
@@ -593,18 +593,18 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   heroHeading: {
-    fontFamily: fontDisplay,
-    fontWeight: '700',
+    fontFamily: fontUIBold,
+    fontWeight: '800',
     fontSize: 26,
     lineHeight: 32,
     color: '#F4F3F0',
     textAlign: 'center',
-    letterSpacing: -0.3,
+    letterSpacing: -0.5,
     marginBottom: 8
   },
   heroSubheading: {
     fontSize: 13,
-    color: '#8B8D98',
+    color: '#94A3B8',
     textAlign: 'center',
     lineHeight: 18
   },
@@ -622,9 +622,10 @@ const styles = StyleSheet.create({
     marginBottom: 16
   },
   stepsSectionTitle: {
-    fontFamily: fontDisplay,
-    fontWeight: '700',
+    fontFamily: fontUIBold,
+    fontWeight: '800',
     fontSize: 15,
+    letterSpacing: -0.5,
     color: '#F4F3F0',
     marginBottom: 14
   },

@@ -31,6 +31,8 @@ import { getActiveUserName } from '../../../src/lib/user/identity';
 import { resolveTripOptionsForCircle, extractDestinationAndVibe } from '../../../src/lib/consensus/dynamicOptions';
 import { PactReceiptCard } from '../../../src/components/export/PactReceiptCard';
 import { VetoAwareConcierge } from '../../../src/components/itinerary/VetoAwareConcierge';
+import { WaxSealStamp } from '../../../src/components/WaxSealStamp';
+import Reanimated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
 
 export default function PactTripBrief() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -255,22 +257,33 @@ export default function PactTripBrief() {
             </View>
           )}
 
-          {/* Consensus Reached Banner with Animated ConsensusGauge */}
-          <View style={styles.consensusBanner}>
+          {/* Consensus Reached Celebration Banner with Wax Seal */}
+          <Reanimated.View
+            entering={FadeInDown.duration(600).springify()}
+            style={styles.consensusBanner}
+          >
+            <View style={styles.celebrationCeremonyRow}>
+              <Reanimated.View entering={ZoomIn.delay(200).springify()}>
+                <WaxSealStamp label="PACT" sublabel="SEALED!" variant="crimson" />
+              </Reanimated.View>
+              <View style={{ flex: 1, marginLeft: 12 }}>
+                <Text style={styles.pactSealedHeading}>PACT SEALED!</Text>
+                <Text style={styles.pactSealedSub}>
+                  100% consensus reached across all {currentGroup.totalMembersCount || effectiveMembers.length} members.
+                </Text>
+              </View>
+            </View>
+
             <ConsensusGauge
               value={100}
-              size={84}
+              size={72}
               strokeColor="#3DE0A0"
               centerText="100%"
               centerSubtext="locked"
-              style={{ marginBottom: 12 }}
+              style={{ marginVertical: 12 }}
             />
-            <Text style={styles.consensusTitle}>Consensus locked — 100%</Text>
-            <Text style={styles.consensusSub}>
-              All {currentGroup.totalMembersCount || effectiveMembers.length} members approved this plan.
-            </Text>
 
-            {/* Glowing Pact Receipt Button */}
+            {/* Hero CTA with Emerald Glow */}
             <TouchableOpacity
               activeOpacity={0.85}
               onPress={() => {
@@ -281,10 +294,10 @@ export default function PactTripBrief() {
               accessibilityRole="button"
               accessibilityLabel="View and share The Pact Receipt"
             >
-              <ScrollText size={15} color="#090A0F" />
+              <ScrollText size={16} color="#090A0F" />
               <Text style={styles.viewReceiptBtnText}>📜 View & Share The Pact Receipt</Text>
             </TouchableOpacity>
-          </View>
+          </Reanimated.View>
 
           {/* Official Sealed Ticket Card */}
           <View style={styles.sealedTicketContainer}>
@@ -549,21 +562,46 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     textAlign: 'center'
   },
+  celebrationCeremonyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    width: '100%',
+    marginBottom: 4
+  },
+  pactSealedHeading: {
+    fontFamily: fontUIBold,
+    fontSize: 22,
+    fontWeight: '900',
+    letterSpacing: -0.5,
+    color: '#3DE0A0'
+  },
+  pactSealedSub: {
+    fontFamily: fontUI,
+    fontSize: 12,
+    color: '#B4B6C0',
+    marginTop: 2
+  },
   viewReceiptBtn: {
     width: '100%',
-    minHeight: 44,
-    borderRadius: 10,
-    backgroundColor: '#D4AF37', // Subtle Gold Foil Accent
+    minHeight: 48,
+    borderRadius: 12,
+    backgroundColor: '#3DE0A0',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    shadowColor: '#3DE0A0',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 14,
+    elevation: 6
   },
   viewReceiptBtnText: {
     fontFamily: fontUIBold,
-    fontSize: 12.5,
+    fontSize: 14,
     fontWeight: '800',
     color: '#090A0F'
   },

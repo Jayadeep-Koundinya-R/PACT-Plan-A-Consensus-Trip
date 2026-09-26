@@ -612,15 +612,16 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   headerTitle: {
-    fontFamily: fontDisplay,
-    fontSize: 20,
-    fontWeight: '700',
+    fontFamily: fontUIBold,
+    fontSize: 22,
+    fontWeight: '800',
+    letterSpacing: -0.5,
     color: '#F4F3F0'
   },
   headerSub: {
     fontFamily: fontUI,
     fontSize: 11,
-    color: '#8B8D98'
+    color: '#94A3B8'
   },
   simulationBtn: {
     flexDirection: 'row',
@@ -828,9 +829,10 @@ const styles = StyleSheet.create({
     zIndex: 2
   },
   winnerDestName: {
-    fontFamily: fontDisplay,
+    fontFamily: fontUIBold,
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: '800',
+    letterSpacing: -0.5,
     color: '#F4F3F0'
   },
   winnerMetaText: {
