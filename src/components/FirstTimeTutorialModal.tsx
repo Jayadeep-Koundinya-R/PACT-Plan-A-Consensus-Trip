@@ -143,7 +143,9 @@ export const FirstTimeTutorialModal: React.FC<FirstTimeTutorialModalProps> = ({
               onPress={handleComplete}
               activeOpacity={0.7}
               style={styles.skipBtn}
+              accessibilityRole="button"
               accessibilityLabel="Skip tutorial"
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
               <Text style={styles.skipBtnText}>Skip</Text>
               <X size={15} color="#8B8D98" />
@@ -182,6 +184,7 @@ export const FirstTimeTutorialModal: React.FC<FirstTimeTutorialModalProps> = ({
                   styles.dot,
                   idx === currentSlide ? styles.dotActive : styles.dotInactive
                 ]}
+                accessibilityRole="button"
                 accessibilityLabel={`Go to slide ${idx + 1}`}
               />
             ))}

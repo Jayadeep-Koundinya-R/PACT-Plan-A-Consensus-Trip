@@ -1074,8 +1074,10 @@ const styles = StyleSheet.create({
   },
   invitePill: {
     minHeight: 44,
+    minWidth: 44,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 4,
     backgroundColor: '#1B1D27',
     borderWidth: 1,

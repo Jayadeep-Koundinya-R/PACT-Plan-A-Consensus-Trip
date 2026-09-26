@@ -83,7 +83,12 @@ export function useCircleRealtime(circleId?: string): RealtimeSyncStatus {
     try {
       const existing = supabase.getChannels().find((c) => c.topic === `realtime:${channelName}`);
       if (existing) {
-        supabase.removeChannel(existing);
+        try {
+          existing.unsubscribe?.();
+        } catch (e) {}
+        try {
+          supabase.removeChannel(existing);
+        } catch (e) {}
       }
 
       channel = supabase.channel(channelName);

@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
     fontSize: 16
   },
   solidText: {
-    color: '#2E0805'
+    color: '#FFFFFF'
   },
   glassText: {
     color: '#F4F3F0'
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF'
   },
   gradientText: {
-    color: '#2E0805'
+    color: '#FFFFFF'
   },
   // Disabled
   disabled: {
