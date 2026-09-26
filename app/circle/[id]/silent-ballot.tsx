@@ -26,6 +26,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
 import { useCircleStore } from '../../../src/store/useCircleStore';
+import { useVoteStore } from '../../../src/store/useVoteStore';
 import { usePactHaptics } from '../../../src/hooks/usePactHaptics';
 import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
 import { ArrowLeft, Check, X, Shield, Lock } from 'lucide-react-native';
@@ -242,6 +243,9 @@ const StampBallotCard: React.FC<StampBallotCardProps> = ({
               </TouchableOpacity>
             ))}
           </View>
+          <Text style={styles.rankCaptionText}>
+            Rank your preferences to guide consensus if no candidate achieves supermajority
+          </Text>
         </View>
       )}
 
@@ -345,6 +349,11 @@ export default function PactSilentBallot() {
     const nextVal = votes[key] === decision ? null : decision;
     setVotes((prev) => ({ ...prev, [key]: nextVal }));
 
+    // Lock form state in useVoteStore when wax seal stamp triggers
+    if (currentGroup?.id) {
+      useVoteStore.getState().markSubmitted(currentGroup.id);
+    }
+
     // CRITICAL: Immediately purge ranking when option is vetoed/unselected
     if (nextVal !== 'approve') {
       setRanks((prevRanks) => {
@@ -364,6 +373,10 @@ export default function PactSilentBallot() {
     haptics.success();
     setIsSubmitting(true);
     setSubmitError(null);
+
+    if (currentGroup?.id) {
+      useVoteStore.getState().markSubmitted(currentGroup.id);
+    }
 
     try {
       for (const opt of options) {
@@ -723,6 +736,12 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 12,
     color: '#8B8D98'
+  },
+  rankCaptionText: {
+    fontFamily: fontUI,
+    fontSize: 10.5,
+    color: '#8B8D98',
+    marginTop: 4
   },
   rejectedBanner: {
     marginTop: 10,

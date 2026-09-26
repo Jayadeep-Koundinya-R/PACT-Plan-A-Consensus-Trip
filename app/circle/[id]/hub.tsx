@@ -517,6 +517,14 @@ export default function PactCirclesHub() {
           {/* Voice Capsules Section */}
           {showVoiceDrawer && (
             <View style={styles.voiceSectionBox}>
+              {Platform.OS === 'web' && (
+                <View style={styles.webVoiceHelperPill}>
+                  <Mic size={12} color="#FF5A5F" />
+                  <Text style={styles.webVoiceHelperText}>
+                    Voice capsules optimized for mobile devices
+                  </Text>
+                </View>
+              )}
               <VoiceCapsuleRecorder
                 onRecordingComplete={(newCap) => {
                   setVoiceCapsules((prev) => [
@@ -895,6 +903,26 @@ export default function PactCirclesHub() {
 const styles = StyleSheet.create({
   voiceSectionBox: {
     marginBottom: 16
+  },
+  webVoiceHelperPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(255, 90, 95, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 90, 95, 0.3)',
+    marginBottom: 10,
+    alignSelf: 'center'
+  },
+  webVoiceHelperText: {
+    fontSize: 11,
+    fontFamily: fontUIBold,
+    fontWeight: '600',
+    color: '#FF5A5F'
   },
   fastForwardBtn: {
     width: '100%',
