@@ -23,7 +23,6 @@ import Svg, { Circle, Path } from 'react-native-svg';
 import { useGatherlyStore } from '../../../src/store/useGatherlyStore';
 import { useCircleStore } from '../../../src/store/useCircleStore';
 import { getActiveUserName, getActiveUserId, isDemoPersona } from '../../../src/lib/user/identity';
-import { JudgeSandboxBar } from '../../../src/components/JudgeSandboxBar';
 import { ProCircleInheritanceCard } from '../../../src/components/ProCircleInheritanceCard';
 import { useCircleRealtime } from '../../../src/hooks/useCircleRealtime';
 import { colors, radius } from '../../../src/theme/colors';
@@ -398,16 +397,6 @@ export default function PactCirclesHub() {
   return (
     <SafeAreaView style={styles.outerContainer}>
       <View style={styles.phoneFrame}>
-        {(isDemoCircle || isDemoPersona(activeUserId)) && (
-          <JudgeSandboxBar
-            circleId={currentGroup.id}
-            onFastForward={handleFastForwardConsensus}
-            onReset={() => {
-              useCircleStore.getState().loadDemoCircle();
-              useGatherlyStore.getState().resetDemoState();
-            }}
-          />
-        )}
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           {/* Header Row */}
           <View style={styles.headerContainer}>
