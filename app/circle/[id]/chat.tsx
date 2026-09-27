@@ -199,34 +199,36 @@ export default function PactCircleChatScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Interactive 2-Account Switcher (for live dual-persona testing) */}
-          <View style={[styles.personaSwitcherBar, { backgroundColor: isDarkMode ? '#0E1019' : '#EDE8DC' }]}>
-            <Text style={[styles.personaSwitcherLabel, { color: theme.textSecondary }]}>Speaking as:</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
-              {personas.map((p) => {
-                const isSelected = activeSenderId === p.id;
-                return (
-                  <TouchableOpacity
-                    key={p.id}
-                    onPress={() => {
-                      haptics.tap();
-                      setActiveSenderId(p.id);
-                      setActiveSenderName(p.name);
-                    }}
-                    activeOpacity={0.75}
-                    style={[
-                      styles.personaPill,
-                      isSelected ? styles.personaPillActive : { backgroundColor: isDarkMode ? '#1B1D27' : '#FFFFFF', borderColor: theme.border }
-                    ]}
-                  >
-                    <Text style={[styles.personaPillText, isSelected && { color: '#050608', fontWeight: '700' }]}>
-                      {p.name}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          </View>
+          {/* Interactive 2-Account Switcher (Isolated exclusively for Demo Mode & multi-persona testing) */}
+          {isDemoCircle && (
+            <View style={[styles.personaSwitcherBar, { backgroundColor: isDarkMode ? '#0E1019' : '#EDE8DC' }]}>
+              <Text style={[styles.personaSwitcherLabel, { color: theme.textSecondary }]}>Demo Persona:</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
+                {personas.map((p) => {
+                  const isSelected = activeSenderId === p.id;
+                  return (
+                    <TouchableOpacity
+                      key={p.id}
+                      onPress={() => {
+                        haptics.tap();
+                        setActiveSenderId(p.id);
+                        setActiveSenderName(p.name);
+                      }}
+                      activeOpacity={0.75}
+                      style={[
+                        styles.personaPill,
+                        isSelected ? styles.personaPillActive : { backgroundColor: isDarkMode ? '#1B1D27' : '#FFFFFF', borderColor: theme.border }
+                      ]}
+                    >
+                      <Text style={[styles.personaPillText, isSelected && { color: '#050608', fontWeight: '700' }]}>
+                        {p.name}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          )}
 
           {/* Message History Feed */}
           <ScrollView
