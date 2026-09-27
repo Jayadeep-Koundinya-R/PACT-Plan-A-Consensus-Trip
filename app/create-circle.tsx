@@ -10,27 +10,58 @@ import {
   StyleSheet,
   SafeAreaView,
   Platform,
-  Alert
+  Alert,
+  Modal
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import Svg, { Path, Circle } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
-import { useGatherlyStore } from '../src/store/useGatherlyStore';
-import { useCircleStore, CircleMember, MemberStatus } from '../src/store/useCircleStore';
+import { useGatherlyStore, CurrencyCode, CURRENCIES } from '../src/store/useGatherlyStore';
+import { useCircleStore, MemberStatus } from '../src/store/useCircleStore';
 import { fontDisplay, fontUI, fontUIBold } from '../src/theme/typography';
-import { ArrowLeft, Plus, Sparkles, Minus } from 'lucide-react-native';
+import { ArrowLeft, Plus, Sparkles, Minus, X, CheckCircle2, Award, ChevronRight } from 'lucide-react-native';
 import { getActiveUserName, getActiveUserId } from '../src/lib/user/identity';
+
+const GROUP_TYPES = ['College Friends', 'Family', 'Best Friends', 'Office'];
+const CURRENCY_OPTIONS: { code: CurrencyCode; label: string; symbol: string }[] = [
+  { code: 'USD', label: 'USD ($)', symbol: '$' },
+  { code: 'INR', label: 'INR (₹)', symbol: '₹' },
+  { code: 'EUR', label: 'EUR (€)', symbol: '€' },
+  { code: 'GBP', label: 'GBP (£)', symbol: '£' },
+];
 
 export default function PactCreateJoinScreen() {
   const router = useRouter();
   const { theme } = useTheme();
-  const { createGroup, joinGroupByCode, subscriptionPlan, groups, currentUserId } = useGatherlyStore();
+  const { createGroup, joinGroupByCode, subscriptionPlan, groups, currentUserId, addTripOption, setCurrency } = useGatherlyStore();
 
+  // Mode tab: 'create' | 'join'
+  const [activeTab, setActiveTab] = useState<'create' | 'join'>('create');
+
+  // Join State
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
+
+  // Milestone Creation Wizard State
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+
+  // Step 1: Name, Group Type & Size
   const [tripName, setTripName] = useState('');
+  const [groupType, setGroupType] = useState<string>('College Friends');
   const [memberCount, setMemberCount] = useState('5');
+
+  // Step 2: Destination Candidates Pool
+  const [candidateInput, setCandidateInput] = useState('');
+  const [candidates, setCandidates] = useState<string[]>(['Goa', 'Pune', 'Bengaluru']);
+
+  // Step 3: Base Currency & Budget Range
+  const [currencyCode, setCurrencyCodeState] = useState<CurrencyCode>('USD');
+  const [budgetMin, setBudgetMin] = useState('300');
+  const [budgetMax, setBudgetMax] = useState('1200');
+
   const [createError, setCreateError] = useState('');
+  const [showCelebrationModal, setShowCelebrationModal] = useState(false);
+  const [createdGroupId, setCreatedGroupId] = useState<string | null>(null);
 
   const liveTotal = parseInt(memberCount, 10) || 5;
   const liveTier = getTierForMemberCount(liveTotal);
@@ -44,6 +75,23 @@ export default function PactCreateJoinScreen() {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       } catch (e) {}
     }
+  };
+
+  const handleAddCandidate = () => {
+    const clean = candidateInput.trim();
+    if (!clean) return;
+    if (candidates.some((c) => c.toLowerCase() === clean.toLowerCase())) {
+      setCandidateInput('');
+      return;
+    }
+    triggerHaptic();
+    setCandidates([...candidates, clean]);
+    setCandidateInput('');
+  };
+
+  const handleRemoveCandidate = (target: string) => {
+    triggerHaptic();
+    setCandidates(candidates.filter((c) => c !== target));
   };
 
   const handleJoin = async () => {
@@ -100,37 +148,51 @@ export default function PactCreateJoinScreen() {
 
     setCreateError('');
     try {
+      setCurrency(currencyCode);
+
       const newGroup = await createGroup({
         name,
         organizerName: activeName,
         organizerId: activeId,
-        totalMembersCount: total
+        totalMembersCount: total,
+        currencyCode,
+        groupType
       });
 
       const groupId = newGroup?.id || `group-${Date.now()}`;
+      setCreatedGroupId(groupId);
 
-      try {
-        useCircleStore.getState().addCircle({
-          id: groupId,
-          name: newGroup?.name || name,
-          inviteCode: newGroup?.inviteCode || (name.slice(0, 4).toUpperCase() + '-2026'),
-          organizerId: activeId,
-          organizerName: activeName,
-          status: 'collecting',
-          totalMembersCount: total,
-          hasPro: subscriptionPlan !== 'free',
-          members: [
-            { userId: activeId, name: `${activeName} (Organizer)`, status: 'locked' as MemberStatus, nudgedAt: null }
-          ],
-          createdAt: new Date().toISOString()
+      // Add candidate destinations to circle state
+      const symbol = CURRENCIES[currencyCode]?.symbol || '$';
+      const bMaxNum = parseInt(budgetMax, 10) || 1200;
+
+      const candidateListToUse = candidates.length > 0 ? candidates : ['Goa', 'Pune', 'Bengaluru'];
+      candidateListToUse.forEach((cand, idx) => {
+        addTripOption({
+          id: `opt-${groupId}-${idx + 1}`,
+          groupId,
+          name: `${cand} Getaway`,
+          destinationType: `${groupType} Candidate`,
+          dateStart: '2026-10-14',
+          dateEnd: '2026-10-19',
+          budgetPerPerson: Math.round(bMaxNum * (idx === 0 ? 0.9 : idx === 1 ? 0.75 : 1.1)),
+          tags: [groupType.toLowerCase().replace(/\s+/g, '-'), 'candidate'],
+          description: `Organizer proposed candidate option for ${cand}.`
         });
-      } catch (e) {}
+      });
 
-      router.push(`/circle/${groupId}/hub` as any);
-    } catch (err) {
+      // Award celebratory micro-badge modal
+      setShowCelebrationModal(true);
+    } catch (err: any) {
       console.error('Failed to create circle:', err);
-      router.push('/circle/circle-college-reunion-2026/hub' as any);
+      setCreateError(err?.message || 'Failed to create circle. Please try again.');
     }
+  };
+
+  const handleFinishAndNavigate = () => {
+    setShowCelebrationModal(false);
+    const targetId = createdGroupId || 'circle-college-reunion-2026';
+    router.push(`/circle/${targetId}/hub` as any);
   };
 
   return (
@@ -140,187 +202,372 @@ export default function PactCreateJoinScreen() {
           {/* Header Navigation */}
           <View style={styles.navHeader}>
             <TouchableOpacity
-              onPress={() => { if (router.canGoBack()) { router.back(); } else { router.replace('/(tabs)/home'); } }}
+              onPress={() => {
+                if (step > 1 && activeTab === 'create') {
+                  setStep((s) => (s - 1) as 1 | 2 | 3);
+                } else if (router.canGoBack()) {
+                  router.back();
+                } else {
+                  router.replace('/(tabs)/home');
+                }
+              }}
               activeOpacity={0.7}
               style={styles.backButton}
               accessibilityLabel="Go back"
             >
               <ArrowLeft size={18} color="#8B8D98" />
             </TouchableOpacity>
-            <Text style={[styles.navTitle, { color: theme.textPrimary }]}>Start planning</Text>
+            <Text style={[styles.navTitle, { color: theme.textPrimary }]}>
+              {activeTab === 'create' ? `Milestone ${step} of 3` : 'Join Circle'}
+            </Text>
           </View>
 
-          {/* Heading */}
-          <Text style={[styles.mainTitle, { color: theme.textPrimary }]}>Plan a Consensus Trip</Text>
-          <Text style={[styles.mainSubtitle, { color: theme.textSecondary }]}>
-            Create a private circle for your group, or join one a friend sent you.
-          </Text>
-
-          {/* Option 1: Inline Create Trip Form (No Modal Indirection) */}
-          <View style={[styles.createCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <View style={styles.cardHeaderRow}>
-              <View style={styles.createIconBox}>
-                <Plus size={20} color="#FF5A5F" />
-              </View>
-              <View style={styles.cardTextCol}>
-                <Text style={[styles.cardHeading, { color: theme.textPrimary }]}>Create a new trip circle</Text>
-                <Text style={[styles.cardSubtext, { color: theme.textSecondary }]}>You set it up and invite friends</Text>
-              </View>
-            </View>
-
-            {/* Trip Name Input */}
-            <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>TRIP NAME</Text>
-            <TextInput
-              style={[
-                styles.textInput,
-                { backgroundColor: theme.surfaceSubtle, color: theme.textPrimary, borderColor: theme.border }
-              ]}
-              value={tripName}
-              onChangeText={(t) => {
-                setTripName(t);
-                if (createError) setCreateError('');
+          {/* Mode Tabs: Create vs Join */}
+          <View style={[styles.tabToggleRow, { backgroundColor: theme.surfaceSubtle }]}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => {
+                triggerHaptic();
+                setActiveTab('create');
               }}
-              placeholder="e.g. Goa Beach Escape 2026"
-              placeholderTextColor="#454857"
-            />
-
-            {/* Member Count Stepper & Tier */}
-            <View style={styles.memberStepperSection}>
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>ESTIMATED TRAVELERS</Text>
-                <Text style={[styles.tierTag, { color: liveTotal <= 8 ? '#3DE0A0' : (liveTotal <= 24 ? '#FF5A5F' : '#EF4444') }]}>
-                  {liveTotal <= 24 ? `${liveTier.name} • ${liveTier.capacityLabel}` : 'Enterprise Custom Plan (25+)'}
-                </Text>
-              </View>
-              <View style={styles.stepperBox}>
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={() => {
-                    const nextVal = Math.max(1, liveTotal - 1);
-                    setMemberCount(String(nextVal));
-                    triggerHaptic();
-                  }}
-                  style={[styles.stepperBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
-                >
-                  <Minus size={14} color={theme.textPrimary} />
-                </TouchableOpacity>
-                <TextInput
-                  style={[styles.stepperCount, { color: theme.textPrimary, minWidth: 40, textAlign: 'center' }]}
-                  value={memberCount}
-                  onChangeText={(val) => {
-                    setMemberCount(val);
-                    if (createError) setCreateError('');
-                  }}
-                  keyboardType="numeric"
-                  accessibilityLabel="Estimated Travelers Count"
-                />
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={() => {
-                    const nextVal = liveTotal + 1;
-                    setMemberCount(String(nextVal));
-                    triggerHaptic();
-                  }}
-                  style={[styles.stepperBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
-                >
-                  <Plus size={14} color={theme.textPrimary} />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Distinct Centered Tier Legend Row */}
-            <View style={styles.legendRow}>
-              <Text style={[styles.legendText, { color: theme.textSecondary }]}>
-                Free: 1–8 members | Organizer Pass: 9–24 members | Custom: 25+ members
+              style={[
+                styles.tabToggleBtn,
+                activeTab === 'create' && { backgroundColor: theme.surface, borderBottomWidth: 2, borderBottomColor: '#FF5A5F' }
+              ]}
+            >
+              <Text style={[styles.tabToggleText, activeTab === 'create' ? { color: '#FF5A5F', fontWeight: '700' } : { color: theme.textSecondary }]}>
+                Create New Trip
               </Text>
-            </View>
-
-            {/* Notice for 9-24 members vs Enterprise 25+ */}
-            {liveTotal > 24 ? (
-              <View style={[styles.tierNoticeBox, { backgroundColor: 'rgba(239, 68, 68, 0.12)', borderColor: 'rgba(239, 68, 68, 0.3)' }]}>
-                <Text style={[styles.tierNoticeText, { color: '#EF4444' }]}>
-                  Circles larger than 24 members require an Enterprise Custom Plan. Please contact the organizer / support team for pricing details.
-                </Text>
-              </View>
-            ) : needsUpgrade && !exceedsCapacity ? (
-              <View style={[styles.tierNoticeBox, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}>
-                <Text style={[styles.tierNoticeText, { color: theme.textSecondary }]}>
-                  Circles of 9–24 members require the PACT Organizer Pass.
-                </Text>
-                <TouchableOpacity
-                  activeOpacity={0.75}
-                  onPress={() => router.push('/paywall')}
-                  style={styles.viewPassLink}
-                >
-                  <Text style={styles.viewPassLinkText}>View Group Pass →</Text>
-                </TouchableOpacity>
-              </View>
-            ) : null}
-
-            {Boolean(createError) && (
-              <Text style={styles.errorText}>{createError}</Text>
-            )}
+            </TouchableOpacity>
 
             <TouchableOpacity
-              activeOpacity={0.88}
-              onPress={handleConfirmCreate}
-              disabled={tripName.trim().length < 2}
-              style={[
-                styles.createButton,
-                tripName.trim().length < 2 && { opacity: 0.5 }
-              ]}
-            >
-              <Sparkles size={16} color="#050608" />
-              <Text style={styles.createButtonText}>Create Circle & Get Code</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Option 2: Join with a code Card */}
-          <View style={[styles.joinCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <View style={styles.cardHeaderRow}>
-              <View style={styles.joinIconBox}>
-                <Svg width="20" height="20" viewBox="0 0 20 20">
-                  <Path
-                    d="M7 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm6 6a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8.5 8.5l3 3"
-                    stroke="#3DE0A0"
-                    strokeWidth="1.6"
-                    fill="none"
-                    strokeLinecap="round"
-                  />
-                </Svg>
-              </View>
-              <View style={styles.cardTextCol}>
-                <Text style={[styles.cardHeading, { color: theme.textPrimary }]}>Join with a code</Text>
-                <Text style={[styles.cardSubtext, { color: theme.textSecondary }]}>Ask your trip organizer for their code</Text>
-              </View>
-            </View>
-
-            <TextInput
-              style={[
-                styles.textInput,
-                { backgroundColor: theme.surfaceSubtle, color: theme.textPrimary, borderColor: theme.border },
-                error ? { borderColor: '#E0484D' } : {}
-              ]}
-              value={code}
-              onChangeText={(t) => {
-                setCode(t.toUpperCase());
-                if (error) setError('');
+              activeOpacity={0.8}
+              onPress={() => {
+                triggerHaptic();
+                setActiveTab('join');
               }}
-              placeholder="e.g. GOA-4F82"
-              placeholderTextColor="#454857"
-              autoCapitalize="characters"
-            />
-
-            {Boolean(error) && <Text style={styles.errorText}>{error}</Text>}
-
-            <TouchableOpacity
-              activeOpacity={0.88}
-              onPress={handleJoin}
-              style={styles.joinButton}
+              style={[
+                styles.tabToggleBtn,
+                activeTab === 'join' && { backgroundColor: theme.surface, borderBottomWidth: 2, borderBottomColor: '#3DE0A0' }
+              ]}
             >
-              <Text style={styles.joinButtonText}>Join trip</Text>
+              <Text style={[styles.tabToggleText, activeTab === 'join' ? { color: '#3DE0A0', fontWeight: '700' } : { color: theme.textSecondary }]}>
+                Join With Code
+              </Text>
             </TouchableOpacity>
           </View>
+
+          {activeTab === 'create' ? (
+            <>
+              {/* Step Progress Bar */}
+              <View style={styles.progressBarBg}>
+                <View style={[styles.progressBarFill, { width: step === 1 ? '33.3%' : step === 2 ? '66.6%' : '100%' }]} />
+              </View>
+
+              {/* Step Title Header */}
+              <View style={styles.stepHeader}>
+                <Text style={[styles.mainTitle, { color: theme.textPrimary }]}>
+                  {step === 1 && 'Trip Name & Group Type'}
+                  {step === 2 && 'Destination Candidates Pool'}
+                  {step === 3 && 'Base Currency & Budget'}
+                </Text>
+                <Text style={[styles.mainSubtitle, { color: theme.textSecondary }]}>
+                  {step === 1 && 'Set a clear title, group category, and estimated traveler headcount.'}
+                  {step === 2 && 'Add candidate destinations for your group to evaluate during initial voting.'}
+                  {step === 3 && 'Define group base currency and target budget limits.'}
+                </Text>
+              </View>
+
+              {/* MILESTONE 1: Trip Name, Group Type & Travelers */}
+              {step === 1 && (
+                <View style={[styles.createCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                  {/* Trip Name Input */}
+                  <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>TRIP NAME</Text>
+                  <TextInput
+                    style={[
+                      styles.textInput,
+                      { backgroundColor: theme.surfaceSubtle, color: theme.textPrimary, borderColor: theme.border }
+                    ]}
+                    value={tripName}
+                    onChangeText={(t) => {
+                      setTripName(t);
+                      if (createError) setCreateError('');
+                    }}
+                    placeholder="e.g. Goa Beach Escape 2026"
+                    placeholderTextColor="#454857"
+                  />
+
+                  {/* Group Type Selector Chips */}
+                  <Text style={[styles.inputLabel, { color: theme.textSecondary, marginTop: 12 }]}>GROUP TYPE</Text>
+                  <View style={styles.groupTypeGrid}>
+                    {GROUP_TYPES.map((gt) => {
+                      const selected = groupType === gt;
+                      return (
+                        <TouchableOpacity
+                          key={gt}
+                          activeOpacity={0.75}
+                          onPress={() => {
+                            triggerHaptic();
+                            setGroupType(gt);
+                          }}
+                          style={[
+                            styles.groupTypeChip,
+                            { backgroundColor: theme.surfaceSubtle, borderColor: selected ? '#FF5A5F' : theme.border },
+                            selected && { backgroundColor: 'rgba(255, 90, 95, 0.12)' }
+                          ]}
+                        >
+                          <Text style={[styles.groupTypeChipText, { color: selected ? '#FF5A5F' : theme.textPrimary }]}>
+                            {gt}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+
+                  {/* Member Count Stepper & Tier */}
+                  <View style={[styles.memberStepperSection, { marginTop: 18 }]}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>ESTIMATED TRAVELERS</Text>
+                      <Text style={[styles.tierTag, { color: liveTotal <= 8 ? '#3DE0A0' : (liveTotal <= 24 ? '#FF5A5F' : '#EF4444') }]}>
+                        {liveTotal <= 24 ? `${liveTier.name} • ${liveTier.capacityLabel}` : 'Enterprise Custom Plan (25+)'}
+                      </Text>
+                    </View>
+                    <View style={styles.stepperBox}>
+                      <TouchableOpacity
+                        activeOpacity={0.7}
+                        onPress={() => {
+                          const nextVal = Math.max(1, liveTotal - 1);
+                          setMemberCount(String(nextVal));
+                          triggerHaptic();
+                        }}
+                        style={[styles.stepperBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
+                      >
+                        <Minus size={14} color={theme.textPrimary} />
+                      </TouchableOpacity>
+                      <TextInput
+                        style={[styles.stepperCount, { color: theme.textPrimary, minWidth: 40, textAlign: 'center' }]}
+                        value={memberCount}
+                        onChangeText={(val) => {
+                          setMemberCount(val);
+                          if (createError) setCreateError('');
+                        }}
+                        keyboardType="numeric"
+                        accessibilityLabel="Estimated Travelers Count"
+                      />
+                      <TouchableOpacity
+                        activeOpacity={0.7}
+                        onPress={() => {
+                          const nextVal = liveTotal + 1;
+                          setMemberCount(String(nextVal));
+                          triggerHaptic();
+                        }}
+                        style={[styles.stepperBtn, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}
+                      >
+                        <Plus size={14} color={theme.textPrimary} />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+
+                  {Boolean(createError) && <Text style={styles.errorText}>{createError}</Text>}
+
+                  <TouchableOpacity
+                    activeOpacity={0.88}
+                    onPress={() => {
+                      if (tripName.trim().length < 2) {
+                        setCreateError('Please enter a trip name with at least 2 characters.');
+                        return;
+                      }
+                      setCreateError('');
+                      triggerHaptic();
+                      setStep(2);
+                    }}
+                    style={styles.nextButton}
+                  >
+                    <Text style={styles.nextButtonText}>Continue to Destination Pool</Text>
+                    <ChevronRight size={16} color="#050608" />
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {/* MILESTONE 2: Destination Candidates Pool */}
+              {step === 2 && (
+                <View style={[styles.createCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                  <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>ADD CANDIDATE DESTINATIONS</Text>
+                  <View style={styles.tagInputRow}>
+                    <TextInput
+                      style={[
+                        styles.textInput,
+                        { flex: 1, marginBottom: 0, backgroundColor: theme.surfaceSubtle, color: theme.textPrimary, borderColor: theme.border }
+                      ]}
+                      value={candidateInput}
+                      onChangeText={setCandidateInput}
+                      onSubmitEditing={handleAddCandidate}
+                      placeholder="e.g. Goa, Pune, Bengaluru"
+                      placeholderTextColor="#454857"
+                    />
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={handleAddCandidate}
+                      style={[styles.addCandidateBtn, { backgroundColor: '#FF5A5F' }]}
+                    >
+                      <Plus size={18} color="#050608" />
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Candidate Destination Tag Chips */}
+                  <Text style={[styles.inputLabel, { color: theme.textSecondary, marginTop: 16 }]}>
+                    CURRENT CANDIDATES POOL ({candidates.length})
+                  </Text>
+                  <View style={styles.chipWrapper}>
+                    {candidates.map((cand) => (
+                      <View key={cand} style={[styles.candidateChip, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}>
+                        <Text style={[styles.candidateChipText, { color: theme.textPrimary }]}>{cand}</Text>
+                        <TouchableOpacity
+                          activeOpacity={0.7}
+                          onPress={() => handleRemoveCandidate(cand)}
+                          style={styles.removeChipBtn}
+                        >
+                          <X size={12} color="#8B8D98" />
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+                  </View>
+
+                  <TouchableOpacity
+                    activeOpacity={0.88}
+                    onPress={() => {
+                      triggerHaptic();
+                      setStep(3);
+                    }}
+                    style={[styles.nextButton, { marginTop: 24 }]}
+                  >
+                    <Text style={styles.nextButtonText}>Continue to Currency & Budget</Text>
+                    <ChevronRight size={16} color="#050608" />
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {/* MILESTONE 3: Base Currency & Approximate Budget Range */}
+              {step === 3 && (
+                <View style={[styles.createCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                  {/* Currency Selector */}
+                  <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>BASE CURRENCY</Text>
+                  <View style={styles.currencyGrid}>
+                    {CURRENCY_OPTIONS.map((c) => {
+                      const selected = currencyCode === c.code;
+                      return (
+                        <TouchableOpacity
+                          key={c.code}
+                          activeOpacity={0.8}
+                          onPress={() => {
+                            triggerHaptic();
+                            setCurrencyCodeState(c.code);
+                          }}
+                          style={[
+                            styles.currencyOptionBtn,
+                            { backgroundColor: theme.surfaceSubtle, borderColor: selected ? '#3DE0A0' : theme.border },
+                            selected && { backgroundColor: 'rgba(61, 224, 160, 0.12)' }
+                          ]}
+                        >
+                          <Text style={[styles.currencyOptionText, { color: selected ? '#3DE0A0' : theme.textPrimary }]}>
+                            {c.label}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+
+                  {/* Budget Range Inputs */}
+                  <Text style={[styles.inputLabel, { color: theme.textSecondary, marginTop: 18 }]}>
+                    TARGET PER-PERSON BUDGET RANGE ({CURRENCIES[currencyCode].symbol})
+                  </Text>
+                  <View style={styles.budgetRow}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.subInputLabel, { color: theme.textSecondary }]}>MIN</Text>
+                      <TextInput
+                        style={[styles.textInput, { backgroundColor: theme.surfaceSubtle, color: theme.textPrimary, borderColor: theme.border }]}
+                        value={budgetMin}
+                        onChangeText={setBudgetMin}
+                        keyboardType="numeric"
+                        placeholder="300"
+                        placeholderTextColor="#454857"
+                      />
+                    </View>
+                    <Text style={{ color: theme.textSecondary, marginTop: 22 }}>–</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.subInputLabel, { color: theme.textSecondary }]}>MAX</Text>
+                      <TextInput
+                        style={[styles.textInput, { backgroundColor: theme.surfaceSubtle, color: theme.textPrimary, borderColor: theme.border }]}
+                        value={budgetMax}
+                        onChangeText={setBudgetMax}
+                        keyboardType="numeric"
+                        placeholder="1200"
+                        placeholderTextColor="#454857"
+                      />
+                    </View>
+                  </View>
+
+                  {Boolean(createError) && <Text style={styles.errorText}>{createError}</Text>}
+
+                  <TouchableOpacity
+                    activeOpacity={0.88}
+                    onPress={handleConfirmCreate}
+                    style={[styles.createButton, { marginTop: 18 }]}
+                  >
+                    <Sparkles size={16} color="#050608" />
+                    <Text style={styles.createButtonText}>Create Circle & Initialize Voting</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </>
+          ) : (
+            /* Option 2: Join with a code Card */
+            <View style={[styles.joinCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <View style={styles.cardHeaderRow}>
+                <View style={styles.joinIconBox}>
+                  <Svg width="20" height="20" viewBox="0 0 20 20">
+                    <Path
+                      d="M7 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm6 6a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8.5 8.5l3 3"
+                      stroke="#3DE0A0"
+                      strokeWidth="1.6"
+                      fill="none"
+                      strokeLinecap="round"
+                    />
+                  </Svg>
+                </View>
+                <View style={styles.cardTextCol}>
+                  <Text style={[styles.cardHeading, { color: theme.textPrimary }]}>Join with a code</Text>
+                  <Text style={[styles.cardSubtext, { color: theme.textSecondary }]}>Ask your trip organizer for their code</Text>
+                </View>
+              </View>
+
+              <TextInput
+                style={[
+                  styles.textInput,
+                  { backgroundColor: theme.surfaceSubtle, color: theme.textPrimary, borderColor: theme.border },
+                  error ? { borderColor: '#E0484D' } : {}
+                ]}
+                value={code}
+                onChangeText={(t) => {
+                  setCode(t.toUpperCase());
+                  if (error) setError('');
+                }}
+                placeholder="e.g. GOA-4F82"
+                placeholderTextColor="#454857"
+                autoCapitalize="characters"
+              />
+
+              {Boolean(error) && <Text style={styles.errorText}>{error}</Text>}
+
+              <TouchableOpacity
+                activeOpacity={0.88}
+                onPress={handleJoin}
+                style={styles.joinButton}
+              >
+                <Text style={styles.joinButtonText}>Join trip</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
           {/* Privacy Footnote */}
           <View style={styles.privacyRow}>
@@ -334,6 +581,30 @@ export default function PactCreateJoinScreen() {
           </View>
         </ScrollView>
       </View>
+
+      {/* Celebratory Micro-Badge Modal */}
+      <Modal visible={showCelebrationModal} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.celebrationCard, { backgroundColor: '#13151E', borderColor: 'rgba(255, 255, 255, 0.15)' }]}>
+            <View style={styles.badgeIconWrapper}>
+              <Award size={36} color="#3DE0A0" />
+            </View>
+            <Text style={styles.celebrationTitle}>Trip Circle Initialized!</Text>
+            <Text style={styles.celebrationBadgeText}>🏆 Micro-badge Unlocked: "Founding Organizer"</Text>
+            <Text style={styles.celebrationSubtext}>
+              {tripName || 'Your trip circle'} has been set up with {candidates.length} candidate options in {CURRENCIES[currencyCode].symbol} {currencyCode}.
+            </Text>
+
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={handleFinishAndNavigate}
+              style={styles.celebrationBtn}
+            >
+              <Text style={styles.celebrationBtnText}>Enter Circle Hub →</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -365,7 +636,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    marginBottom: 24
+    marginBottom: 16
   },
   backButton: {
     width: 32,
@@ -379,20 +650,50 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#F4F3F0'
   },
+  tabToggleRow: {
+    flexDirection: 'row',
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 18
+  },
+  tabToggleBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  tabToggleText: {
+    fontFamily: fontUIBold,
+    fontSize: 13
+  },
+  progressBarBg: {
+    height: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 2,
+    marginBottom: 16,
+    overflow: 'hidden'
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#FF5A5F',
+    borderRadius: 2
+  },
+  stepHeader: {
+    marginBottom: 16
+  },
   mainTitle: {
     fontFamily: fontDisplay,
     fontWeight: '700',
-    fontSize: 24,
-    lineHeight: 30,
+    fontSize: 22,
+    lineHeight: 28,
     color: '#F4F3F0',
-    marginBottom: 6
+    marginBottom: 4
   },
   mainSubtitle: {
     fontFamily: fontUI,
-    fontSize: 13.5,
+    fontSize: 13,
     color: '#8B8D98',
-    lineHeight: 20,
-    marginBottom: 22
+    lineHeight: 18
   },
   createCard: {
     backgroundColor: '#13151E',
@@ -402,41 +703,19 @@ const styles = StyleSheet.create({
     padding: 18,
     marginBottom: 18
   },
-  cardHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    marginBottom: 16
-  },
-  createIconBox: {
-    width: 42,
-    height: 42,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255, 90, 95, 0.14)',
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  cardTextCol: {
-    flex: 1
-  },
-  cardHeading: {
-    fontFamily: fontUIBold,
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#F4F3F0'
-  },
-  cardSubtext: {
-    fontFamily: fontUI,
-    fontSize: 12,
-    color: '#6C6F7A',
-    marginTop: 2
-  },
   inputLabel: {
     fontFamily: fontUIBold,
     fontSize: 10.5,
     letterSpacing: 0.8,
     color: '#8B8D98',
     marginBottom: 6
+  },
+  subInputLabel: {
+    fontFamily: fontUIBold,
+    fontSize: 9.5,
+    letterSpacing: 0.8,
+    color: '#8B8D98',
+    marginBottom: 4
   },
   textInput: {
     width: '100%',
@@ -449,7 +728,23 @@ const styles = StyleSheet.create({
     color: '#F4F3F0',
     fontSize: 14,
     fontFamily: fontUI,
-    marginBottom: 14
+    marginBottom: 10
+  },
+  groupTypeGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 8
+  },
+  groupTypeChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1
+  },
+  groupTypeChipText: {
+    fontFamily: fontUIBold,
+    fontSize: 12.5
   },
   memberStepperSection: {
     flexDirection: 'row',
@@ -459,7 +754,7 @@ const styles = StyleSheet.create({
   },
   tierTag: {
     fontFamily: fontUIBold,
-    fontSize: 11.5,
+    fontSize: 11,
     fontWeight: '600',
     marginTop: 1
   },
@@ -484,39 +779,80 @@ const styles = StyleSheet.create({
     minWidth: 24,
     textAlign: 'center'
   },
-  legendRow: {
+  tagInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8
+  },
+  addCandidateBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  chipWrapper: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 6
+  },
+  candidateChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1
+  },
+  candidateChipText: {
+    fontFamily: fontUI,
+    fontSize: 12.5
+  },
+  removeChipBtn: {
+    padding: 2
+  },
+  currencyGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 8
+  },
+  currencyOptionBtn: {
+    flex: 1,
+    minWidth: '45%',
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderRadius: 10,
+    borderWidth: 1
+  },
+  currencyOptionText: {
+    fontFamily: fontUIBold,
+    fontSize: 13
+  },
+  budgetRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 8
+  },
+  nextButton: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 2,
-    marginBottom: 14
+    gap: 6,
+    width: '100%',
+    paddingVertical: 13,
+    borderRadius: 11,
+    backgroundColor: '#FF5A5F',
+    marginTop: 14
   },
-  legendText: {
-    fontSize: 11,
-    fontFamily: fontUI,
-    textAlign: 'center'
-  },
-  tierNoticeBox: {
-    borderRadius: 10,
-    borderWidth: 1,
-    padding: 10,
-    marginBottom: 14
-  },
-  tierNoticeText: {
-    fontSize: 11.5,
-    lineHeight: 16
-  },
-  viewPassLink: {
-    alignSelf: 'flex-start',
-    marginTop: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-    backgroundColor: 'rgba(255, 90, 95, 0.15)'
-  },
-  viewPassLinkText: {
-    color: '#FF5A5F',
-    fontSize: 11,
-    fontWeight: '800'
+  nextButtonText: {
+    fontFamily: fontUIBold,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#050608'
   },
   createButton: {
     flexDirection: 'row',
@@ -526,7 +862,7 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingVertical: 13,
     borderRadius: 11,
-    backgroundColor: '#FF5A5F'
+    backgroundColor: '#3DE0A0'
   },
   createButtonText: {
     fontFamily: fontUIBold,
@@ -542,6 +878,12 @@ const styles = StyleSheet.create({
     padding: 18,
     marginBottom: 20
   },
+  cardHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    marginBottom: 16
+  },
   joinIconBox: {
     width: 42,
     height: 42,
@@ -549,6 +891,21 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(61, 224, 160, 0.12)',
     alignItems: 'center',
     justifyContent: 'center'
+  },
+  cardTextCol: {
+    flex: 1
+  },
+  cardHeading: {
+    fontFamily: fontUIBold,
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#F4F3F0'
+  },
+  cardSubtext: {
+    fontFamily: fontUI,
+    fontSize: 12,
+    color: '#6C6F7A',
+    marginTop: 2
   },
   errorText: {
     fontSize: 12,
@@ -574,12 +931,73 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginTop: 4,
+    marginTop: 12,
     justifyContent: 'center'
   },
   privacyText: {
     fontFamily: fontUI,
     fontSize: 11.5,
     color: '#6C6F7A'
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(5, 6, 8, 0.82)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20
+  },
+  celebrationCard: {
+    width: '100%',
+    maxWidth: 380,
+    borderRadius: 20,
+    borderWidth: 1,
+    padding: 24,
+    alignItems: 'center'
+  },
+  badgeIconWrapper: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(61, 224, 160, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14
+  },
+  celebrationTitle: {
+    fontFamily: fontDisplay,
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#F4F3F0',
+    marginBottom: 6,
+    textAlign: 'center'
+  },
+  celebrationBadgeText: {
+    fontFamily: fontUIBold,
+    fontSize: 13,
+    color: '#3DE0A0',
+    marginBottom: 10,
+    textAlign: 'center'
+  },
+  celebrationSubtext: {
+    fontFamily: fontUI,
+    fontSize: 12.5,
+    color: '#8B8D98',
+    textAlign: 'center',
+    lineHeight: 18,
+    marginBottom: 20
+  },
+  celebrationBtn: {
+    width: '100%',
+    paddingVertical: 13,
+    borderRadius: 11,
+    backgroundColor: '#3DE0A0',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  celebrationBtnText: {
+    fontFamily: fontUIBold,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#050608'
   }
 });
