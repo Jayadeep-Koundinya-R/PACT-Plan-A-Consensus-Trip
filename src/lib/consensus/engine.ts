@@ -95,6 +95,7 @@ export function calculateBudgetScore(
 /**
  * Calculates tag match score (0.0 to 1.0).
  * intersection / |member's tags|
+ * ⚡ Performance optimized: Constructs tripTagSet efficiently and minimizes array/string allocations during repeated matrix calculations.
  */
 export function calculateTagScore(
   memberTags: string[],
@@ -104,10 +105,22 @@ export function calculateTagScore(
     return { score: 1.0, matchedTags: [] };
   }
 
-  const tripTagSet = new Set((tripTags || []).map((t) => t.toLowerCase().trim()));
+  // Build normalized Set only if tripTags is non-empty
+  const tripTagSet = new Set<string>();
+  if (tripTags && tripTags.length > 0) {
+    for (let i = 0; i < tripTags.length; i++) {
+      const t = tripTags[i];
+      if (t) {
+        tripTagSet.add(t.toLowerCase().trim());
+      }
+    }
+  }
+
   const matchedTags: string[] = [];
 
-  for (const tag of memberTags) {
+  for (let i = 0; i < memberTags.length; i++) {
+    const tag = memberTags[i];
+    if (!tag) continue;
     const cleanTag = tag.toLowerCase().trim();
     if (tripTagSet.has(cleanTag)) {
       matchedTags.push(tag);
@@ -124,6 +137,8 @@ export function calculateTagScore(
 
 /**
  * Checks if any dealbreaker keyword appears in trip metadata.
+ * ⚡ Performance optimized: Short-circuits early on empty dealbreakers, avoids array spread allocations,
+ * and caches lowercase string comparisons in hot ranking loops.
  */
 export function checkDealbreakers(
   dealbreakers: string[] | undefined,
@@ -133,24 +148,42 @@ export function checkDealbreakers(
     return { hit: false };
   }
 
-  const searchableText = [
-    option.name,
-    option.destinationType,
-    option.description || '',
-    ...(option.tags || [])
-  ]
-    .join(' ')
-    .toLowerCase();
+  // Pre-build lowercase searchable text without temporary array spreads
+  let searchableText = (option.name || '').toLowerCase() + ' ' +
+    (option.destinationType || '').toLowerCase() + ' ' +
+    (option.description || '').toLowerCase();
 
-  for (const rawDb of dealbreakers) {
-    // Also split by commas if stored as a single comma-separated string
-    const items = rawDb.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
-    for (const item of items) {
+  if (option.tags && option.tags.length > 0) {
+    for (let i = 0; i < option.tags.length; i++) {
+      if (option.tags[i]) {
+        searchableText += ' ' + option.tags[i].toLowerCase();
+      }
+    }
+  }
+
+  for (let i = 0; i < dealbreakers.length; i++) {
+    const rawDb = dealbreakers[i];
+    if (!rawDb) continue;
+
+    // Fast path: if no comma, avoid array creation from split()
+    if (rawDb.indexOf(',') === -1) {
+      const item = rawDb.trim().toLowerCase();
       if (item.length > 0 && searchableText.includes(item)) {
         return {
           hit: true,
           reason: `Dealbreaker "${item}" matches trip characteristics`
         };
+      }
+    } else {
+      const items = rawDb.split(',');
+      for (let j = 0; j < items.length; j++) {
+        const item = items[j].trim().toLowerCase();
+        if (item.length > 0 && searchableText.includes(item)) {
+          return {
+            hit: true,
+            reason: `Dealbreaker "${item}" matches trip characteristics`
+          };
+        }
       }
     }
   }
