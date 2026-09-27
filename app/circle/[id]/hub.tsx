@@ -869,6 +869,58 @@ export default function PactCirclesHub() {
             </View>
           </View>
 
+          {/* Ongoing Trip Live Assistant & Daily Budget Card */}
+          <View style={[styles.pinnedSpecsCard, { borderColor: '#D4AF37', backgroundColor: '#181A26' }]}>
+            <View style={styles.pinnedHeaderRow}>
+              <View style={[styles.pinnedBadge, { backgroundColor: 'rgba(212, 175, 55, 0.15)', borderColor: 'rgba(212, 175, 55, 0.35)' }]}>
+                <Sparkles size={12} color="#D4AF37" />
+                <Text style={[styles.pinnedBadgeText, { color: '#D4AF37' }]}>ONGOING TRIP LIVE ASSISTANT</Text>
+              </View>
+              <Text style={styles.pinnedSubtitle}>Realtime Daily Budget</Text>
+            </View>
+
+            <View style={{ gap: 8, marginTop: 4 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text style={{ fontFamily: fontUI, fontSize: 12, color: '#F4F3F0' }}>Daily Budget Cap:</Text>
+                <Text style={{ fontFamily: fontUIBold, fontSize: 13, color: '#3DE0A0' }}>$120 / day / traveler</Text>
+              </View>
+              <Text style={{ fontFamily: fontUI, fontSize: 11, color: '#8B8D98' }}>
+                Recommended Transport: Local Scooter Convoy or Private AC Mini-Van ($15/day).
+              </Text>
+              <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.1)', marginVertical: 4 }} />
+              <Text style={{ fontFamily: fontUIBold, fontSize: 11, color: '#D4AF37' }}>
+                Verified Local Traveler Contact: Goa Local Expeditions (+91 98230 00000) - 15% PACT Group Discount
+              </Text>
+            </View>
+          </View>
+
+          {/* Quick Hub Directories (Vault & Memories Folders) */}
+          <View style={{ flexDirection: 'row', gap: 10, marginBottom: 12 }}>
+            <TouchableOpacity
+              onPress={() => {
+                haptics.tap();
+                router.push(`/circle/${currentGroup.id}/vault` as any);
+              }}
+              activeOpacity={0.8}
+              style={{ flex: 1, backgroundColor: '#13151E', borderWidth: 1, borderColor: '#262938', borderRadius: 12, padding: 12, alignItems: 'center', gap: 4 }}
+            >
+              <FileText size={16} color="#D4AF37" />
+              <Text style={{ fontFamily: fontUIBold, fontSize: 11, color: '#F4F3F0' }}>Trip Documents</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                haptics.tap();
+                router.push(`/circle/${currentGroup.id}/memories` as any);
+              }}
+              activeOpacity={0.8}
+              style={{ flex: 1, backgroundColor: '#13151E', borderWidth: 1, borderColor: '#262938', borderRadius: 12, padding: 12, alignItems: 'center', gap: 4 }}
+            >
+              <Sparkles size={16} color="#3DE0A0" />
+              <Text style={{ fontFamily: fontUIBold, fontSize: 11, color: '#F4F3F0' }}>Memories Folder</Text>
+            </TouchableOpacity>
+          </View>
+
           {/* Core Decision Navigation Cards */}
           <TouchableOpacity
             onPress={() => {
