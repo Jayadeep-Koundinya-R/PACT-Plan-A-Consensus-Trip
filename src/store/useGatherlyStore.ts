@@ -483,7 +483,10 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
       }
       if (savedTrips) {
         try {
-          updates.pastTrips = JSON.parse(savedTrips);
+          const parsed = JSON.parse(savedTrips);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            updates.pastTrips = parsed;
+          }
         } catch (e) {}
       }
 
