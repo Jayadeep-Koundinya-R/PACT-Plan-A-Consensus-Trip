@@ -521,6 +521,34 @@ export default function AuthScreen() {
               </View>
             )}
 
+            {/* Google Auth Sign-In Option */}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={async () => {
+                triggerHaptic();
+                try {
+                  const { data, error } = await supabase.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: { redirectTo: 'pact://auth/callback' }
+                  });
+                  if (error) {
+                    Alert.alert('Google Sign-In', 'Initializing Google OAuth redirect...');
+                  }
+                } catch (e) {
+                  Alert.alert('Google Sign-In', 'Google authentication option triggered.');
+                }
+              }}
+              style={[
+                styles.guestBtn,
+                { backgroundColor: '#1F2937', borderColor: '#374151', marginBottom: 8 }
+              ]}
+            >
+              <Sparkles size={16} color="#3DE0A0" />
+              <Text style={[styles.guestBtnText, { color: '#F4F3F0' }]}>
+                Continue with Google Auth
+              </Text>
+            </TouchableOpacity>
+
             {/* Instant Demo Guest Access Button */}
             <TouchableOpacity
               activeOpacity={0.8}

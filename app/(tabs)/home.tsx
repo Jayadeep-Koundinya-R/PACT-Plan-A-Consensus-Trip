@@ -105,7 +105,7 @@ export default function MyCirclesScreen() {
   );
   const computedSupermajorityPct = totalCircleMembers > 0
     ? Math.round((totalLockedMembers / totalCircleMembers) * 100)
-    : 80;
+    : 0;
 
   const handleCopy = async (code: string) => {
     await copyInviteCode(code);
