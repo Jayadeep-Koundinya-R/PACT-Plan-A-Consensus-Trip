@@ -28,7 +28,12 @@ import {
   CheckCheck,
   Sparkles,
   MessageSquare,
-  Lock
+  Lock,
+  Mic,
+  Pin,
+  MapPin,
+  FileText,
+  Compass
 } from 'lucide-react-native';
 import { CircleRouteGuard } from '../../../src/components/common';
 
@@ -148,6 +153,29 @@ export default function PactCircleChatScreen() {
             </View>
           </View>
 
+          {/* Pinned Trip Brief Summary Banner */}
+          <View style={[styles.pinnedBanner, { backgroundColor: isDarkMode ? '#181A26' : '#FAF8F5', borderColor: '#D4AF37' }]}>
+            <View style={styles.pinnedHeader}>
+              <View style={styles.pinnedTitleRow}>
+                <Pin size={12} color="#D4AF37" />
+                <Text style={styles.pinnedTitleText}>PINNED TRIP PLAN BRIEF</Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => {
+                  haptics.action();
+                  router.push(`/circle/${currentGroup.id}/brief` as any);
+                }}
+                style={styles.pdfExportBtn}
+              >
+                <FileText size={11} color="#050608" />
+                <Text style={styles.pdfExportBtnText}>View PDF Brief</Text>
+              </TouchableOpacity>
+            </View>
+            <Text style={[styles.pinnedDesc, { color: theme.textPrimary }]} numberOfLines={1}>
+              Winner: {currentGroup.name} • Oct 14-19 • Est. Budget $600-$1,200/person
+            </Text>
+          </View>
+
           {/* Privacy Transparency Notice */}
           <View style={[styles.noticeBanner, { backgroundColor: isDarkMode ? '#13151E' : '#F4F3F0', borderColor: theme.border }]}>
             <ShieldCheck size={14} color="#3DE0A0" style={{ marginTop: 1 }} />
@@ -155,6 +183,20 @@ export default function PactCircleChatScreen() {
               <Text style={{ fontFamily: fontUIBold, color: theme.textPrimary }}>Circle-wide chat: </Text>
               Visible to all invited members. Private budgets, dealbreakers, and votes remain sealed.
             </Text>
+          </View>
+
+          {/* Gemini AI Spot Suggestions Bar */}
+          <View style={[styles.aiSpotBar, { backgroundColor: isDarkMode ? '#0F172A' : '#EFF6FF', borderColor: 'rgba(59, 130, 246, 0.3)' }]}>
+            <TouchableOpacity
+              onPress={() => {
+                haptics.action();
+                sendMessage('✨ Gemini AI Spot Suggestions: Top visited places in Goa include Palolem Beach, Baga Beach, Dudhsagar Waterfalls & Fontainhas. Avg budget: ~$45/day/person.', 'ai-gemini', 'Gemini AI Assistant');
+              }}
+              style={styles.aiSpotBtn}
+            >
+              <Compass size={13} color="#3B82F6" />
+              <Text style={styles.aiSpotBtnText}>Ask Gemini AI for Most Visited & Photo Spots</Text>
+            </TouchableOpacity>
           </View>
 
           {/* Interactive 2-Account Switcher (for live dual-persona testing) */}
@@ -276,6 +318,18 @@ export default function PactCircleChatScreen() {
   </View>
 ) : (
   <View style={[styles.inputBar, { backgroundColor: isDarkMode ? "#0B0F17" : "#FFFFFF", borderTopColor: theme.border }]}>
+    <TouchableOpacity
+      onPress={() => {
+        haptics.tap();
+        sendMessage('🎙️ [Voice Capsule Audio Note recorded]', activeSenderId, activeSenderName);
+      }}
+      activeOpacity={0.7}
+      style={styles.micBtnInRow}
+      accessibilityLabel="Record Voice Capsule"
+    >
+      <Mic size={16} color="#FF5A5F" />
+    </TouchableOpacity>
+
     <TextInput
       style={[
         styles.textInput,
@@ -381,6 +435,76 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 10,
     color: '#3DE0A0'
+  },
+  pinnedBanner: {
+    marginHorizontal: 12,
+    marginTop: 6,
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 1
+  },
+  pinnedHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4
+  },
+  pinnedTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4
+  },
+  pinnedTitleText: {
+    fontFamily: fontUIBold,
+    fontSize: 9.5,
+    color: '#D4AF37',
+    letterSpacing: 0.5
+  },
+  pdfExportBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#D4AF37',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6
+  },
+  pdfExportBtnText: {
+    fontFamily: fontUIBold,
+    fontSize: 9.5,
+    color: '#050608'
+  },
+  pinnedDesc: {
+    fontFamily: fontUI,
+    fontSize: 11.5
+  },
+  aiSpotBar: {
+    marginHorizontal: 12,
+    marginTop: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    overflow: 'hidden'
+  },
+  aiSpotBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 10
+  },
+  aiSpotBtnText: {
+    fontFamily: fontUIBold,
+    fontSize: 11,
+    color: '#3B82F6'
+  },
+  micBtnInRow: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 90, 95, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   noticeBanner: {
     flexDirection: 'row',

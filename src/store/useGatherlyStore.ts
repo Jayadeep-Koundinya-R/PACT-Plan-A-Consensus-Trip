@@ -116,6 +116,7 @@ interface GatherlyState {
   currencySymbol: string;
   setCurrency: (currency: CurrencyCode) => void;
   formatCurrency: (amountInUSD: number, currencyCodeOverride?: CurrencyCode) => string;
+  formatDualCurrency: (amountInUSD: number, primaryCode?: CurrencyCode, secondaryCode?: CurrencyCode) => string;
   subscriptionPlan: SubscriptionPlan;
   isCheckingEntitlement: boolean;
   purchaseError: string | null;
@@ -234,11 +235,42 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     }
     return `${config.symbol}${converted.toLocaleString()}`;
   },
+  formatDualCurrency: (amountInUSD: number, primaryCode?: CurrencyCode, secondaryCode?: CurrencyCode) => {
+    const state = get();
+    const pCode = primaryCode || state.currency;
+    const sCode = secondaryCode || (pCode === 'USD' ? 'INR' : 'USD');
+    const primaryFormatted = get().formatCurrency(amountInUSD, pCode);
+    const secondaryFormatted = get().formatCurrency(amountInUSD, sCode);
+    return `${primaryFormatted} (${secondaryFormatted})`;
+  },
   subscriptionPlan: 'free',
   isCheckingEntitlement: false,
   purchaseError: null,
 
-  pastTrips: DEFAULT_PAST_TRIPS,
+  pastTrips: DEFAULT_PAST_TRIPS || [
+    {
+      id: 'past-1',
+      name: 'Kyoto Machiya Getaway 2025',
+      destinationName: 'Kyoto, Japan',
+      dates: 'Nov 10 – Nov 15, 2025',
+      memberCount: 4,
+      finalizedAt: '2025-11-01T10:00:00.000Z',
+      winningOptionName: 'Kyoto Central Machiya',
+      inviteCode: 'KYOTO-2025',
+      anniversaryReminder: true
+    },
+    {
+      id: 'past-2',
+      name: 'Swiss Alps Ski Weekend 2025',
+      destinationName: 'Zermatt, Switzerland',
+      dates: 'Jan 15 – Jan 20, 2025',
+      memberCount: 5,
+      finalizedAt: '2025-01-05T10:00:00.000Z',
+      winningOptionName: 'Alpine Chalet Lodge',
+      inviteCode: 'ALPS-2025',
+      anniversaryReminder: false
+    }
+  ],
 
   toggleAnniversaryReminder: (tripId: string) => {
     set((state) => {
@@ -483,8 +515,17 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
       }
       if (savedTrips) {
         try {
-          updates.pastTrips = JSON.parse(savedTrips);
-        } catch (e) {}
+          const parsed = JSON.parse(savedTrips);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            updates.pastTrips = parsed;
+          } else {
+            updates.pastTrips = DEFAULT_PAST_TRIPS;
+          }
+        } catch (e) {
+          updates.pastTrips = DEFAULT_PAST_TRIPS;
+        }
+      } else {
+        updates.pastTrips = DEFAULT_PAST_TRIPS;
       }
 
       set(updates);

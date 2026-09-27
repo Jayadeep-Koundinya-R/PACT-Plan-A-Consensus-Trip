@@ -24,39 +24,13 @@ interface NotificationState {
   clearNotifications: () => void;
   dismissToast: () => void;
   addLifecycleNotification: (stage: 'pre-voting' | 'post-consensus' | 'departure', deadlineDate?: string) => void;
+  addPreTripNotification: (circleName: string, deadlineDate?: string) => void;
+  addDepartureNotification: (circleName: string) => void;
   simulateAINotification: (customBody?: string) => void;
   simulateNudgeNotification: (fromName?: string) => void;
 }
 
-const INITIAL_NOTIFICATIONS: PactNotification[] = [
-  {
-    id: 'notif-1',
-    type: 'consensus',
-    title: 'Consensus Round Open',
-    body: 'Consensus round is open. Lock in your sealed ballot before Oct 20.',
-    timestamp: '2m ago',
-    read: false,
-    privacyTag: 'Sealed Voting Active'
-  },
-  {
-    id: 'notif-2',
-    type: 'consensus',
-    title: 'Supermajority Reached',
-    body: 'Supermajority reached! Time to finalize tickets and accommodations.',
-    timestamp: '1h ago',
-    read: false,
-    privacyTag: '100% Consensus Locked'
-  },
-  {
-    id: 'notif-3',
-    type: 'circle',
-    title: 'Departure Milestone',
-    body: 'Trip starts today! Open your PACT Boarding Pass.',
-    timestamp: '1d ago',
-    read: true,
-    privacyTag: 'Boarding Pass Ready'
-  }
-];
+const INITIAL_NOTIFICATIONS: PactNotification[] = [];
 
 export const useNotificationStore = create<NotificationState>((set, get) => ({
   notifications: INITIAL_NOTIFICATIONS,
@@ -130,6 +104,24 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         privacyTag
       });
     }
+  },
+
+  addPreTripNotification: (circleName, deadlineDate = '15th of next month') => {
+    get().addNotification({
+      type: 'ai',
+      title: `Booking Reminder: ${circleName}`,
+      body: `You are scheduled for ${circleName}! AI Insight: Book tickets before ${deadlineDate} to finalize places with friends or family.`,
+      privacyTag: 'Pre-Trip Planning'
+    });
+  },
+
+  addDepartureNotification: (circleName) => {
+    get().addNotification({
+      type: 'circle',
+      title: `Departure Day: ${circleName}`,
+      body: `Today is the day! Head out as per plan. We'll track your daily budget and suggest nearby sights!`,
+      privacyTag: 'Departure Active'
+    });
   },
 
   simulateAINotification: (customBody?: string) => {
