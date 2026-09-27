@@ -5,6 +5,9 @@ import {
   buildNudgeNotification,
   buildDeadlineReminder,
   buildConsensusReached,
+  buildPreVotingAlert,
+  buildPostConsensusAlert,
+  buildDepartureMilestoneAlert,
   sendPactNotification,
   getNotificationHistory,
   clearNotificationHistory
@@ -15,6 +18,33 @@ test('Push Notifications: Strict Privacy Guard', async (t) => {
     const payload = buildNudgeNotification('Jordan', 'Goa Beach Escape 2026');
     assert.strictEqual(payload.title, 'PACT Circle Reminder');
     assert.strictEqual(payload.body, "Jordan hasn't responded yet. Tap to view circle progress.");
+
+    const validation = validateNotificationPrivacy(payload.title, payload.body);
+    assert.strictEqual(validation.valid, true);
+  });
+
+  await t.test('approves pre-voting lifecycle alert', () => {
+    const payload = buildPreVotingAlert('Oct 20');
+    assert.strictEqual(payload.title, 'Consensus Round Open');
+    assert.strictEqual(payload.body, 'Consensus round is open. Lock in your sealed ballot before Oct 20.');
+
+    const validation = validateNotificationPrivacy(payload.title, payload.body);
+    assert.strictEqual(validation.valid, true);
+  });
+
+  await t.test('approves post-consensus lifecycle alert', () => {
+    const payload = buildPostConsensusAlert();
+    assert.strictEqual(payload.title, 'Supermajority Reached');
+    assert.strictEqual(payload.body, 'Supermajority reached! Time to finalize tickets and accommodations.');
+
+    const validation = validateNotificationPrivacy(payload.title, payload.body);
+    assert.strictEqual(validation.valid, true);
+  });
+
+  await t.test('approves departure milestone alert', () => {
+    const payload = buildDepartureMilestoneAlert();
+    assert.strictEqual(payload.title, 'Departure Milestone');
+    assert.strictEqual(payload.body, 'Trip starts today! Open your PACT Boarding Pass.');
 
     const validation = validateNotificationPrivacy(payload.title, payload.body);
     assert.strictEqual(validation.valid, true);

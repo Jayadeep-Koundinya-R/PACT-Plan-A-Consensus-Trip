@@ -25,8 +25,11 @@ describe('The PACT Vault (Past Trips & Anniversary Reminders)', () => {
     assert.ok(code.includes('The PACT Vault'), 'Displays The PACT Vault header');
     assert.ok(code.includes('#D4AF37'), 'Uses golden key color accent');
     assert.ok(code.includes('Sealed & Completed'), 'Displays Sealed & Completed status badge');
+    assert.ok(code.includes('PACT FLASHBACK'), 'Displays PACT FLASHBACK featured banner');
+    assert.ok(code.includes('groupedByYear'), 'Groups historical past trips by year');
     assert.ok(code.includes('View Brief'), 'Provides View Brief CTA');
-    assert.ok(code.includes('View Receipt'), 'Provides View Receipt CTA');
+    assert.ok(code.includes('View Sealed Receipt'), 'Provides View Sealed Receipt CTA');
+    assert.ok(code.includes('Export Boarding Pass'), 'Provides Export Boarding Pass CTA');
     assert.ok(code.includes('Switch'), 'Includes Anniversary Reminders switch toggle');
   });
 });
