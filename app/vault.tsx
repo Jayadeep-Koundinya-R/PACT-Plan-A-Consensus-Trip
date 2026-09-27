@@ -121,11 +121,23 @@ export default function PastTripsVaultScreen() {
             </View>
           )}
 
+          {/* Empty Vault State */}
+          {pastTrips.length === 0 && (
+            <View style={styles.emptyVaultCard}>
+              <ScrollText size={32} color="#D4AF37" />
+              <Text style={styles.emptyVaultTitle}>No Past Trips Sealed Yet</Text>
+              <Text style={styles.emptyVaultSub}>
+                When your trip reaches 100% consensus and is finalized by the organizer, its official Pact Brief and Sealed Receipt will be archived here.
+              </Text>
+            </View>
+          )}
+
           {/* Grouped Past Trips Timeline */}
-          {(() => {
+          {pastTrips.length > 0 && (() => {
             const groupedByYear: Record<string, PastTripItem[]> = {};
             pastTrips.forEach((trip) => {
-              const yearMatch = trip.dates.match(/\b(20\d\d)\b/);
+              const datesStr = trip?.dates || '';
+              const yearMatch = datesStr.match(/\b(20\d\d)\b/);
               const year = yearMatch ? yearMatch[1] : '2025';
               if (!groupedByYear[year]) groupedByYear[year] = [];
               groupedByYear[year].push(trip);
@@ -331,6 +343,32 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#D4AF37',
     flex: 1
+  },
+  emptyVaultCard: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+    backgroundColor: '#13151E',
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.25)',
+    borderRadius: 18,
+    marginVertical: 16
+  },
+  emptyVaultTitle: {
+    fontFamily: fontDisplay,
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#F4F3F0',
+    marginTop: 12,
+    marginBottom: 6,
+    textAlign: 'center'
+  },
+  emptyVaultSub: {
+    fontFamily: fontUI,
+    fontSize: 12,
+    color: '#8B8D98',
+    textAlign: 'center',
+    lineHeight: 18
   },
   flashbackCard: {
     backgroundColor: '#181A26',
