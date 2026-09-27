@@ -1,5 +1,7 @@
-﻿import { create } from 'zustand';
+import { create } from 'zustand';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { validateNotificationPrivacy } from '../lib/notifications/pactNotifications';
+import { Circle } from './useCircleStore';
 
 export interface PactNotification {
   id: string;
@@ -14,9 +16,9 @@ export interface PactNotification {
 
 interface NotificationState {
   notifications: PactNotification[];
+  dismissedIds: string[];
   activeToast: PactNotification | null;
   isOpen: boolean;
-
   openNotificationCenter: () => void;
   closeNotificationCenter: () => void;
   addNotification: (notification: Omit<PactNotification, 'id' | 'timestamp' | 'read'>) => boolean;
@@ -28,12 +30,16 @@ interface NotificationState {
   addDepartureNotification: (circleName: string) => void;
   simulateAINotification: (customBody?: string) => void;
   simulateNudgeNotification: (fromName?: string) => void;
+  markAsDismissed: (id: string) => void;
+  regenerateFromCircles: (circles: Circle[]) => void;
+  loadDismissedIds: () => Promise<void>;
 }
 
-const INITIAL_NOTIFICATIONS: PactNotification[] = [];
+const NOTIFICATION_STORAGE_KEY = '@pact_dismissed_notification_ids';
 
 export const useNotificationStore = create<NotificationState>((set, get) => ({
-  notifications: INITIAL_NOTIFICATIONS,
+  notifications: [],
+  dismissedIds: [],
   activeToast: null,
   isOpen: false,
 
@@ -41,36 +47,31 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   closeNotificationCenter: () => set({ isOpen: false }),
 
   addNotification: (item) => {
-    // Validate strict privacy rule
     const validation = validateNotificationPrivacy(item.title, item.body);
     if (!validation.valid) {
       console.warn('Notification rejected by privacy guard:', validation.reason);
       return false;
     }
-
+    const tempId = 'notif-' + Date.now();
+    if (get().dismissedIds.includes(tempId)) {
+      return false;
+    }
     const newNotif: PactNotification = {
       ...item,
-      id: 'notif-' + Date.now(),
+      id: tempId,
       timestamp: 'Just now',
       read: false,
       privacyTag: item.privacyTag || 'Privacy Verified'
     };
-
     set((state) => ({
       notifications: [newNotif, ...state.notifications],
       activeToast: newNotif
     }));
-
     return true;
   },
 
-  markAllAsRead: () =>
-    set((state) => ({
-      notifications: state.notifications.map((n) => ({ ...n, read: true }))
-    })),
-
+  markAllAsRead: () => set((state) => ({ notifications: state.notifications.map((n) => ({ ...n, read: true })) })),
   clearNotifications: () => set({ notifications: [] }),
-
   dismissToast: () => set({ activeToast: null }),
 
   addLifecycleNotification: (stage, deadlineDate = 'Oct 20') => {
@@ -81,28 +82,23 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
     if (stage === 'pre-voting') {
       title = 'Consensus Round Open';
-      body = `Consensus round is open. Lock in your sealed ballot before ${deadlineDate}.`;
+      body = 'Consensus round is open. Lock in your sealed ballot before ' + deadlineDate + '.';
       type = 'consensus';
       privacyTag = 'Sealed Voting Active';
     } else if (stage === 'post-consensus') {
       title = 'Supermajority Reached';
-      body = 'Supermajority reached! Time to finalize tickets and accommodations.';
+      body = 'Supermajority reached. Time to finalize tickets and accommodations.';
       type = 'consensus';
       privacyTag = 'Supermajority Locked';
     } else if (stage === 'departure') {
       title = 'Departure Milestone';
-      body = 'Trip starts today! Open your PACT Boarding Pass.';
+      body = 'Trip starts today. Open your PACT Boarding Pass.';
       type = 'circle';
       privacyTag = 'Boarding Pass Active';
     }
 
     if (title && body) {
-      get().addNotification({
-        type,
-        title,
-        body,
-        privacyTag
-      });
+      get().addNotification({ type, title, body, privacyTag });
     }
   },
 
@@ -126,27 +122,52 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
   simulateAINotification: (customBody?: string) => {
     const aiTips = [
-      'AI Compromise Whisperer: Found alternative flight package saving group 18% without shifting weekend dates.',
-      'AI Budget Advisor: Destination compromise for South Goa Villa meets all 5 members preferred categories.',
-      'AI Consensus Engine: Overlap confidence reached 94% across dates Oct 14 - 19.',
-      'AI Advisor: Single-room accommodation preference resolved with 2-villa cluster layout.'
+      'AI: Found alternative flight package saving 18%.',
+      'AI: Destination compromise meets all 5 members preferences.',
+      'AI: Overlap confidence reached 94% across dates.',
+      'AI: Single-room preference resolved with 2-villa cluster.'
     ];
     const body = customBody || aiTips[Math.floor(Math.random() * aiTips.length)];
-
-    get().addNotification({
-      type: 'ai',
-      title: 'AI Advisor Insight',
-      body,
-      privacyTag: 'Zero private constraints disclosed'
-    });
+    get().addNotification({ type: 'ai', title: 'AI Advisor', body, privacyTag: 'Zero constraints disclosed' });
   },
 
   simulateNudgeNotification: (fromName = 'Maya') => {
-    get().addNotification({
-      type: 'nudge',
-      title: 'Circle Response Alert',
-      body: `${fromName} just locked in their trip preferences! Group consensus score updated.`,
-      privacyTag: 'Protected vote tally'
+    get().addNotification({ type: 'nudge', title: 'Circle Alert', body: fromName + ' locked preferences. Consensus updated.', privacyTag: 'Protected vote' });
+  },
+
+  markAsDismissed: (id) => {
+    set((state) => {
+      const newDismissedIds = [...state.dismissedIds, id];
+      AsyncStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(newDismissedIds)).catch(() => {});
+      return { dismissedIds: newDismissedIds, notifications: state.notifications.filter((n) => n.id !== id) };
     });
+  },
+
+  regenerateFromCircles: (circles) => {
+    const { dismissedIds } = get();
+    const newNotifications: PactNotification[] = [];
+    circles.forEach((circle) => {
+      if (circle.archived) return;
+      const notifId = 'circle-' + circle.id;
+      if (dismissedIds.includes(notifId)) return;
+      if (circle.status === 'voting') {
+        newNotifications.push({ id: notifId, type: 'consensus', title: 'Consensus Round Open', body: 'Seal your ballot before deadline.', timestamp: 'Just now', read: false, privacyTag: 'Sealed Voting', actionUrl: '/circle/' + circle.id + '/preferences' });
+      } else if (circle.status === 'finalized') {
+        newNotifications.push({ id: notifId, type: 'consensus', title: 'PACT Sealed', body: 'Consensus reached. View boarding pass.', timestamp: 'Just now', read: false, privacyTag: '100% Locked', actionUrl: '/circle/' + circle.id + '/brief' });
+      }
+    });
+    set({ notifications: newNotifications });
+  },
+
+  loadDismissedIds: async () => {
+    try {
+      const stored = await AsyncStorage.getItem(NOTIFICATION_STORAGE_KEY);
+      if (stored) {
+        const ids = JSON.parse(stored);
+        set({ dismissedIds: ids });
+      }
+    } catch (e) {
+      console.warn('Failed to load dismissed IDs:', e);
+    }
   }
 }));

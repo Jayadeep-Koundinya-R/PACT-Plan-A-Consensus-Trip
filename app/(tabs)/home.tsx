@@ -4,6 +4,7 @@ import { useNotificationStore } from '../../src/store/useNotificationStore';
 import { NotificationCenterModal } from '../../src/components/NotificationCenterModal';
 import { NotificationToast } from '../../src/components/NotificationToast';
 import { FirstTimeTutorialModal } from '../../src/components/FirstTimeTutorialModal';
+import { useDemoMode } from '../../src/hooks/useDemoMode';
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -56,6 +57,7 @@ export default function MyCirclesScreen() {
   const { groups = [], fetchUserGroupsFromCloud, currentUserId, resetDemoState } = useGatherlyStore();
   const [showTutorial, setShowTutorial] = useState(false);
 
+  const { showDemoFeatures } = useDemoMode();
   useEffect(() => {
     if (!hasSeenTutorial) {
       setShowTutorial(true);
@@ -322,15 +324,38 @@ export default function MyCirclesScreen() {
             <View style={[styles.emptyTabCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
               <FolderArchive size={28} color={theme.textMuted} />
               <Text style={[styles.emptyTabTitle, { color: theme.textPrimary }]}>
-                {circleTab === 'archived' ? 'No Archived Circles' : 'No Active Circles'}
+                {circleTab === 'archived' ? 'No Archived Circles' : 'No Active Consensus Trips'}
               </Text>
               <Text style={[styles.emptyTabDesc, { color: theme.textSecondary }]}>
                 {circleTab === 'archived'
                   ? 'Trips you archive will be stored here for future reference.'
-                  : 'Start a new trip circle or join one with an invite code to begin consensus planning.'}
+                   : 'Start planning your next trip or join an existing circle with friends.'}
               </Text>
 
-              {circleTab === 'active' && (
+
+              {circleTab === 'active' && !showDemoFeatures && (
+                <View style={{ width: '100%', marginTop: 20, gap: 10 }}>
+                  <TouchableOpacity
+                    activeOpacity={0.88}
+                    onPress={() => { haptics.action(); router.push('/create-circle' as any); }}
+                    style={[styles.emptyPrimaryBtn, { backgroundColor: theme.primary }]}
+                    accessibilityLabel='Plan a New PACT'
+                  >
+                    <Plus size={15} color='#050608' strokeWidth={2.5} />
+                    <Text style={styles.emptyPrimaryBtnText}>+ Plan a New PACT</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => { haptics.tap(); router.push('/invite' as any); }}
+                    style={[styles.emptySecondaryBtn, { borderColor: theme.border }]}
+                    accessibilityLabel='Join with Code'
+                  >
+                    <KeyRound size={14} color={theme.textPrimary} />
+                    <Text style={[styles.emptySecondaryBtnText, { color: theme.textPrimary }]}>Join with Code</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+              {circleTab === 'active' && showDemoFeatures && (
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={() => {
