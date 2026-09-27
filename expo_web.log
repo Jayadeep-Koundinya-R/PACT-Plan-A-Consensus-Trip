@@ -1,15 +1,20 @@
+
+> pact@1.0.0 web
+> expo start --web -c
+
 Starting project at /app
 Starting Metro Bundler
+warning: Bundler cache is empty, rebuilding (this may take a minute)
 The following packages should be updated for best compatibility with the installed expo version:
   react-native@0.76.7 - expected version: 0.76.9
 Your project may not work correctly until you install the expected versions of the packages.
 Waiting on http://localhost:8081
 Logs for your project will appear below.
-Web Bundled 24848ms node_modules/expo-router/entry.js (2686 modules)
+Web Bundled 22702ms node_modules/expo-router/entry.js (2687 modules)
  LOG  [web] Logs will appear in the browser console
-Web Bundled 137ms node_modules/expo-router/entry.js (1 module)
+Web Bundled 96ms node_modules/expo-router/entry.js (1 module)
  LOG  [web] Logs will appear in the browser console
-Web Bundled 124ms node_modules/expo-router/entry.js (1 module)
+Web Bundled 254ms node_modules/expo-router/entry.js (1 module)
  LOG  [web] Logs will appear in the browser console
-Web Bundled 118ms node_modules/expo-router/entry.js (1 module)
+Web Bundled 110ms node_modules/expo-router/entry.js (1 module)
  LOG  [web] Logs will appear in the browser console

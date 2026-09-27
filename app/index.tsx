@@ -16,6 +16,7 @@ import Svg, { Circle, Path, Rect, Text as SvgText } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 import { useUserStore } from '../src/store/useUserStore';
 import { useGatherlyStore } from '../src/store/useGatherlyStore';
+import { useCircleStore } from '../src/store/useCircleStore';
 import { supabase } from '../src/lib/supabase/client';
 import { colors, radius } from '../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../src/theme/typography';
@@ -107,10 +108,29 @@ export default function PactLandingScreen() {
     setShowOnboarding(true);
   };
 
+  const [joinCodeInput, setJoinCodeInput] = useState('');
+
   const handleInstantDemo = () => {
     triggerHaptic();
     useUserStore.getState().setAuthenticated(true);
-    router.replace('/(tabs)/home');
+    useGatherlyStore.getState().resetDemoState();
+    useCircleStore.getState().loadDemoCircle();
+    router.replace('/circle/circle-college-reunion-2026/hub' as any);
+  };
+
+  const handleJoinWithCodeSubmit = async () => {
+    if (!joinCodeInput.trim()) {
+      Alert.alert('Enter Code', 'Please enter a 6-digit trip invite code.');
+      return;
+    }
+    triggerHaptic();
+    useUserStore.getState().setAuthenticated(true);
+    const result = await useGatherlyStore.getState().joinGroupByCode(joinCodeInput.trim());
+    if (result.success && result.group) {
+      router.replace(`/circle/${result.group.id}/hub` as any);
+    } else {
+      Alert.alert('Join Failed', result.message || 'Invalid trip code.');
+    }
   };
 
   const handleJudgeSandboxFastForward = () => {
