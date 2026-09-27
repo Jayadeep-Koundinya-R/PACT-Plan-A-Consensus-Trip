@@ -54,6 +54,8 @@ export interface Group {
   organizerName?: string;
   status: 'collecting' | 'voting' | 'finalized' | 'cancelled';
   totalMembersCount: number;
+  currencyCode?: CurrencyCode;
+  groupType?: string;
 }
 
 export interface VaultItem {
@@ -113,7 +115,7 @@ interface GatherlyState {
   currency: CurrencyCode;
   currencySymbol: string;
   setCurrency: (currency: CurrencyCode) => void;
-  formatCurrency: (amountInUSD: number) => string;
+  formatCurrency: (amountInUSD: number, currencyCodeOverride?: CurrencyCode) => string;
   subscriptionPlan: SubscriptionPlan;
   isCheckingEntitlement: boolean;
   purchaseError: string | null;
@@ -143,7 +145,7 @@ interface GatherlyState {
   setIsCheckingEntitlement: (v: boolean) => void;
   setPurchaseError: (msg: string | null) => void;
   setSubscriptionPlan: (plan: 'free' | 'premium_monthly' | 'premium_annual') => void;
-  createGroup: (name: string | { name?: string; organizerName?: string; organizerId?: string; totalMembersCount?: number }) => Promise<Group>;
+  createGroup: (name: string | { name?: string; organizerName?: string; organizerId?: string; totalMembersCount?: number; currencyCode?: CurrencyCode; groupType?: string }) => Promise<Group>;
   leaveGroup: (groupId: string) => Promise<void>;
   deleteGroup: (groupId: string) => Promise<void>;
   joinGroupByCode: (code: string) => Promise<{ success: boolean; message: string; group?: Group }>;
@@ -222,11 +224,12 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     const config = CURRENCIES[currency] || CURRENCIES.USD;
     set({ currency, currencySymbol: config.symbol });
   },
-  formatCurrency: (amountInUSD: number) => {
+  formatCurrency: (amountInUSD: number, currencyCodeOverride?: CurrencyCode) => {
     const state = get();
-    const config = CURRENCIES[state.currency] || CURRENCIES.USD;
+    const targetCode = currencyCodeOverride || state.currency;
+    const config = CURRENCIES[targetCode] || CURRENCIES.USD;
     const converted = Math.round(amountInUSD * config.rate);
-    if (state.currency === 'INR') {
+    if (targetCode === 'INR') {
       return `₹${converted.toLocaleString('en-IN')}`;
     }
     return `${config.symbol}${converted.toLocaleString()}`;
@@ -710,13 +713,19 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
       activeGroupId: state.groups.find((g) => g.id !== groupId)?.id || ''
     }));
   },
-  createGroup: async (name: string | { name?: string; organizerName?: string; organizerId?: string; totalMembersCount?: number }) => {
+  createGroup: async (name: string | { name?: string; organizerName?: string; organizerId?: string; totalMembersCount?: number; currencyCode?: CurrencyCode; groupType?: string }) => {
     const { currentUserId, groups, subscriptionPlan } = get();
     const rawName = typeof name === 'object' && name !== null ? name.name : name;
     const cleanName = (typeof rawName === 'string' ? rawName.trim() : '') || 'New Trip Circle';
     const totalCount = (typeof name === 'object' && name !== null && name.totalMembersCount)
       ? Number(name.totalMembersCount)
       : 5;
+    const currencyCode: CurrencyCode = (typeof name === 'object' && name !== null && name.currencyCode)
+      ? name.currencyCode
+      : get().currency;
+    const groupType = (typeof name === 'object' && name !== null && name.groupType)
+      ? name.groupType
+      : 'College Friends';
     const organizer = (typeof name === 'object' && name !== null && name.organizerId)
       ? name.organizerId
       : (currentUserId || 'user-maya-001');
@@ -742,7 +751,9 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
           inviteCode: cloudGroup.invite_code,
           organizerId: cloudGroup.organizer_id,
           status: (cloudGroup.status as Group['status']) || 'collecting',
-          totalMembersCount: totalCount
+          totalMembersCount: totalCount,
+          currencyCode,
+          groupType
         };
       } catch (e) {
         console.warn('Supabase createGroup failed, falling back to local:', e);
@@ -753,7 +764,9 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
           inviteCode: code,
           organizerId: organizer,
           status: 'collecting',
-          totalMembersCount: totalCount
+          totalMembersCount: totalCount,
+          currencyCode,
+          groupType
         };
       }
     } else {
@@ -764,8 +777,14 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
         inviteCode: code,
         organizerId: organizer,
         status: 'collecting',
-        totalMembersCount: totalCount
+        totalMembersCount: totalCount,
+        currencyCode,
+        groupType
       };
+    }
+
+    if (currencyCode) {
+      get().setCurrency(currencyCode);
     }
 
     set({
@@ -783,6 +802,8 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
         organizerName: newGroup.organizerName || get().userName || 'You',
         status: 'collecting',
         totalMembersCount: newGroup.totalMembersCount,
+        currencyCode: newGroup.currencyCode,
+        groupType: newGroup.groupType,
         members: [
           { userId: organizer, name: `${newGroup.organizerName || get().userName || 'You'} (Organizer)`, status: 'locked', nudgedAt: null }
         ],

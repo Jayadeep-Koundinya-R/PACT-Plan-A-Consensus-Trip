@@ -23,6 +23,7 @@ interface NotificationState {
   markAllAsRead: () => void;
   clearNotifications: () => void;
   dismissToast: () => void;
+  addLifecycleNotification: (stage: 'pre-voting' | 'post-consensus' | 'departure', deadlineDate?: string) => void;
   simulateAINotification: (customBody?: string) => void;
   simulateNudgeNotification: (fromName?: string) => void;
 }
@@ -30,39 +31,30 @@ interface NotificationState {
 const INITIAL_NOTIFICATIONS: PactNotification[] = [
   {
     id: 'notif-1',
-    type: 'ai',
-    title: 'AI Compromise Advisor',
-    body: 'Date compromise identified: Moving departure to Friday Oct 16 resolves 100% of member conflicts with zero budget penalties.',
+    type: 'consensus',
+    title: 'Consensus Round Open',
+    body: 'Consensus round is open. Lock in your sealed ballot before Oct 20.',
     timestamp: '2m ago',
     read: false,
-    privacyTag: 'Zero personal constraints disclosed'
+    privacyTag: 'Sealed Voting Active'
   },
   {
     id: 'notif-2',
     type: 'consensus',
-    title: 'Consensus Threshold Unlocked',
-    body: '3 of 5 members locked in! Consensus algorithms active for Goa Beach Escape.',
-    timestamp: '15m ago',
+    title: 'Supermajority Reached',
+    body: 'Supermajority reached! Time to finalize tickets and accommodations.',
+    timestamp: '1h ago',
     read: false,
-    privacyTag: 'Consensus score: 85%'
+    privacyTag: '100% Consensus Locked'
   },
   {
     id: 'notif-3',
-    type: 'ai',
-    title: 'AI Budget Advisor',
-    body: 'Group budget sweet-spot identified around target villa accommodation without disclosing individual caps.',
-    timestamp: '1h ago',
+    type: 'circle',
+    title: 'Departure Milestone',
+    body: 'Trip starts today! Open your PACT Boarding Pass.',
+    timestamp: '1d ago',
     read: true,
-    privacyTag: 'Sealed budget privacy active'
-  },
-  {
-    id: 'notif-4',
-    type: 'nudge',
-    title: 'Circle Progress Update',
-    body: 'Alex and Sam locked in their inputs. 1 more response needed to reveal leading destination.',
-    timestamp: '3h ago',
-    read: true,
-    privacyTag: 'Private circle nudge'
+    privacyTag: 'Boarding Pass Ready'
   }
 ];
 
@@ -106,6 +98,39 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   clearNotifications: () => set({ notifications: [] }),
 
   dismissToast: () => set({ activeToast: null }),
+
+  addLifecycleNotification: (stage, deadlineDate = 'Oct 20') => {
+    let title = '';
+    let body = '';
+    let type: PactNotification['type'] = 'consensus';
+    let privacyTag = 'Lifecycle Alert';
+
+    if (stage === 'pre-voting') {
+      title = 'Consensus Round Open';
+      body = `Consensus round is open. Lock in your sealed ballot before ${deadlineDate}.`;
+      type = 'consensus';
+      privacyTag = 'Sealed Voting Active';
+    } else if (stage === 'post-consensus') {
+      title = 'Supermajority Reached';
+      body = 'Supermajority reached! Time to finalize tickets and accommodations.';
+      type = 'consensus';
+      privacyTag = 'Supermajority Locked';
+    } else if (stage === 'departure') {
+      title = 'Departure Milestone';
+      body = 'Trip starts today! Open your PACT Boarding Pass.';
+      type = 'circle';
+      privacyTag = 'Boarding Pass Active';
+    }
+
+    if (title && body) {
+      get().addNotification({
+        type,
+        title,
+        body,
+        privacyTag
+      });
+    }
+  },
 
   simulateAINotification: (customBody?: string) => {
     const aiTips = [

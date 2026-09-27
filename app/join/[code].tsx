@@ -34,11 +34,19 @@ export default function JoinConfirmationScreen() {
   const router = useRouter();
   const haptics = usePactHaptics();
 
-  // Sanitize deep links: strip protocol, trailing slashes, and query params
+  // Sanitize deep links: strip protocol, trailing slashes, fragments, and query params
   const rawCode = Array.isArray(code) ? code[0] : code || '';
-  const sanitizedCode = rawCode
+  let decodedCode = rawCode;
+  try {
+    decodedCode = decodeURIComponent(rawCode);
+  } catch (_e) {
+    decodedCode = rawCode;
+  }
+  const sanitizedCode = decodedCode
     .replace(/^pact:\/\/(join\/|invite\/)?/i, '')
     .split('?')[0]
+    .split('#')[0]
+    .replace(/[^a-zA-Z0-9\-_]/g, '')
     .replace(/\/+$/, '')
     .trim();
   const inviteCode = sanitizedCode.toUpperCase();

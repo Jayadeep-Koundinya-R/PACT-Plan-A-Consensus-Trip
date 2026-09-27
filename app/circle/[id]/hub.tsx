@@ -48,7 +48,11 @@ import {
   RefreshCw,
   SlidersHorizontal,
   ChevronRight,
-  Mic
+  Mic,
+  Pin,
+  MapPin,
+  Calendar,
+  DollarSign
 } from 'lucide-react-native';
 import { VoiceCapsuleRecorder } from '../../../src/components/audio/VoiceCapsuleRecorder';
 import { VoiceCapsuleList, VoiceCapsuleItem } from '../../../src/components/audio/VoiceCapsuleList';
@@ -62,7 +66,7 @@ export default function PactCirclesHub() {
 
   const router = useRouter();
   const haptics = usePactHaptics();
-  const { groups = [], activeGroupId, activeDemoScenario = 'early_bird', fetchGroupDataFromCloud, setDemoScenario } = useGatherlyStore();
+  const { groups = [], activeGroupId, activeDemoScenario = 'early_bird', fetchGroupDataFromCloud, setDemoScenario, tripOptions = [], formatCurrency } = useGatherlyStore();
 
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -518,6 +522,59 @@ export default function PactCirclesHub() {
             organizerName={currentGroup.organizerName || 'Maya'}
             totalMembersCount={totalCount}
           />
+
+          {/* Pinned Trip Specs Card */}
+          {(() => {
+            const leadingOption: any = tripOptions[0] || {
+              destinationName: 'Goa, India',
+              destination: 'Goa, India',
+              dates: 'Oct 14 – Oct 19, 2026',
+              dateStart: 'Oct 14',
+              dateEnd: 'Oct 19',
+              budgetPerPerson: 850
+            };
+            const dest = leadingOption.destinationName || leadingOption.destination || leadingOption.destinationType || leadingOption.name || 'Goa, India';
+            const dates = leadingOption.dates || (leadingOption.dateStart && leadingOption.dateEnd ? `${leadingOption.dateStart} – ${leadingOption.dateEnd}` : 'Oct 14 – Oct 19, 2026');
+            const maxBudget = leadingOption.budgetPerPerson || leadingOption.pricePerPerson || 850;
+
+            return (
+              <View style={styles.pinnedSpecsCard}>
+                <View style={styles.pinnedHeaderRow}>
+                  <View style={styles.pinnedBadge}>
+                    <Pin size={12} color="#3DE0A0" />
+                    <Text style={styles.pinnedBadgeText}>PINNED TRIP SPECS</Text>
+                  </View>
+                  <Text style={styles.pinnedSubtitle}>Consensus Anchor</Text>
+                </View>
+
+                <View style={styles.pinnedSpecsGrid}>
+                  <View style={styles.specItem}>
+                    <MapPin size={14} color="#FF5A5F" />
+                    <View style={styles.specTextCol}>
+                      <Text style={styles.specLabel}>Destination</Text>
+                      <Text style={styles.specValue} numberOfLines={1}>{dest}</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.specItem}>
+                    <Calendar size={14} color="#3DE0A0" />
+                    <View style={styles.specTextCol}>
+                      <Text style={styles.specLabel}>Target Dates</Text>
+                      <Text style={styles.specValue} numberOfLines={1}>{dates}</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.specItem}>
+                    <DollarSign size={14} color="#D4AF37" />
+                    <View style={styles.specTextCol}>
+                      <Text style={styles.specLabel}>Budget Ceiling</Text>
+                      <Text style={styles.specValue}>{formatCurrency ? formatCurrency(maxBudget) : `$${maxBudget}`} / person</Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            );
+          })()}
 
           {loadError && (
             <View style={styles.errorBanner}>
@@ -1049,6 +1106,70 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     marginTop: 10
+  },
+  pinnedSpecsCard: {
+    backgroundColor: '#13151E',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.3)',
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 16
+  },
+  pinnedHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10
+  },
+  pinnedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(61, 224, 160, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.28)',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 3
+  },
+  pinnedBadgeText: {
+    fontFamily: fontUIBold,
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#3DE0A0',
+    letterSpacing: 0.5
+  },
+  pinnedSubtitle: {
+    fontFamily: fontUI,
+    fontSize: 10.5,
+    color: '#8B8D98'
+  },
+  pinnedSpecsGrid: {
+    gap: 10
+  },
+  specItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8
+  },
+  specTextCol: {
+    flex: 1
+  },
+  specLabel: {
+    fontFamily: fontUI,
+    fontSize: 10,
+    color: '#8B8D98'
+  },
+  specValue: {
+    fontFamily: fontUIBold,
+    fontSize: 12.5,
+    color: '#F4F3F0'
   },
   proCircleBanner: {
     flexDirection: 'row',
