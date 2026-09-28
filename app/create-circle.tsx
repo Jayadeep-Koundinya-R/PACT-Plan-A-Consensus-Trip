@@ -108,10 +108,34 @@ export default function PactCreateJoinScreen() {
         setError('');
         router.push(`/circle/${res.group.id}/hub` as any);
       } else {
-        router.push(`/circle/circle-college-reunion-2026/hub` as any);
+        if (res.message === 'GROUP_FULL') {
+          Alert.alert(
+            'Circle Limit Reached',
+            'This circle has reached its free limit (8 members). The organizer can upgrade to Pro for up to 24 seats.',
+            [
+              { text: 'Learn About Pro', onPress: () => router.push('/paywall') },
+              { text: 'OK', style: 'cancel' }
+            ]
+          );
+          setError('This circle has reached its free limit (8 members).');
+        } else {
+          setError('Circle not found. Check the 6-character code.');
+        }
       }
-    } catch (e) {
-      router.push(`/circle/circle-college-reunion-2026/hub` as any);
+    } catch (e: any) {
+      if (e?.message === 'GROUP_FULL') {
+        Alert.alert(
+          'Circle Limit Reached',
+          'This circle has reached its free limit (8 members). The organizer can upgrade to Pro for up to 24 seats.',
+          [
+            { text: 'Learn About Pro', onPress: () => router.push('/paywall') },
+            { text: 'OK', style: 'cancel' }
+          ]
+        );
+        setError('This circle has reached its free limit (8 members).');
+      } else {
+        setError('Circle not found. Check the 6-character code.');
+      }
     }
   };
 
@@ -595,13 +619,35 @@ export default function PactCreateJoinScreen() {
               {tripName || 'Your trip circle'} has been set up with {candidates.length} candidate options in {CURRENCIES[currencyCode].symbol} {currencyCode}.
             </Text>
 
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={handleFinishAndNavigate}
-              style={styles.celebrationBtn}
-            >
-              <Text style={styles.celebrationBtnText}>Enter Circle Hub →</Text>
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'column', gap: 10, width: '100%' }}>
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => {
+                  setShowCelebrationModal(false);
+                  const targetId = createdGroupId || 'circle-college-reunion-2026';
+                  router.push(`/circle/${targetId}/preferences` as any);
+                }}
+                style={[styles.celebrationBtn, { backgroundColor: '#FF5A5F' }]}
+              >
+                <Text style={[styles.celebrationBtnText, { color: '#050608' }]}>
+                  Lock My Preferences Now
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => {
+                  setShowCelebrationModal(false);
+                  const targetId = createdGroupId || 'circle-college-reunion-2026';
+                  router.push(`/circle/${targetId}/hub` as any);
+                }}
+                style={[styles.celebrationBtn, { backgroundColor: '#13151E', borderWidth: 1, borderColor: '#262938' }]}
+              >
+                <Text style={[styles.celebrationBtnText, { color: '#F4F3F0' }]}>
+                  Explore Circle Hub
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
