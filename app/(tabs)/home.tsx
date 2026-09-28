@@ -1019,10 +1019,10 @@ const styles = StyleSheet.create({
     color: '#FF5A5F'
   },
   circleCard: {
-    backgroundColor: '#13151E',
+    backgroundColor: '#161B22',
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: '#262938',
+    borderColor: '#30363D',
     overflow: 'hidden',
     marginBottom: 16,
     shadowColor: '#000',
@@ -1063,7 +1063,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8
   },
   cardContentPadding: {
-    padding: 16
+    padding: 20
   },
   cardHeaderRow: {
     flexDirection: 'row',
@@ -1076,9 +1076,11 @@ const styles = StyleSheet.create({
     marginRight: 10
   },
   circleName: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontFamily: fontUIBold,
+    fontSize: 17,
+    fontWeight: '800',
     color: '#F4F3F0',
+    letterSpacing: -0.5,
     marginBottom: 6
   },
   metaBadgeRow: {

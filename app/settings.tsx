@@ -909,7 +909,7 @@ const styles = StyleSheet.create({
   },
   outerContainer: {
     flex: 1,
-    backgroundColor: '#050608',
+    backgroundColor: '#0D1117',
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -917,9 +917,9 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 420,
     flex: 1,
-    backgroundColor: '#090A0F',
+    backgroundColor: '#0D1117',
     borderWidth: Platform.OS === 'web' ? 1 : 0,
-    borderColor: 'rgba(255, 255, 255, 0.11)',
+    borderColor: '#30363D',
     borderRadius: Platform.OS === 'web' ? 40 : 0,
     overflow: 'hidden',
     position: 'relative'
@@ -962,11 +962,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   profileCard: {
-    backgroundColor: '#13151E',
+    backgroundColor: '#161B22',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.14)',
+    borderColor: '#30363D',
     borderRadius: 18,
-    padding: 18,
+    padding: 20,
     marginBottom: 20,
     flexDirection: 'row',
     alignItems: 'center',
@@ -1148,9 +1148,9 @@ const styles = StyleSheet.create({
     color: '#8B8D98'
   },
   settingsGroupCard: {
-    backgroundColor: '#13151E',
+    backgroundColor: '#161B22',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.14)',
+    borderColor: '#30363D',
     borderRadius: 16,
     paddingHorizontal: 16,
     marginBottom: 22
@@ -1163,7 +1163,7 @@ const styles = StyleSheet.create({
   },
   settingRowBorder: {
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.11)'
+    borderTopColor: '#30363D'
   },
   settingTextCol: {
     flex: 1,

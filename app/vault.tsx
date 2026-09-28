@@ -271,7 +271,7 @@ export default function PastTripsVaultScreen() {
 const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
-    backgroundColor: '#050608',
+    backgroundColor: '#0D1117',
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 420,
     height: '100%',
-    backgroundColor: '#050608'
+    backgroundColor: '#0D1117'
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -409,34 +409,40 @@ const styles = StyleSheet.create({
     gap: 12
   },
   yearBadge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: 'rgba(61, 224, 160, 0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.16)',
+    borderColor: 'rgba(61, 224, 160, 0.35)',
     borderRadius: 8,
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     paddingVertical: 4
   },
   yearBadgeText: {
     fontFamily: fontUIBold,
-    fontSize: 12,
+    fontSize: 12.5,
     fontWeight: '800',
-    color: '#F4F3F0'
+    color: '#3DE0A0',
+    letterSpacing: -0.3
   },
   yearLine: {
     flex: 1,
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)'
+    backgroundColor: '#30363D'
   },
   yearTripsCol: {
     gap: 16
   },
   pastTripCard: {
-    backgroundColor: '#13151E',
+    backgroundColor: '#161B22',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.14)',
+    borderColor: '#30363D',
     borderRadius: 18,
-    padding: 18,
-    position: 'relative'
+    padding: 20,
+    position: 'relative',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 4
   },
   cardHeaderRow: {
     flexDirection: 'row',

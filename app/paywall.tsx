@@ -158,8 +158,8 @@ export default function PactPaywall() {
   const organizerPass = GROUP_TIERS.organizer_pass;
 
   return (
-    <SafeAreaView style={[styles.outerContainer, { backgroundColor: '#050608' }]}>
-      <View style={[styles.phoneFrame, { backgroundColor: theme.background }]}>
+    <SafeAreaView style={[styles.outerContainer, { backgroundColor: '#0D1117' }]}>
+      <View style={[styles.phoneFrame, { backgroundColor: '#0D1117' }]}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           {/* Header Bar */}
           <View style={styles.headerBar}>
@@ -190,7 +190,7 @@ export default function PactPaywall() {
           {/* Comparison Cards: Free vs Organizer Pass */}
           <View style={styles.cardsContainer}>
             {/* Free Tier Card */}
-            <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <View style={[styles.card, { backgroundColor: '#161B22', borderColor: '#30363D' }]}>
               <View style={styles.cardHeader}>
                 <View>
                   <Text style={[styles.cardTitle, { color: theme.textPrimary }]}>Free Circle</Text>
@@ -209,10 +209,10 @@ export default function PactPaywall() {
             </View>
 
             {/* Flat Organizer Pass Card */}
-            <View style={[styles.card, styles.highlightCard, { backgroundColor: theme.surface, borderColor: '#FF5A5F' }]}>
+            <View style={[styles.card, styles.highlightCard, { backgroundColor: '#161B22', borderColor: '#D4AF37' }]}>
               <View style={styles.badgeRow}>
-                <View style={styles.popularBadge}>
-                  <Text style={styles.popularBadgeText}>SINGLE FLAT PASS</Text>
+                <View style={[styles.popularBadge, { backgroundColor: 'rgba(212, 175, 55, 0.15)', borderColor: '#D4AF37' }]}>
+                  <Text style={[styles.popularBadgeText, { color: '#D4AF37' }]}>PRO ORGANIZER PASS</Text>
                 </View>
               </View>
               <View style={styles.cardHeader}>
