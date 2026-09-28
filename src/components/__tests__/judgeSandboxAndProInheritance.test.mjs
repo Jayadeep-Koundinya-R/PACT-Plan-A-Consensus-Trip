@@ -36,15 +36,14 @@ describe('Phase 1 & 2: Judge Sandbox Bar, Persona Switcher & Pro Circle Inherita
     assert.ok(proCardContent.includes('Upgrade Pass'), 'Must provide upgrade button when not Pro');
   });
 
-  test('Circle Hub mounts JudgeSandboxBar and ProCircleInheritanceCard', () => {
-    assert.ok(hubContent.includes('<JudgeSandboxBar'), 'Hub must mount JudgeSandboxBar');
+  test('Circle Hub mounts ProCircleInheritanceCard', () => {
     assert.ok(hubContent.includes('<ProCircleInheritanceCard'), 'Hub must mount ProCircleInheritanceCard');
     assert.ok(hubContent.includes('Pro Guest'), 'Hub member list must display Pro Guest badge');
   });
 
-  test('Silent Ballot and Ranked Matrix mount JudgeSandboxBar for multi-persona evaluation', () => {
-    assert.ok(ballotContent.includes('<JudgeSandboxBar'), 'Silent Ballot must mount JudgeSandboxBar');
-    assert.ok(matrixContent.includes('<JudgeSandboxBar'), 'Ranked Matrix must mount JudgeSandboxBar');
+  test('Silent Ballot and Ranked Matrix render clean decision screens without JudgeSandboxBar', () => {
+    assert.ok(!ballotContent.includes('<JudgeSandboxBar'), 'Silent Ballot must not mount JudgeSandboxBar');
+    assert.ok(!matrixContent.includes('<JudgeSandboxBar'), 'Ranked Matrix must not mount JudgeSandboxBar');
   });
 
   test('Paywall includes 1-tap Judge Sandbox Pro Unlock button', () => {

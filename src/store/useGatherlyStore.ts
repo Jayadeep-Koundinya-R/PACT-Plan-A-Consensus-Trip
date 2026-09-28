@@ -247,30 +247,7 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   isCheckingEntitlement: false,
   purchaseError: null,
 
-  pastTrips: DEFAULT_PAST_TRIPS || [
-    {
-      id: 'past-1',
-      name: 'Kyoto Machiya Getaway 2025',
-      destinationName: 'Kyoto, Japan',
-      dates: 'Nov 10 – Nov 15, 2025',
-      memberCount: 4,
-      finalizedAt: '2025-11-01T10:00:00.000Z',
-      winningOptionName: 'Kyoto Central Machiya',
-      inviteCode: 'KYOTO-2025',
-      anniversaryReminder: true
-    },
-    {
-      id: 'past-2',
-      name: 'Swiss Alps Ski Weekend 2025',
-      destinationName: 'Zermatt, Switzerland',
-      dates: 'Jan 15 – Jan 20, 2025',
-      memberCount: 5,
-      finalizedAt: '2025-01-05T10:00:00.000Z',
-      winningOptionName: 'Alpine Chalet Lodge',
-      inviteCode: 'ALPS-2025',
-      anniversaryReminder: false
-    }
-  ],
+  pastTrips: [],
 
   toggleAnniversaryReminder: (tripId: string) => {
     set((state) => {
@@ -516,16 +493,10 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
       if (savedTrips) {
         try {
           const parsed = JSON.parse(savedTrips);
-          if (Array.isArray(parsed) && parsed.length > 0) {
+          if (Array.isArray(parsed)) {
             updates.pastTrips = parsed;
-          } else {
-            updates.pastTrips = DEFAULT_PAST_TRIPS;
           }
-        } catch (e) {
-          updates.pastTrips = DEFAULT_PAST_TRIPS;
-        }
-      } else {
-        updates.pastTrips = DEFAULT_PAST_TRIPS;
+        } catch (e) {}
       }
 
       set(updates);
@@ -859,7 +830,8 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     const clean = code.trim().toUpperCase();
     const { currentUserId, groups } = get();
 
-    if (currentUserId && !currentUserId.startsWith('user-')) {
+    // 1. Try Supabase cloud join if authenticated with real account
+    if (currentUserId && !currentUserId.startsWith('user-') && !currentUserId.startsWith('guest-')) {
       try {
         const joined = await joinGroupWithCode(clean, currentUserId);
         const mapped: Group = {
@@ -868,32 +840,58 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
           inviteCode: joined.invite_code,
           organizerId: joined.organizer_id,
           status: (joined.status as Group['status']) || 'collecting',
-          totalMembersCount: 2
+          totalMembersCount: joined.total_members_count || 2
         };
         set({
           groups: [mapped, ...groups.filter((g) => g.id !== mapped.id)],
           activeGroupId: mapped.id
         });
+        useCircleStore.getState().addCircle({
+          id: mapped.id,
+          name: mapped.name,
+          inviteCode: mapped.inviteCode,
+          organizerId: mapped.organizerId,
+          status: mapped.status,
+          totalMembersCount: mapped.totalMembersCount,
+          members: [
+            { userId: currentUserId, name: get().userName || 'You', status: 'waiting', nudgedAt: null }
+          ],
+          createdAt: new Date().toISOString()
+        });
         get().fetchGroupDataFromCloud(mapped.id);
         return { success: true, message: `Joined ${mapped.name}!`, group: mapped };
       } catch (e: any) {
-        const msg = e?.message || '';
-        const friendlyMessages: Record<string, string> = {
-          'INVALID_CODE': 'Invalid invite code. Please check and try again.',
-          'ALREADY_MEMBER': "You're already a member of this group!",
-          'GROUP_FULL': 'This circle is full (24/24 members).',
-          'GROUP_CANCELLED': 'This trip has been cancelled.',
-          'GROUP_FINALIZED': 'This trip has already been finalized.'
-        };
-        return { success: false, message: friendlyMessages[msg] || msg || 'Failed to join group.' };
+        // Fall through to local circle store check if offline or mock account
       }
     }
 
-    const found = groups.find((g) => g.inviteCode.toUpperCase() === clean);
-    if (found) {
-      set({ activeGroupId: found.id });
-      return { success: true, message: `Joined ${found.name}!`, group: found };
+    // 2. Check local GatherlyStore groups
+    const foundGatherly = groups.find((g) => g.inviteCode && g.inviteCode.toUpperCase() === clean);
+    if (foundGatherly) {
+      set({ activeGroupId: foundGatherly.id });
+      return { success: true, message: `Joined ${foundGatherly.name}!`, group: foundGatherly };
     }
+
+    // 3. Check local CircleStore circles
+    const foundCircle = useCircleStore.getState().getCircleByInviteCode(clean);
+    if (foundCircle) {
+      const mappedGroup: Group = {
+        id: foundCircle.id,
+        name: foundCircle.name,
+        inviteCode: foundCircle.inviteCode,
+        organizerId: foundCircle.organizerId,
+        organizerName: foundCircle.organizerName,
+        status: foundCircle.status,
+        totalMembersCount: foundCircle.totalMembersCount
+      };
+      set({
+        groups: [mappedGroup, ...groups.filter((g) => g.id !== mappedGroup.id)],
+        activeGroupId: mappedGroup.id
+      });
+      useCircleStore.getState().setActiveCircle(mappedGroup.id);
+      return { success: true, message: `Joined ${mappedGroup.name}!`, group: mappedGroup };
+    }
+
     return { success: false, message: 'Invalid invite code. Please check and try again.' };
   },
 

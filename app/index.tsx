@@ -457,19 +457,6 @@ export default function PactLandingScreen() {
           entering={FadeInDown.duration(500).delay(300).springify()}
           style={styles.bottomCtaBar}
         >
-          {/* Dedicated Judge Sandbox Button */}
-          <TouchableOpacity
-            activeOpacity={0.88}
-            onPress={handleJudgeSandboxFastForward}
-            style={styles.judgeSandboxBtn}
-            accessibilityRole="button"
-            accessibilityLabel="Judge Sandbox: Fast-Forward Consensus"
-          >
-            <Zap size={16} color="#052E20" fill="#052E20" />
-            <Text style={styles.judgeSandboxBtnText}>
-              ⚡ Judge Sandbox: Fast-Forward Consensus
-            </Text>
-          </TouchableOpacity>
 
           {/* Primary High-Converting CTA */}
           <TouchableOpacity
@@ -501,27 +488,6 @@ export default function PactLandingScreen() {
 }
 
 const styles = StyleSheet.create({
-  judgeSandboxBtn: {
-    width: '100%',
-    minHeight: 46,
-    borderRadius: 12,
-    backgroundColor: '#3DE0A0',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    shadowColor: '#3DE0A0',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 4
-  },
-  judgeSandboxBtnText: {
-    fontFamily: fontUIBold,
-    fontSize: 13.5,
-    fontWeight: '800',
-    color: '#052E20'
-  },
   outerContainer: {
     flex: 1,
     backgroundColor: '#050608',
