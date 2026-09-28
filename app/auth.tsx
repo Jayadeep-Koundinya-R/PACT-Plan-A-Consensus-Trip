@@ -847,11 +847,13 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    borderRadius: radius.md,
+    paddingHorizontal: 14,
+    borderRadius: 12,
     borderWidth: 1,
-    height: 46,
-    gap: 8
+    borderColor: '#262938',
+    backgroundColor: '#090A0F',
+    height: 48,
+    gap: 10
   },
   inputField: {
     flex: 1,

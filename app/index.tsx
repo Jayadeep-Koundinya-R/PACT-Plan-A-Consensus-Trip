@@ -17,6 +17,7 @@ import * as Haptics from 'expo-haptics';
 import { useUserStore } from '../src/store/useUserStore';
 import { useGatherlyStore } from '../src/store/useGatherlyStore';
 import { useCircleStore } from '../src/store/useCircleStore';
+import { useDemoMode } from '../src/hooks/useDemoMode';
 import { supabase } from '../src/lib/supabase/client';
 import { colors, radius } from '../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../src/theme/typography';
@@ -26,6 +27,7 @@ import { OnboardingCarousel } from '../src/components/OnboardingCarousel';
 
 export default function PactLandingScreen() {
   const router = useRouter();
+  const { setDemoMode } = useDemoMode();
 
   // Animation values for the 2.6s consensus loop
   const animProgress = useRef(new Animated.Value(0)).current;
@@ -135,12 +137,15 @@ export default function PactLandingScreen() {
 
   const handleJudgeSandboxFastForward = () => {
     triggerHaptic();
+    setDemoMode(true);
     useUserStore.getState().setAuthenticated(true);
+    useGatherlyStore.getState().resetDemoState();
     useGatherlyStore.getState().setDemoScenario('consensus');
+    useCircleStore.getState().loadDemoCircle();
     if (Platform.OS !== 'web') {
       Alert.alert(
         '⚡ Judge Sandbox Activated',
-        'Primed 5 mock travelers with 100% agreement on Goa Beach Escape (96% top match). Redirecting to circle hub...'
+        'Primed 5 mock travelers with 100% agreement on Goa Beach Escape. Redirecting to circle hub...'
       );
     }
     router.replace('/circle/circle-college-reunion-2026/hub' as any);
@@ -379,17 +384,28 @@ export default function PactLandingScreen() {
               </Animated.View>
             </View>
 
+            {/* Prominent Evaluator Hook Pill */}
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={handleJudgeSandboxFastForward}
+              style={styles.sandboxPill}
+              accessibilityLabel="Try 5-Min Judge Sandbox"
+            >
+              <Zap size={14} color="#3DE0A0" fill="#3DE0A0" />
+              <Text style={styles.sandboxPillText}>⚡ Try 5-Min Judge Sandbox</Text>
+            </TouchableOpacity>
+
             <Reanimated.Text
               entering={FadeInDown.duration(500).springify()}
               style={styles.heroHeading}
             >
-              5 friends. 47 messages. Zero plan.
+              End group travel paralysis. Instantly.
             </Reanimated.Text>
             <Reanimated.Text
               entering={FadeInDown.duration(500).delay(150).springify()}
               style={styles.heroSubheading}
             >
-              Set budget and dates privately. Sealed votes. Zero peer pressure.
+              PACT uses zero-knowledge sealed ballots and AI compromise to help your circle reach consensus without the group chat chaos.
             </Reanimated.Text>
           </View>
 
@@ -458,24 +474,28 @@ export default function PactLandingScreen() {
           style={styles.bottomCtaBar}
         >
 
-          {/* Primary High-Converting CTA */}
+          {/* Primary Action Stack */}
           <TouchableOpacity
             activeOpacity={0.88}
-            onPress={handleGetStarted}
+            onPress={() => {
+              triggerHaptic();
+              router.push('/auth' as any);
+            }}
             style={styles.primaryCtaBtn}
           >
-            <Text style={styles.primaryCtaBtnText}>Get Started / Log In</Text>
+            <Text style={styles.primaryCtaBtnText}>Create Account</Text>
             <ArrowRight size={18} color="#050608" strokeWidth={2.5} />
           </TouchableOpacity>
 
-          {/* Secondary Demo Mode CTA */}
           <TouchableOpacity
             activeOpacity={0.8}
-            onPress={handleInstantDemo}
-            style={styles.demoCtaBtn}
+            onPress={() => {
+              triggerHaptic();
+              router.push('/invite' as any);
+            }}
+            style={styles.secondaryCtaBtn}
           >
-            <Sparkles size={15} color="#F4F3F0" />
-            <Text style={styles.demoCtaBtnText}>Explore Demo Mode (5 Members)</Text>
+            <Text style={styles.secondaryCtaBtnText}>Join a Circle with Code</Text>
           </TouchableOpacity>
 
           <Text style={styles.termsFooterText}>
@@ -578,14 +598,33 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center'
   },
+  sandboxPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 20,
+    backgroundColor: 'rgba(61, 224, 160, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.35)',
+    marginBottom: 14
+  },
+  sandboxPillText: {
+    fontFamily: fontUIBold,
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#3DE0A0',
+    letterSpacing: -0.3
+  },
   heroHeading: {
     fontFamily: fontDisplay,
-    fontWeight: '700',
+    fontWeight: '800',
     fontSize: 26,
     lineHeight: 32,
     color: '#F4F3F0',
     textAlign: 'center',
-    letterSpacing: -0.3,
+    letterSpacing: -0.5,
     marginBottom: 8
   },
   heroSubheading: {
@@ -668,7 +707,7 @@ const styles = StyleSheet.create({
     color: '#050608',
     letterSpacing: -0.2
   },
-  demoCtaBtn: {
+  secondaryCtaBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -679,10 +718,11 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 14
   },
-  demoCtaBtnText: {
+  secondaryCtaBtnText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#F4F3F0'
+    color: '#F4F3F0',
+    letterSpacing: -0.3
   },
   termsFooterText: {
     fontSize: 10,
