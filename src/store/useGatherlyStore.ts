@@ -861,7 +861,12 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
         get().fetchGroupDataFromCloud(mapped.id);
         return { success: true, message: `Joined ${mapped.name}!`, group: mapped };
       } catch (e: any) {
-        // Fall through to local circle store check if offline or mock account
+        if (e?.message === 'GROUP_FULL') {
+          return { success: false, message: 'GROUP_FULL' };
+        }
+        if (e?.message === 'INVALID_CODE') {
+          return { success: false, message: 'Circle not found. Check the 6-character code.' };
+        }
       }
     }
 
@@ -892,7 +897,7 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
       return { success: true, message: `Joined ${mappedGroup.name}!`, group: mappedGroup };
     }
 
-    return { success: false, message: 'Invalid invite code. Please check and try again.' };
+    return { success: false, message: 'Circle not found. Check the 6-character code.' };
   },
 
   savePreferenceDraft: (groupId: string, draft: Partial<MemberPreference>) => {
