@@ -32,7 +32,6 @@ import { fontDisplay, fontUI, fontUIBold } from '../../../src/theme/typography';
 import { ArrowLeft, Check, X, Shield, Lock } from 'lucide-react-native';
 import { WaxSealStamp } from '../../../src/components/WaxSealStamp';
 import { resolveTripOptionsForCircle } from '../../../src/lib/consensus/dynamicOptions';
-import { JudgeSandboxBar } from '../../../src/components/JudgeSandboxBar';
 import { isDemoPersona } from '../../../src/lib/user/identity';
 
 interface StampBallotCardProps {
@@ -424,16 +423,6 @@ export default function PactSilentBallot() {
   return (
     <SafeAreaView style={styles.outerContainer}>
       <View style={styles.phoneFrame}>
-        {(isDemoCircle || isDemoPersona(currentUserId)) && (
-          <JudgeSandboxBar
-            circleId={currentGroup.id}
-            onFastForward={() => useGatherlyStore.getState().setDemoScenario('consensus')}
-            onReset={() => {
-              useCircleStore.getState().loadDemoCircle();
-              useGatherlyStore.getState().resetDemoState();
-            }}
-          />
-        )}
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}

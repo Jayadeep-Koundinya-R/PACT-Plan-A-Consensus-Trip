@@ -16,6 +16,7 @@ import Svg, { Circle, Path, Rect, Text as SvgText } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 import { useUserStore } from '../src/store/useUserStore';
 import { useGatherlyStore } from '../src/store/useGatherlyStore';
+import { useCircleStore } from '../src/store/useCircleStore';
 import { supabase } from '../src/lib/supabase/client';
 import { colors, radius } from '../src/theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../src/theme/typography';
@@ -107,10 +108,29 @@ export default function PactLandingScreen() {
     setShowOnboarding(true);
   };
 
+  const [joinCodeInput, setJoinCodeInput] = useState('');
+
   const handleInstantDemo = () => {
     triggerHaptic();
     useUserStore.getState().setAuthenticated(true);
-    router.replace('/(tabs)/home');
+    useGatherlyStore.getState().resetDemoState();
+    useCircleStore.getState().loadDemoCircle();
+    router.replace('/circle/circle-college-reunion-2026/hub' as any);
+  };
+
+  const handleJoinWithCodeSubmit = async () => {
+    if (!joinCodeInput.trim()) {
+      Alert.alert('Enter Code', 'Please enter a 6-digit trip invite code.');
+      return;
+    }
+    triggerHaptic();
+    useUserStore.getState().setAuthenticated(true);
+    const result = await useGatherlyStore.getState().joinGroupByCode(joinCodeInput.trim());
+    if (result.success && result.group) {
+      router.replace(`/circle/${result.group.id}/hub` as any);
+    } else {
+      Alert.alert('Join Failed', result.message || 'Invalid trip code.');
+    }
   };
 
   const handleJudgeSandboxFastForward = () => {
@@ -437,19 +457,6 @@ export default function PactLandingScreen() {
           entering={FadeInDown.duration(500).delay(300).springify()}
           style={styles.bottomCtaBar}
         >
-          {/* Dedicated Judge Sandbox Button */}
-          <TouchableOpacity
-            activeOpacity={0.88}
-            onPress={handleJudgeSandboxFastForward}
-            style={styles.judgeSandboxBtn}
-            accessibilityRole="button"
-            accessibilityLabel="Judge Sandbox: Fast-Forward Consensus"
-          >
-            <Zap size={16} color="#052E20" fill="#052E20" />
-            <Text style={styles.judgeSandboxBtnText}>
-              ⚡ Judge Sandbox: Fast-Forward Consensus
-            </Text>
-          </TouchableOpacity>
 
           {/* Primary High-Converting CTA */}
           <TouchableOpacity
@@ -481,27 +488,6 @@ export default function PactLandingScreen() {
 }
 
 const styles = StyleSheet.create({
-  judgeSandboxBtn: {
-    width: '100%',
-    minHeight: 46,
-    borderRadius: 12,
-    backgroundColor: '#3DE0A0',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    shadowColor: '#3DE0A0',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 4
-  },
-  judgeSandboxBtnText: {
-    fontFamily: fontUIBold,
-    fontSize: 13.5,
-    fontWeight: '800',
-    color: '#052E20'
-  },
   outerContainer: {
     flex: 1,
     backgroundColor: '#050608',

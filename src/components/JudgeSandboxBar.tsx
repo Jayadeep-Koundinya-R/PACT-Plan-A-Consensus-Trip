@@ -8,7 +8,8 @@ import {
   Platform,
   Alert
 } from 'react-native';
-import { Crown, Zap, RotateCcw, FileText, ChevronDown, Check, X } from 'lucide-react-native';
+import { Crown, Zap, RotateCcw, FileText, ChevronDown, Check, X, Clock, ArrowRight } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { colors, radius, shadows } from '../theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../theme/typography';
@@ -87,6 +88,7 @@ export const JudgeSandboxBar: React.FC<JudgeSandboxBarProps> = ({
   onFastForward,
   onReset
 }) => {
+  const router = useRouter();
   const currentUserId = useGatherlyStore((s) => s.currentUserId) || 'user-maya-001';
   const setDemoScenario = useGatherlyStore((s) => s.setDemoScenario);
   const [isPersonaModalVisible, setIsPersonaModalVisible] = useState(false);
@@ -161,6 +163,25 @@ export const JudgeSandboxBar: React.FC<JudgeSandboxBarProps> = ({
 
   return (
     <>
+      {/* 5-Minute Demo Sandbox Callout Banner */}
+      <View style={styles.demoTimerBanner}>
+        <View style={styles.demoTimerLeft}>
+          <Clock size={12} color="#D4AF37" />
+          <Text style={styles.demoTimerText}>5-Min Interactive Demo Sandbox</Text>
+        </View>
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={() => {
+            triggerHaptic();
+            router.push('/auth');
+          }}
+          style={styles.savePactBtn}
+        >
+          <Text style={styles.savePactBtnText}>Save & Create Real PACT</Text>
+          <ArrowRight size={11} color="#050608" strokeWidth={2.5} />
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.barContainer}>
         {/* Left: Judge Mode Pill & Active Persona */}
         <View style={styles.leftSection}>
@@ -303,6 +324,42 @@ export const JudgeSandboxBar: React.FC<JudgeSandboxBarProps> = ({
 };
 
 const styles = StyleSheet.create({
+  demoTimerBanner: {
+    backgroundColor: '#0B0F17',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(212, 175, 55, 0.18)',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    zIndex: 101
+  },
+  demoTimerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6
+  },
+  demoTimerText: {
+    fontFamily: fontUIBold,
+    fontSize: 10.5,
+    color: '#D4AF37',
+    letterSpacing: 0.2
+  },
+  savePactBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#3DE0A0',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6
+  },
+  savePactBtnText: {
+    fontFamily: fontUIBold,
+    fontSize: 10,
+    color: '#050608'
+  },
   barContainer: {
     backgroundColor: '#12141D',
     borderBottomWidth: 1,
