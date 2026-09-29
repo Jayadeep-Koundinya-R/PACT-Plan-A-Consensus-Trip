@@ -5,7 +5,6 @@ import { useNotificationStore } from '../../src/store/useNotificationStore';
 import { NotificationCenterModal } from '../../src/components/NotificationCenterModal';
 import { NotificationToast } from '../../src/components/NotificationToast';
 import { FirstTimeTutorialModal } from '../../src/components/FirstTimeTutorialModal';
-import { useDemoMode } from '../../src/hooks/useDemoMode';
 import React, { useState, useEffect } from 'react';
 import {
   View,
