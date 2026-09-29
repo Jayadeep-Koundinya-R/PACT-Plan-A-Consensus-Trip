@@ -918,12 +918,12 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: 'rgba(212, 175, 55, 0.3)'
+    borderColor: 'rgba(255, 184, 0, 0.3)'
   },
   proMiniBadgeText: {
     fontSize: 9,
     fontWeight: '800',
-    color: '#D4AF37'
+    color: '#FFB800'
   },
   metricsBar: {
     flexDirection: 'row',
@@ -944,13 +944,13 @@ const styles = StyleSheet.create({
   metricValue: {
     fontSize: 17,
     fontWeight: '800',
-    color: '#F4F3F0',
+    color: '#FFFFFF',
     marginBottom: 2
   },
   metricLabel: {
     fontSize: 9,
     fontWeight: '700',
-    color: '#8B8D98',
+    color: '#8B949E',
     letterSpacing: 0.4
   },
   metricDivider: {
@@ -984,7 +984,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: '#13151E',
+    backgroundColor: '#1A1D2B',
     borderWidth: 1,
     borderColor: '#262938',
     paddingVertical: 12,
@@ -993,7 +993,7 @@ const styles = StyleSheet.create({
   secondaryActionBtnText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#F4F3F0'
+    color: '#FFFFFF'
   },
   sectionHeaderRow: {
     flexDirection: 'row',
@@ -1004,7 +1004,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#8B8D98',
+    color: '#8B949E',
     letterSpacing: 0.8
   },
   sectionTitleRow: {
@@ -1034,7 +1034,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 130,
     position: 'relative',
-    backgroundColor: '#1B1D27'
+    backgroundColor: '#1A1D2B'
   },
   cardCoverImage: {
     width: '100%',
@@ -1077,7 +1077,7 @@ const styles = StyleSheet.create({
   circleName: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#F4F3F0',
+    color: '#FFFFFF',
     marginBottom: 6
   },
   metaBadgeRow: {
@@ -1118,7 +1118,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#1B1D27',
+    backgroundColor: '#1A1D2B',
     paddingHorizontal: 7,
     paddingVertical: 2,
     borderRadius: 6
@@ -1134,9 +1134,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,
-    backgroundColor: '#1B1D27',
+    backgroundColor: '#1A1D2B',
     borderWidth: 1,
-    borderColor: '#2D3144',
+    borderColor: '#262938',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8
@@ -1144,7 +1144,7 @@ const styles = StyleSheet.create({
   invitePillText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#8B8D98',
+    color: '#8B949E',
     letterSpacing: 0.5
   },
   meterContainer: {
@@ -1157,12 +1157,12 @@ const styles = StyleSheet.create({
   },
   meterLabelText: {
     fontSize: 11,
-    color: '#8B8D98'
+    color: '#8B949E'
   },
   meterValueText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#F4F3F0'
+    color: '#FFFFFF'
   },
   meterTrack: {
     height: 6,

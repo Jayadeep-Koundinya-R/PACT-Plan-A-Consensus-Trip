@@ -201,7 +201,7 @@ export function CurrencyCountryPicker({
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 placeholder="Search by currency, country, or code..."
-                placeholderTextColor="#5A5D6B"
+                placeholderTextColor="#8B949E"
                 style={styles.searchInput}
                 autoCorrect={false}
                 autoCapitalize="none"
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end'
   },
   sheetContainer: {
-    backgroundColor: '#0F111A',
+    backgroundColor: '#13151E',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     borderWidth: 1,
@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
     paddingTop: 18,
     paddingBottom: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#1A1D2B'
+    borderBottomColor: '#262938'
   },
   headerTitleRow: {
     flexDirection: 'row',
@@ -314,21 +314,21 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontFamily: fontDisplay,
     fontSize: 16,
-    color: '#F4F3F0',
+    color: '#FFFFFF',
     fontWeight: '700'
   },
   closeBtn: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#181A26',
+    backgroundColor: '#1A1D2B',
     alignItems: 'center',
     justifyContent: 'center'
   },
   searchRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#13151E',
+    backgroundColor: '#1A1D2B',
     borderWidth: 1,
     borderColor: '#262938',
     borderRadius: 12,
@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: fontUI,
     fontSize: 14,
-    color: '#F4F3F0',
+    color: '#FFFFFF',
     paddingVertical: 0
   },
   listContent: {
@@ -364,7 +364,7 @@ const styles = StyleSheet.create({
     marginBottom: 6
   },
   currencyRowSelected: {
-    backgroundColor: '#181B28',
+    backgroundColor: '#1A1D2B',
     borderColor: '#FF5A5F'
   },
   flagSymbolCol: {
@@ -377,7 +377,7 @@ const styles = StyleSheet.create({
     fontSize: 20
   },
   symbolBadge: {
-    backgroundColor: '#202434',
+    backgroundColor: '#13151E',
     paddingHorizontal: 5,
     paddingVertical: 2,
     borderRadius: 4
@@ -385,7 +385,7 @@ const styles = StyleSheet.create({
   symbolText: {
     fontFamily: fontUIBold,
     fontSize: 11,
-    color: '#D4AF37'
+    color: '#FFB800'
   },
   infoCol: {
     flex: 1,
@@ -399,17 +399,17 @@ const styles = StyleSheet.create({
   currencyCode: {
     fontFamily: fontUIBold,
     fontSize: 14,
-    color: '#F4F3F0'
+    color: '#FFFFFF'
   },
   countryName: {
     fontFamily: fontUI,
     fontSize: 12,
-    color: '#8B8D98'
+    color: '#8B949E'
   },
   currencyName: {
     fontFamily: fontUI,
     fontSize: 12,
-    color: '#5A5D6B',
+    color: '#8B949E',
     marginTop: 2
   },
   checkPill: {
@@ -423,7 +423,7 @@ const styles = StyleSheet.create({
   approxRate: {
     fontFamily: fontUI,
     fontSize: 11,
-    color: '#5A5D6B'
+    color: '#8B949E'
   },
   emptyContainer: {
     paddingVertical: 36,
@@ -432,12 +432,12 @@ const styles = StyleSheet.create({
   emptyText: {
     fontFamily: fontUIBold,
     fontSize: 14,
-    color: '#8B8D98'
+    color: '#FFFFFF'
   },
   emptySubtext: {
     fontFamily: fontUI,
     fontSize: 12,
-    color: '#5A5D6B',
+    color: '#8B949E',
     marginTop: 4
   }
 });

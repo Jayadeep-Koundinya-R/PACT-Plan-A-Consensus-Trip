@@ -102,20 +102,20 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
           style={[
             styles.modalContainer,
             {
-              backgroundColor: isDarkMode ? '#090A0F' : '#F6EFDE',
-              borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0,0,0,0.1)'
+              backgroundColor: '#13151E',
+              borderColor: '#262938'
             }
           ]}
         >
           {/* Header */}
-          <View style={[styles.headerRow, { borderBottomColor: isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0,0,0,0.06)' }]}>
+          <View style={[styles.headerRow, { borderBottomColor: '#262938' }]}>
             <View style={styles.headerLeft}>
-              <View style={[styles.bellBox, { backgroundColor: isDarkMode ? 'rgba(255, 90, 95, 0.15)' : '#FFEFC9' }]}>
+              <View style={[styles.bellBox, { backgroundColor: 'rgba(255, 90, 95, 0.15)' }]}>
                 <Bell size={18} color="#FF5A5F" />
               </View>
               <View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <Text style={[styles.headerTitle, { color: isDarkMode ? '#F4F3F0' : '#1E1A14' }]}>
+                  <Text style={[styles.headerTitle, { color: '#FFFFFF' }]}>
                     Notifications
                   </Text>
                   {unreadCount > 0 && (
@@ -124,7 +124,7 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
                     </View>
                   )}
                 </View>
-                <Text style={[styles.headerSubtitle, { color: isDarkMode ? '#8B8D98' : '#6B6252' }]}>
+                <Text style={[styles.headerSubtitle, { color: '#8B949E' }]}>
                   AI insights, circle updates & gentle nudges
                 </Text>
               </View>
@@ -140,15 +140,15 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
               accessibilityRole="button"
               accessibilityLabel="Close notifications modal"
             >
-              <X size={18} color={isDarkMode ? '#8B8D98' : '#5C5446'} />
+              <X size={18} color="#8B949E" />
             </TouchableOpacity>
           </View>
 
           {/* Interactive Simulation Bar for Judges & Testers */}
-          <View style={[styles.simulationBar, { backgroundColor: isDarkMode ? '#13151E' : '#ECE4D0', borderColor: isDarkMode ? '#262938' : 'rgba(0,0,0,0.1)', borderWidth: 1 }]}>
+          <View style={[styles.simulationBar, { backgroundColor: '#1A1D2B', borderColor: '#262938', borderWidth: 1 }]}>
             <View style={styles.simLabelRow}>
               <Sparkles size={13} color="#FF5A5F" />
-              <Text style={[styles.simLabelText, { color: isDarkMode ? '#F4F3F0' : '#1E1A14' }]}>
+              <Text style={[styles.simLabelText, { color: '#FFFFFF' }]}>
                 Interactive Demo Triggers
               </Text>
             </View>
@@ -170,11 +170,11 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
                   haptics.tap();
                   simulateNudgeNotification('Sam');
                 }}
-                style={[styles.simBtnSecondary, { borderColor: isDarkMode ? 'rgba(255, 255, 255, 0.18)' : 'rgba(0,0,0,0.15)' }]}
+                style={[styles.simBtnSecondary, { backgroundColor: '#13151E', borderColor: '#262938' }]}
                 activeOpacity={0.8}
               >
-                <Zap size={12} color={isDarkMode ? '#F4F3F0' : '#1E1A14'} />
-                <Text style={[styles.simBtnSecondaryText, { color: isDarkMode ? '#F4F3F0' : '#1E1A14' }]}>
+                <Zap size={12} color="#FFFFFF" />
+                <Text style={[styles.simBtnSecondaryText, { color: '#FFFFFF' }]}>
                   + Circle Response
                 </Text>
               </TouchableOpacity>
@@ -201,7 +201,7 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
                   styles.tabChip,
                   activeTab === tab.key
                     ? { backgroundColor: '#FF5A5F' }
-                    : { backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0,0,0,0.05)' }
+                    : { backgroundColor: '#1A1D2B' }
                 ]}
               >
                 <Text
@@ -209,7 +209,7 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
                     styles.tabChipText,
                     activeTab === tab.key
                       ? { color: '#050608', fontWeight: '700' }
-                      : { color: isDarkMode ? '#8B8D98' : '#6B6252' }
+                      : { color: '#8B949E' }
                   ]}
                 >
                   {tab.label}
@@ -226,11 +226,11 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
           >
             {filtered.length === 0 ? (
               <View style={styles.emptyBox}>
-                <Bell size={28} color={isDarkMode ? '#3A4260' : '#8B8D98'} />
-                <Text style={[styles.emptyTitle, { color: isDarkMode ? '#F4F3F0' : '#1E1A14' }]}>
+                <Bell size={28} color="#8B949E" />
+                <Text style={[styles.emptyTitle, { color: '#FFFFFF' }]}>
                   No notifications
                 </Text>
-                <Text style={[styles.emptySubtitle, { color: isDarkMode ? '#8B8D98' : '#6B6252' }]}>
+                <Text style={[styles.emptySubtitle, { color: '#8B949E' }]}>
                   Tap "+ AI Advisor Insight" above to test live AI alerts.
                 </Text>
               </View>
@@ -243,10 +243,8 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
                   style={[
                     styles.notifCard,
                     {
-                      backgroundColor: isDarkMode ? '#13151E' : '#FFFFFF',
-                      borderColor: !item.read
-                        ? (isDarkMode ? '#FF5A5F' : 'rgba(212, 149, 43, 0.55)')
-                        : (isDarkMode ? '#262938' : 'rgba(0,0,0,0.06)')
+                      backgroundColor: '#13151E',
+                      borderColor: !item.read ? '#FF5A5F' : '#262938'
                     }
                   ]}
                   accessibilityRole="button"
@@ -267,10 +265,10 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
                         {getIcon(item.type)}
                       </View>
                       <View style={{ flex: 1 }}>
-                        <Text style={[styles.notifTitle, { color: isDarkMode ? '#F4F3F0' : '#1E1A14' }]}>
+                        <Text style={[styles.notifTitle, { color: '#FFFFFF' }]}>
                           {item.title}
                         </Text>
-                        <Text style={[styles.notifTimestamp, { color: isDarkMode ? '#8B8D98' : '#8A8068' }]}>
+                        <Text style={[styles.notifTimestamp, { color: '#8B949E' }]}>
                           {item.timestamp}
                         </Text>
                       </View>
@@ -279,7 +277,7 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
                     {!item.read && <View style={styles.unreadDot} />}
                   </View>
 
-                  <Text style={[styles.notifBody, { color: isDarkMode ? '#8B8D98' : '#473F33' }]}>
+                  <Text style={[styles.notifBody, { color: '#8B949E' }]}>
                     {item.body}
                   </Text>
 
@@ -311,7 +309,7 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
           </ScrollView>
 
           {/* Footer Actions */}
-          <View style={[styles.footerRow, { borderTopColor: isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0,0,0,0.06)' }]}>
+          <View style={[styles.footerRow, { borderTopColor: '#262938' }]}>
             <TouchableOpacity
               onPress={() => {
                 haptics.tap();
@@ -322,8 +320,8 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
               accessibilityRole="button"
               accessibilityLabel="Mark all notifications as read"
             >
-              <CheckCheck size={14} color={isDarkMode ? '#8B8D98' : '#5C5446'} />
-              <Text style={[styles.footerActionText, { color: isDarkMode ? '#8B8D98' : '#5C5446' }]}>
+              <CheckCheck size={14} color="#8B949E" />
+              <Text style={[styles.footerActionText, { color: '#8B949E' }]}>
                 Mark all read
               </Text>
             </TouchableOpacity>

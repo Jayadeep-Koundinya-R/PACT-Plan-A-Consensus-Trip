@@ -284,12 +284,12 @@ export default function PactCirclesHub() {
       const animation = Animated.loop(
         Animated.sequence([
           Animated.timing(supermajorityGlow, {
-            toValue: 0.95,
+            toValue: 0.8,
             duration: 1100,
             useNativeDriver: Platform.OS !== 'web'
           }),
           Animated.timing(supermajorityGlow, {
-            toValue: 0.35,
+            toValue: 0.4,
             duration: 1100,
             useNativeDriver: Platform.OS !== 'web'
           })
@@ -807,7 +807,7 @@ export default function PactCirclesHub() {
                       <View style={styles.supermajorityPill}>
                         <Zap size={11} color="#3DE0A0" fill="#3DE0A0" />
                         <Text style={styles.supermajorityPillText}>
-                          ⚡ Supermajority Reached — Ready to Seal
+                          ⚡ SUPERMAJORITY REACHED — READY TO SEAL
                         </Text>
                       </View>
                     )}
@@ -864,8 +864,23 @@ export default function PactCirclesHub() {
                         i === 0 && { borderTopWidth: 0 }
                       ]}
                     >
-                      <View style={styles.avatarCircle}>
-                        <Text style={styles.avatarInitials}>{initials(m.name)}</Text>
+                      <View style={styles.avatarContainer}>
+                        {pct >= 0.7 && m.status === 'locked' && (
+                          <Animated.View
+                            style={[
+                              styles.avatarGlowRing,
+                              {
+                                opacity: supermajorityGlow
+                              }
+                            ]}
+                          />
+                        )}
+                        <View style={[
+                          styles.avatarCircle,
+                          pct >= 0.7 && m.status === 'locked' && styles.avatarCircleLocked
+                        ]}>
+                          <Text style={styles.avatarInitials}>{initials(m.name)}</Text>
+                        </View>
                       </View>
 
                       <View style={styles.memberInfoCol}>
@@ -2080,6 +2095,27 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.08)'
   },
+  avatarContainer: {
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  avatarGlowRing: {
+    position: 'absolute',
+    top: -3,
+    left: -3,
+    right: -3,
+    bottom: -3,
+    borderRadius: 22,
+    borderWidth: 2,
+    borderColor: '#3DE0A0',
+    backgroundColor: 'rgba(61, 224, 160, 0.15)',
+    shadowColor: '#3DE0A0',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 6,
+    elevation: 4
+  },
   avatarCircle: {
     width: 38,
     height: 38,
@@ -2087,6 +2123,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     justifyContent: 'center',
     alignItems: 'center'
+  },
+  avatarCircleLocked: {
+    borderColor: '#3DE0A0',
+    borderWidth: 1.5
   },
   avatarInitials: {
     fontFamily: fontUIBold,

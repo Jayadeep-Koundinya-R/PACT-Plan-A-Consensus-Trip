@@ -217,7 +217,7 @@ export const AddPeopleModal: React.FC<AddPeopleModalProps> = ({
                   value={friendName}
                   onChangeText={setFriendName}
                   placeholder={openSeats === 0 ? `All ${targetCapacity} seats allocated` : "e.g. Liam, Aisha, Carlos"}
-                  placeholderTextColor="#454857"
+                  placeholderTextColor="#8B949E"
                   returnKeyType="done"
                   editable={openSeats > 0}
                   onSubmitEditing={handleAddDirectMember}
@@ -461,7 +461,7 @@ const styles = StyleSheet.create({
     maxWidth: 460,
     backgroundColor: '#13151E',
     borderRadius: radius.card,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: '#262938',
     borderWidth: 1,
     maxHeight: '92%',
     paddingHorizontal: 20,
@@ -481,7 +481,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: '#1A1D2B',
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -513,7 +513,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontFamily: fontUI,
     fontSize: 13,
-    color: '#8A8F9E',
+    color: '#8B949E',
     textAlign: 'center',
     marginTop: 6,
     lineHeight: 18,
@@ -539,9 +539,9 @@ const styles = StyleSheet.create({
     lineHeight: 16
   },
   codeCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: '#1A1D2B',
     borderRadius: radius.md,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: '#262938',
     borderWidth: 1,
     padding: 14,
     marginBottom: 20
@@ -555,14 +555,14 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 10,
     fontWeight: '800',
-    color: '#8A8F9E',
+    color: '#8B949E',
     letterSpacing: 1.2
   },
   codeValue: {
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
     fontSize: 22,
     fontWeight: '900',
-    color: '#D4AF37',
+    color: '#FFB800',
     letterSpacing: 1.5,
     marginTop: 2
   },
@@ -575,21 +575,21 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingHorizontal: 12,
     paddingVertical: 7,
-    backgroundColor: 'rgba(212, 175, 55, 0.12)',
+    backgroundColor: 'rgba(255, 184, 0, 0.12)',
     borderRadius: radius.pill,
     borderWidth: 1,
-    borderColor: 'rgba(212, 175, 55, 0.25)'
+    borderColor: 'rgba(255, 184, 0, 0.25)'
   },
   codeCopyPillText: {
     fontFamily: fontUIBold,
     fontSize: 11,
     fontWeight: '800',
-    color: '#D4AF37',
+    color: '#FFB800',
     letterSpacing: 0.6
   },
   divider: {
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: '#262938',
     marginVertical: 12
   },
   linkRow: {
@@ -611,7 +611,7 @@ const styles = StyleSheet.create({
   linkUrl: {
     fontFamily: fontUI,
     fontSize: 12,
-    color: '#E8ECF2',
+    color: '#FFFFFF',
     marginTop: 2
   },
   linkCopyBtn: {
@@ -646,7 +646,7 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 11,
     fontWeight: '800',
-    color: '#8A8F9E',
+    color: '#8B949E',
     letterSpacing: 1.1,
     marginBottom: 10
   },
@@ -658,10 +658,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     minHeight: 48,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: '#1A1D2B',
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.07)',
+    borderColor: '#262938',
     paddingVertical: 10,
     paddingHorizontal: 12,
     gap: 12
@@ -685,14 +685,14 @@ const styles = StyleSheet.create({
   channelSub: {
     fontFamily: fontUI,
     fontSize: 11,
-    color: '#8A8F9E',
+    color: '#8B949E',
     marginTop: 1
   },
   addDirectCard: {
-    backgroundColor: '#1E2130',
+    backgroundColor: '#1A1D2B',
     borderRadius: radius.card,
     borderWidth: 1,
-    borderColor: 'rgba(61, 224, 160, 0.25)',
+    borderColor: '#262938',
     padding: 14,
     marginBottom: 14
   },
@@ -712,7 +712,7 @@ const styles = StyleSheet.create({
   addDirectSubtitle: {
     fontFamily: fontUI,
     fontSize: 11.5,
-    color: '#8A8F9E',
+    color: '#8B949E',
     lineHeight: 16,
     marginBottom: 10
   },
@@ -727,11 +727,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#090A0F',
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
+    borderColor: '#262938',
     paddingHorizontal: 12,
     fontFamily: fontUI,
     fontSize: 13.5,
-    color: '#F4F3F0'
+    color: '#FFFFFF'
   },
   addDirectBtn: {
     minHeight: 44,
@@ -760,10 +760,10 @@ const styles = StyleSheet.create({
     color: '#3DE0A0'
   },
   membersListCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: '#1A1D2B',
     borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: '#262938',
     padding: 12,
     marginBottom: 14
   },
@@ -777,7 +777,7 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 10.5,
     fontWeight: '800',
-    color: '#8A8F9E',
+    color: '#8B949E',
     letterSpacing: 0.6
   },
   membersListSeats: {
@@ -796,7 +796,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#13151E',
     borderRadius: radius.pill,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: '#262938',
     paddingVertical: 5,
     paddingHorizontal: 10,
     gap: 6
@@ -809,7 +809,7 @@ const styles = StyleSheet.create({
   memberTagName: {
     fontFamily: fontUI,
     fontSize: 11.5,
-    color: '#F4F3F0'
+    color: '#FFFFFF'
   },
   removeTagBtn: {
     width: 20,
@@ -849,7 +849,7 @@ const styles = StyleSheet.create({
   roadmapDisclaimer: {
     fontFamily: fontUI,
     fontSize: 10,
-    color: '#6C6F7A',
+    color: '#8B949E',
     textAlign: 'center',
     lineHeight: 14,
     paddingHorizontal: 12

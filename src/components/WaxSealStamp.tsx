@@ -57,7 +57,11 @@ export const WaxSealStamp: React.FC<WaxSealStampProps> = ({
 
       if (onImpact && !isCancelled) onImpact();
 
-      // 2. Shockwave burst + Spring recoil settle
+      // Reset shockwave to starting values: scale 1.0, opacity 0.8
+      shockwaveScale.setValue(1.0);
+      shockwaveOpacity.setValue(0.8);
+
+      // 2. Shockwave burst (1.0 -> 1.8, 0.8 -> 0) + Spring recoil settle
       Animated.parallel([
         Animated.spring(scaleAnim, {
           toValue: 1.0,
@@ -71,24 +75,16 @@ export const WaxSealStamp: React.FC<WaxSealStampProps> = ({
           tension: 140,
           useNativeDriver: Platform.OS !== 'web'
         }),
-        // Shockwave expansion
-        Animated.sequence([
-          Animated.timing(shockwaveOpacity, {
-            toValue: 0.8,
-            duration: 40,
-            useNativeDriver: Platform.OS !== 'web'
-          }),
-          Animated.timing(shockwaveScale, {
-            toValue: 1.9,
-            duration: 320,
-            useNativeDriver: Platform.OS !== 'web'
-          }),
-          Animated.timing(shockwaveOpacity, {
-            toValue: 0,
-            duration: 160,
-            useNativeDriver: Platform.OS !== 'web'
-          })
-        ])
+        Animated.timing(shockwaveScale, {
+          toValue: 1.8,
+          duration: 360,
+          useNativeDriver: Platform.OS !== 'web'
+        }),
+        Animated.timing(shockwaveOpacity, {
+          toValue: 0,
+          duration: 360,
+          useNativeDriver: Platform.OS !== 'web'
+        })
       ]).start();
     });
 
@@ -101,7 +97,6 @@ export const WaxSealStamp: React.FC<WaxSealStampProps> = ({
       shockwaveOpacity.stopAnimation();
     };
   }, []);
-
 
   const spin = rotateAnim.interpolate({
     inputRange: [-28, 0],
@@ -121,7 +116,7 @@ export const WaxSealStamp: React.FC<WaxSealStampProps> = ({
 
   return (
     <View style={styles.sealWrapper} pointerEvents="none">
-      {/* Expanding shockwave ring on heavy impact */}
+      {/* Concentric expanding ring shockwave on physical wax impact */}
       <Animated.View
         style={[
           styles.shockwaveRing,
@@ -129,7 +124,7 @@ export const WaxSealStamp: React.FC<WaxSealStampProps> = ({
             width: ringSize,
             height: ringSize,
             borderRadius: ringRadius,
-            borderColor: outerBorder,
+            borderColor: '#FF5A5F',
             opacity: shockwaveOpacity,
             transform: [{ scale: shockwaveScale }]
           }

@@ -79,6 +79,34 @@ export const DEFAULT_AI_SPOTS: AISpotItem[] = [
   }
 ];
 
+export interface TransportCardItem {
+  id: string;
+  name: string;
+  vehicleTypes: string;
+  phone: string;
+  displayPhone: string;
+  rating: string;
+}
+
+export const DEFAULT_TRANSPORT_CARDS: TransportCardItem[] = [
+  {
+    id: 'tp-1',
+    name: 'Goa Coastal Cabs & Airport Shuttles',
+    vehicleTypes: 'Innova Crysta & 7-Seater SUVs',
+    phone: '+18005550199',
+    displayPhone: '1800-555-0199 (Toll-Free)',
+    rating: '4.9 ★'
+  },
+  {
+    id: 'tp-2',
+    name: 'Royal Heritage Minibus & Vans',
+    vehicleTypes: '12-Seater Tempo Traveller',
+    phone: '+18005550288',
+    displayPhone: '1800-555-0288 (Toll-Free)',
+    rating: '4.8 ★'
+  }
+];
+
 export interface LivingTripManifestProps {
   destination?: string;
   dates?: string;
@@ -89,6 +117,8 @@ export interface LivingTripManifestProps {
   lockedMembers?: number;
   showAISpots?: boolean;
   aiSpots?: AISpotItem[];
+  showTransportCards?: boolean;
+  transportCards?: TransportCardItem[];
   onPress?: () => void;
 }
 
@@ -102,6 +132,8 @@ export function LivingTripManifest({
   lockedMembers = 5,
   showAISpots = true,
   aiSpots = DEFAULT_AI_SPOTS,
+  showTransportCards = false,
+  transportCards = DEFAULT_TRANSPORT_CARDS,
   onPress
 }: LivingTripManifestProps) {
   const curr = CURRENCIES[currencyCode as CurrencyCode] || CURRENCIES.USD;
@@ -217,13 +249,58 @@ export function LivingTripManifest({
                   <Text style={styles.spotName}>{spot.name}</Text>
                   <Text style={styles.spotMeta}>{spot.vibeMatch}</Text>
                 </View>
-                <View style={styles.curatedTagPill}>
-                  <Sparkles size={10} color="#3DE0A0" />
-                  <Text style={styles.curatedTagText}>AI Insight</Text>
+                <View style={[styles.curatedTagPill, index === 0 && styles.topCuratedTagPill]}>
+                  {index === 0 ? (
+                    <Text style={styles.topCuratedTagText}>✦ CURATED BY GEMINI</Text>
+                  ) : (
+                    <>
+                      <Sparkles size={10} color="#3DE0A0" />
+                      <Text style={styles.curatedTagText}>AI Insight</Text>
+                    </>
+                  )}
                 </View>
               </TouchableOpacity>
             );
           })}
+        </View>
+      )}
+
+      {/* Verified Local Transport Partners */}
+      {showTransportCards && (
+        <View style={styles.transportSectionCard}>
+          <View style={styles.curatedHeaderRow}>
+            <ShieldCheck size={16} color="#3DE0A0" />
+            <Text style={styles.curatedSpotsTitle}>Verified Local Transport</Text>
+          </View>
+          <Text style={styles.curatedSpotsSubtitle}>
+            Pre-vetted local transit providers with fixed group pricing and verified safety credentials.
+          </Text>
+
+          {transportCards.map((partner) => (
+            <View key={partner.id} style={styles.transportCard}>
+              <View style={styles.transportCardTop}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.transportCardName}>{partner.name}</Text>
+                  <Text style={styles.transportCardSub}>{partner.vehicleTypes} • {partner.rating}</Text>
+                </View>
+                <View style={styles.localPartnerBadge}>
+                  <ShieldCheck size={11} color="#3DE0A0" />
+                  <Text style={styles.localPartnerBadgeText}>100% LOCAL PARTNER</Text>
+                </View>
+              </View>
+              <View style={styles.transportCardBottom}>
+                <Text style={styles.transportPhone}>{partner.displayPhone}</Text>
+                <TouchableOpacity
+                  onPress={() => Linking.openURL(`tel:${partner.phone}`).catch(() => {})}
+                  style={styles.transportCallBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Call ${partner.name}`}
+                >
+                  <Text style={styles.transportCallBtnText}>Call / Inquire</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))}
         </View>
       )}
 
@@ -318,7 +395,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: '#13151E',
     borderWidth: 1,
-    borderColor: 'rgba(61, 224, 160, 0.3)',
+    borderColor: '#262938',
     borderRadius: 16,
     padding: 16,
     marginBottom: 12
@@ -476,6 +553,95 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 9,
     color: '#3DE0A0'
+  },
+  topCuratedTagPill: {
+    backgroundColor: 'rgba(61, 224, 160, 0.15)',
+    borderColor: '#3DE0A0',
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 3
+  },
+  topCuratedTagText: {
+    fontFamily: fontUIBold,
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#3DE0A0',
+    letterSpacing: 0.5
+  },
+  transportSectionCard: {
+    backgroundColor: '#13151E',
+    borderWidth: 1,
+    borderColor: '#262938',
+    borderRadius: 16,
+    padding: 14,
+    marginTop: 12
+  },
+  transportCard: {
+    backgroundColor: '#13151E',
+    borderWidth: 1,
+    borderColor: '#262938',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 8
+  },
+  transportCardTop: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 8
+  },
+  transportCardName: {
+    fontFamily: fontUIBold,
+    fontSize: 13,
+    color: '#FFFFFF'
+  },
+  transportCardSub: {
+    fontFamily: fontUI,
+    fontSize: 11,
+    color: '#8B8D98',
+    marginTop: 2
+  },
+  localPartnerBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(61, 224, 160, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.28)',
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 6
+  },
+  localPartnerBadgeText: {
+    fontFamily: fontUIBold,
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#3DE0A0'
+  },
+  transportCardBottom: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderTopWidth: 1,
+    borderTopColor: '#262938',
+    paddingTop: 8
+  },
+  transportPhone: {
+    fontFamily: fontUI,
+    fontSize: 11.5,
+    color: '#8B8D98'
+  },
+  transportCallBtn: {
+    backgroundColor: '#3DE0A0',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6
+  },
+  transportCallBtnText: {
+    fontFamily: fontUIBold,
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#052E20'
   },
   modalBackdrop: {
     flex: 1,

@@ -145,8 +145,8 @@ export const SafeTravelSection: React.FC<SafeTravelSectionProps> = ({
                 <Text style={styles.vehicleSub}>{item.vehicleTypes} • {item.rating}</Text>
               </View>
               <View style={styles.verifiedTag}>
-                <ShieldCheck size={10} color="#3DE0A0" />
-                <Text style={styles.verifiedTagText}>VERIFIED</Text>
+                <ShieldCheck size={11} color="#3DE0A0" />
+                <Text style={styles.verifiedTagText}>100% LOCAL PARTNER</Text>
               </View>
             </View>
 
@@ -383,17 +383,18 @@ const styles = StyleSheet.create({
   verifiedTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
-    backgroundColor: 'rgba(61, 224, 160, 0.1)',
+    gap: 4,
+    backgroundColor: 'rgba(61, 224, 160, 0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(61, 224, 160, 0.25)',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4
+    borderColor: 'rgba(61, 224, 160, 0.28)',
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 6
   },
   verifiedTagText: {
     fontFamily: fontUIBold,
-    fontSize: 8.5,
+    fontSize: 9.5,
+    fontWeight: '800',
     color: '#3DE0A0'
   },
   contactBottomRow: {
@@ -401,14 +402,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.06)',
+    borderTopColor: '#262938',
     paddingTop: 8,
     marginTop: 2
   },
   displayPhoneText: {
     fontFamily: fontUIBold,
     fontSize: 11.5,
-    color: '#D4AF37'
+    color: '#FFB800'
   },
   dialBtn: {
     flexDirection: 'row',
