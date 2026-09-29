@@ -8,7 +8,10 @@ import {
   StyleSheet,
   SafeAreaView,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
+  StatusBar
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '../../../src/hooks/useTheme';
@@ -115,12 +118,14 @@ export default function PactCircleChatScreen() {
 
   return (
     <CircleRouteGuard id={id}>
-      <SafeAreaView style={[styles.outerContainer, { backgroundColor: theme.background }]}>
+      <SafeAreaView style={[styles.outerContainer, { backgroundColor: theme.background, paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 20) : 0 }]}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.keyboardAvoid}
         >
-          {/* Header Bar */}
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+            <View style={{ flex: 1 }}>
+              {/* Header Bar */}
           <View style={[styles.headerBar, { backgroundColor: isDarkMode ? '#0B0F17' : '#FFFFFF', borderBottomColor: theme.border }]}>
             <TouchableOpacity
               onPress={() => {
@@ -235,6 +240,7 @@ export default function PactCircleChatScreen() {
             ref={scrollViewRef}
             contentContainerStyle={styles.messagesScroll}
             showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
           >
             {messages.length === 0 ? (
               <View style={styles.emptyStateContainer}>
@@ -362,6 +368,8 @@ export default function PactCircleChatScreen() {
     </TouchableOpacity>
   </View>
 )}
+            </View>
+          </TouchableWithoutFeedback>
 </KeyboardAvoidingView>
       </SafeAreaView>
     </CircleRouteGuard>

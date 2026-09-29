@@ -12,7 +12,10 @@ import {
   Platform,
   Alert,
   Modal,
-  BackHandler
+  BackHandler,
+  TouchableWithoutFeedback,
+  Keyboard,
+  StatusBar
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import Svg, { Path, Circle } from 'react-native-svg';
@@ -246,9 +249,10 @@ export default function PactCreateJoinScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.outerContainer, { backgroundColor: theme.backgroundDeep }]}>
-      <View style={[styles.phoneFrame, { backgroundColor: theme.background, borderColor: theme.border }]}>
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+    <SafeAreaView style={[styles.outerContainer, { backgroundColor: theme.backgroundDeep, paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 20) : 0 }]}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={[styles.phoneFrame, { backgroundColor: theme.background, borderColor: theme.border }]}>
+          <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           {/* Header Navigation */}
           <View style={styles.navHeader}>
             <TouchableOpacity
@@ -670,6 +674,7 @@ export default function PactCreateJoinScreen() {
           </View>
         </ScrollView>
       </View>
+    </TouchableWithoutFeedback>
 
       {/* Celebratory Micro-Badge Modal */}
       <Modal visible={showCelebrationModal} transparent animationType="fade">

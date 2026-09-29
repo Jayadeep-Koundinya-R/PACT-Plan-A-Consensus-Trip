@@ -31,9 +31,21 @@ export interface Circle {
   createdAt: string;
 }
 
+export interface VoiceNote {
+  id: string;
+  circleId?: string;
+  authorName: string;
+  durationSeconds: number;
+  displayMeta: string; // e.g. "0:24 • Recorded by You"
+  createdAt: string;
+  note?: string;
+  audioUri?: string;
+}
+
 interface CircleState {
   circles: Circle[];
   activeCircleId: string | null;
+  voiceNotes: VoiceNote[];
 
   // Derived helpers
   getCircle: (id: string) => Circle | undefined;
@@ -42,6 +54,7 @@ interface CircleState {
   getRespondedCount: (circleId: string) => number;
   getTotalCount: (circleId: string) => number;
   getMemberStatus: (circleId: string, userId: string) => MemberStatus | null;
+  getVoiceNotes: (circleId: string) => VoiceNote[];
 
   // Actions
   setActiveCircle: (id: string) => void;
@@ -52,6 +65,7 @@ interface CircleState {
   nudgeMember: (circleId: string, userId: string) => void;
   addMember: (circleId: string, member: CircleMember) => boolean;
   removeMember: (circleId: string, userId: string) => void;
+  addVoiceNote: (circleId: string, note: Omit<VoiceNote, 'id' | 'displayMeta'> & { id?: string; displayMeta?: string }) => VoiceNote;
   /**
    * Safe removal that blocks the organizer from leaving if other members exist.
    * Returns { ok: true } on success or { ok: false, reason: string } on block.
@@ -89,6 +103,27 @@ const DEMO_CIRCLE: Circle = {
   createdAt: new Date().toISOString()
 };
 
+export const INITIAL_VOICE_NOTES: VoiceNote[] = [
+  {
+    id: 'vn-demo-1',
+    circleId: 'circle-college-reunion-2026',
+    authorName: 'Maya',
+    durationSeconds: 16,
+    displayMeta: '0:16 • Recorded by Maya',
+    createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+    note: 'Remember to pack sunscreen and reef-safe rash guards for the South Goa reef dive!'
+  },
+  {
+    id: 'vn-demo-2',
+    circleId: 'circle-college-reunion-2026',
+    authorName: 'Jake',
+    durationSeconds: 24,
+    displayMeta: '0:24 • Recorded by Jake',
+    createdAt: new Date(Date.now() - 1000 * 60 * 12).toISOString(),
+    note: 'Just reserved our sunset shacks at Thalassa for Friday night. Vibes are gonna be unreal.'
+  }
+];
+
 const getInitialCircles = (): Circle[] => {
   if (typeof window !== 'undefined' && window.localStorage) {
     try {
@@ -115,8 +150,13 @@ const saveCirclesToStorage = (circles: Circle[]) => {
 export const useCircleStore = create<CircleState>((set, get) => ({
   circles: getInitialCircles(),
   activeCircleId: null,
+  voiceNotes: INITIAL_VOICE_NOTES,
 
   getCircle: (id) => get().circles.find((c) => c.id === id),
+
+  getVoiceNotes: (circleId) => {
+    return get().voiceNotes.filter((vn) => !vn.circleId || vn.circleId === circleId);
+  },
 
   getCircleByInviteCode: (code) => {
     if (!code) return undefined;
@@ -207,7 +247,8 @@ export const useCircleStore = create<CircleState>((set, get) => ({
       saveCirclesToStorage(updated);
       return {
         circles: updated,
-        activeCircleId: DEMO_CIRCLE.id
+        activeCircleId: DEMO_CIRCLE.id,
+        voiceNotes: s.voiceNotes.length > 0 ? s.voiceNotes : INITIAL_VOICE_NOTES
       };
     });
   },
@@ -225,7 +266,8 @@ export const useCircleStore = create<CircleState>((set, get) => ({
     saveCirclesToStorage([]);
     set({
       circles: [],
-      activeCircleId: null
+      activeCircleId: null,
+      voiceNotes: []
     });
   },
   isCirclePro: (circleId) => {
@@ -316,6 +358,27 @@ export const useCircleStore = create<CircleState>((set, get) => ({
       saveCirclesToStorage(updated);
       return { circles: updated };
     }),
+
+  addVoiceNote: (circleId, note) => {
+    const id = note.id || `vn-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    const duration = note.durationSeconds || 15;
+    const author = note.authorName || 'You';
+    const displayMeta = note.displayMeta || `${Math.floor(duration / 60)}:${(duration % 60).toString().padStart(2, '0')} • Recorded by ${author}`;
+    const newNote: VoiceNote = {
+      id,
+      circleId,
+      authorName: author,
+      durationSeconds: duration,
+      displayMeta,
+      createdAt: note.createdAt || new Date().toISOString(),
+      note: note.note,
+      audioUri: note.audioUri
+    };
+    set((s) => ({
+      voiceNotes: [newNote, ...s.voiceNotes]
+    }));
+    return newNote;
+  },
 
   safeRemoveMember: (circleId, userId) => {
     const circle = get().circles.find((c) => c.id === circleId);

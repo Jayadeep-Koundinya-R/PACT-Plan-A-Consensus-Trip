@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -38,6 +38,7 @@ export interface AISpotItem {
   duration: string;
   estimatedCost: string;
   mapQuery?: string;
+  bestTimeToVisit?: string;
 }
 
 export const DEFAULT_AI_SPOTS: AISpotItem[] = [
@@ -51,7 +52,8 @@ export const DEFAULT_AI_SPOTS: AISpotItem[] = [
     distance: '4.2 km from villa',
     duration: '2 – 3 hours',
     estimatedCost: 'Free entry',
-    mapQuery: 'Palolem Beach South Goa'
+    mapQuery: 'Palolem Beach South Goa',
+    bestTimeToVisit: 'Sunset (5:00 PM – 7:00 PM)'
   },
   {
     id: 'spot-wharf',
@@ -63,7 +65,8 @@ export const DEFAULT_AI_SPOTS: AISpotItem[] = [
     distance: '6.8 km riverside',
     duration: '1.5 – 2 hours',
     estimatedCost: '$22 / person',
-    mapQuery: "Fisherman's Wharf Mobor Goa"
+    mapQuery: "Fisherman's Wharf Mobor Goa",
+    bestTimeToVisit: 'Dinner (7:30 PM – 9:30 PM)'
   },
   {
     id: 'spot-oldgoa',
@@ -75,7 +78,8 @@ export const DEFAULT_AI_SPOTS: AISpotItem[] = [
     distance: '11.5 km historic quarter',
     duration: '3 – 4 hours',
     estimatedCost: '$12 / vehicle',
-    mapQuery: 'Old Goa Churches'
+    mapQuery: 'Old Goa Churches',
+    bestTimeToVisit: 'Morning (9:00 AM – 12:30 PM)'
   }
 ];
 
@@ -140,6 +144,15 @@ export function LivingTripManifest({
   const formattedBudget = `${curr.symbol}${Math.round(budget * curr.rate).toLocaleString()}`;
 
   const [selectedSpot, setSelectedSpot] = useState<AISpotItem | null>(null);
+  const [pinnedSpotIds, setPinnedSpotIds] = useState<Record<string, boolean>>({});
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const toastTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
+  }, []);
 
   const triggerHaptic = () => {
     if (Platform.OS !== 'web') {
@@ -152,6 +165,21 @@ export function LivingTripManifest({
   const handleSpotPress = (spot: AISpotItem) => {
     triggerHaptic();
     setSelectedSpot(spot);
+  };
+
+  const handleTogglePin = (spot: AISpotItem) => {
+    triggerHaptic();
+    const willPin = !pinnedSpotIds[spot.id];
+    setPinnedSpotIds((prev) => ({
+      ...prev,
+      [spot.id]: willPin
+    }));
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    const msg = willPin ? 'Added to Day 2 Afternoon' : 'Removed from Group Itinerary';
+    setToastMessage(msg);
+    toastTimerRef.current = setTimeout(() => {
+      setToastMessage(null);
+    }, 2800);
   };
 
   const handleOpenMap = (query?: string) => {
@@ -246,7 +274,15 @@ export function LivingTripManifest({
               >
                 <Text style={styles.spotEmoji}>{spot.emoji}</Text>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.spotName}>{spot.name}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Text style={styles.spotName}>{spot.name}</Text>
+                    {pinnedSpotIds[spot.id] && (
+                      <View style={styles.spotPinnedIndicator}>
+                        <CheckCircle2 size={10} color="#3DE0A0" />
+                        <Text style={styles.spotPinnedIndicatorText}>PINNED</Text>
+                      </View>
+                    )}
+                  </View>
                   <Text style={styles.spotMeta}>{spot.vibeMatch}</Text>
                 </View>
                 <View style={[styles.curatedTagPill, index === 0 && styles.topCuratedTagPill]}>
@@ -348,36 +384,72 @@ export function LivingTripManifest({
               {/* Quick Metrics Grid */}
               <View style={styles.metricsGrid}>
                 <View style={styles.metricItem}>
-                  <MapPin size={14} color="#FF5A5F" />
+                  <MapPin size={13} color="#FF5A5F" />
                   <Text style={styles.metricLabel}>Distance</Text>
                   <Text style={styles.metricValue}>{selectedSpot.distance}</Text>
                 </View>
 
                 <View style={styles.metricItem}>
-                  <Clock size={14} color="#3DE0A0" />
+                  <Clock size={13} color="#3DE0A0" />
                   <Text style={styles.metricLabel}>Recommended</Text>
                   <Text style={styles.metricValue}>{selectedSpot.duration}</Text>
                 </View>
 
                 <View style={styles.metricItem}>
-                  <DollarSign size={14} color="#D4AF37" />
+                  <DollarSign size={13} color="#D4AF37" />
                   <Text style={styles.metricLabel}>Est. Cost</Text>
                   <Text style={styles.metricValue}>{selectedSpot.estimatedCost}</Text>
                 </View>
+
+                <View style={styles.metricItem}>
+                  <Calendar size={13} color="#3DE0A0" />
+                  <Text style={styles.metricLabel}>Best Time</Text>
+                  <Text style={styles.metricValue}>{selectedSpot.bestTimeToVisit || 'Sunset'}</Text>
+                </View>
               </View>
 
+              {/* Toast message if pinned/unpinned */}
+              {toastMessage && (
+                <View style={styles.toastBadge}>
+                  <CheckCircle2 size={13} color="#3DE0A0" />
+                  <Text style={styles.toastBadgeText}>{toastMessage}</Text>
+                </View>
+              )}
+
               {/* Action Buttons */}
-              <TouchableOpacity
-                activeOpacity={0.88}
-                onPress={() => handleOpenMap(selectedSpot.mapQuery || selectedSpot.name)}
-                style={styles.mapActionBtn}
-                accessibilityRole="button"
-                accessibilityLabel="Explore Location in Maps"
-                accessibilityHint="Opens external maps location"
-              >
-                <ExternalLink size={16} color="#052E20" />
-                <Text style={styles.mapActionBtnText}>Explore Location in Maps</Text>
-              </TouchableOpacity>
+              <View style={styles.modalActionCol}>
+                <TouchableOpacity
+                  activeOpacity={0.88}
+                  onPress={() => handleTogglePin(selectedSpot)}
+                  style={[
+                    styles.pinActionBtn,
+                    pinnedSpotIds[selectedSpot.id] && styles.pinActionBtnActive
+                  ]}
+                  accessibilityRole="button"
+                  accessibilityLabel={pinnedSpotIds[selectedSpot.id] ? "Pinned to Group Itinerary" : "Pin to Group Itinerary"}
+                >
+                  {pinnedSpotIds[selectedSpot.id] ? (
+                    <CheckCircle2 size={16} color="#052E20" />
+                  ) : (
+                    <Pin size={16} color="#052E20" />
+                  )}
+                  <Text style={[styles.pinActionBtnText, pinnedSpotIds[selectedSpot.id] && styles.pinActionBtnTextActive]}>
+                    {pinnedSpotIds[selectedSpot.id] ? '✓ Pinned to Day 2 Afternoon' : '+ Pin to Group Itinerary'}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  activeOpacity={0.88}
+                  onPress={() => handleOpenMap(selectedSpot.mapQuery || selectedSpot.name)}
+                  style={styles.mapActionBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel="Explore Location in Maps"
+                  accessibilityHint="Opens external maps location"
+                >
+                  <ExternalLink size={16} color="#F4F3F0" />
+                  <Text style={styles.mapActionBtnText}>Explore Location in Maps</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </Modal>
@@ -763,19 +835,89 @@ const styles = StyleSheet.create({
     color: '#F4F3F0',
     textAlign: 'center'
   },
-  mapActionBtn: {
+  modalActionCol: {
+    gap: 10
+  },
+  pinActionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
     backgroundColor: '#3DE0A0',
     borderRadius: 12,
-    paddingVertical: 14
+    paddingVertical: 14,
+    shadowColor: '#3DE0A0',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4
   },
-  mapActionBtnText: {
+  pinActionBtnActive: {
+    backgroundColor: 'rgba(61, 224, 160, 0.2)',
+    borderWidth: 1,
+    borderColor: '#3DE0A0',
+    shadowOpacity: 0
+  },
+  pinActionBtnText: {
     fontFamily: fontUIBold,
     fontSize: 13.5,
     fontWeight: '700',
     color: '#052E20'
+  },
+  pinActionBtnTextActive: {
+    color: '#3DE0A0'
+  },
+  mapActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#1A1D2B',
+    borderWidth: 1,
+    borderColor: '#262938',
+    borderRadius: 12,
+    paddingVertical: 13
+  },
+  mapActionBtnText: {
+    fontFamily: fontUIBold,
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#F4F3F0'
+  },
+  toastBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(61, 224, 160, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.35)',
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginBottom: 12
+  },
+  toastBadgeText: {
+    fontFamily: fontUIBold,
+    fontSize: 12,
+    color: '#3DE0A0'
+  },
+  spotPinnedIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: 'rgba(61, 224, 160, 0.12)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.25)'
+  },
+  spotPinnedIndicatorText: {
+    fontFamily: fontUIBold,
+    fontSize: 9,
+    color: '#3DE0A0',
+    fontWeight: '800',
+    letterSpacing: 0.5
   }
 });

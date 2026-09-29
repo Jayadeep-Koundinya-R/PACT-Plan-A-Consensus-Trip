@@ -8,7 +8,8 @@ import {
   StyleSheet,
   ScrollView,
   Share,
-  Platform
+  Platform,
+  StatusBar
 } from 'react-native';
 import { colors, radius, shadows } from '../theme/colors';
 import { QrCode, X, Copy, Check, Share2, Compass, ShieldCheck } from 'lucide-react-native';
@@ -33,19 +34,44 @@ export const InviteQRModal: React.FC<InviteQRModalProps> = ({
   const [copied, setCopied] = useState(false);
   const { copyInviteLink, shareInvite } = useShareInvite();
 
-  const inviteLink = `pact://invite/${inviteCode}`;
-  const shareText = `ðŸŒ´ You're invited to join "${groupName}" on PACT!\n\nJoin privately to submit your dates, budget, and tags:\nðŸ‘‰ Code: ${inviteCode}\nðŸ‘‰ Link: ${inviteLink}`;
+  const inviteLink = `https://pact.travel/join/${inviteCode}`;
+  const shareText = `🌴 You're invited to join "${groupName}" on PACT!\n\nJoin privately to submit your dates, budget, and tags:\n👉 Code: ${inviteCode}\n👉 Link: ${inviteLink}`;
 
   const handleCopyLink = async () => {
-    const success = await copyInviteLink(inviteCode);
-    if (success) {
+    const url = `https://pact.travel/join/${inviteCode}`;
+    try {
+      if (Platform.OS === 'web' && typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(url);
+      } else {
+        await Clipboard.setStringAsync(url);
+      }
       setCopied(true);
-      setTimeout(() => setCopied(false), 2200);
+      setTimeout(() => setCopied(false), 2400);
+    } catch (e) {
+      const success = await copyInviteLink(inviteCode);
+      if (success) {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2400);
+      }
     }
   };
 
   const handleNativeShare = async () => {
-    await shareInvite({ groupName, inviteCode });
+    if (Platform.OS !== 'web') {
+      try {
+        await Share.share({
+          title: `Join ${groupName} on PACT`,
+          message: shareText,
+          url: inviteLink
+        }, {
+          dialogTitle: `Invite friends to ${groupName}`
+        });
+      } catch (e) {
+        await shareInvite({ groupName, inviteCode });
+      }
+    } else {
+      await shareInvite({ groupName, inviteCode });
+    }
   };
 
   return (
@@ -59,7 +85,11 @@ export const InviteQRModal: React.FC<InviteQRModalProps> = ({
         <View
           style={[
             styles.modalContent,
-            { backgroundColor: theme.surface, borderColor: theme.border },
+            {
+              backgroundColor: theme.surface,
+              borderColor: theme.border,
+              paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 20) : 20
+            },
             shadows.lg
           ]}
         >
@@ -138,6 +168,13 @@ export const InviteQRModal: React.FC<InviteQRModalProps> = ({
                 <Share2 size={16} color={theme.textPrimary} />
               </TouchableOpacity>
             </View>
+
+            {copied && (
+              <View style={styles.copyToastBadge}>
+                <Check size={12} color="#3DE0A0" />
+                <Text style={styles.copyToastText}>Invite link copied to clipboard!</Text>
+              </View>
+            )}
           </ScrollView>
         </View>
       </View>
@@ -253,5 +290,23 @@ const styles = StyleSheet.create({
     borderRadius: radius.btn,
     justifyContent: 'center',
     alignItems: 'center'
+  },
+  copyToastBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(61, 224, 160, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.35)',
+    borderRadius: 8,
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    marginTop: 10
+  },
+  copyToastText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#3DE0A0'
   }
 });

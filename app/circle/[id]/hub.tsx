@@ -57,7 +57,10 @@ import {
   Compass,
   Award,
   Image as ImageIcon,
-  Camera
+  Camera,
+  Play,
+  Pause,
+  Plus
 } from 'lucide-react-native';
 import { LivingTripManifest } from '../../../src/components/LivingTripManifest';
 import { VoiceMemoriesDrawer } from '../../../src/components/VoiceMemoriesDrawer';
@@ -95,6 +98,12 @@ export default function PactCirclesHub() {
   const fetchedRef = useRef<string | null>(null);
 
   const [showVoiceDrawer, setShowVoiceDrawer] = useState(false);
+  const [playingVoiceId, setPlayingVoiceId] = useState<string | null>(null);
+  const getCircleVoiceNotes = useCircleStore((s) => s.getVoiceNotes);
+  const circleVoiceNotes = useMemo(() => {
+    const targetId = (id as string) || 'circle-college-reunion-2026';
+    return getCircleVoiceNotes(targetId);
+  }, [getCircleVoiceNotes, id]);
 
   type HubPhase = 'consensus' | 'manifest' | 'vault';
   const [activePhaseOverride, setActivePhaseOverride] = useState<HubPhase | null>(null);
@@ -1270,11 +1279,90 @@ export default function PactCirclesHub() {
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.voiceCardTitle}>Circle Voice Notes (Audio Mementos)</Text>
-                    <Text style={styles.voiceCardSub}>Listen to group audio recordings and trip voice logs</Text>
+                    <Text style={styles.voiceCardSub}>Tap to record or manage group micro-audio moments</Text>
                   </View>
                 </View>
                 <ChevronRight size={16} color="#8B8D98" />
               </TouchableOpacity>
+
+              {/* Interactive Playable Voice Capsule Cards in Vault */}
+              {circleVoiceNotes && circleVoiceNotes.length > 0 && (
+                <View style={styles.vaultVoiceContainer}>
+                  <View style={styles.vaultVoiceHeader}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Mic size={13} color="#FF5A5F" />
+                      <Text style={styles.vaultVoiceHeaderTitle}>ACTIVE VOICE CAPSULES ({circleVoiceNotes.length})</Text>
+                    </View>
+                    <TouchableOpacity
+                      activeOpacity={0.7}
+                      onPress={() => {
+                        haptics.tap();
+                        setShowVoiceDrawer(true);
+                      }}
+                      style={styles.vaultVoiceAddBtn}
+                      accessibilityLabel="Record new voice capsule"
+                    >
+                      <Plus size={12} color="#FF5A5F" />
+                      <Text style={styles.vaultVoiceAddBtnText}>Record</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={styles.vaultVoiceList}>
+                    {circleVoiceNotes.map((note) => {
+                      const isPlaying = playingVoiceId === note.id;
+                      return (
+                        <View key={note.id} style={styles.vaultVoiceItem}>
+                          <TouchableOpacity
+                            activeOpacity={0.8}
+                            onPress={() => {
+                              haptics.tap();
+                              setPlayingVoiceId(isPlaying ? null : note.id);
+                            }}
+                            style={[
+                              styles.vaultVoicePlayBtn,
+                              isPlaying && styles.vaultVoicePlayBtnActive
+                            ]}
+                            accessibilityRole="button"
+                            accessibilityLabel={isPlaying ? `Pause voice capsule by ${note.authorName}` : `Play voice capsule by ${note.authorName}`}
+                          >
+                            {isPlaying ? (
+                              <Pause size={14} color="#052E20" fill="#052E20" />
+                            ) : (
+                              <Play size={14} color="#F4F3F0" fill="#F4F3F0" />
+                            )}
+                          </TouchableOpacity>
+
+                          <View style={{ flex: 1 }}>
+                            <View style={styles.vaultVoiceTopRow}>
+                              <Text style={styles.vaultVoiceAuthor}>{note.authorName}</Text>
+                              <View style={styles.vaultVoiceDurationBadge}>
+                                <Text style={styles.vaultVoiceDurationText}>
+                                  {note.displayMeta || `${note.durationSeconds}s`}
+                                </Text>
+                              </View>
+                            </View>
+
+                            <Text
+                              style={[
+                                styles.vaultVoiceWaveform,
+                                isPlaying && styles.vaultVoiceWaveformActive
+                              ]}
+                            >
+                              {isPlaying ? 'ılı.lıllılı.ıllı.lıllı' : 'ı.lı...lı...lı'}
+                            </Text>
+
+                            {note.note && (
+                              <Text style={styles.vaultVoiceNoteText} numberOfLines={2}>
+                                "{note.note}"
+                              </Text>
+                            )}
+                          </View>
+                        </View>
+                      );
+                    })}
+                  </View>
+                </View>
+              )}
 
               {/* Trip Documents Vault Card */}
               <TouchableOpacity
@@ -1620,6 +1708,107 @@ const styles = StyleSheet.create({
     fontFamily: fontUI,
     fontSize: 11,
     color: '#8B8D98'
+  },
+  vaultVoiceContainer: {
+    backgroundColor: '#13151E',
+    borderWidth: 1,
+    borderColor: '#262938',
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 12
+  },
+  vaultVoiceHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10
+  },
+  vaultVoiceHeaderTitle: {
+    fontFamily: fontUIBold,
+    fontSize: 10.5,
+    color: '#8B8D98',
+    letterSpacing: 0.8
+  },
+  vaultVoiceAddBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 90, 95, 0.12)'
+  },
+  vaultVoiceAddBtnText: {
+    fontFamily: fontUIBold,
+    fontSize: 10,
+    color: '#FF5A5F'
+  },
+  vaultVoiceList: {
+    gap: 10
+  },
+  vaultVoiceItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#090A0F',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 12,
+    padding: 12
+  },
+  vaultVoicePlayBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#1A1D2B',
+    borderWidth: 1,
+    borderColor: '#262938',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  vaultVoicePlayBtnActive: {
+    backgroundColor: '#3DE0A0',
+    borderColor: '#3DE0A0'
+  },
+  vaultVoiceTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 2
+  },
+  vaultVoiceAuthor: {
+    fontFamily: fontUIBold,
+    fontSize: 12.5,
+    color: '#F4F3F0'
+  },
+  vaultVoiceDurationBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)'
+  },
+  vaultVoiceDurationText: {
+    fontFamily: fontUI,
+    fontSize: 10,
+    color: '#8B8D98'
+  },
+  vaultVoiceWaveform: {
+    fontFamily: fontUI,
+    fontSize: 13,
+    color: '#8B8D98',
+    letterSpacing: 2,
+    marginVertical: 2
+  },
+  vaultVoiceWaveformActive: {
+    color: '#3DE0A0',
+    fontWeight: '700'
+  },
+  vaultVoiceNoteText: {
+    fontFamily: fontUI,
+    fontSize: 11,
+    color: '#8B8D98',
+    fontStyle: 'italic',
+    marginTop: 2
   },
   vaultHubCard: {
     flexDirection: 'row',

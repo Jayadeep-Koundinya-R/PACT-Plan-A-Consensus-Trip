@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, Platform } from 'react-native';
-import { X, Mic, Volume2 } from 'lucide-react-native';
+import React from 'react';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, Platform, ScrollView } from 'react-native';
+import { X, Mic } from 'lucide-react-native';
 import { fontDisplay, fontUI, fontUIBold } from '../../theme/typography';
 import { VoiceCapsuleRecorder } from './VoiceCapsuleRecorder';
 import { VoiceCapsuleList, VoiceCapsuleItem } from './VoiceCapsuleList';
+import { useCircleStore } from '../../store/useCircleStore';
 
 export interface VoiceMemoriesDrawerProps {
   visible: boolean;
@@ -12,7 +13,17 @@ export interface VoiceMemoriesDrawerProps {
 }
 
 export function VoiceMemoriesDrawer({ visible, onClose, groupId }: VoiceMemoriesDrawerProps) {
-  const [voiceCapsules, setVoiceCapsules] = useState<VoiceCapsuleItem[]>([]);
+  const targetCircleId = groupId || 'circle-college-reunion-2026';
+  const storedVoiceNotes = useCircleStore((s) => s.getVoiceNotes(targetCircleId));
+  const addVoiceNote = useCircleStore((s) => s.addVoiceNote);
+
+  const capsules: VoiceCapsuleItem[] = storedVoiceNotes.map((vn) => ({
+    id: vn.id,
+    authorName: vn.authorName,
+    durationSeconds: vn.durationSeconds,
+    createdAt: vn.createdAt,
+    note: vn.note
+  }));
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
@@ -40,28 +51,29 @@ export function VoiceMemoriesDrawer({ visible, onClose, groupId }: VoiceMemories
             <View style={styles.webHelperPill}>
               <Mic size={12} color="#FF5A5F" />
               <Text style={styles.webHelperText}>
-                Voice capsules optimized for mobile devices
+                Voice capsules simulated with live equalizers &amp; store persistence
               </Text>
             </View>
           )}
 
-          {/* Recorder */}
-          <VoiceCapsuleRecorder
-            onRecordingComplete={(newCap) => {
-              setVoiceCapsules((prev) => [
-                {
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
+            {/* Recorder */}
+            <VoiceCapsuleRecorder
+              onRecordingComplete={(newCap) => {
+                addVoiceNote(targetCircleId, {
                   id: newCap.id,
                   authorName: newCap.authorName,
                   durationSeconds: newCap.durationSeconds,
-                  createdAt: newCap.createdAt
-                },
-                ...prev
-              ]);
-            }}
-          />
+                  displayMeta: newCap.displayMeta || `${newCap.durationSeconds}s • Recorded by ${newCap.authorName}`,
+                  createdAt: newCap.createdAt,
+                  note: newCap.note
+                });
+              }}
+            />
 
-          {/* List */}
-          <VoiceCapsuleList capsules={voiceCapsules} />
+            {/* List */}
+            <VoiceCapsuleList capsules={capsules} />
+          </ScrollView>
         </View>
       </View>
     </Modal>
@@ -88,7 +100,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 32,
-    maxHeight: '80%'
+    maxHeight: '85%'
   },
   header: {
     flexDirection: 'row',

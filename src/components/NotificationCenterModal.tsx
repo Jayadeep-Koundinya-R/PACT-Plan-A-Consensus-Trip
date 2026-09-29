@@ -7,7 +7,8 @@ import {
   StyleSheet,
   ScrollView,
   SafeAreaView,
-  Platform
+  Platform,
+  StatusBar
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useNotificationStore, PactNotification } from '../store/useNotificationStore';
@@ -103,7 +104,8 @@ export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = (
             styles.modalContainer,
             {
               backgroundColor: '#13151E',
-              borderColor: '#262938'
+              borderColor: '#262938',
+              paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 16) : 0
             }
           ]}
         >

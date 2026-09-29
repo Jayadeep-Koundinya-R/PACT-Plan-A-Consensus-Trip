@@ -83,7 +83,7 @@ export function useShareInvite() {
   };
 
   const copyInviteLink = async (inviteCode: string): Promise<boolean> => {
-    const joinUrl = `pact://join/${inviteCode}`;
+    const joinUrl = `https://pact.travel/join/${inviteCode}`;
     return copyToClipboard(joinUrl, inviteCode);
   };
 
@@ -92,7 +92,7 @@ export function useShareInvite() {
     setIsSharing(true);
     const { groupName, inviteCode, customMessage } = options;
     const message = formatInviteMessage(groupName, inviteCode, customMessage);
-    const joinUrl = `pact://join/${inviteCode}`;
+    const joinUrl = `https://pact.travel/join/${inviteCode}`;
     const title = `Join ${groupName} on PACT`;
 
     try {

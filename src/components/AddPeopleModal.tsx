@@ -7,8 +7,11 @@ import {
   Modal,
   StyleSheet,
   ScrollView,
-  Platform
+  Platform,
+  Share,
+  StatusBar
 } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import {
   UserPlus,
   X,
@@ -66,7 +69,7 @@ export const AddPeopleModal: React.FC<AddPeopleModalProps> = ({
   } = useShareInvite();
 
   const [copiedLink, setCopiedLink] = useState(false);
-  const joinUrl = `pact://join/${inviteCode}`;
+  const joinUrl = `https://pact.travel/join/${inviteCode}`;
   const isProCircle = isPro ?? hasPro ?? true;
 
   const { circles, addMember, removeMember } = useCircleStore();
@@ -118,10 +121,22 @@ export const AddPeopleModal: React.FC<AddPeopleModalProps> = ({
 
   const handleCopyLink = async () => {
     haptics.tap();
-    const success = await copyInviteLink(inviteCode);
-    if (success) {
+    const url = `https://pact.travel/join/${inviteCode}`;
+    try {
+      if (Platform.OS === 'web' && typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(url);
+      } else {
+        await Clipboard.setStringAsync(url);
+      }
       setCopiedLink(true);
+      haptics.success();
       setTimeout(() => setCopiedLink(false), 2400);
+    } catch (e) {
+      const success = await copyInviteLink(inviteCode);
+      if (success) {
+        setCopiedLink(true);
+        setTimeout(() => setCopiedLink(false), 2400);
+      }
     }
   };
 
@@ -148,7 +163,21 @@ export const AddPeopleModal: React.FC<AddPeopleModalProps> = ({
 
   const handleNativeShare = async () => {
     haptics.action();
-    await shareInvite({ groupName, inviteCode });
+    if (Platform.OS !== 'web') {
+      try {
+        await Share.share({
+          title: `Join ${groupName} on PACT`,
+          message: formatInviteMessage(groupName, inviteCode),
+          url: `https://pact.travel/join/${inviteCode}`
+        }, {
+          dialogTitle: `Invite friends to ${groupName}`
+        });
+      } catch (e) {
+        await shareInvite({ groupName, inviteCode });
+      }
+    } else {
+      await shareInvite({ groupName, inviteCode });
+    }
   };
 
   const handleLaunchQR = () => {
@@ -167,7 +196,7 @@ export const AddPeopleModal: React.FC<AddPeopleModalProps> = ({
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        <View style={styles.modalContent}>
+        <View style={[styles.modalContent, { paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 20) : 20 }]}>
           {/* Close button */}
           <TouchableOpacity
             style={styles.closeBtn}
@@ -338,6 +367,13 @@ export const AddPeopleModal: React.FC<AddPeopleModalProps> = ({
                   )}
                 </TouchableOpacity>
               </View>
+
+              {copiedLink && (
+                <View style={styles.copyToastBadge}>
+                  <Check size={12} color="#3DE0A0" />
+                  <Text style={styles.copyToastText}>Invite link copied to clipboard!</Text>
+                </View>
+              )}
             </View>
 
             {/* Fast Native Share Channels */}
@@ -853,5 +889,23 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 14,
     paddingHorizontal: 12
+  },
+  copyToastBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(61, 224, 160, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.35)',
+    borderRadius: 8,
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    marginTop: 8
+  },
+  copyToastText: {
+    fontFamily: fontUIBold,
+    fontSize: 11,
+    color: '#3DE0A0'
   }
 });
