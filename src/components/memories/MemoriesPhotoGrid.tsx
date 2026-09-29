@@ -181,7 +181,9 @@ export function MemoriesPhotoGrid({
       {/* Grid of Photos */}
       {photos.length === 0 ? (
         <View style={styles.emptyCard}>
-          <Camera size={32} color="#5A5D6B" style={{ marginBottom: 10 }} />
+          <View style={styles.emptyIconSurface}>
+            <Camera size={48} color="#3DE0A0" />
+          </View>
           <Text style={styles.emptyTitle}>No Photos in Vault Yet</Text>
           <Text style={styles.emptySubtitle}>
             Preserve group memories after your trip! Tap "+ Add Photo" to contribute the first moment.
@@ -379,7 +381,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#262938',
     borderRadius: 16,
-    padding: 24,
+    padding: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12
+  },
+  emptyIconSurface: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(61, 224, 160, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.25)',
     alignItems: 'center',
     justifyContent: 'center'
   },

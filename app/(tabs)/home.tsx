@@ -779,7 +779,7 @@ const styles = StyleSheet.create({
   },
   tabButtonText: {
     fontFamily: fontUIBold,
-    fontSize: 11,
+    fontSize: 12,
     color: '#8B8D98',
     letterSpacing: 0.2
   },
@@ -851,7 +851,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 32
+    paddingBottom: 120
   },
   headerRow: {
     flexDirection: 'row',
@@ -998,14 +998,15 @@ const styles = StyleSheet.create({
   sectionHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     gap: 6,
     marginBottom: 12
   },
   sectionTitle: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '800',
     color: '#8B949E',
-    letterSpacing: 0.8
+    letterSpacing: 0.6
   },
   sectionTitleRow: {
     flexDirection: 'row',

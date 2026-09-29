@@ -1460,11 +1460,11 @@ const styles = StyleSheet.create({
   },
   tripTitle: {
     fontFamily: fontDisplay,
-    fontSize: 21,
+    fontSize: 19,
     fontWeight: '700',
     color: '#F4F3F0',
     flex: 1,
-    lineHeight: 26
+    lineHeight: 24
   },
   tripSubtitle: {
     fontFamily: fontUI,
@@ -1498,7 +1498,7 @@ const styles = StyleSheet.create({
   },
   phaseTabText: {
     fontFamily: fontUIBold,
-    fontSize: 11,
+    fontSize: 12,
     color: '#8B8D98'
   },
   phaseTabTextActive: {
@@ -1711,9 +1711,9 @@ const styles = StyleSheet.create({
     gap: 8
   },
   headerIconBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
     justifyContent: 'center',
     alignItems: 'center'
@@ -2449,7 +2449,7 @@ const styles = StyleSheet.create({
     right: 0,
     paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: 22,
+    paddingBottom: 34,
     backgroundColor: '#050608',
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.11)',

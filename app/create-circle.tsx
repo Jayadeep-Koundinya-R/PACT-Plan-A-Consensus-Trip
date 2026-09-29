@@ -754,7 +754,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 22,
     paddingTop: 20,
-    paddingBottom: 40
+    paddingBottom: 120
   },
   navHeader: {
     flexDirection: 'row',
@@ -888,9 +888,9 @@ const styles = StyleSheet.create({
     gap: 10
   },
   stepperBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 9,
+    width: 44,
+    height: 44,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.12)',
     backgroundColor: '#1E2130',
