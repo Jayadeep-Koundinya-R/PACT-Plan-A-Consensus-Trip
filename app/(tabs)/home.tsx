@@ -416,7 +416,7 @@ export default function MyCirclesScreen() {
           )}
 
           {displayCircles.map((circle) => {
-            const isOrganizer = circle.organizerId === getActiveUserId() || circle.organizerName === getActiveUserName() || circle.organizerId === 'user-maya-001';
+            const isOrganizer = circle.organizerId === getActiveUserId() || circle.organizerName === getActiveUserName() || (isDemoMode && circle.organizerId === 'user-maya-001');
             const lockedCount = circle.members?.filter((m) => m.status === 'locked').length || 0;
             const rawTotalCount = circle.totalMembersCount || circle.members?.length || 0;
             const totalCount = rawTotalCount > 0 ? rawTotalCount : 1;

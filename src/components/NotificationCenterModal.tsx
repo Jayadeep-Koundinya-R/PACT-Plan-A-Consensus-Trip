@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -9,9 +9,11 @@ import {
   SafeAreaView,
   Platform
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useNotificationStore, PactNotification } from '../store/useNotificationStore';
 import { useGatherlyStore } from '../store/useGatherlyStore';
 import { colors } from '../theme/colors';
+import { fontDisplay, fontUI, fontUIBold } from '../theme/typography';
 import { usePactHaptics } from '../hooks/usePactHaptics';
 import {
   Bell,
@@ -22,14 +24,23 @@ import {
   CheckCheck,
   Trash2,
   Lock,
-  ArrowUpRight
+  ArrowUpRight,
+  ChevronRight
 } from 'lucide-react-native';
 
-export const NotificationCenterModal: React.FC = () => {
+export interface NotificationCenterModalProps {
+  onNavigateTab?: (tab: 'consensus' | 'manifest' | 'vault') => void;
+}
+
+export const NotificationCenterModal: React.FC<NotificationCenterModalProps> = ({
+  onNavigateTab
+}) => {
+  const router = useRouter();
   const {
     notifications,
     isOpen,
     closeNotificationCenter,
+    markAsRead,
     markAllAsRead,
     clearNotifications,
     simulateAINotification,
@@ -37,12 +48,26 @@ export const NotificationCenterModal: React.FC = () => {
   } = useNotificationStore();
 
   const { isDarkMode } = useGatherlyStore();
-  const theme = isDarkMode ? colors.dark : colors.light;
   const haptics = usePactHaptics();
 
   const [activeTab, setActiveTab] = useState<'all' | 'ai' | 'circle'>('all');
 
   if (!isOpen) return null;
+
+  const handleCardPress = (item: PactNotification) => {
+    haptics.tap();
+    markAsRead(item.id);
+    closeNotificationCenter();
+    if (item.targetTab && onNavigateTab) {
+      onNavigateTab(item.targetTab);
+    } else if (item.actionUrl) {
+      try {
+        router.push(item.actionUrl as any);
+      } catch (e) {
+        console.warn('Navigation failed from notification card:', e);
+      }
+    }
+  };
 
   const filtered = notifications.filter((n) => {
     if (activeTab === 'ai') return n.type === 'ai';
@@ -112,13 +137,15 @@ export const NotificationCenterModal: React.FC = () => {
               }}
               style={styles.closeBtn}
               activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Close notifications modal"
             >
               <X size={18} color={isDarkMode ? '#8B8D98' : '#5C5446'} />
             </TouchableOpacity>
           </View>
 
           {/* Interactive Simulation Bar for Judges & Testers */}
-          <View style={[styles.simulationBar, { backgroundColor: isDarkMode ? '#192038' : '#ECE4D0' }]}>
+          <View style={[styles.simulationBar, { backgroundColor: isDarkMode ? '#13151E' : '#ECE4D0', borderColor: isDarkMode ? '#262938' : 'rgba(0,0,0,0.1)', borderWidth: 1 }]}>
             <View style={styles.simLabelRow}>
               <Sparkles size={13} color="#FF5A5F" />
               <Text style={[styles.simLabelText, { color: isDarkMode ? '#F4F3F0' : '#1E1A14' }]}>
@@ -167,6 +194,9 @@ export const NotificationCenterModal: React.FC = () => {
                   haptics.tap();
                   setActiveTab(tab.key as any);
                 }}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: activeTab === tab.key }}
+                accessibilityLabel={tab.label}
                 style={[
                   styles.tabChip,
                   activeTab === tab.key
@@ -206,17 +236,21 @@ export const NotificationCenterModal: React.FC = () => {
               </View>
             ) : (
               filtered.map((item) => (
-                <View
+                <TouchableOpacity
                   key={item.id}
+                  activeOpacity={0.7}
+                  onPress={() => handleCardPress(item)}
                   style={[
                     styles.notifCard,
                     {
-                      backgroundColor: isDarkMode ? '#192038' : '#FFFFFF',
+                      backgroundColor: isDarkMode ? '#13151E' : '#FFFFFF',
                       borderColor: !item.read
-                        ? (isDarkMode ? 'rgba(255, 90, 95, 0.45)' : 'rgba(212, 149, 43, 0.55)')
-                        : (isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0,0,0,0.06)')
+                        ? (isDarkMode ? '#FF5A5F' : 'rgba(212, 149, 43, 0.55)')
+                        : (isDarkMode ? '#262938' : 'rgba(0,0,0,0.06)')
                     }
                   ]}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${item.title}. ${item.body}`}
                 >
                   <View style={styles.notifTopRow}>
                     <View style={styles.notifTypeRow}>
@@ -232,7 +266,7 @@ export const NotificationCenterModal: React.FC = () => {
                       >
                         {getIcon(item.type)}
                       </View>
-                      <View>
+                      <View style={{ flex: 1 }}>
                         <Text style={[styles.notifTitle, { color: isDarkMode ? '#F4F3F0' : '#1E1A14' }]}>
                           {item.title}
                         </Text>
@@ -249,14 +283,29 @@ export const NotificationCenterModal: React.FC = () => {
                     {item.body}
                   </Text>
 
-                  {/* Privacy Badge */}
-                  <View style={styles.privacyShieldRow}>
-                    <Shield size={11} color="#3DE0A0" />
-                    <Text style={styles.privacyShieldText}>
-                      {item.privacyTag || 'Zero individual budgets disclosed'}
-                    </Text>
+                  {/* Card Bottom Row: Privacy Badge & Action Hint */}
+                  <View style={styles.cardBottomRow}>
+                    <View style={styles.privacyShieldRow}>
+                      <Shield size={11} color="#3DE0A0" />
+                      <Text style={styles.privacyShieldText}>
+                        {item.privacyTag || 'Zero individual budgets disclosed'}
+                      </Text>
+                    </View>
+
+                    {(item.targetTab || item.actionUrl) && (
+                      <View style={styles.actionTabPill}>
+                        <Text style={styles.actionTabText}>
+                          {item.targetTab === 'manifest'
+                            ? 'Open Manifest'
+                            : item.targetTab === 'consensus'
+                            ? 'Cast Vote'
+                            : 'Open'}
+                        </Text>
+                        <ChevronRight size={11} color="#3DE0A0" />
+                      </View>
+                    )}
                   </View>
-                </View>
+                </TouchableOpacity>
               ))
             )}
           </ScrollView>
@@ -270,6 +319,8 @@ export const NotificationCenterModal: React.FC = () => {
               }}
               style={styles.footerActionBtn}
               activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Mark all notifications as read"
             >
               <CheckCheck size={14} color={isDarkMode ? '#8B8D98' : '#5C5446'} />
               <Text style={[styles.footerActionText, { color: isDarkMode ? '#8B8D98' : '#5C5446' }]}>
@@ -284,6 +335,8 @@ export const NotificationCenterModal: React.FC = () => {
               }}
               style={styles.footerActionBtn}
               activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Clear all notifications"
             >
               <Trash2 size={14} color="#EF4444" />
               <Text style={[styles.footerActionText, { color: '#EF4444' }]}>
@@ -476,6 +529,12 @@ const styles = StyleSheet.create({
     lineHeight: 17,
     marginBottom: 8
   },
+  cardBottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 4
+  },
   privacyShieldRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -485,6 +544,23 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#3DE0A0',
     fontWeight: '500'
+  },
+  actionTabPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: 'rgba(61, 224, 160, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.25)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8
+  },
+  actionTabText: {
+    fontSize: 9.5,
+    fontFamily: fontUIBold,
+    fontWeight: '700',
+    color: '#3DE0A0'
   },
   emptyBox: {
     alignItems: 'center',

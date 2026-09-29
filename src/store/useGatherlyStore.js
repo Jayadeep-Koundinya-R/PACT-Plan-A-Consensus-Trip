@@ -5,6 +5,12 @@ export const CURRENCIES = {
   EUR: { code: 'EUR', symbol: '€', name: 'Euro', rate: 0.92 },
   INR: { code: 'INR', symbol: '₹', name: 'Indian Rupee', rate: 83.5 },
   GBP: { code: 'GBP', symbol: '£', name: 'British Pound', rate: 0.79 },
+  JPY: { code: 'JPY', symbol: '¥', name: 'Japanese Yen', rate: 152.0 },
+  AED: { code: 'AED', symbol: 'AED', name: 'UAE Dirham', rate: 3.67 },
+  AUD: { code: 'AUD', symbol: 'A$', name: 'Australian Dollar', rate: 1.54 },
+  CAD: { code: 'CAD', symbol: 'CA$', name: 'Canadian Dollar', rate: 1.36 },
+  SGD: { code: 'SGD', symbol: 'S$', name: 'Singapore Dollar', rate: 1.35 },
+  CHF: { code: 'CHF', symbol: 'CHF', name: 'Swiss Franc', rate: 0.91 }
 };
 
 export const useGatherlyStore = create((set, get) => ({

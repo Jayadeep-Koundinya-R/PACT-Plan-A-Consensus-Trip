@@ -29,6 +29,7 @@ export function useCircleChat(
   const haptics = usePactHaptics();
   const hapticsRef = useRef(haptics);
   hapticsRef.current = haptics;
+  const demoTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const messagesSelector = useCallback((s: any): CircleMessage[] => s.getMessages(circleId), [circleId]);
   const messages = useCircleChatStore(messagesSelector);
@@ -103,16 +104,28 @@ export function useCircleChat(
         (payload: any) => {
           const newRecord = payload.new as any;
           if (newRecord?.id && newRecord?.content) {
-            const incoming: CircleMessage = {
-              id: newRecord.id,
-              groupId: newRecord.group_id,
-              userId: newRecord.user_id,
-              userDisplayName: newRecord.user_display_name,
-              content: newRecord.content,
-              createdAt: newRecord.created_at
-            };
-            addMessage(circleId, incoming);
-            hapticsRef.current.action();
+            // Check if this incoming message matches an existing optimistic record
+            const currentMsgs = useCircleChatStore.getState().getMessages(circleId);
+            const isDuplicate = currentMsgs.some(
+              (m) =>
+                m.id === newRecord.id ||
+                (m.userId === newRecord.user_id && m.content === newRecord.content && m.isOptimistic)
+            );
+
+            if (!isDuplicate) {
+              const incoming: CircleMessage = {
+                id: newRecord.id,
+                groupId: newRecord.group_id,
+                userId: newRecord.user_id,
+                userDisplayName: newRecord.user_display_name,
+                content: newRecord.content,
+                createdAt: newRecord.created_at
+              };
+              addMessage(circleId, incoming);
+              if (newRecord.user_id !== currentUserId) {
+                hapticsRef.current.action();
+              }
+            }
           }
         }
       );
@@ -130,6 +143,9 @@ export function useCircleChat(
     }
 
     return () => {
+      if (demoTimerRef.current) {
+        clearTimeout(demoTimerRef.current);
+      }
       if (channel) {
         try {
           channel.unsubscribe?.();
@@ -139,7 +155,8 @@ export function useCircleChat(
         } catch (e) {}
       }
     };
-  }, [circleId, addMessage]);
+  }, [circleId, addMessage, currentUserId]);
+
 
   // 3. Send message action
   const sendMessage = useCallback(
@@ -169,8 +186,31 @@ export function useCircleChat(
       hapticsRef.current.tap();
 
       if (!isLiveSupabaseConfigured || !isUUID(circleId)) {
+        if (circleId === 'circle-college-reunion-2026' || circleId.startsWith('circle-demo') || circleId.startsWith('group-')) {
+          if (demoTimerRef.current) clearTimeout(demoTimerRef.current);
+          demoTimerRef.current = setTimeout(() => {
+            const demoReplies = [
+              "Awesome! I'm completely locked in for these dates 🏖️",
+              "Checked the villa pictures—South Goa spot looks unbelievable!",
+              "Vote cast! Hope everyone approves the beach option 🌊",
+              "Agreed, fits right inside our budget cap 🚀"
+            ];
+            const randomReply = demoReplies[Math.floor(Math.random() * demoReplies.length)];
+            const peerReply: CircleMessage = {
+              id: 'msg_peer_' + Date.now(),
+              groupId: circleId,
+              userId: 'user-sam-003',
+              userDisplayName: 'Sam',
+              content: randomReply,
+              createdAt: new Date().toISOString()
+            };
+            addMessage(circleId, peerReply);
+          }, 1200);
+        }
+
         return optimisticMsg;
       }
+
 
       setIsSending(true);
       try {

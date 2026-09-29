@@ -6,7 +6,7 @@ interface DemoModeState {
   toggleDemoMode: () => void;
 }
 
-const useDemoModeStore = create<DemoModeState>((set) => ({
+export const useDemoModeStore = create<DemoModeState>((set) => ({
   isDemoMode: false,
   setDemoMode: (value: boolean) => set({ isDemoMode: value }),
   toggleDemoMode: () => set((state) => ({ isDemoMode: !state.isDemoMode }))
@@ -20,4 +20,9 @@ export function useDemoMode() {
   return { isDemoMode, showDemoFeatures: isDemoMode, setDemoMode, toggleDemoMode };
 }
 
+useDemoMode.getState = useDemoModeStore.getState;
+useDemoMode.setState = useDemoModeStore.setState;
+useDemoMode.subscribe = useDemoModeStore.subscribe;
+
 export default useDemoMode;
+

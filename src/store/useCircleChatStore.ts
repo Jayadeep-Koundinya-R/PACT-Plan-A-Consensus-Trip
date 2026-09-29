@@ -33,6 +33,8 @@ interface CircleChatState {
   addMessage: (circleId: string, message: CircleMessage) => void;
   archiveChatLog: (circleId: string) => ArchivedChatLog;
   getArchivedChatLog: (circleId: string) => ArchivedChatLog | null;
+  seedDemoMessages: (circleId?: string) => void;
+  clearAllMessages: () => void;
 }
 
 // Initial demo seed conversation for seamless offline / test demo
@@ -66,13 +68,24 @@ const INITIAL_DEMO_MESSAGES: Record<string, CircleMessage[]> = {
 };
 
 export const useCircleChatStore = create<CircleChatState>((set, get) => ({
-  messagesByCircle: { ...INITIAL_DEMO_MESSAGES },
+  messagesByCircle: {},
   archivedLogs: {},
 
   getMessages: (circleId: string) => {
-    const existing = get().messagesByCircle[circleId];
-    if (existing) return existing;
-    return INITIAL_DEMO_MESSAGES[circleId] || EMPTY_MESSAGES;
+    return get().messagesByCircle[circleId] || EMPTY_MESSAGES;
+  },
+
+  seedDemoMessages: (circleId: string = 'circle-college-reunion-2026') => {
+    set((state) => ({
+      messagesByCircle: {
+        ...state.messagesByCircle,
+        [circleId]: INITIAL_DEMO_MESSAGES['circle-college-reunion-2026'] || []
+      }
+    }));
+  },
+
+  clearAllMessages: () => {
+    set({ messagesByCircle: {}, archivedLogs: {} });
   },
 
   setMessages: (circleId: string, messages: CircleMessage[]) => {

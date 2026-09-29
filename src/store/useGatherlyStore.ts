@@ -36,14 +36,21 @@ import {
   fetchUserSubscription
 } from '../lib/supabase/service';
 import { supabase } from '../lib/supabase/client';
+import { formatCurrencyUniversal, FALLBACK_CURRENCY_SYMBOLS, GLOBAL_CURRENCIES } from '../components/CurrencyCountryPicker';
 
-export type CurrencyCode = 'USD' | 'EUR' | 'INR' | 'GBP';
+export type CurrencyCode = string;
 
-export const CURRENCIES: Record<CurrencyCode, { code: CurrencyCode; symbol: string; name: string; rate: number }> = {
+export const CURRENCIES: Record<string, { code: string; symbol: string; name: string; rate: number }> = {
   USD: { code: 'USD', symbol: '$', name: 'US Dollar', rate: 1 },
   EUR: { code: 'EUR', symbol: '€', name: 'Euro', rate: 0.92 },
   INR: { code: 'INR', symbol: '₹', name: 'Indian Rupee', rate: 83.5 },
   GBP: { code: 'GBP', symbol: '£', name: 'British Pound', rate: 0.79 },
+  JPY: { code: 'JPY', symbol: '¥', name: 'Japanese Yen', rate: 152.0 },
+  AED: { code: 'AED', symbol: 'AED', name: 'UAE Dirham', rate: 3.67 },
+  AUD: { code: 'AUD', symbol: 'A$', name: 'Australian Dollar', rate: 1.54 },
+  CAD: { code: 'CAD', symbol: 'CA$', name: 'Canadian Dollar', rate: 1.36 },
+  SGD: { code: 'SGD', symbol: 'S$', name: 'Singapore Dollar', rate: 1.35 },
+  CHF: { code: 'CHF', symbol: 'CHF', name: 'Swiss Franc', rate: 0.91 }
 };
 
 export interface Group {
@@ -168,6 +175,8 @@ interface GatherlyState {
   setDemoScenario: (scenario: 'early_bird' | 'budget_gap' | 'deadlock' | 'consensus' | 'consensus_winner' | 'budget_deadlock' | 'dealbreaker_deadlock') => void;
   setPendingInviteCode: (code: string | null) => void;
   resetDemoState: () => void;
+  loadDemoScenario: (scenario?: 'early_bird' | 'budget_gap' | 'deadlock' | 'consensus' | 'consensus_winner' | 'budget_deadlock' | 'dealbreaker_deadlock') => void;
+  resetToCleanUser: () => void;
 }
 
 const initialGroup: Group = {
@@ -204,6 +213,33 @@ const DEFAULT_PAST_TRIPS: PastTripItem[] = [
   }
 ];
 
+const DEMO_VAULT_DOCUMENTS = {
+  'circle-college-reunion-2026': [
+    {
+      section: 'FLIGHTS & TRANSPORT',
+      items: [
+        { id: 'v1', name: 'IndiGo_Flight_All5.pdf', meta: 'Uploaded by Alex  •  1.2 MB', type: 'flight' as const, section: 'FLIGHTS & TRANSPORT' },
+        { id: 'v2', name: 'Airport_Transfer_Receipt.pdf', meta: 'Uploaded by Sam  •  450 KB', type: 'transfer' as const, section: 'FLIGHTS & TRANSPORT' }
+      ]
+    },
+    {
+      section: 'ACCOMMODATION BOOKINGS',
+      items: [
+        { id: 'v3', name: 'South_Goa_Villa_Confirmation.pdf', meta: 'Uploaded by You  •  Code #PACT-9921', type: 'villa' as const, section: 'ACCOMMODATION BOOKINGS' }
+      ]
+    }
+  ]
+};
+
+const DEMO_MEMORY_PHOTOS = {
+  'circle-college-reunion-2026': [
+    { id: 'p1', bg: '#3A241E', by: 'Alex', caption: 'Sunset at Palolem beach' },
+    { id: 'p2', bg: '#403012', by: 'Maya', caption: 'Old Goa cathedral walk' },
+    { id: 'p3', bg: '#052E20', by: 'Sam', caption: 'Scooter convoy morning' },
+    { id: 'p4', bg: '#1E1A2A', by: 'Jordan', caption: 'Seafood feast dinner' }
+  ]
+};
+
 function safeDeepClone<T>(data: T, fallback: T): T {
   try {
     return JSON.parse(JSON.stringify(data));
@@ -222,18 +258,21 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   currency: 'USD',
   currencySymbol: '$',
   setCurrency: (currency: CurrencyCode) => {
-    const config = CURRENCIES[currency] || CURRENCIES.USD;
-    set({ currency, currencySymbol: config.symbol });
+    const code = (currency || 'USD').toUpperCase().trim();
+    const config = CURRENCIES[code];
+    const symbol = config ? config.symbol : (FALLBACK_CURRENCY_SYMBOLS[code] || `${code} `);
+    set({ currency: code, currencySymbol: symbol });
   },
   formatCurrency: (amountInUSD: number, currencyCodeOverride?: CurrencyCode) => {
     const state = get();
-    const targetCode = currencyCodeOverride || state.currency;
-    const config = CURRENCIES[targetCode] || CURRENCIES.USD;
-    const converted = Math.round(amountInUSD * config.rate);
+    const targetCode = (currencyCodeOverride || state.currency || 'USD').toUpperCase().trim();
+    const config = CURRENCIES[targetCode];
+    const rate = config ? config.rate : 1.0;
+    const converted = Math.round(amountInUSD * rate);
     if (targetCode === 'INR') {
       return `₹${converted.toLocaleString('en-IN')}`;
     }
-    return `${config.symbol}${converted.toLocaleString()}`;
+    return formatCurrencyUniversal(converted, targetCode);
   },
   formatDualCurrency: (amountInUSD: number, primaryCode?: CurrencyCode, secondaryCode?: CurrencyCode) => {
     const state = get();
@@ -386,32 +425,8 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
   consensusSnapshot: null,
   activeDemoScenario: 'early_bird',
 
-  vaultDocuments: {
-    'circle-college-reunion-2026': [
-      {
-        section: 'FLIGHTS & TRANSPORT',
-        items: [
-          { id: 'v1', name: 'IndiGo_Flight_All5.pdf', meta: 'Uploaded by Alex  •  1.2 MB', type: 'flight', section: 'FLIGHTS & TRANSPORT' },
-          { id: 'v2', name: 'Airport_Transfer_Receipt.pdf', meta: 'Uploaded by Sam  •  450 KB', type: 'transfer', section: 'FLIGHTS & TRANSPORT' }
-        ]
-      },
-      {
-        section: 'ACCOMMODATION BOOKINGS',
-        items: [
-          { id: 'v3', name: 'South_Goa_Villa_Confirmation.pdf', meta: 'Uploaded by You  •  Code #PACT-9921', type: 'villa', section: 'ACCOMMODATION BOOKINGS' }
-        ]
-      }
-    ]
-  },
-
-  memoryPhotos: {
-    'circle-college-reunion-2026': [
-      { id: 'p1', bg: '#3A241E', by: 'Alex', caption: 'Sunset at Palolem beach' },
-      { id: 'p2', bg: '#403012', by: 'Maya', caption: 'Old Goa cathedral walk' },
-      { id: 'p3', bg: '#052E20', by: 'Sam', caption: 'Scooter convoy morning' },
-      { id: 'p4', bg: '#1E1A2A', by: 'Jordan', caption: 'Seafood feast dinner' }
-    ]
-  },
+  vaultDocuments: {},
+  memoryPhotos: {},
 
   addVaultDocument: (groupId: string, doc: Omit<VaultItem, 'id'>) => {
     const id = 'v_' + Date.now();
@@ -1059,12 +1074,18 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
       consensus.winningOption.consensusPercent
     );
 
+    const sym = get().currencySymbol || '$';
+    const validMinBudgets = members.map((m) => m.budgetMin).filter((b): b is number => typeof b === 'number' && !isNaN(b));
+    const validMaxBudgets = members.map((m) => m.budgetMax).filter((b): b is number => typeof b === 'number' && !isNaN(b));
+    const minBudget = validMinBudgets.length > 0 ? Math.min(...validMinBudgets) : 0;
+    const maxBudget = validMaxBudgets.length > 0 ? Math.max(...validMaxBudgets) : 0;
+
     const brief: TripBrief = {
       groupId: activeGroupId,
       winningOption: consensus.winningOption,
       finalizedAt: new Date().toISOString(),
       confirmedParticipants: members.map((m) => m.userName),
-      totalBudgetRange: `$${Math.min(...members.map((m) => m.budgetMin))} - $${Math.max(...members.map((m) => m.budgetMax))}`,
+      totalBudgetRange: `${sym}${minBudget} - ${sym}${maxBudget}`,
       travelWindow: `${consensus.winningOption.option.dateStart} to ${consensus.winningOption.option.dateEnd}`
     };
 
@@ -1207,11 +1228,37 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
         'opt-manali-02_user-alex-004': true
       },
       finalizedBrief: null,
+      vaultDocuments: safeDeepClone(DEMO_VAULT_DOCUMENTS, DEMO_VAULT_DOCUMENTS),
+      memoryPhotos: safeDeepClone(DEMO_MEMORY_PHOTOS, DEMO_MEMORY_PHOTOS),
       pastTrips: DEFAULT_PAST_TRIPS,
       subscriptionPlan: 'free'
+    });
+  },
+
+  loadDemoScenario: (scenario: 'early_bird' | 'budget_gap' | 'deadlock' | 'consensus' | 'consensus_winner' | 'budget_deadlock' | 'dealbreaker_deadlock' = 'early_bird') => {
+    get().resetDemoState();
+    get().setDemoScenario(scenario);
+  },
+
+  resetToCleanUser: () => {
+    set({
+      currentUserId: '',
+      userEmail: null,
+      userName: null,
+      groups: [],
+      activeGroupId: '',
+      members: [],
+      tripOptions: [],
+      preferenceDrafts: {},
+      votes: {},
+      finalizedBrief: null,
+      consensusSnapshot: null,
+      vaultDocuments: {},
+      memoryPhotos: {},
+      pastTrips: []
     });
   }
 }));
 
-import { registerGatherlyStore } from '../lib/user/identity.ts';
+import { registerGatherlyStore } from '../lib/user/identity';
 registerGatherlyStore(useGatherlyStore);

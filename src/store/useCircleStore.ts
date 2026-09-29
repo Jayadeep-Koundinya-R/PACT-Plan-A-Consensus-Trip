@@ -64,6 +64,7 @@ interface CircleState {
   setCircleProStatus: (circleId: string, hasPro: boolean) => void;
   isCirclePro: (circleId: string) => boolean;
   loadDemoCircle: () => void;
+  clearDemoCircles: () => void;
   clearCircles: () => void;
 }
 
@@ -207,6 +208,16 @@ export const useCircleStore = create<CircleState>((set, get) => ({
       return {
         circles: updated,
         activeCircleId: DEMO_CIRCLE.id
+      };
+    });
+  },
+  clearDemoCircles: () => {
+    set((s) => {
+      const filtered = s.circles.filter((c) => c.id !== DEMO_CIRCLE.id && !c.id.includes('demo'));
+      saveCirclesToStorage(filtered);
+      return {
+        circles: filtered,
+        activeCircleId: filtered.length > 0 ? filtered[0].id : null
       };
     });
   },

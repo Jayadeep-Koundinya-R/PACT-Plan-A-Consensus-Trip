@@ -16,6 +16,9 @@ import {
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useGatherlyStore } from '../src/store/useGatherlyStore';
+import { useCircleStore } from '../src/store/useCircleStore';
+import { useCircleChatStore } from '../src/store/useCircleChatStore';
+import { useDemoMode } from '../src/hooks/useDemoMode';
 import { ScreenHeader } from '../src/components/ScreenHeader';
 import { useUserStore } from '../src/store/useUserStore';
 import { MapDriftBackground } from '../src/components/MapDriftBackground';
@@ -236,6 +239,10 @@ export default function AuthScreen() {
       } else {
         await login(email.trim(), password);
         const g = useGatherlyStore.getState();
+        useDemoMode.getState().setDemoMode(false);
+        useCircleStore.getState().clearDemoCircles();
+        useCircleChatStore.getState().clearAllMessages();
+        useGatherlyStore.getState().resetToCleanUser();
         useUserStore.getState().setProfile({
           userId: g.currentUserId,
           displayName: g.userName || 'Traveler',
@@ -253,7 +260,11 @@ export default function AuthScreen() {
 
   const handleInstantGuest = () => {
     triggerHaptic(Haptics.ImpactFeedbackStyle.Light);
+    useDemoMode.getState().setDemoMode(true);
     loginAsPersona('user-maya-001');
+    useCircleStore.getState().loadDemoCircle();
+    useCircleChatStore.getState().seedDemoMessages('circle-college-reunion-2026');
+    useGatherlyStore.getState().loadDemoScenario('early_bird');
     useUserStore.getState().setProfile({
       userId: 'user-maya-001',
       displayName: 'Maya',
@@ -561,7 +572,7 @@ export default function AuthScreen() {
             >
               <Zap size={16} color={theme.primary} />
               <Text style={[styles.guestBtnText, { color: theme.textPrimary }]}>
-                Instant Access (Test as Demo Organizer)
+                ⚡ Try 5-Min Judge Sandbox
               </Text>
             </TouchableOpacity>
 

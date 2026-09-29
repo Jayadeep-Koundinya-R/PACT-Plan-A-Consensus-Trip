@@ -406,12 +406,12 @@ export default function PactTripBrief() {
         <View style={styles.bottomBar}>
           <TouchableOpacity
             activeOpacity={0.88}
-            onPress={() => router.push(`/circle/${currentGroup.id}/vault` as any)}
+            onPress={() => router.push(`/circle/${currentGroup.id}/hub` as any)}
             style={styles.primaryCtaBtn}
             accessibilityLabel="Explore flight and villa options"
           >
             <Text style={styles.primaryCtaBtnText}>
-              Explore flight & stay options
+              Open Living Manifest & Hub
             </Text>
           </TouchableOpacity>
         </View>

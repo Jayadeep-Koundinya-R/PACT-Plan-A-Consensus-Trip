@@ -1,117 +1,226 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated , Platform } from 'react-native';
+import { View, Text, StyleSheet, Animated, Platform } from 'react-native';
 import { Shield } from 'lucide-react-native';
 import { fontDisplay, fontUIBold } from '../theme/typography';
+import * as Haptics from 'expo-haptics';
 
 interface WaxSealStampProps {
   label?: string;
   sublabel?: string;
   variant?: 'crimson' | 'emerald';
+  size?: 'normal' | 'large';
+  onImpact?: () => void;
 }
 
 export const WaxSealStamp: React.FC<WaxSealStampProps> = ({
   label = 'SEALED',
   sublabel = 'APPROVED',
-  variant = 'crimson'
+  variant = 'crimson',
+  size = 'normal',
+  onImpact
 }) => {
-  const scaleAnim = useRef(new Animated.Value(2.4)).current;
+  const scaleAnim = useRef(new Animated.Value(2.8)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
-  const rotateAnim = useRef(new Animated.Value(-24)).current;
+  const rotateAnim = useRef(new Animated.Value(-28)).current;
+  const shockwaveScale = useRef(new Animated.Value(0.8)).current;
+  const shockwaveOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    let isCancelled = false;
+
+    // 1. Heavy slam descent
     Animated.parallel([
       Animated.timing(opacityAnim, {
         toValue: 1,
-        duration: 70,
+        duration: 90,
         useNativeDriver: Platform.OS !== 'web'
       }),
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        tension: 150,
-        friction: 5,
+      Animated.timing(scaleAnim, {
+        toValue: 0.94,
+        duration: 180,
         useNativeDriver: Platform.OS !== 'web'
       }),
-      Animated.spring(rotateAnim, {
-        toValue: -10,
-        tension: 130,
-        friction: 6,
+      Animated.timing(rotateAnim, {
+        toValue: -8,
+        duration: 180,
         useNativeDriver: Platform.OS !== 'web'
       })
-    ]).start();
+    ]).start(({ finished }) => {
+      if (!finished || isCancelled) return;
+
+      // Tactile heavy impact trigger
+      try {
+        if (Platform.OS !== 'web') {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+        }
+      } catch (_e) {}
+
+      if (onImpact && !isCancelled) onImpact();
+
+      // 2. Shockwave burst + Spring recoil settle
+      Animated.parallel([
+        Animated.spring(scaleAnim, {
+          toValue: 1.0,
+          friction: 4,
+          tension: 160,
+          useNativeDriver: Platform.OS !== 'web'
+        }),
+        Animated.spring(rotateAnim, {
+          toValue: -12,
+          friction: 5,
+          tension: 140,
+          useNativeDriver: Platform.OS !== 'web'
+        }),
+        // Shockwave expansion
+        Animated.sequence([
+          Animated.timing(shockwaveOpacity, {
+            toValue: 0.8,
+            duration: 40,
+            useNativeDriver: Platform.OS !== 'web'
+          }),
+          Animated.timing(shockwaveScale, {
+            toValue: 1.9,
+            duration: 320,
+            useNativeDriver: Platform.OS !== 'web'
+          }),
+          Animated.timing(shockwaveOpacity, {
+            toValue: 0,
+            duration: 160,
+            useNativeDriver: Platform.OS !== 'web'
+          })
+        ])
+      ]).start();
+    });
+
+    return () => {
+      isCancelled = true;
+      scaleAnim.stopAnimation();
+      opacityAnim.stopAnimation();
+      rotateAnim.stopAnimation();
+      shockwaveScale.stopAnimation();
+      shockwaveOpacity.stopAnimation();
+    };
   }, []);
 
+
   const spin = rotateAnim.interpolate({
-    inputRange: [-24, 0],
-    outputRange: ['-24deg', '0deg']
+    inputRange: [-28, 0],
+    outputRange: ['-28deg', '0deg']
   });
 
   const isEmerald = variant === 'emerald';
-  const outerBg = isEmerald ? '#3A241E' : '#831843';
-  const outerBorder = isEmerald ? '#22C58B' : '#EF4444';
-  const shadowCol = isEmerald ? '#22C58B' : '#DC2626';
+  const outerBg = isEmerald ? '#1E3A2F' : '#6B1123';
+  const outerBorder = isEmerald ? '#3DE0A0' : '#EF4444';
+  const shadowCol = isEmerald ? '#3DE0A0' : '#DC2626';
+  const accentColor = isEmerald ? '#3DE0A0' : '#F59E0B';
+
+  const isLarge = size === 'large';
+  const ringSize = isLarge ? 92 : 68;
+  const ringRadius = ringSize / 2;
+  const innerSize = isLarge ? 80 : 58;
 
   return (
-    <Animated.View
-      style={[
-        styles.sealWrapper,
-        {
-          opacity: opacityAnim,
-          transform: [{ scale: scaleAnim }, { rotate: spin }]
-        }
-      ]}
-    >
-      <View
+    <View style={styles.sealWrapper} pointerEvents="none">
+      {/* Expanding shockwave ring on heavy impact */}
+      <Animated.View
         style={[
-          styles.outerWaxRing,
+          styles.shockwaveRing,
           {
-            backgroundColor: outerBg,
+            width: ringSize,
+            height: ringSize,
+            borderRadius: ringRadius,
             borderColor: outerBorder,
-            shadowColor: shadowCol
+            opacity: shockwaveOpacity,
+            transform: [{ scale: shockwaveScale }]
+          }
+        ]}
+      />
+
+      <Animated.View
+        accessibilityElementsHidden={true}
+        importantForAccessibility="no-hide-descendants"
+        style={[
+          styles.stampBody,
+          {
+            opacity: opacityAnim,
+            transform: [{ scale: scaleAnim }, { rotate: spin }]
           }
         ]}
       >
-        <View style={styles.dashedRing}>
-          <View style={styles.centerSeal}>
-            <Shield size={11} color="#F59E0B" strokeWidth={2.5} />
-            <Text style={styles.sealMainText}>{label}</Text>
-            <Text style={styles.sealSubText}>{sublabel}</Text>
+
+        <View
+          style={[
+            styles.outerWaxRing,
+            {
+              width: ringSize,
+              height: ringSize,
+              borderRadius: ringRadius,
+              backgroundColor: outerBg,
+              borderColor: outerBorder,
+              shadowColor: shadowCol
+            }
+          ]}
+        >
+          <View
+            style={[
+              styles.dashedRing,
+              {
+                width: innerSize,
+                height: innerSize,
+                borderRadius: innerSize / 2,
+                borderColor: accentColor
+              }
+            ]}
+          >
+            <View style={styles.centerSeal}>
+              <Shield size={isLarge ? 16 : 12} color={accentColor} strokeWidth={2.5} />
+              <Text style={[styles.sealMainText, { color: accentColor, fontSize: isLarge ? 12 : 9.5 }]}>
+                {label}
+              </Text>
+              <Text style={[styles.sealSubText, { fontSize: isLarge ? 8.5 : 7.2 }]}>
+                {sublabel}
+              </Text>
+            </View>
           </View>
         </View>
-      </View>
-    </Animated.View>
+      </Animated.View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   sealWrapper: {
     position: 'absolute',
-    top: 8,
-    right: 12,
-    zIndex: 30,
-    pointerEvents: 'none'
+    top: 6,
+    right: 10,
+    zIndex: 40,
+    pointerEvents: 'none',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  shockwaveRing: {
+    position: 'absolute',
+    borderWidth: 2
+  },
+  stampBody: {
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   outerWaxRing: {
-    width: 66,
-    height: 66,
-    borderRadius: 33,
-    borderWidth: 2.5,
+    borderWidth: 3,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.6,
-    shadowRadius: 8,
-    elevation: 8
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.75,
+    shadowRadius: 10,
+    elevation: 10
   },
   dashedRing: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
     borderWidth: 1.5,
-    borderColor: '#F59E0B',
     borderStyle: 'dashed',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.28)'
+    backgroundColor: 'rgba(0, 0, 0, 0.35)'
   },
   centerSeal: {
     alignItems: 'center',
@@ -119,17 +228,15 @@ const styles = StyleSheet.create({
   },
   sealMainText: {
     fontFamily: fontDisplay,
-    fontSize: 9,
     fontWeight: '900',
-    color: '#F59E0B',
-    letterSpacing: 1.1,
-    marginTop: 1
+    letterSpacing: 1.2,
+    marginTop: 2
   },
   sealSubText: {
     fontFamily: fontUIBold,
-    fontSize: 7,
     color: '#FDE68A',
-    letterSpacing: 0.8,
-    fontWeight: '700'
+    letterSpacing: 0.9,
+    fontWeight: '700',
+    marginTop: 1
   }
 });

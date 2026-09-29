@@ -11,6 +11,7 @@ export interface PactNotification {
   timestamp: string;
   read: boolean;
   actionUrl?: string;
+  targetTab?: 'consensus' | 'manifest' | 'vault';
   privacyTag?: string;
 }
 
@@ -22,9 +23,18 @@ interface NotificationState {
   openNotificationCenter: () => void;
   closeNotificationCenter: () => void;
   addNotification: (notification: Omit<PactNotification, 'id' | 'timestamp' | 'read'>) => boolean;
+  markAsRead: (id: string) => void;
   markAllAsRead: () => void;
   clearNotifications: () => void;
   dismissToast: () => void;
+  syncCircleNotifications: (params: {
+    circleId: string;
+    circleName?: string;
+    phase: 'consensus' | 'manifest' | 'vault';
+    lockedCount?: number;
+    totalCount?: number;
+    winningDestination?: string;
+  }) => void;
   addLifecycleNotification: (stage: 'pre-voting' | 'post-consensus' | 'departure', deadlineDate?: string) => void;
   addPreTripNotification: (circleName: string, deadlineDate?: string) => void;
   addDepartureNotification: (circleName: string) => void;
@@ -70,9 +80,111 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     return true;
   },
 
+  markAsRead: (id: string) =>
+    set((state) => ({
+      notifications: state.notifications.map((n) => (n.id === id ? { ...n, read: true } : n))
+    })),
+
   markAllAsRead: () => set((state) => ({ notifications: state.notifications.map((n) => ({ ...n, read: true })) })),
   clearNotifications: () => set({ notifications: [] }),
   dismissToast: () => set({ activeToast: null }),
+
+  syncCircleNotifications: (params) => {
+    const { circleId, phase, lockedCount = 4, totalCount = 5, winningDestination = 'Goa' } = params;
+    const currentList = get().notifications;
+
+    let targetNotif: Omit<PactNotification, 'id' | 'timestamp' | 'read'>;
+    const phaseNotifId = `circle-phase-${circleId}`;
+
+    if (phase === 'consensus') {
+      const remaining = Math.max(0, Math.ceil(totalCount * 0.7) - lockedCount);
+      const remainingText =
+        remaining <= 0
+          ? 'Supermajority reached'
+          : `${remaining} vote${remaining > 1 ? 's' : ''} needed for Supermajority`;
+      targetNotif = {
+        type: 'consensus',
+        title: 'Silent Ballot Active',
+        body: `Silent Ballot Active • ${lockedCount}/${totalCount} members voted • ${remainingText}.`,
+        targetTab: 'consensus',
+        actionUrl: `/circle/${circleId}/silent-ballot`,
+        privacyTag: 'Silent Voting Active'
+      };
+    } else {
+      targetNotif = {
+        type: 'consensus',
+        title: 'PACT Sealed!',
+        body: 'PACT Sealed! • Your Living Trip Manifest and verified transport contacts are ready.',
+        targetTab: 'manifest',
+        actionUrl: `/circle/${circleId}/hub`,
+        privacyTag: 'Consensus Reached'
+      };
+    }
+
+    const safetyNotifId = `safety-advisory-${circleId}`;
+    const safetyNotif: Omit<PactNotification, 'id' | 'timestamp' | 'read'> = {
+      type: 'ai',
+      title: 'Gemini Advisory',
+      body: `Gemini Advisory • Group travel hotline active for ${winningDestination} region (Dial 112 for local emergency).`,
+      targetTab: 'manifest',
+      privacyTag: 'Group Safety Active'
+    };
+
+    const existingPhase = currentList.find((n) => n.id === phaseNotifId);
+    const existingSafety = currentList.find((n) => n.id === safetyNotifId);
+
+    const isPhaseSame =
+      existingPhase &&
+      existingPhase.title === targetNotif.title &&
+      existingPhase.body === targetNotif.body &&
+      existingPhase.targetTab === targetNotif.targetTab;
+
+    const isSafetySame =
+      existingSafety &&
+      existingSafety.title === safetyNotif.title &&
+      existingSafety.body === safetyNotif.body &&
+      existingSafety.targetTab === safetyNotif.targetTab;
+
+    if (isPhaseSame && isSafetySame) {
+      return; // No-op: state already in sync, eliminates redundant re-render cascades
+    }
+
+    const updated = [...currentList];
+
+    // Upsert phase notification
+    const existingPhaseIdx = updated.findIndex((n) => n.id === phaseNotifId);
+    if (existingPhaseIdx >= 0) {
+      updated[existingPhaseIdx] = {
+        ...updated[existingPhaseIdx],
+        ...targetNotif
+      };
+    } else {
+      updated.unshift({
+        ...targetNotif,
+        id: phaseNotifId,
+        timestamp: 'Just now',
+        read: false
+      });
+    }
+
+    // Upsert safety advisory notification
+    const existingSafetyIdx = updated.findIndex((n) => n.id === safetyNotifId);
+    if (existingSafetyIdx >= 0) {
+      updated[existingSafetyIdx] = {
+        ...updated[existingSafetyIdx],
+        ...safetyNotif
+      };
+    } else {
+      updated.push({
+        ...safetyNotif,
+        id: safetyNotifId,
+        timestamp: 'Active',
+        read: false
+      });
+    }
+
+    set({ notifications: updated });
+  },
 
   addLifecycleNotification: (stage, deadlineDate = 'Oct 20') => {
     let title = '';

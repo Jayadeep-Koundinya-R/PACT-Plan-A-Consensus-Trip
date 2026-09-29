@@ -7,7 +7,7 @@ import { NotificationToast } from '../../../src/components/NotificationToast';
 import { CircleRouteGuard } from '../../../src/components/common';
 import { SkeletonLoader } from '../../../src/components/SkeletonLoader';
 import { EmptyState } from '../../../src/components/EmptyState';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -16,7 +16,8 @@ import {
   StyleSheet,
   SafeAreaView,
   Platform,
-  Alert
+  Alert,
+  Animated
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Svg, { Circle, Path } from 'react-native-svg';
@@ -51,11 +52,23 @@ import {
   Pin,
   MapPin,
   Calendar,
-  DollarSign
+  DollarSign,
+  Layers,
+  Compass,
+  Award,
+  Image as ImageIcon,
+  Camera
 } from 'lucide-react-native';
 import { LivingTripManifest } from '../../../src/components/LivingTripManifest';
 import { VoiceMemoriesDrawer } from '../../../src/components/VoiceMemoriesDrawer';
 import { SafeTravelSection } from '../../../src/components/SafeTravelSection';
+import { MemoriesPhotoGrid } from '../../../src/components/memories/MemoriesPhotoGrid';
+import { useDemoMode } from '../../../src/hooks/useDemoMode';
+
+
+const EMPTY_GROUPS: any[] = [];
+const EMPTY_OPTIONS: any[] = [];
+const EMPTY_PHOTOS: any[] = [];
 
 export default function PactCirclesHub() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -66,12 +79,37 @@ export default function PactCirclesHub() {
 
   const router = useRouter();
   const haptics = usePactHaptics();
-  const { groups = [], activeGroupId, activeDemoScenario = 'early_bird', fetchGroupDataFromCloud, setDemoScenario, tripOptions = [], formatCurrency } = useGatherlyStore();
+
+  // Selective store subscriptions to eliminate cascading re-renders
+  const groups = useGatherlyStore((s) => s.groups) || EMPTY_GROUPS;
+  const activeGroupId = useGatherlyStore((s) => s.activeGroupId);
+  const activeDemoScenario = useGatherlyStore((s) => s.activeDemoScenario) || 'early_bird';
+  const fetchGroupDataFromCloud = useGatherlyStore((s) => s.fetchGroupDataFromCloud);
+  const setDemoScenario = useGatherlyStore((s) => s.setDemoScenario);
+  const tripOptions = useGatherlyStore((s) => s.tripOptions) || EMPTY_OPTIONS;
+  const formatCurrency = useGatherlyStore((s) => s.formatCurrency);
+  const subscriptionPlan = useGatherlyStore((s) => s.subscriptionPlan);
 
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const fetchedRef = useRef<string | null>(null);
 
   const [showVoiceDrawer, setShowVoiceDrawer] = useState(false);
+
+  type HubPhase = 'consensus' | 'manifest' | 'vault';
+  const [activePhaseOverride, setActivePhaseOverride] = useState<HubPhase | null>(null);
+  const { isDemoMode } = useDemoMode();
+
+  const memoryPhotosMap = useGatherlyStore((s) => s.memoryPhotos);
+  const memoryPhotos = useMemo(() => {
+    if (!memoryPhotosMap) return EMPTY_PHOTOS;
+    const direct = memoryPhotosMap[id as string];
+    if (direct && Array.isArray(direct)) return direct;
+    if (id === 'circle-college-reunion-2026' && Array.isArray(memoryPhotosMap['circle-college-reunion-2026'])) {
+      return memoryPhotosMap['circle-college-reunion-2026'];
+    }
+    return EMPTY_PHOTOS;
+  }, [memoryPhotosMap, id]);
 
   const activeUserId = getActiveUserId();
   const activeUserName = getActiveUserName();
@@ -79,6 +117,11 @@ export default function PactCirclesHub() {
   useEffect(() => {
     let mounted = true;
     if (id && id !== 'undefined' && id !== '[id]') {
+      if (fetchedRef.current === id) {
+        setIsLoading(false);
+        return;
+      }
+      fetchedRef.current = id;
       setIsLoading(true);
       setLoadError(null);
       fetchGroupDataFromCloud(id)
@@ -97,77 +140,105 @@ export default function PactCirclesHub() {
     return () => {
       mounted = false;
     };
-  }, [id]);
+  }, [id, fetchGroupDataFromCloud]);
 
-  const circleFromStore = useCircleStore((s) => s.getCircle(id as string || 'circle-college-reunion-2026'));
-  const { isConnected, lastEvent, simulateSecondDeviceSubmission } = useCircleRealtime(id as string || 'circle-college-reunion-2026');
+  const targetCircleId = (id as string) || 'circle-college-reunion-2026';
+  const circleFromStore = useCircleStore((s) => s.circles.find((c) => c.id === targetCircleId));
+  const { isConnected, lastEvent, simulateSecondDeviceSubmission } = useCircleRealtime(targetCircleId);
 
   const rawId = (id && id !== 'undefined') ? id : undefined;
-  const currentGroup =
-    (rawId ? groups.find((g) => g && g.id === rawId) : undefined) ||
-    (rawId && circleFromStore ? {
-      id: circleFromStore.id,
-      name: circleFromStore.name,
-      inviteCode: circleFromStore.inviteCode,
-      organizerId: circleFromStore.organizerId,
-      organizerName: circleFromStore.organizerName,
-      status: circleFromStore.status,
-      totalMembersCount: circleFromStore.totalMembersCount,
-      hasPro: circleFromStore.hasPro
-    } : undefined) ||
-    (activeGroupId && activeGroupId !== 'undefined' ? groups.find((g) => g && g.id === activeGroupId) : undefined) ||
-    (circleFromStore ? {
-      id: circleFromStore.id,
-      name: circleFromStore.name,
-      inviteCode: circleFromStore.inviteCode,
-      organizerId: circleFromStore.organizerId,
-      organizerName: circleFromStore.organizerName,
-      status: circleFromStore.status,
-      totalMembersCount: circleFromStore.totalMembersCount,
-      hasPro: circleFromStore.hasPro
-    } : undefined) ||
-    (groups.length > 0 ? groups[0] : undefined) || {
-      id: (rawId && rawId !== 'undefined') ? rawId : 'circle-college-reunion-2026',
-      name: 'Trip Circle',
-      inviteCode: 'PACT-CODE',
-      organizerId: activeUserId || 'user-maya-001',
-      status: 'collecting' as const,
-      totalMembersCount: 5,
-      hasPro: false
-    };
+  const currentGroup = useMemo(() => {
+    return (
+      (rawId ? groups.find((g) => g && g.id === rawId) : undefined) ||
+      (rawId && circleFromStore ? {
+        id: circleFromStore.id,
+        name: circleFromStore.name,
+        inviteCode: circleFromStore.inviteCode,
+        organizerId: circleFromStore.organizerId,
+        organizerName: circleFromStore.organizerName,
+        status: circleFromStore.status,
+        totalMembersCount: circleFromStore.totalMembersCount,
+        hasPro: circleFromStore.hasPro,
+        currencyCode: circleFromStore.currencyCode
+      } : undefined) ||
+      (activeGroupId && activeGroupId !== 'undefined' ? groups.find((g) => g && g.id === activeGroupId) : undefined) ||
+      (circleFromStore ? {
+        id: circleFromStore.id,
+        name: circleFromStore.name,
+        inviteCode: circleFromStore.inviteCode,
+        organizerId: circleFromStore.organizerId,
+        organizerName: circleFromStore.organizerName,
+        status: circleFromStore.status,
+        totalMembersCount: circleFromStore.totalMembersCount,
+        hasPro: circleFromStore.hasPro,
+        currencyCode: circleFromStore.currencyCode
+      } : undefined) ||
+      (groups.length > 0 ? groups[0] : undefined) || {
+        id: (rawId && rawId !== 'undefined') ? rawId : 'circle-college-reunion-2026',
+        name: 'Trip Circle',
+        inviteCode: 'PACT-CODE',
+        organizerId: activeUserId || 'user-maya-001',
+        status: 'collecting' as const,
+        totalMembersCount: 5,
+        hasPro: false
+      }
+    );
+  }, [rawId, groups, circleFromStore, activeGroupId, activeUserId]);
 
-  const isProCircle = Boolean((currentGroup as any)?.hasPro || (currentGroup as any)?.has_pro || circleFromStore?.hasPro || useGatherlyStore.getState().subscriptionPlan !== 'free');
+  const isProCircle = Boolean((currentGroup as any)?.hasPro || (currentGroup as any)?.has_pro || circleFromStore?.hasPro || subscriptionPlan !== 'free');
+
+  const defaultPhase: HubPhase = useMemo(() => {
+    const status = currentGroup?.status as string | undefined;
+    if (status === 'archived') return 'vault';
+    if (status === 'finalized') return 'manifest';
+    return 'consensus';
+  }, [currentGroup?.status]);
+
+  const currentPhase: HubPhase = activePhaseOverride || defaultPhase;
 
   const [nudged, setNudged] = useState<Record<string, boolean>>({});
   const [bulkNudged, setBulkNudged] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
   const [isAddPeopleOpen, setIsAddPeopleOpen] = useState(false);
   const [isQROpen, setIsQROpen] = useState(false);
+  const copyTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    };
+  }, []);
+
   const { shareToWhatsApp, shareNudge, copyInviteCode } = useShareInvite();
-  const { openNotificationCenter, notifications } = useNotificationStore();
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const openNotificationCenter = useNotificationStore((s) => s.openNotificationCenter);
+  const markAllAsRead = useNotificationStore((s) => s.markAllAsRead);
+  const syncCircleNotifications = useNotificationStore((s) => s.syncCircleNotifications);
+  const notifications = useNotificationStore((s) => s.notifications);
+  const unreadCount = useMemo(() => notifications.filter((n) => !n.read).length, [notifications]);
 
   const isDemoCircle = currentGroup?.id === 'circle-college-reunion-2026';
 
-  const storeMembers = circleFromStore?.members?.map(m => {
-    const isCurrentUser = m.userId === activeUserId || m.name.toLowerCase() === activeUserName.toLowerCase();
-    const isOrganizer = m.userId === (circleFromStore.organizerId || currentGroup.organizerId) || m.name.includes('(Organizer)');
-    let cleanName = m.name.replace(/\s*\(You\)/gi, '').replace(/\s*\(Organizer\)/gi, '').trim();
-    let displayName = cleanName;
-    if (isOrganizer && isCurrentUser) {
-      displayName = `${cleanName} (Organizer, You)`;
-    } else if (isOrganizer) {
-      displayName = `${cleanName} (Organizer)`;
-    } else if (isCurrentUser) {
-      displayName = `${cleanName} (You)`;
-    }
-    return {
-      userId: m.userId,
-      name: displayName,
-      rawName: cleanName,
-      status: m.status
-    };
-  });
+  const storeMembers = useMemo(() => {
+    return circleFromStore?.members?.map((m) => {
+      const isCurrentUser = m.userId === activeUserId || m.name.toLowerCase() === activeUserName.toLowerCase();
+      const isOrganizer = m.userId === (circleFromStore.organizerId || currentGroup.organizerId) || m.name.includes('(Organizer)');
+      let cleanName = m.name.replace(/\s*\(You\)/gi, '').replace(/\s*\(Organizer\)/gi, '').trim();
+      let displayName = cleanName;
+      if (isOrganizer && isCurrentUser) {
+        displayName = `${cleanName} (Organizer, You)`;
+      } else if (isOrganizer) {
+        displayName = `${cleanName} (Organizer)`;
+      } else if (isCurrentUser) {
+        displayName = `${cleanName} (You)`;
+      }
+      return {
+        userId: m.userId,
+        name: displayName,
+        rawName: cleanName,
+        status: m.status
+      };
+    });
+  }, [circleFromStore?.members, circleFromStore?.organizerId, currentGroup?.organizerId, activeUserId, activeUserName]);
 
   const [localMembersOverride, setLocalMembersOverride] = useState<any[] | null>(null);
 
@@ -205,6 +276,46 @@ export default function PactCirclesHub() {
   const waitingMembers = demoMembers.filter((m: any) => m.status === 'waiting');
   const openSeatsCount = Math.max(0, targetCapacity - demoMembers.length);
 
+  // Animated emerald glow aura for 70%+ Supermajority milestone
+  const supermajorityGlow = useRef(new Animated.Value(0.4)).current;
+
+  useEffect(() => {
+    if (pct >= 0.7) {
+      const animation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(supermajorityGlow, {
+            toValue: 0.95,
+            duration: 1100,
+            useNativeDriver: Platform.OS !== 'web'
+          }),
+          Animated.timing(supermajorityGlow, {
+            toValue: 0.35,
+            duration: 1100,
+            useNativeDriver: Platform.OS !== 'web'
+          })
+        ])
+      );
+      animation.start();
+      return () => animation.stop();
+    } else {
+      supermajorityGlow.setValue(0);
+    }
+  }, [pct]);
+
+  // Synchronize dynamic contextual notifications with circle state
+  useEffect(() => {
+    if (!currentGroup?.id) return;
+    const destName = (tripOptions && tripOptions.length > 0 ? (tripOptions[0] as any).destinationName || tripOptions[0].name : '') || currentGroup.name || 'Goa';
+    syncCircleNotifications({
+      circleId: currentGroup.id,
+      circleName: currentGroup.name,
+      phase: currentPhase,
+      lockedCount,
+      totalCount,
+      winningDestination: destName
+    });
+  }, [currentGroup?.id, currentGroup?.name, currentPhase, lockedCount, totalCount, tripOptions, syncCircleNotifications]);
+
   const initials = (name: string) => name.slice(0, 2).toUpperCase();
 
   const handleNudge = (name: string) => {
@@ -220,12 +331,16 @@ export default function PactCirclesHub() {
     setBulkNudged(true);
     const code = currentGroup.inviteCode || 'GOA-4F82';
     const needed = Math.max(1, 3 - lockedCount);
-    await shareNudge({
-      groupName: currentGroup.name || 'Trip Circle',
-      inviteCode: code,
-      lockedCount,
-      neededCount: needed
-    });
+    try {
+      await shareNudge({
+        groupName: currentGroup.name || 'Trip Circle',
+        inviteCode: code,
+        lockedCount,
+        neededCount: needed
+      });
+    } catch (err) {
+      console.warn('[Hub] WhatsApp nudge warning:', err);
+    }
   };
 
   const handleCopyCode = async () => {
@@ -234,11 +349,13 @@ export default function PactCirclesHub() {
     try {
       await copyInviteCode(code);
       setCopiedCode(true);
-      setTimeout(() => setCopiedCode(false), 2000);
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+      copyTimerRef.current = setTimeout(() => setCopiedCode(false), 2000);
     } catch (err) {
       console.warn('[Hub] Failed to copy invite code:', err);
     }
   };
+
 
   const handleShareWhatsApp = async () => {
     haptics.action();
@@ -271,16 +388,36 @@ export default function PactCirclesHub() {
 
   // State-Dependent Dominant Action Handler
   const renderDominantCTA = () => {
-    const tripStatus = currentGroup.status || 'collecting';
-
-    if (tripStatus === 'finalized') {
+    if (currentPhase === 'vault') {
       return (
         <View style={styles.bottomBar}>
           <TouchableOpacity
             activeOpacity={0.88}
             onPress={() => {
               haptics.action();
-              router.push(`/circle/${currentGroup.id}/brief` as any);
+              router.push(`/circle/${currentGroup?.id || id}/brief` as any);
+            }}
+            style={[styles.primaryActionButton, { backgroundColor: '#3DE0A0', borderColor: '#3DE0A0' }]}
+            accessibilityLabel="Export Final Trip Brief"
+          >
+            <FileText size={18} color="#052E20" />
+            <Text style={[styles.primaryActionButtonText, { color: '#052E20' }]}>
+              Export Final Trip Brief
+            </Text>
+          </TouchableOpacity>
+          <Text style={styles.ctaSubtext}>Sealed consensus & all group memory records.</Text>
+        </View>
+      );
+    }
+
+    if (currentPhase === 'manifest') {
+      return (
+        <View style={styles.bottomBar}>
+          <TouchableOpacity
+            activeOpacity={0.88}
+            onPress={() => {
+              haptics.action();
+              router.push(`/circle/${currentGroup?.id || id}/brief` as any);
             }}
             style={[styles.primaryActionButton, { backgroundColor: '#3DE0A0', borderColor: '#3DE0A0' }]}
             accessibilityLabel="View Final Trip Brief"
@@ -290,10 +427,11 @@ export default function PactCirclesHub() {
               View Final Trip Brief
             </Text>
           </TouchableOpacity>
-          <Text style={styles.ctaSubtext}>Trip consensus is locked and sealed.</Text>
+          <Text style={styles.ctaSubtext}>Trip consensus is locked. Living logistics active.</Text>
         </View>
       );
     }
+
 
     if (!isCurrentUserLocked) {
       return (
@@ -302,7 +440,7 @@ export default function PactCirclesHub() {
             activeOpacity={0.88}
             onPress={() => {
               haptics.tap();
-              router.push(`/circle/${currentGroup.id}/preferences` as any);
+              router.push(`/circle/${currentGroup?.id || id}/preferences` as any);
             }}
             style={styles.primaryActionButton}
             accessibilityLabel="Set My Preferences"
@@ -342,7 +480,7 @@ export default function PactCirclesHub() {
           activeOpacity={0.88}
           onPress={() => {
             haptics.action();
-            router.push(`/circle/${currentGroup.id}/silent-ballot` as any);
+            router.push(`/circle/${currentGroup?.id || id}/silent-ballot` as any);
           }}
           style={styles.primaryActionButton}
           accessibilityLabel="Proceed to Silent Ballot"
@@ -397,94 +535,133 @@ export default function PactCirclesHub() {
     <SafeAreaView style={styles.outerContainer}>
       <View style={styles.phoneFrame}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          {/* Status and Live Event Bar (Clean, single-header layout) */}
-          <View style={styles.headerMetaRow}>
-            <View
-              style={[
-                styles.realtimePill,
-                !isConnected && styles.realtimePillOffline
-              ]}
-              accessibilityLabel="Live Realtime Sync Indicator"
-            >
-              <View style={[
-                styles.realtimeDot,
-                isConnected && styles.realtimeDotConnected
-              ]} />
-              <Text style={[
-                styles.realtimeText,
-                !isConnected && styles.realtimeTextOffline
-              ]}>
-                {isConnected ? 'LIVE SYNC' : 'OFFLINE'}
-              </Text>
+          {/* Top Header Row with Circle Title and Navigation */}
+          <View style={styles.headerContainer}>
+            <View style={styles.headerTopRow}>
+              <View style={styles.headerTitleGroup}>
+                <TouchableOpacity
+                  onPress={() => router.push('/(tabs)/home')}
+                  activeOpacity={0.7}
+                  style={styles.backHomeBtn}
+                  accessibilityLabel="Return to circles"
+                >
+                  <ArrowLeft size={18} color="#F4F3F0" />
+                </TouchableOpacity>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.tripTitle} numberOfLines={1}>
+                    {currentGroup.name || 'Trip Circle'}
+                  </Text>
+                  <Text style={styles.tripSubtitle}>
+                    {currentGroup.inviteCode} • {totalCount} travelers
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.headerRightActions}>
+                <TouchableOpacity
+                  onPress={() => {
+                    haptics.tap();
+                    openNotificationCenter();
+                    markAllAsRead();
+                  }}
+                  activeOpacity={0.7}
+                  style={styles.headerIconBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"}
+                >
+                  <Bell size={16} color="#F4F3F0" />
+                  {unreadCount > 0 && <View style={styles.hubNotifDot} />}
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => router.push(`/circle/${currentGroup.id}/chat` as any)}
+                  activeOpacity={0.7}
+                  style={styles.headerIconBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel="Circle Chat"
+                >
+                  <MessageSquare size={16} color="#F4F3F0" />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => setIsAddPeopleOpen(true)}
+                  activeOpacity={0.7}
+                  style={styles.headerIconBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel="Add People"
+                >
+                  <UserPlus size={16} color="#3DE0A0" />
+                </TouchableOpacity>
+              </View>
             </View>
-
-            {lastEvent ? (
-              <View style={styles.realtimeEventBadge}>
-                <Zap size={11} color="#3DE0A0" />
-                <Text style={styles.realtimeEventText} numberOfLines={1}>
-                  {lastEvent}
-                </Text>
-              </View>
-            ) : (
-              <View style={styles.realtimeEventBadge}>
-                <Clock size={11} color="#8B8D98" />
-                <Text style={styles.realtimeEventText}>
-                  {isEarlyBird ? 'Phase 1: Collecting Preferences' : 'Phase 2: Silent Voting Open'}
-                </Text>
-              </View>
-            )}
-
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => {
-                haptics.tap();
-                setShowVoiceDrawer(true);
-              }}
-              style={styles.voiceMemoriesPill}
-              accessibilityLabel="Open Voice Memories"
-            >
-              <Mic size={13} color="#FF5A5F" />
-              <Text style={styles.voiceMemoriesPillText}>🎙️ Voice Memories</Text>
-            </TouchableOpacity>
           </View>
 
-          {/* Pro Circle Inheritance Card by RevenueCat */}
-          <ProCircleInheritanceCard
-            hasPro={isProCircle}
-            organizerName={currentGroup.organizerName || 'Maya'}
-            totalMembersCount={totalCount}
-          />
-
-          {/* Living Trip Manifest Component */}
-          {(() => {
-            const leadingOption: any = tripOptions[0] || {
-              destinationName: 'Goa, India',
-              destination: 'Goa, India',
-              dates: 'Oct 14 – Oct 19, 2026',
-              dateStart: 'Oct 14',
-              dateEnd: 'Oct 19',
-              budgetPerPerson: 850
-            };
-            const dest = leadingOption.destinationName || leadingOption.destination || leadingOption.destinationType || leadingOption.name || 'Goa, India';
-            const dates = leadingOption.dates || (leadingOption.dateStart && leadingOption.dateEnd ? `${leadingOption.dateStart} – ${leadingOption.dateEnd}` : 'Oct 14 – Oct 19, 2026');
-            const maxBudget = leadingOption.budgetPerPerson || leadingOption.pricePerPerson || 850;
-
-            return (
-              <LivingTripManifest
-                destination={dest}
-                dates={dates}
-                budget={maxBudget}
-                currencyCode={(currentGroup as any).currencyCode || 'USD'}
-                status={isEarlyBird ? 'Collecting Preferences' : 'Consensus Active'}
-                totalMembers={totalCount}
-                lockedMembers={lockedCount}
+          {/* Sticky 3-Phase Circle Hub Switcher */}
+          <View style={styles.phaseSwitcherContainer} accessibilityRole="tablist">
+            <View style={styles.phaseSwitcher}>
+              <TouchableOpacity
+                activeOpacity={0.8}
                 onPress={() => {
                   haptics.tap();
-                  router.push(`/circle/${currentGroup.id}/preferences` as any);
+                  setActivePhaseOverride('consensus');
                 }}
-              />
-            );
-          })()}
+                style={[
+                  styles.phaseTab,
+                  currentPhase === 'consensus' && styles.phaseTabActive
+                ]}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: currentPhase === 'consensus' }}
+                accessibilityLabel="Phase 1: Consensus Room"
+              >
+                <Text style={[styles.phaseTabText, currentPhase === 'consensus' && styles.phaseTabTextActive]}>
+                  🗳️ 1. Consensus
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => {
+                  haptics.tap();
+                  setActivePhaseOverride('manifest');
+                }}
+                style={[
+                  styles.phaseTab,
+                  currentPhase === 'manifest' && styles.phaseTabActive
+                ]}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: currentPhase === 'manifest' }}
+                accessibilityLabel="Phase 2: Living Trip Manifest"
+              >
+                <Text style={[styles.phaseTabText, currentPhase === 'manifest' && styles.phaseTabTextActive]}>
+                  📋 2. Manifest
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => {
+                  haptics.tap();
+                  setActivePhaseOverride('vault');
+                }}
+                style={[
+                  styles.phaseTab,
+                  currentPhase === 'vault' && styles.phaseTabActive
+                ]}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: currentPhase === 'vault' }}
+                accessibilityLabel="Phase 3: Vault & Memories"
+              >
+                <Text style={[styles.phaseTabText, currentPhase === 'vault' && styles.phaseTabTextActive]}>
+                  📸 3. Vault & Memories
+                </Text>
+              </TouchableOpacity>
+            </View>
+            {isDemoMode && (
+              <Text style={styles.phaseDemoHint}>
+                ⚡ Demo Fast-Forward: Tap any phase above to preview all 3 acts
+              </Text>
+            )}
+          </View>
 
           {loadError && (
             <View style={styles.errorBanner}>
@@ -492,384 +669,660 @@ export default function PactCirclesHub() {
             </View>
           )}
 
-          {/* Voice Memories Drawer Component */}
-          <VoiceMemoriesDrawer
-            visible={showVoiceDrawer}
-            onClose={() => setShowVoiceDrawer(false)}
-            groupId={currentGroup.id}
-          />
-
-          {/* Phase Hero Status Banner */}
-          {isEarlyBird ? (
-            <View style={styles.earlyBirdCard}>
-              <View style={styles.earlyBirdBadgeRow}>
-                <View style={styles.earlyBirdTag}>
-                  <Zap size={13} color="#3DE0A0" fill="#3DE0A0" />
-                  <Text style={styles.earlyBirdTagText}>Early bird phase</Text>
-                </View>
-                <Text style={styles.earlyBirdCountText}>{lockedCount} of {totalCount} locked in</Text>
-              </View>
-
-              <Text style={styles.earlyBirdTitle}>
-                {isCurrentUserLocked ? 'Your inputs are sealed' : 'Lead the charge'}
-              </Text>
-              <Text style={styles.earlyBirdDesc}>
-                Consensus calculations unlock once 3 members lock in their preferences. Nudge remaining friends on WhatsApp!
-              </Text>
-
-              <View style={styles.earlyBirdProgressTrack}>
-                <View style={[styles.earlyBirdProgressFill, { width: `${(lockedCount / totalCount) * 100}%` }]} />
-                <View style={styles.unlockThresholdMarker}>
-                  <View style={styles.thresholdDot} />
-                  <Text style={styles.thresholdText}>3 unlocks match</Text>
-                </View>
-              </View>
-            </View>
-          ) : (
-            <View style={styles.statusCard}>
-              <View style={styles.svgWrapper}>
-                <Svg width="84" height="84" viewBox="0 0 84 84">
-                  <Circle
-                    cx="42"
-                    cy="42"
-                    r={r}
-                    fill="none"
-                    stroke="rgba(255, 255, 255, 0.14)"
-                    strokeWidth="7"
-                  />
-                  <Circle
-                    cx="42"
-                    cy="42"
-                    r={r}
-                    fill="none"
-                    stroke="#3DE0A0"
-                    strokeWidth="7"
-                    strokeLinecap="round"
-                    strokeDasharray={`${circumference}`}
-                    strokeDashoffset={`${circumference * (1 - pct)}`}
-                    transform="rotate(-90 42 42)"
-                  />
-                </Svg>
-                <View style={styles.svgCenterText}>
-                  <Text style={styles.progressFractionText}>
-                    {lockedCount}/{totalCount}
-                  </Text>
-                  <Text style={styles.progressSubLabel}>locked</Text>
-                </View>
-              </View>
-
-              <View style={styles.statusTextCol}>
-                <Text style={styles.statusHeaderLabel}>Consensus Status</Text>
-                <Text style={styles.statusSubtext}>
-                  {lockedCount >= totalCount
-                    ? `All ${totalCount} members locked in! Unanimous consensus calculated.`
-                    : `${lockedCount} of ${totalCount} members locked in. Consensus engine active.`}
-                </Text>
-              </View>
-            </View>
-          )}
-
-          {/* Member Responses Card */}
-          <View style={styles.membersCard}>
-            <View style={styles.membersCardHeader}>
-              <View>
-                <Text style={styles.membersCardTitle}>Member responses</Text>
-                <Text style={styles.membersCardSubtitle}>
-                  {waitingMembers.length > 0
-                    ? `${waitingMembers.length} pending`
-                    : (demoMembers.length <= 1
-                      ? `${openSeatsCount} open seats remaining`
-                      : 'All responses locked')}
-                </Text>
-              </View>
-              <TouchableOpacity
-                onPress={() => {
-                  haptics.tap();
-                  setIsAddPeopleOpen(true);
-                }}
-                activeOpacity={0.8}
-                style={styles.addPeopleHeaderBtn}
-                accessibilityLabel="Add people to trip circle"
-              >
-                <UserPlus size={13} color="#3DE0A0" />
-                <Text style={styles.addPeopleHeaderBtnText}>+ Add People</Text>
-              </TouchableOpacity>
-            </View>
-
-            {demoMembers.length === 0 ? (
-              <EmptyState
-                icon="users"
-                title="No Members Yet"
-                description="Invite friends to your trip circle using your private code."
-                actionLabel="+ Invite Friends"
-                onAction={() => setIsAddPeopleOpen(true)}
-              />
-            ) : (
-              demoMembers.map((m: any, i: number) => (
+          {/* ========================================================
+              PHASE 1: PRE-TRIP CONSENSUS ROOM
+              ======================================================== */}
+          {currentPhase === 'consensus' && (
+            <>
+              {/* Status and Live Event Bar */}
+              <View style={styles.headerMetaRow}>
                 <View
-                  key={m.name}
                   style={[
-                    styles.memberRow,
-                    i === 0 && { borderTopWidth: 0 }
+                    styles.realtimePill,
+                    !isConnected && styles.realtimePillOffline
                   ]}
+                  accessibilityLabel="Live Realtime Sync Indicator"
                 >
-                  <View style={styles.avatarCircle}>
-                    <Text style={styles.avatarInitials}>{initials(m.name)}</Text>
-                  </View>
-
-                  <View style={styles.memberInfoCol}>
-                    <View style={styles.memberNameRow}>
-                      <Text style={styles.memberName}>{m.name}</Text>
-                      {isProCircle && !m.name.toLowerCase().includes('organizer') && (
-                        <View style={styles.proGuestBadge}>
-                          <Sparkles size={9} color="#3DE0A0" />
-                          <Text style={styles.proGuestBadgeText}>Pro Guest</Text>
-                        </View>
-                      )}
-                    </View>
-                    {m.status === 'locked' ? (
-                      <View style={styles.statusBadgeRow}>
-                        <CheckCircle2 size={12} color="#3DE0A0" />
-                        <Text style={styles.lockedStatusText}>Inputs locked</Text>
-                      </View>
-                    ) : (
-                      <View style={styles.statusBadgeRow}>
-                        <View style={styles.awaitingDot} />
-                        <Text style={styles.awaitingStatusText}>Awaiting inputs</Text>
-                      </View>
-                    )}
-                  </View>
-
-                  {!isEarlyBird && m.status === 'waiting' && (
-                    <TouchableOpacity
-                      onPress={() => handleNudge(m.name)}
-                      activeOpacity={0.7}
-                      style={[
-                        styles.nudgeButton,
-                        nudged[m.name] && { borderColor: 'rgba(255, 255, 255, 0.11)' }
-                      ]}
-                      accessibilityLabel={`Nudge ${m.name}`}
-                    >
-                      <Text
-                        style={[
-                          styles.nudgeButtonText,
-                          nudged[m.name] && { color: '#6C6F7A' }
-                        ]}
-                      >
-                        {nudged[m.name] ? 'Nudged' : 'Nudge'}
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              ))
-            )}
-
-            {openSeatsCount > 0 && (
-              <View style={styles.openSeatsRow}>
-                <View style={styles.openSeatsAvatar}>
-                  <UserPlus size={15} color="#8B8D98" />
-                </View>
-                <View style={styles.memberInfoCol}>
-                  <Text style={styles.openSeatsTitle}>
-                    {openSeatsCount} open seat{openSeatsCount > 1 ? 's' : ''} awaiting friends
-                  </Text>
-                  <Text style={styles.openSeatsSubtext}>
-                    Share code {currentGroup.inviteCode || '...'} to join
+                  <View style={[
+                    styles.realtimeDot,
+                    isConnected && styles.realtimeDotConnected
+                  ]} />
+                  <Text style={[
+                    styles.realtimeText,
+                    !isConnected && styles.realtimeTextOffline
+                  ]}>
+                    {isConnected ? 'LIVE SYNC' : 'OFFLINE'}
                   </Text>
                 </View>
+
+                {lastEvent ? (
+                  <View style={styles.realtimeEventBadge}>
+                    <Zap size={11} color="#3DE0A0" />
+                    <Text style={styles.realtimeEventText} numberOfLines={1}>
+                      {lastEvent}
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={styles.realtimeEventBadge}>
+                    <Clock size={11} color="#8B8D98" />
+                    <Text style={styles.realtimeEventText}>
+                      {isEarlyBird ? 'Phase 1: Collecting Preferences' : 'Phase 1: Silent Voting Open'}
+                    </Text>
+                  </View>
+                )}
+
                 <TouchableOpacity
+                  activeOpacity={0.8}
                   onPress={() => {
                     haptics.tap();
-                    setIsAddPeopleOpen(true);
+                    setShowVoiceDrawer(true);
                   }}
-                  activeOpacity={0.8}
-                  style={styles.openSeatsActionBtn}
-                  accessibilityLabel="Invite friends to open seat"
+                  style={styles.voiceMemoriesPill}
+                  accessibilityLabel="Open Voice Memories"
                 >
-                  <Text style={styles.openSeatsActionBtnText}>+ Invite</Text>
+                  <Mic size={13} color="#FF5A5F" />
+                  <Text style={styles.voiceMemoriesPillText}>🎙️ Voice</Text>
                 </TouchableOpacity>
               </View>
-            )}
-          </View>
 
-          {/* Unified Invite Ticket Card */}
-          <View style={styles.ticketCardContainer}>
-            <View style={styles.ticketCard}>
-              <View style={styles.ticketTopSection}>
-                <Text style={styles.ticketCodeLabel}>Circle invite code</Text>
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={handleCopyCode}
-                  style={styles.codeCopyTouchable}
-                  accessibilityLabel="Copy invite code"
-                >
-                  <Text style={styles.ticketCodeHeading}>
-                    {currentGroup.inviteCode || 'GOA-4F82'}
+              {/* Pro Circle Inheritance Card by RevenueCat */}
+              <ProCircleInheritanceCard
+                hasPro={isProCircle}
+                organizerName={currentGroup.organizerName || 'Maya'}
+                totalMembersCount={totalCount}
+              />
+
+              {/* Phase Hero Status Banner */}
+              {isEarlyBird ? (
+                <View style={styles.earlyBirdCard}>
+                  <View style={styles.earlyBirdBadgeRow}>
+                    <View style={styles.earlyBirdTag}>
+                      <Zap size={13} color="#3DE0A0" fill="#3DE0A0" />
+                      <Text style={styles.earlyBirdTagText}>Early bird phase</Text>
+                    </View>
+                    <Text style={styles.earlyBirdCountText}>{lockedCount} of {totalCount} locked in</Text>
+                  </View>
+
+                  <Text style={styles.earlyBirdTitle}>
+                    {isCurrentUserLocked ? 'Your inputs are sealed' : 'Lead the charge'}
                   </Text>
-                  <Text style={styles.copyBadgeText}>{copiedCode ? 'COPIED!' : 'Tap to copy'}</Text>
-                </TouchableOpacity>
-              </View>
+                  <Text style={styles.earlyBirdDesc}>
+                    Consensus calculations unlock once 3 members lock in their preferences. Nudge remaining friends on WhatsApp!
+                  </Text>
 
-              <View style={styles.perforationWrapper}>
-                <View style={styles.notchLeft} />
-                <View style={styles.notchRight} />
-                <View style={styles.dashedLine} />
-              </View>
+                  <View style={styles.earlyBirdProgressTrack}>
+                    <View style={[styles.earlyBirdProgressFill, { width: `${(lockedCount / totalCount) * 100}%` }]} />
+                    <View style={styles.unlockThresholdMarker}>
+                      <View style={styles.thresholdDot} />
+                      <Text style={styles.thresholdText}>3 unlocks match</Text>
+                    </View>
+                  </View>
+                </View>
+              ) : (
+                <View style={[styles.statusCard, pct >= 0.7 && styles.statusCardSupermajority]}>
+                  <View style={styles.svgWrapper}>
+                    {pct >= 0.7 && (
+                      <Animated.View
+                        style={[
+                          styles.glowAura,
+                          {
+                            opacity: supermajorityGlow
+                          }
+                        ]}
+                      />
+                    )}
+                    <Svg width="84" height="84" viewBox="0 0 84 84">
+                      <Circle
+                        cx="42"
+                        cy="42"
+                        r={r}
+                        fill="none"
+                        stroke="rgba(255, 255, 255, 0.14)"
+                        strokeWidth="7"
+                      />
+                      <Circle
+                        cx="42"
+                        cy="42"
+                        r={r}
+                        fill="none"
+                        stroke="#3DE0A0"
+                        strokeWidth="7"
+                        strokeLinecap="round"
+                        strokeDasharray={`${circumference}`}
+                        strokeDashoffset={`${circumference * (1 - pct)}`}
+                        transform="rotate(-90 42 42)"
+                      />
+                    </Svg>
+                    <View style={styles.svgCenterText}>
+                      <Text style={styles.progressFractionText}>
+                        {lockedCount}/{totalCount}
+                      </Text>
+                      <Text style={styles.progressSubLabel}>locked</Text>
+                    </View>
+                  </View>
 
-              <View style={styles.ticketBottomSection}>
-                <TouchableOpacity
-                  activeOpacity={0.88}
-                  onPress={handleShareWhatsApp}
-                  style={styles.whatsAppButton}
-                  accessibilityLabel="Share to WhatsApp group"
-                >
-                  <Send size={15} color="#0B3B22" />
-                  <Text style={styles.whatsAppButtonText}>Share to WhatsApp group</Text>
-                </TouchableOpacity>
+                  <View style={styles.statusTextCol}>
+                    <Text style={styles.statusHeaderLabel}>Consensus Status</Text>
+                    {pct >= 0.7 && (
+                      <View style={styles.supermajorityPill}>
+                        <Zap size={11} color="#3DE0A0" fill="#3DE0A0" />
+                        <Text style={styles.supermajorityPillText}>
+                          ⚡ Supermajority Reached — Ready to Seal
+                        </Text>
+                      </View>
+                    )}
+                    <Text style={styles.statusSubtext}>
+                      {lockedCount >= totalCount
+                        ? `All ${totalCount} members locked in! Unanimous consensus calculated.`
+                        : `${lockedCount} of ${totalCount} members locked in. Consensus engine active.`}
+                    </Text>
+                  </View>
+                </View>
+              )}
 
-                <View style={styles.ticketSecondaryActionsRow}>
+              {/* Member Responses Card */}
+              <View style={styles.membersCard}>
+                <View style={styles.membersCardHeader}>
+                  <View>
+                    <Text style={styles.membersCardTitle}>Member responses</Text>
+                    <Text style={styles.membersCardSubtitle}>
+                      {waitingMembers.length > 0
+                        ? `${waitingMembers.length} pending`
+                        : (demoMembers.length <= 1
+                          ? `${openSeatsCount} open seats remaining`
+                          : 'All responses locked')}
+                    </Text>
+                  </View>
                   <TouchableOpacity
-                    activeOpacity={0.8}
                     onPress={() => {
                       haptics.tap();
                       setIsAddPeopleOpen(true);
                     }}
-                    style={styles.ticketSecondaryBtn}
-                    accessibilityLabel="Invite options"
+                    activeOpacity={0.8}
+                    style={styles.addPeopleHeaderBtn}
+                    accessibilityLabel="Add people to trip circle"
                   >
-                    <Share2 size={13} color="#E8ECF2" />
-                    <Text style={styles.ticketSecondaryBtnText}>Invite Sheet</Text>
+                    <UserPlus size={13} color="#3DE0A0" />
+                    <Text style={styles.addPeopleHeaderBtnText}>+ Add People</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {demoMembers.length === 0 ? (
+                  <EmptyState
+                    icon="users"
+                    title="No Members Yet"
+                    description="Invite friends to your trip circle using your private code."
+                    actionLabel="+ Invite Friends"
+                    onAction={() => setIsAddPeopleOpen(true)}
+                  />
+                ) : (
+                  demoMembers.map((m: any, i: number) => (
+                    <View
+                      key={m.name}
+                      style={[
+                        styles.memberRow,
+                        i === 0 && { borderTopWidth: 0 }
+                      ]}
+                    >
+                      <View style={styles.avatarCircle}>
+                        <Text style={styles.avatarInitials}>{initials(m.name)}</Text>
+                      </View>
+
+                      <View style={styles.memberInfoCol}>
+                        <View style={styles.memberNameRow}>
+                          <Text style={styles.memberName}>{m.name}</Text>
+                          {isProCircle && !m.name.toLowerCase().includes('organizer') && (
+                            <View style={styles.proGuestBadge}>
+                              <Sparkles size={9} color="#3DE0A0" />
+                              <Text style={styles.proGuestBadgeText}>Pro Guest</Text>
+                            </View>
+                          )}
+                        </View>
+                        {m.status === 'locked' ? (
+                          <View style={styles.statusBadgeRow}>
+                            <CheckCircle2 size={12} color="#3DE0A0" />
+                            <Text style={styles.lockedStatusText}>Inputs locked</Text>
+                          </View>
+                        ) : (
+                          <View style={styles.statusBadgeRow}>
+                            <View style={styles.awaitingDot} />
+                            <Text style={styles.awaitingStatusText}>Awaiting inputs</Text>
+                          </View>
+                        )}
+                      </View>
+
+                      {!isEarlyBird && m.status === 'waiting' && (
+                        <TouchableOpacity
+                          onPress={() => handleNudge(m.name)}
+                          activeOpacity={0.7}
+                          style={[
+                            styles.nudgeButton,
+                            nudged[m.name] && { borderColor: 'rgba(255, 255, 255, 0.11)' }
+                          ]}
+                          accessibilityLabel={`Nudge ${m.name}`}
+                        >
+                          <Text
+                            style={[
+                              styles.nudgeButtonText,
+                              nudged[m.name] && { color: '#6C6F7A' }
+                            ]}
+                          >
+                            {nudged[m.name] ? 'Nudged' : 'Nudge'}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  ))
+                )}
+
+                {openSeatsCount > 0 && (
+                  <View style={styles.openSeatsRow}>
+                    <View style={styles.openSeatsAvatar}>
+                      <UserPlus size={15} color="#8B8D98" />
+                    </View>
+                    <View style={styles.memberInfoCol}>
+                      <Text style={styles.openSeatsTitle}>
+                        {openSeatsCount} open seat{openSeatsCount > 1 ? 's' : ''} awaiting friends
+                      </Text>
+                      <Text style={styles.openSeatsSubtext}>
+                        Share code {currentGroup.inviteCode || '...'} to join
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => {
+                        haptics.tap();
+                        setIsAddPeopleOpen(true);
+                      }}
+                      activeOpacity={0.8}
+                      style={styles.openSeatsActionBtn}
+                      accessibilityLabel="Invite friends to open seat"
+                    >
+                      <Text style={styles.openSeatsActionBtnText}>+ Invite</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+
+              {/* Unified Invite Ticket Card */}
+              <View style={styles.ticketCardContainer}>
+                <View style={styles.ticketCard}>
+                  <View style={styles.ticketTopSection}>
+                    <Text style={styles.ticketCodeLabel}>Circle invite code</Text>
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={handleCopyCode}
+                      style={styles.codeCopyTouchable}
+                      accessibilityLabel="Copy invite code"
+                    >
+                      <Text style={styles.ticketCodeHeading}>
+                        {currentGroup.inviteCode || 'GOA-4F82'}
+                      </Text>
+                      <Text style={styles.copyBadgeText}>{copiedCode ? 'COPIED!' : 'Tap to copy'}</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={styles.perforationWrapper}>
+                    <View style={styles.notchLeft} />
+                    <View style={styles.notchRight} />
+                    <View style={styles.dashedLine} />
+                  </View>
+
+                  <View style={styles.ticketBottomSection}>
+                    <TouchableOpacity
+                      activeOpacity={0.88}
+                      onPress={handleShareWhatsApp}
+                      style={styles.whatsAppButton}
+                      accessibilityLabel="Share to WhatsApp group"
+                    >
+                      <Send size={15} color="#0B3B22" />
+                      <Text style={styles.whatsAppButtonText}>Share to WhatsApp group</Text>
+                    </TouchableOpacity>
+
+                    <View style={styles.ticketSecondaryActionsRow}>
+                      <TouchableOpacity
+                        activeOpacity={0.8}
+                        onPress={() => {
+                          haptics.tap();
+                          setIsAddPeopleOpen(true);
+                        }}
+                        style={styles.ticketSecondaryBtn}
+                        accessibilityLabel="Invite options"
+                      >
+                        <Share2 size={13} color="#E8ECF2" />
+                        <Text style={styles.ticketSecondaryBtnText}>Invite Sheet</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        activeOpacity={0.8}
+                        onPress={() => {
+                          haptics.tap();
+                          setIsQROpen(true);
+                        }}
+                        style={styles.ticketSecondaryBtn}
+                        accessibilityLabel="QR Pass"
+                      >
+                        <QrCode size={13} color="#D4AF37" />
+                        <Text style={[styles.ticketSecondaryBtnText, { color: '#D4AF37' }]}>QR Pass</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              </View>
+
+              {/* Decision Navigation Cards */}
+              <TouchableOpacity
+                onPress={() => {
+                  haptics.tap();
+                  router.push(`/circle/${currentGroup.id}/ranked-matrix` as any);
+                }}
+                activeOpacity={0.85}
+                style={styles.navCard}
+                accessibilityLabel="Open Ranked Matrix"
+              >
+                <View style={styles.navCardLeft}>
+                  <View style={styles.navCardIconBox}>
+                    <Sparkles size={18} color="#3DE0A0" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.navCardTitle}>Ranked Matrix</Text>
+                    <Text style={styles.navCardSub}>
+                      View deterministic ranked destinations and overlap
+                    </Text>
+                  </View>
+                </View>
+                <ChevronRight size={16} color="#8B8D98" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => {
+                  haptics.tap();
+                  router.push(`/circle/${currentGroup.id}/silent-ballot` as any);
+                }}
+                activeOpacity={0.85}
+                style={styles.navCard}
+                accessibilityLabel="Open Silent Ballot"
+              >
+                <View style={styles.navCardLeft}>
+                  <View style={[styles.navCardIconBox, { backgroundColor: 'rgba(255, 90, 95, 0.12)' }]}>
+                    <Vote size={18} color="#FF5A5F" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.navCardTitle}>Silent Ballot</Text>
+                    <Text style={styles.navCardSub}>
+                      Cast private Approve / Reject votes with zero peer pressure
+                    </Text>
+                  </View>
+                </View>
+                <ChevronRight size={16} color="#8B8D98" />
+              </TouchableOpacity>
+
+              {/* Demo Controls */}
+              <View style={styles.demoControlsContainer}>
+                <Text style={styles.demoControlsTitle}>DEMO & SIMULATION CONTROLS</Text>
+
+                <TouchableOpacity
+                  onPress={handleFastForwardConsensus}
+                  activeOpacity={0.8}
+                  style={styles.fastForwardBtn}
+                  accessibilityLabel="Judge Sandbox: Fast-Forward Consensus"
+                >
+                  <Zap size={13} color="#052E20" fill="#052E20" />
+                  <Text style={styles.fastForwardBtnText}>
+                    ⚡ Fast-Forward Consensus (100% Agreement)
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={toggleDemoSimulation}
+                  activeOpacity={0.8}
+                  style={styles.demoSimulationBtn}
+                  accessibilityLabel="Simulate 3rd Member Locking In"
+                >
+                  <RefreshCw size={12} color="#8B8D98" />
+                  <Text style={styles.demoSimulationBtnText}>
+                    {lockedCount <= 2 ? 'Simulate 3rd Member Lock-In (Unlock Match)' : 'Reset to Early Bird State'}
+                  </Text>
+                </TouchableOpacity>
+
+                <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      haptics.tap();
+                      setActivePhaseOverride('manifest');
+                    }}
+                    activeOpacity={0.8}
+                    style={[styles.demoSimulationBtn, { flex: 1, backgroundColor: 'rgba(61, 224, 160, 0.12)', borderColor: '#3DE0A0' }]}
+                  >
+                    <Text style={[styles.demoSimulationBtnText, { color: '#3DE0A0' }]}>
+                      Fast-Forward: Phase 2 ➔
+                    </Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    activeOpacity={0.8}
                     onPress={() => {
                       haptics.tap();
-                      setIsQROpen(true);
+                      setActivePhaseOverride('vault');
                     }}
-                    style={styles.ticketSecondaryBtn}
-                    accessibilityLabel="QR Pass"
+                    activeOpacity={0.8}
+                    style={[styles.demoSimulationBtn, { flex: 1, backgroundColor: 'rgba(212, 175, 55, 0.12)', borderColor: '#D4AF37' }]}
                   >
-                    <QrCode size={13} color="#D4AF37" />
-                    <Text style={[styles.ticketSecondaryBtnText, { color: '#D4AF37' }]}>QR Pass</Text>
+                    <Text style={[styles.demoSimulationBtnText, { color: '#D4AF37' }]}>
+                      Fast-Forward: Phase 3 ➔
+                    </Text>
                   </TouchableOpacity>
                 </View>
-              </View>
-            </View>
-          </View>
 
-          {/* Safe Travel Hotline & Verified Transport Partners */}
-          <SafeTravelSection destinationName={currentGroup.name || 'Goa'} />
-
-          {/* Quick Hub Directories (Vault & Memories Folders) */}
-          <View style={{ flexDirection: 'row', gap: 10, marginBottom: 12 }}>
-            <TouchableOpacity
-              onPress={() => {
-                haptics.tap();
-                router.push(`/circle/${currentGroup.id}/vault` as any);
-              }}
-              activeOpacity={0.8}
-              style={{ flex: 1, backgroundColor: '#13151E', borderWidth: 1, borderColor: '#262938', borderRadius: 12, padding: 12, alignItems: 'center', gap: 4 }}
-            >
-              <FileText size={16} color="#D4AF37" />
-              <Text style={{ fontFamily: fontUIBold, fontSize: 11, color: '#F4F3F0' }}>Trip Documents</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => {
-                haptics.tap();
-                router.push(`/circle/${currentGroup.id}/memories` as any);
-              }}
-              activeOpacity={0.8}
-              style={{ flex: 1, backgroundColor: '#13151E', borderWidth: 1, borderColor: '#262938', borderRadius: 12, padding: 12, alignItems: 'center', gap: 4 }}
-            >
-              <Sparkles size={16} color="#3DE0A0" />
-              <Text style={{ fontFamily: fontUIBold, fontSize: 11, color: '#F4F3F0' }}>Memories Folder</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Core Decision Navigation Cards */}
-          <TouchableOpacity
-            onPress={() => {
-              haptics.tap();
-              router.push(`/circle/${currentGroup.id}/ranked-matrix` as any);
-            }}
-            activeOpacity={0.85}
-            style={styles.navCard}
-            accessibilityLabel="Open Ranked Matrix"
-          >
-            <View style={styles.navCardLeft}>
-              <View style={styles.navCardIconBox}>
-                <Sparkles size={18} color="#3DE0A0" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.navCardTitle}>Ranked Matrix</Text>
-                <Text style={styles.navCardSub}>
-                  View deterministic ranked destinations and overlap
+                <Text style={styles.watermarkText}>
+                  Built for RevenueCat Shipathon 2026 · Next Gen Track
                 </Text>
               </View>
-            </View>
-            <ChevronRight size={16} color="#8B8D98" />
-          </TouchableOpacity>
+            </>
+          )}
 
-          <TouchableOpacity
-            onPress={() => {
-              haptics.tap();
-              router.push(`/circle/${currentGroup.id}/silent-ballot` as any);
-            }}
-            activeOpacity={0.85}
-            style={styles.navCard}
-            accessibilityLabel="Open Silent Ballot"
-          >
-            <View style={styles.navCardLeft}>
-              <View style={[styles.navCardIconBox, { backgroundColor: 'rgba(255, 90, 95, 0.12)' }]}>
-                <Vote size={18} color="#FF5A5F" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.navCardTitle}>Silent Ballot</Text>
-                <Text style={styles.navCardSub}>
-                  Cast private Approve / Reject votes with zero peer pressure
+          {/* ========================================================
+              PHASE 2: IN-TRIP LIVING MANIFEST
+              ======================================================== */}
+          {currentPhase === 'manifest' && (
+            <>
+              {/* Phase 2 Header Banner */}
+              <View style={styles.phaseHeaderBanner}>
+                <View style={styles.phaseHeaderTag}>
+                  <Text style={styles.phaseHeaderTagText}>ACT 2: IN-TRIP</Text>
+                </View>
+                <Text style={styles.phaseHeaderTitle}>Living Trip Manifest</Text>
+                <Text style={styles.phaseHeaderSub}>
+                  Consensus locked! Real-time logistics, confirmed attendee constraints & verified local transport.
                 </Text>
               </View>
-            </View>
-            <ChevronRight size={16} color="#8B8D98" />
-          </TouchableOpacity>
 
-          {/* Visually Isolated Demo / Tester Controls */}
-          <View style={styles.demoControlsContainer}>
-            <Text style={styles.demoControlsTitle}>DEMO & SIMULATION CONTROLS</Text>
+              {/* Living Trip Manifest Component */}
+              {(() => {
+                const leadingOption: any = (tripOptions && tripOptions.length > 0 ? tripOptions[0] : null) || {
+                  destinationName: currentGroup?.name || 'Goa, India',
+                  destination: currentGroup?.name || 'Goa, India',
+                  dates: 'Oct 14 – Oct 19, 2026',
+                  dateStart: 'Oct 14',
+                  dateEnd: 'Oct 19',
+                  budgetPerPerson: 850
+                };
+                const dest = leadingOption?.destinationName || leadingOption?.destination || leadingOption?.destinationType || leadingOption?.name || currentGroup?.name || 'Goa, India';
+                const dates = leadingOption?.dates || (leadingOption?.dateStart && leadingOption?.dateEnd ? `${leadingOption.dateStart} – ${leadingOption.dateEnd}` : 'Oct 14 – Oct 19, 2026');
+                const maxBudget = leadingOption?.budgetPerPerson || leadingOption?.pricePerPerson || 850;
+                const currCode = (currentGroup as any)?.currencyCode || 'USD';
 
-            <TouchableOpacity
-              onPress={handleFastForwardConsensus}
-              activeOpacity={0.8}
-              style={styles.fastForwardBtn}
-              accessibilityLabel="Judge Sandbox: Fast-Forward Consensus"
-            >
-              <Zap size={13} color="#052E20" fill="#052E20" />
-              <Text style={styles.fastForwardBtnText}>
-                ⚡ Judge Sandbox: Fast-Forward Consensus
-              </Text>
-            </TouchableOpacity>
+                return (
+                  <LivingTripManifest
+                    destination={dest}
+                    dates={dates}
+                    budget={maxBudget}
+                    currencyCode={currCode}
+                    status="Consensus Sealed & Locked"
+                    totalMembers={totalCount}
+                    lockedMembers={lockedCount}
+                    showAISpots={true}
+                    onPress={() => {
+                      haptics.tap();
+                      router.push(`/circle/${currentGroup?.id || id}/brief` as any);
+                    }}
+                  />
+                );
+              })()}
 
-            <TouchableOpacity
-              onPress={toggleDemoSimulation}
-              activeOpacity={0.8}
-              style={styles.demoSimulationBtn}
-              accessibilityLabel="Simulate 3rd Member Locking In"
-            >
-              <RefreshCw size={12} color="#8B8D98" />
-              <Text style={styles.demoSimulationBtnText}>
-                {lockedCount <= 2 ? 'Simulate 3rd Member Lock-In (Unlock Match)' : 'Reset to Early Bird State'}
-              </Text>
-            </TouchableOpacity>
+              {/* Safe Travel Section */}
+              <SafeTravelSection destinationName={currentGroup?.name || 'Goa'} />
 
-            <Text style={styles.watermarkText}>
-              Built for RevenueCat Shipathon 2026 · Next Gen Track
-            </Text>
-          </View>
+              {/* Quick Hub Navigation Cards */}
+              <View style={{ flexDirection: 'row', gap: 10, marginBottom: 14 }}>
+                <TouchableOpacity
+                  onPress={() => {
+                    haptics.tap();
+                    router.push(`/circle/${currentGroup?.id || id}/brief` as any);
+                  }}
+                  activeOpacity={0.8}
+                  style={{ flex: 1, backgroundColor: '#13151E', borderWidth: 1, borderColor: '#3DE0A0', borderRadius: 14, padding: 14, alignItems: 'center', gap: 6 }}
+                >
+                  <FileText size={18} color="#3DE0A0" />
+                  <Text style={{ fontFamily: fontUIBold, fontSize: 12, color: '#F4F3F0' }}>Trip Brief</Text>
+                  <Text style={{ fontFamily: fontUI, fontSize: 10, color: '#8B8D98' }}>Full consensus summary</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => {
+                    haptics.tap();
+                    router.push(`/circle/${currentGroup?.id || id}/chat` as any);
+                  }}
+                  activeOpacity={0.8}
+                  style={{ flex: 1, backgroundColor: '#13151E', borderWidth: 1, borderColor: '#262938', borderRadius: 14, padding: 14, alignItems: 'center', gap: 6 }}
+                >
+                  <MessageSquare size={18} color="#FF5A5F" />
+                  <Text style={{ fontFamily: fontUIBold, fontSize: 12, color: '#F4F3F0' }}>Live Chat</Text>
+                  <Text style={{ fontFamily: fontUI, fontSize: 10, color: '#8B8D98' }}>Real-time coordination</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Transition to Phase 3 Prompt */}
+              <TouchableOpacity
+                onPress={() => {
+                  haptics.tap();
+                  setActivePhaseOverride('vault');
+                }}
+                activeOpacity={0.85}
+                style={[styles.demoSimulationBtn, { borderColor: '#D4AF37', backgroundColor: 'rgba(212, 175, 55, 0.08)', marginBottom: 20 }]}
+              >
+                <Text style={[styles.demoSimulationBtnText, { color: '#D4AF37' }]}>
+                  📸 Trip Completed? Open Act 3: Post-Trip Vault & Memories ➔
+                </Text>
+              </TouchableOpacity>
+            </>
+          )}
+
+          {/* ========================================================
+              PHASE 3: POST-TRIP VAULT & MEMORIES
+              ======================================================== */}
+          {currentPhase === 'vault' && (
+            <>
+              {/* Phase 3 Header Banner */}
+              <View style={styles.phaseHeaderBanner}>
+                <View style={[styles.phaseHeaderTag, { backgroundColor: 'rgba(212, 175, 55, 0.15)', borderColor: 'rgba(212, 175, 55, 0.35)' }]}>
+                  <Text style={[styles.phaseHeaderTagText, { color: '#D4AF37' }]}>ACT 3: POST-TRIP</Text>
+                </View>
+                <Text style={styles.phaseHeaderTitle}>Post-Trip Vault & Memories</Text>
+                <Text style={styles.phaseHeaderSub}>
+                  Permanent trip vault, uploaded collective photos, voice mementos & verified vouchers.
+                </Text>
+              </View>
+
+              {/* Memories Photo Grid Component */}
+              <MemoriesPhotoGrid
+                circleId={currentGroup.id}
+                photos={memoryPhotos}
+                destinationName={currentGroup.name}
+              />
+
+              {/* Voice Notes Audio Drawer Trigger Card */}
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => {
+                  haptics.tap();
+                  setShowVoiceDrawer(true);
+                }}
+                style={styles.voiceMemoriesHubCard}
+                accessibilityLabel="Open Voice Notes"
+              >
+                <View style={styles.voiceCardLeft}>
+                  <View style={styles.voiceCardIcon}>
+                    <Mic size={20} color="#FF5A5F" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.voiceCardTitle}>Circle Voice Notes (Audio Mementos)</Text>
+                    <Text style={styles.voiceCardSub}>Listen to group audio recordings and trip voice logs</Text>
+                  </View>
+                </View>
+                <ChevronRight size={16} color="#8B8D98" />
+              </TouchableOpacity>
+
+              {/* Trip Documents Vault Card */}
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => {
+                  haptics.tap();
+                  router.push(`/circle/${currentGroup.id}/vault` as any);
+                }}
+                style={styles.vaultHubCard}
+                accessibilityLabel="Open Trip Documents Vault"
+              >
+                <View style={styles.vaultCardLeft}>
+                  <View style={styles.vaultCardIcon}>
+                    <FileText size={20} color="#D4AF37" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.vaultCardTitle}>Trip Documents & Offline Vault</Text>
+                    <Text style={styles.vaultCardSub}>Flight vouchers, villa confirmation & local passes</Text>
+                  </View>
+                </View>
+                <ChevronRight size={16} color="#8B8D98" />
+              </TouchableOpacity>
+
+              {/* Consensus Triumph Micro-Badges */}
+              <View style={styles.badgesCard}>
+                <Text style={styles.badgesTitle}>CONSENSUS TRIUMPH BADGES</Text>
+                <View style={styles.badgesRow}>
+                  <View style={styles.badgeItem}>
+                    <Text style={styles.badgeEmoji}>🏆</Text>
+                    <Text style={styles.badgeLabel}>Founding Circle</Text>
+                  </View>
+                  <View style={styles.badgeItem}>
+                    <Text style={styles.badgeEmoji}>✨</Text>
+                    <Text style={styles.badgeLabel}>100% Agreement</Text>
+                  </View>
+                  <View style={styles.badgeItem}>
+                    <Text style={styles.badgeEmoji}>🌊</Text>
+                    <Text style={styles.badgeLabel}>Beach Escape</Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Export Final Trip Brief */}
+              <TouchableOpacity
+                activeOpacity={0.88}
+                onPress={() => {
+                  haptics.tap();
+                  router.push(`/circle/${currentGroup.id}/brief` as any);
+                }}
+                style={styles.exportBriefBtn}
+              >
+                <FileText size={16} color="#050608" />
+                <Text style={styles.exportBriefBtnText}>View & Export Final Trip Brief</Text>
+              </TouchableOpacity>
+            </>
+          )}
         </ScrollView>
 
-        <NotificationCenterModal />
+        <NotificationCenterModal
+          onNavigateTab={(tab) => {
+            setActivePhaseOverride(tab);
+          }}
+        />
         <NotificationToast />
 
         {/* State-Dependent Dominant Action Sticky Bottom Bar */}
@@ -997,6 +1450,245 @@ const styles = StyleSheet.create({
     color: '#F4F3F0',
     flex: 1,
     lineHeight: 26
+  },
+  tripSubtitle: {
+    fontFamily: fontUI,
+    fontSize: 11,
+    color: '#8B8D98',
+    marginTop: 2
+  },
+  phaseSwitcherContainer: {
+    marginTop: 8,
+    marginBottom: 16
+  },
+  phaseSwitcher: {
+    flexDirection: 'row',
+    backgroundColor: '#13151E',
+    borderRadius: 12,
+    padding: 3,
+    borderWidth: 1,
+    borderColor: '#262938'
+  },
+  phaseTab: {
+    flex: 1,
+    paddingVertical: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 9
+  },
+  phaseTabActive: {
+    backgroundColor: 'rgba(61, 224, 160, 0.15)',
+    borderWidth: 1,
+    borderColor: '#3DE0A0'
+  },
+  phaseTabText: {
+    fontFamily: fontUIBold,
+    fontSize: 11,
+    color: '#8B8D98'
+  },
+  phaseTabTextActive: {
+    color: '#3DE0A0',
+    fontWeight: '700'
+  },
+  phaseDemoHint: {
+    fontFamily: fontUI,
+    fontSize: 10,
+    color: '#3DE0A0',
+    textAlign: 'center',
+    marginTop: 6
+  },
+  phaseHeaderBanner: {
+    backgroundColor: '#13151E',
+    borderWidth: 1,
+    borderColor: '#262938',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 14
+  },
+  phaseHeaderTag: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(61, 224, 160, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.3)',
+    borderRadius: 6,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    marginBottom: 6
+  },
+  phaseHeaderTagText: {
+    fontFamily: fontUIBold,
+    fontSize: 9.5,
+    fontWeight: '800',
+    color: '#3DE0A0',
+    letterSpacing: 0.5
+  },
+  phaseHeaderTitle: {
+    fontFamily: fontDisplay,
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#F4F3F0',
+    marginBottom: 4
+  },
+  phaseHeaderSub: {
+    fontFamily: fontUI,
+    fontSize: 11.5,
+    color: '#8B8D98',
+    lineHeight: 16
+  },
+  curatedSpotsCard: {
+    backgroundColor: '#13151E',
+    borderWidth: 1,
+    borderColor: '#262938',
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 14
+  },
+  curatedSpotsTitle: {
+    fontFamily: fontDisplay,
+    fontSize: 13.5,
+    fontWeight: '700',
+    color: '#F4F3F0'
+  },
+  spotItemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.06)'
+  },
+  spotEmoji: {
+    fontSize: 20
+  },
+  spotName: {
+    fontFamily: fontUIBold,
+    fontSize: 12.5,
+    color: '#F4F3F0'
+  },
+  spotMeta: {
+    fontFamily: fontUI,
+    fontSize: 10.5,
+    color: '#8B8D98',
+    marginTop: 1
+  },
+  voiceMemoriesHubCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#13151E',
+    borderWidth: 1,
+    borderColor: '#262938',
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 12
+  },
+  voiceCardLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1
+  },
+  voiceCardIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 90, 95, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  voiceCardTitle: {
+    fontFamily: fontUIBold,
+    fontSize: 13,
+    color: '#F4F3F0'
+  },
+  voiceCardSub: {
+    fontFamily: fontUI,
+    fontSize: 11,
+    color: '#8B8D98'
+  },
+  vaultHubCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#13151E',
+    borderWidth: 1,
+    borderColor: '#262938',
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 12
+  },
+  vaultCardLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1
+  },
+  vaultCardIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: 'rgba(212, 175, 55, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  vaultCardTitle: {
+    fontFamily: fontUIBold,
+    fontSize: 13,
+    color: '#F4F3F0'
+  },
+  vaultCardSub: {
+    fontFamily: fontUI,
+    fontSize: 11,
+    color: '#8B8D98'
+  },
+  badgesCard: {
+    backgroundColor: '#13151E',
+    borderWidth: 1,
+    borderColor: '#262938',
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 14
+  },
+  badgesTitle: {
+    fontFamily: fontUIBold,
+    fontSize: 10.5,
+    color: '#8B8D98',
+    marginBottom: 10,
+    letterSpacing: 0.5
+  },
+  badgesRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center'
+  },
+  badgeItem: {
+    alignItems: 'center',
+    gap: 4
+  },
+  badgeEmoji: {
+    fontSize: 22
+  },
+  badgeLabel: {
+    fontFamily: fontUIBold,
+    fontSize: 10.5,
+    color: '#F4F3F0'
+  },
+  exportBriefBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#3DE0A0',
+    borderRadius: 12,
+    paddingVertical: 14,
+    width: '100%',
+    marginBottom: 14
+  },
+  exportBriefBtnText: {
+    fontFamily: fontUIBold,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#052E20'
   },
   headerRightActions: {
     flexDirection: 'row',
@@ -1278,6 +1970,43 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 16,
     marginBottom: 16
+  },
+  statusCardSupermajority: {
+    borderColor: 'rgba(61, 224, 160, 0.45)',
+    backgroundColor: '#131722'
+  },
+  glowAura: {
+    position: 'absolute',
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: 'rgba(61, 224, 160, 0.15)',
+    borderWidth: 2,
+    borderColor: '#3DE0A0',
+    shadowColor: '#3DE0A0',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.85,
+    shadowRadius: 14,
+    elevation: 8
+  },
+  supermajorityPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(61, 224, 160, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.3)',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    marginBottom: 6,
+    alignSelf: 'flex-start'
+  },
+  supermajorityPillText: {
+    fontFamily: fontUIBold,
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#3DE0A0'
   },
   svgWrapper: {
     position: 'relative',

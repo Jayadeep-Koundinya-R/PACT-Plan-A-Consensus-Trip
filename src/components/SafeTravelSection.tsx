@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,9 +6,10 @@ import {
   StyleSheet,
   Linking,
   Platform,
-  Alert
+  Alert,
+  Modal
 } from 'react-native';
-import { Phone, ShieldCheck, Car, Bus, ExternalLink } from 'lucide-react-native';
+import { Phone, ShieldCheck, Car, Bus, ExternalLink, Shield, X, CheckCircle2 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { colors, radius } from '../theme/colors';
 import { fontDisplay, fontUI, fontUIBold } from '../theme/typography';
@@ -33,6 +34,8 @@ export const SafeTravelSection: React.FC<SafeTravelSectionProps> = ({
   destinationName = 'Goa',
   isDarkMode = true
 }) => {
+  const [selectedContact, setSelectedContact] = useState<TransportContact | null>(null);
+
   const triggerHaptic = () => {
     if (Platform.OS !== 'web') {
       try {
@@ -98,6 +101,8 @@ export const SafeTravelSection: React.FC<SafeTravelSectionProps> = ({
         activeOpacity={0.88}
         onPress={() => handleDial('+1800112026', 'PACT 24/7 Safety Hotline')}
         style={styles.hotlineCard}
+        accessibilityRole="button"
+        accessibilityLabel="PACT 24/7 Emergency & Safety Hotline, 1800-112-026. Tap to call helpline."
       >
         <View style={styles.hotlineLeft}>
           <View style={styles.hotlineIconBox}>
@@ -116,7 +121,17 @@ export const SafeTravelSection: React.FC<SafeTravelSectionProps> = ({
       {/* Verified Transport Partners List */}
       <View style={styles.contactsList}>
         {contacts.map((item) => (
-          <View key={item.id} style={styles.contactCard}>
+          <TouchableOpacity
+            key={item.id}
+            activeOpacity={0.85}
+            onPress={() => {
+              triggerHaptic();
+              setSelectedContact(item);
+            }}
+            style={styles.contactCard}
+            accessibilityRole="button"
+            accessibilityLabel={`${item.name}, ${item.vehicleTypes}. Tap to view safety details and call operator.`}
+          >
             <View style={styles.contactTopRow}>
               <View style={styles.contactInfoCol}>
                 <View style={styles.contactNameRow}>
@@ -130,24 +145,104 @@ export const SafeTravelSection: React.FC<SafeTravelSectionProps> = ({
                 <Text style={styles.vehicleSub}>{item.vehicleTypes} • {item.rating}</Text>
               </View>
               <View style={styles.verifiedTag}>
-                <Text style={styles.verifiedTagText}>✓ VERIFIED</Text>
+                <ShieldCheck size={10} color="#3DE0A0" />
+                <Text style={styles.verifiedTagText}>VERIFIED</Text>
               </View>
             </View>
 
             <View style={styles.contactBottomRow}>
               <Text style={styles.displayPhoneText}>{item.displayPhone}</Text>
+              <View style={styles.dialBtn}>
+                <Phone size={12} color="#052E20" />
+                <Text style={styles.dialBtnText}>Call / Inquire</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* Verified Transport Safety Modal */}
+      {selectedContact && (
+        <Modal
+          visible={!!selectedContact}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setSelectedContact(null)}
+        >
+          <View style={styles.modalBackdrop}>
+            <View style={styles.modalCard}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => setSelectedContact(null)}
+                style={styles.modalCloseBtn}
+                accessibilityLabel="Close safety details"
+              >
+                <X size={18} color="#8B8D98" />
+              </TouchableOpacity>
+
+              {/* Verified Badge Header */}
+              <View style={styles.verifiedBadgeHeader}>
+                <View style={styles.shieldIconBox}>
+                  <ShieldCheck size={24} color="#3DE0A0" />
+                </View>
+                <View style={styles.partnerBadgePill}>
+                  <Shield size={11} color="#3DE0A0" />
+                  <Text style={styles.partnerBadgePillText}>Verified Local Partner</Text>
+                </View>
+                <Text style={styles.modalTitle}>{selectedContact.name}</Text>
+                <Text style={styles.modalRating}>{selectedContact.rating} • {selectedContact.vehicleTypes}</Text>
+              </View>
+
+              {/* Safety Guarantees */}
+              <View style={styles.guaranteeBox}>
+                <View style={styles.guaranteeItem}>
+                  <CheckCircle2 size={13} color="#3DE0A0" />
+                  <Text style={styles.guaranteeText}>Pre-vetted commercial permits & insurance</Text>
+                </View>
+                <View style={styles.guaranteeItem}>
+                  <CheckCircle2 size={13} color="#3DE0A0" />
+                  <Text style={styles.guaranteeText}>Fixed group rates — zero surprise surge pricing</Text>
+                </View>
+                <View style={styles.guaranteeItem}>
+                  <CheckCircle2 size={13} color="#3DE0A0" />
+                  <Text style={styles.guaranteeText}>Direct WhatsApp coordination with drivers</Text>
+                </View>
+              </View>
+
+              {/* Action Buttons */}
+              <TouchableOpacity
+                activeOpacity={0.88}
+                onPress={() => {
+                  handleDial(selectedContact.phone, selectedContact.name);
+                }}
+                style={styles.modalCallActionBtn}
+                accessibilityRole="button"
+                accessibilityLabel={`Call ${selectedContact.displayPhone}`}
+              >
+                <Phone size={16} color="#052E20" />
+                <Text style={styles.modalCallActionText}>
+                  Call {selectedContact.displayPhone.split(' ')[0]}
+                </Text>
+              </TouchableOpacity>
+
               <TouchableOpacity
                 activeOpacity={0.8}
-                onPress={() => handleDial(item.phone, item.name)}
-                style={styles.dialBtn}
+                onPress={() => {
+                  handleDial('+1800112026', 'Emergency Hotline');
+                }}
+                style={styles.modalEmergencyActionBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Call PACT 24/7 Safety Hotline on Emergency 112"
               >
-                <Phone size={12} color="#052E20" />
-                <Text style={styles.dialBtnText}>Dial</Text>
+                <Shield size={14} color="#FF5A5F" />
+                <Text style={styles.modalEmergencyActionText}>
+                  PACT 24/7 Safety Hotline (Emergency 112)
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
-        ))}
-      </View>
+        </Modal>
+      )}
     </View>
   );
 };
@@ -254,11 +349,11 @@ const styles = StyleSheet.create({
     gap: 8
   },
   contactCard: {
-    backgroundColor: '#181A24',
+    backgroundColor: '#13151E',
     borderColor: '#262938',
     borderWidth: 1,
     borderRadius: radius.md,
-    padding: 10
+    padding: 12
   },
   contactTopRow: {
     flexDirection: 'row',
@@ -286,7 +381,12 @@ const styles = StyleSheet.create({
     marginTop: 2
   },
   verifiedTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
     backgroundColor: 'rgba(61, 224, 160, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.25)',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4
@@ -316,12 +416,139 @@ const styles = StyleSheet.create({
     gap: 4,
     backgroundColor: '#3DE0A0',
     paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 6
+    paddingVertical: 6,
+    borderRadius: 8
   },
   dialBtnText: {
     fontFamily: fontUIBold,
     fontSize: 11,
+    fontWeight: '700',
     color: '#052E20'
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(5, 6, 8, 0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 400,
+    backgroundColor: '#13151E',
+    borderWidth: 1,
+    borderColor: '#262938',
+    borderRadius: 20,
+    padding: 22,
+    position: 'relative'
+  },
+  modalCloseBtn: {
+    position: 'absolute',
+    top: 14,
+    right: 14,
+    zIndex: 10,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  verifiedBadgeHeader: {
+    alignItems: 'center',
+    marginBottom: 16
+  },
+  shieldIconBox: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: 'rgba(61, 224, 160, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10
+  },
+  partnerBadgePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(61, 224, 160, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.28)',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    marginBottom: 8
+  },
+  partnerBadgePillText: {
+    fontFamily: fontUIBold,
+    fontSize: 10,
+    color: '#3DE0A0',
+    fontWeight: '700'
+  },
+  modalTitle: {
+    fontFamily: fontDisplay,
+    fontSize: 17,
+    fontWeight: '700',
+    color: '#F4F3F0',
+    textAlign: 'center',
+    marginBottom: 4
+  },
+  modalRating: {
+    fontFamily: fontUI,
+    fontSize: 12,
+    color: '#8B8D98',
+    textAlign: 'center'
+  },
+  guaranteeBox: {
+    backgroundColor: '#090A0F',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 12,
+    padding: 12,
+    gap: 8,
+    marginBottom: 18
+  },
+  guaranteeItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8
+  },
+  guaranteeText: {
+    fontFamily: fontUI,
+    fontSize: 11.5,
+    color: '#8B8D98',
+    flex: 1
+  },
+  modalCallActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#3DE0A0',
+    borderRadius: 12,
+    paddingVertical: 14,
+    marginBottom: 10
+  },
+  modalCallActionText: {
+    fontFamily: fontUIBold,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#052E20'
+  },
+  modalEmergencyActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(255, 90, 95, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 90, 95, 0.25)',
+    borderRadius: 12,
+    paddingVertical: 11
+  },
+  modalEmergencyActionText: {
+    fontFamily: fontUIBold,
+    fontSize: 12,
+    color: '#FF5A5F'
   }
 });

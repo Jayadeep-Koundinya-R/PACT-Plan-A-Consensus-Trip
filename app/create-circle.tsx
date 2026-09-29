@@ -1,6 +1,6 @@
 import { getTierForMemberCount, isValidGroupSize, MAX_GROUP_MEMBERS } from '../src/lib/pricing/groupPricing';
 import { useTheme } from '../src/hooks/useTheme';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,8 @@ import {
   SafeAreaView,
   Platform,
   Alert,
-  Modal
+  Modal,
+  BackHandler
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import Svg, { Path, Circle } from 'react-native-svg';
@@ -19,16 +20,12 @@ import * as Haptics from 'expo-haptics';
 import { useGatherlyStore, CurrencyCode, CURRENCIES } from '../src/store/useGatherlyStore';
 import { useCircleStore, MemberStatus } from '../src/store/useCircleStore';
 import { fontDisplay, fontUI, fontUIBold } from '../src/theme/typography';
-import { ArrowLeft, Plus, Sparkles, Minus, X, CheckCircle2, Award, ChevronRight } from 'lucide-react-native';
+import { ArrowLeft, Plus, Sparkles, Minus, X, CheckCircle2, Award, ChevronRight, Globe } from 'lucide-react-native';
 import { getActiveUserName, getActiveUserId } from '../src/lib/user/identity';
+import CurrencyCountryPicker, { SUPPORTED_CURRENCIES, CurrencyItem } from '../src/components/CurrencyCountryPicker';
 
 const GROUP_TYPES = ['College Friends', 'Family', 'Best Friends', 'Office'];
-const CURRENCY_OPTIONS: { code: CurrencyCode; label: string; symbol: string }[] = [
-  { code: 'USD', label: 'USD ($)', symbol: '$' },
-  { code: 'INR', label: 'INR (₹)', symbol: '₹' },
-  { code: 'EUR', label: 'EUR (€)', symbol: '€' },
-  { code: 'GBP', label: 'GBP (£)', symbol: '£' },
-];
+const QUICK_CURRENCIES: CurrencyCode[] = ['USD', 'EUR', 'GBP', 'INR', 'JPY', 'AED'];
 
 export default function PactCreateJoinScreen() {
   const router = useRouter();
@@ -56,8 +53,17 @@ export default function PactCreateJoinScreen() {
 
   // Step 3: Base Currency & Budget Range
   const [currencyCode, setCurrencyCodeState] = useState<CurrencyCode>('USD');
+  const [showCurrencyModal, setShowCurrencyModal] = useState(false);
   const [budgetMin, setBudgetMin] = useState('300');
   const [budgetMax, setBudgetMax] = useState('1200');
+
+  const activeCurrencyOption = SUPPORTED_CURRENCIES.find((c: CurrencyItem) => c.code === currencyCode) || {
+    code: currencyCode,
+    name: currencyCode,
+    symbol: CURRENCIES[currencyCode]?.symbol || '$',
+    flag: '🌐'
+  };
+
 
   const [createError, setCreateError] = useState('');
   const [showCelebrationModal, setShowCelebrationModal] = useState(false);
@@ -76,6 +82,19 @@ export default function PactCreateJoinScreen() {
       } catch (e) {}
     }
   };
+
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+    const backAction = () => {
+      if (activeTab === 'create' && step > 1) {
+        setStep((s) => (s - 1) as 1 | 2 | 3);
+        return true;
+      }
+      return false;
+    };
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+    return () => backHandler.remove();
+  }, [activeTab, step]);
 
   const handleAddCandidate = () => {
     const clean = candidateInput.trim();
@@ -167,6 +186,14 @@ export default function PactCreateJoinScreen() {
       return;
     }
 
+    const bMinNum = parseInt(budgetMin, 10) || 0;
+    const bMaxNum = parseInt(budgetMax, 10) || 1200;
+
+    if (bMinNum > bMaxNum) {
+      setCreateError('Minimum budget cannot exceed maximum budget.');
+      return;
+    }
+
     const activeName = getActiveUserName();
     const activeId = getActiveUserId();
 
@@ -187,23 +214,22 @@ export default function PactCreateJoinScreen() {
       setCreatedGroupId(groupId);
 
       // Add candidate destinations to circle state
-      const symbol = CURRENCIES[currencyCode]?.symbol || '$';
-      const bMaxNum = parseInt(budgetMax, 10) || 1200;
-
       const candidateListToUse = candidates.length > 0 ? candidates : ['Goa', 'Pune', 'Bengaluru'];
-      candidateListToUse.forEach((cand, idx) => {
-        addTripOption({
-          id: `opt-${groupId}-${idx + 1}`,
-          groupId,
-          name: `${cand} Getaway`,
-          destinationType: `${groupType} Candidate`,
-          dateStart: '2026-10-14',
-          dateEnd: '2026-10-19',
-          budgetPerPerson: Math.round(bMaxNum * (idx === 0 ? 0.9 : idx === 1 ? 0.75 : 1.1)),
-          tags: [groupType.toLowerCase().replace(/\s+/g, '-'), 'candidate'],
-          description: `Organizer proposed candidate option for ${cand}.`
-        });
-      });
+      await Promise.all(
+        candidateListToUse.map((cand, idx) =>
+          addTripOption({
+            id: `opt-${groupId}-${idx + 1}`,
+            groupId,
+            name: `${cand} Getaway`,
+            destinationType: `${groupType} Candidate`,
+            dateStart: '2026-10-14',
+            dateEnd: '2026-10-19',
+            budgetPerPerson: Math.round(bMaxNum * (idx === 0 ? 0.9 : idx === 1 ? 0.75 : 1.1)),
+            tags: [groupType.toLowerCase().replace(/\s+/g, '-'), 'candidate'],
+            description: `Organizer proposed candidate option for ${cand}.`
+          })
+        )
+      );
 
       // Award celebratory micro-badge modal
       setShowCelebrationModal(true);
@@ -476,25 +502,64 @@ export default function PactCreateJoinScreen() {
                 <View style={[styles.createCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
                   {/* Currency Selector */}
                   <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>BASE CURRENCY</Text>
-                  <View style={styles.currencyGrid}>
-                    {CURRENCY_OPTIONS.map((c) => {
-                      const selected = currencyCode === c.code;
+
+                  {/* Selected Currency Banner Trigger */}
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => {
+                      triggerHaptic();
+                      setShowCurrencyModal(true);
+                    }}
+                    style={[
+                      styles.currencyActiveCard,
+                      { backgroundColor: theme.surfaceSubtle, borderColor: '#3DE0A0' }
+                    ]}
+                  >
+                    <View style={styles.currencyActiveLeft}>
+                      <Text style={styles.currencyFlag}>{activeCurrencyOption.flag}</Text>
+                      <View>
+                        <Text style={[styles.currencyActiveCode, { color: theme.textPrimary }]}>
+                          {activeCurrencyOption.code} ({activeCurrencyOption.symbol})
+                        </Text>
+                        <Text style={[styles.currencyActiveName, { color: theme.textSecondary }]}>
+                          {activeCurrencyOption.name}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={styles.currencyChangeBadge}>
+                      <Globe size={13} color="#3DE0A0" />
+                      <Text style={styles.currencyChangeText}>Browse 25+ ▾</Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  {/* Quick Currency Shortcuts */}
+                  <View style={styles.quickCurrencyRow}>
+                    {QUICK_CURRENCIES.map((qc) => {
+                      const selected = currencyCode === qc;
+                      const opt = SUPPORTED_CURRENCIES.find((c: CurrencyItem) => c.code === qc);
                       return (
                         <TouchableOpacity
-                          key={c.code}
+                          key={qc}
                           activeOpacity={0.8}
                           onPress={() => {
                             triggerHaptic();
-                            setCurrencyCodeState(c.code);
+                            setCurrencyCodeState(qc);
                           }}
                           style={[
-                            styles.currencyOptionBtn,
-                            { backgroundColor: theme.surfaceSubtle, borderColor: selected ? '#3DE0A0' : theme.border },
-                            selected && { backgroundColor: 'rgba(61, 224, 160, 0.12)' }
+                            styles.quickCurrencyChip,
+                            {
+                              backgroundColor: selected ? 'rgba(61, 224, 160, 0.12)' : theme.surfaceSubtle,
+                              borderColor: selected ? '#3DE0A0' : theme.border
+                            }
                           ]}
                         >
-                          <Text style={[styles.currencyOptionText, { color: selected ? '#3DE0A0' : theme.textPrimary }]}>
-                            {c.label}
+                          <Text
+                            style={[
+                              styles.quickCurrencyText,
+                              { color: selected ? '#3DE0A0' : theme.textPrimary }
+                            ]}
+                          >
+                            {opt?.flag} {qc}
                           </Text>
                         </TouchableOpacity>
                       );
@@ -503,7 +568,7 @@ export default function PactCreateJoinScreen() {
 
                   {/* Budget Range Inputs */}
                   <Text style={[styles.inputLabel, { color: theme.textSecondary, marginTop: 18 }]}>
-                    TARGET PER-PERSON BUDGET RANGE ({CURRENCIES[currencyCode].symbol})
+                    TARGET PER-PERSON BUDGET RANGE ({activeCurrencyOption.symbol})
                   </Text>
                   <View style={styles.budgetRow}>
                     <View style={{ flex: 1 }}>
@@ -616,7 +681,7 @@ export default function PactCreateJoinScreen() {
             <Text style={styles.celebrationTitle}>Trip Circle Initialized!</Text>
             <Text style={styles.celebrationBadgeText}>🏆 Micro-badge Unlocked: "Founding Organizer"</Text>
             <Text style={styles.celebrationSubtext}>
-              {tripName || 'Your trip circle'} has been set up with {candidates.length} candidate options in {CURRENCIES[currencyCode].symbol} {currencyCode}.
+              {tripName || 'Your trip circle'} has been set up with {candidates.length} candidate options in {activeCurrencyOption.symbol} {currencyCode}.
             </Text>
 
             <View style={{ flexDirection: 'column', gap: 10, width: '100%' }}>
@@ -651,6 +716,19 @@ export default function PactCreateJoinScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Global Currency & Country Picker Modal */}
+      <CurrencyCountryPicker
+        visible={showCurrencyModal}
+        onClose={() => setShowCurrencyModal(false)}
+        selectedCurrency={currencyCode}
+        onSelectCurrency={(selected: CurrencyItem) => {
+          triggerHaptic();
+          setCurrencyCodeState(selected.code as CurrencyCode);
+          setShowCurrencyModal(false);
+        }}
+      />
+
     </SafeAreaView>
   );
 }
@@ -744,7 +822,7 @@ const styles = StyleSheet.create({
   createCard: {
     backgroundColor: '#13151E',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.14)',
+    borderColor: '#262938',
     borderRadius: 18,
     padding: 18,
     marginBottom: 18
@@ -859,23 +937,64 @@ const styles = StyleSheet.create({
   removeChipBtn: {
     padding: 2
   },
-  currencyGrid: {
+  currencyActiveCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 10
+  },
+  currencyActiveLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12
+  },
+  currencyFlag: {
+    fontSize: 24
+  },
+  currencyActiveCode: {
+    fontFamily: fontUIBold,
+    fontSize: 15,
+    fontWeight: '700'
+  },
+  currencyActiveName: {
+    fontFamily: fontUI,
+    fontSize: 12,
+    marginTop: 1
+  },
+  currencyChangeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: 'rgba(61, 224, 160, 0.12)'
+  },
+  currencyChangeText: {
+    fontFamily: fontUIBold,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#3DE0A0'
+  },
+  quickCurrencyRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
     marginBottom: 8
   },
-  currencyOptionBtn: {
-    flex: 1,
-    minWidth: '45%',
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderRadius: 10,
+  quickCurrencyChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 8,
     borderWidth: 1
   },
-  currencyOptionText: {
+  quickCurrencyText: {
     fontFamily: fontUIBold,
-    fontSize: 13
+    fontSize: 12
   },
   budgetRow: {
     flexDirection: 'row',
@@ -919,7 +1038,7 @@ const styles = StyleSheet.create({
   joinCard: {
     backgroundColor: '#13151E',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.14)',
+    borderColor: '#262938',
     borderRadius: 18,
     padding: 18,
     marginBottom: 20
