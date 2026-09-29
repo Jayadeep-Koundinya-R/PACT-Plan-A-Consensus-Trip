@@ -1,37 +1,23 @@
-﻿import { Platform } from 'react-native';
-import Constants from 'expo-constants';
+import { create } from 'zustand';
 
-/**
- * useDemoMode - Hook to gate demo-only features
- * 
- * Reads EXPO_PUBLIC_DEMO_MODE from environment and returns
- * whether demo features should be visible to the user.
- * 
- * Usage:
- *   const { isDemoMode, showDemoFeatures } = useDemoMode();
- *   if (showDemoFeatures) { ... }
- */
-export function useDemoMode(): { isDemoMode: boolean; showDemoFeatures: boolean } {
-  // Read from Expo Constants (bundled at build time) or process.env
-  // @ts-ignore
-  const envValue = Constants.expoConfig?.extra?.demoMode ?? 
-    // @ts-ignore
-    (typeof process !== 'undefined' ? process.env?.EXPO_PUBLIC_DEMO_MODE : null) ?? 
-    null;
-  
-  // Also check globalThis for web compatibility
-  // @ts-ignore
-  const globalValue = typeof globalThis !== 'undefined' ? globalThis.EXPO_PUBLIC_DEMO_MODE : null;
-  
-  const rawValue = envValue ?? globalValue;
-  
-  // Parse the value - handle string "true"/"false" and boolean
-  const isDemoMode = rawValue === true || rawValue === 'true' || rawValue === '1';
-  
-  return {
-    isDemoMode,
-    showDemoFeatures: isDemoMode
-  };
+interface DemoModeState {
+  isDemoMode: boolean;
+  setDemoMode: (value: boolean) => void;
+  toggleDemoMode: () => void;
+}
+
+const useDemoModeStore = create<DemoModeState>((set) => ({
+  isDemoMode: false,
+  setDemoMode: (value: boolean) => set({ isDemoMode: value }),
+  toggleDemoMode: () => set((state) => ({ isDemoMode: !state.isDemoMode }))
+}));
+
+export function useDemoMode() {
+  const isDemoMode = useDemoModeStore((s) => s.isDemoMode);
+  const setDemoMode = useDemoModeStore((s) => s.setDemoMode);
+  const toggleDemoMode = useDemoModeStore((s) => s.toggleDemoMode);
+
+  return { isDemoMode, showDemoFeatures: isDemoMode, setDemoMode, toggleDemoMode };
 }
 
 export default useDemoMode;

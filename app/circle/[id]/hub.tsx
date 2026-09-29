@@ -53,8 +53,8 @@ import {
   Calendar,
   DollarSign
 } from 'lucide-react-native';
-import { VoiceCapsuleRecorder } from '../../../src/components/audio/VoiceCapsuleRecorder';
-import { VoiceCapsuleList, VoiceCapsuleItem } from '../../../src/components/audio/VoiceCapsuleList';
+import { LivingTripManifest } from '../../../src/components/LivingTripManifest';
+import { VoiceMemoriesDrawer } from '../../../src/components/VoiceMemoriesDrawer';
 import { SafeTravelSection } from '../../../src/components/SafeTravelSection';
 
 export default function PactCirclesHub() {
@@ -71,7 +71,6 @@ export default function PactCirclesHub() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  const [voiceCapsules, setVoiceCapsules] = useState<VoiceCapsuleItem[]>([]);
   const [showVoiceDrawer, setShowVoiceDrawer] = useState(false);
 
   const activeUserId = getActiveUserId();
@@ -398,112 +397,55 @@ export default function PactCirclesHub() {
     <SafeAreaView style={styles.outerContainer}>
       <View style={styles.phoneFrame}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          {/* Header Row */}
-          <View style={styles.headerContainer}>
-            <View style={styles.headerTopRow}>
-              <View style={styles.headerTitleGroup}>
-                <TouchableOpacity
-                  onPress={() => {
-                    haptics.tap();
-                    router.push('/(tabs)/home');
-                  }}
-                  activeOpacity={0.7}
-                  style={styles.backHomeBtn}
-                  accessibilityLabel="Back to My Circles"
-                >
-                  <ArrowLeft size={18} color="#F4F3F0" />
-                </TouchableOpacity>
-                <Text style={styles.tripTitle} numberOfLines={2}>
-                  {currentGroup.name || 'Goa Beach Escape 2026'}
-                </Text>
-              </View>
-
-              <View style={styles.headerRightActions}>
-                <TouchableOpacity
-                  onPress={() => {
-                    haptics.tap();
-                    setShowVoiceDrawer((prev) => !prev);
-                  }}
-                  activeOpacity={0.7}
-                  style={[styles.headerIconBtn, showVoiceDrawer && { backgroundColor: 'rgba(255, 90, 95, 0.2)' }]}
-                  accessibilityLabel="Voice Capsules Drawer"
-                >
-                  <Mic size={16} color="#FF5A5F" />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => {
-                    haptics.tap();
-                    openNotificationCenter();
-                  }}
-                  activeOpacity={0.7}
-                  style={[styles.headerIconBtn, { position: 'relative' }]}
-                  accessibilityLabel="Notification Center"
-                >
-                  <Bell size={16} color="#FF5A5F" />
-                  {unreadCount > 0 && <View style={styles.hubNotifDot} />}
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => {
-                    haptics.tap();
-                    router.push(`/circle/${currentGroup.id}/chat` as any);
-                  }}
-                  activeOpacity={0.7}
-                  style={styles.headerIconBtn}
-                  accessibilityLabel="Circle Chat"
-                >
-                  <MessageSquare size={16} color="#3DE0A0" />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => router.push('/(tabs)/settings' as any)}
-                  activeOpacity={0.7}
-                  style={styles.headerIconBtn}
-                  accessibilityLabel="Circle Settings"
-                >
-                  <Settings size={16} color="#8B8D98" />
-                </TouchableOpacity>
-              </View>
+          {/* Status and Live Event Bar (Clean, single-header layout) */}
+          <View style={styles.headerMetaRow}>
+            <View
+              style={[
+                styles.realtimePill,
+                !isConnected && styles.realtimePillOffline
+              ]}
+              accessibilityLabel="Live Realtime Sync Indicator"
+            >
+              <View style={[
+                styles.realtimeDot,
+                isConnected && styles.realtimeDotConnected
+              ]} />
+              <Text style={[
+                styles.realtimeText,
+                !isConnected && styles.realtimeTextOffline
+              ]}>
+                {isConnected ? 'LIVE SYNC' : 'OFFLINE'}
+              </Text>
             </View>
 
-            {/* Status and Live Event Bar */}
-            <View style={styles.headerMetaRow}>
-              <View
-                style={[
-                  styles.realtimePill,
-                  !isConnected && styles.realtimePillOffline
-                ]}
-                accessibilityLabel="Live Realtime Sync Indicator"
-              >
-                <View style={[
-                  styles.realtimeDot,
-                  isConnected && styles.realtimeDotConnected
-                ]} />
-                <Text style={[
-                  styles.realtimeText,
-                  !isConnected && styles.realtimeTextOffline
-                ]}>
-                  {isConnected ? 'LIVE SYNC' : 'OFFLINE'}
+            {lastEvent ? (
+              <View style={styles.realtimeEventBadge}>
+                <Zap size={11} color="#3DE0A0" />
+                <Text style={styles.realtimeEventText} numberOfLines={1}>
+                  {lastEvent}
                 </Text>
               </View>
+            ) : (
+              <View style={styles.realtimeEventBadge}>
+                <Clock size={11} color="#8B8D98" />
+                <Text style={styles.realtimeEventText}>
+                  {isEarlyBird ? 'Phase 1: Collecting Preferences' : 'Phase 2: Silent Voting Open'}
+                </Text>
+              </View>
+            )}
 
-              {lastEvent ? (
-                <View style={styles.realtimeEventBadge}>
-                  <Zap size={11} color="#3DE0A0" />
-                  <Text style={styles.realtimeEventText} numberOfLines={1}>
-                    {lastEvent}
-                  </Text>
-                </View>
-              ) : (
-                <View style={styles.realtimeEventBadge}>
-                  <Clock size={11} color="#8B8D98" />
-                  <Text style={styles.realtimeEventText}>
-                    {isEarlyBird ? 'Phase 1: Collecting Preferences' : 'Phase 2: Silent Voting Open'}
-                  </Text>
-                </View>
-              )}
-            </View>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => {
+                haptics.tap();
+                setShowVoiceDrawer(true);
+              }}
+              style={styles.voiceMemoriesPill}
+              accessibilityLabel="Open Voice Memories"
+            >
+              <Mic size={13} color="#FF5A5F" />
+              <Text style={styles.voiceMemoriesPillText}>🎙️ Voice Memories</Text>
+            </TouchableOpacity>
           </View>
 
           {/* Pro Circle Inheritance Card by RevenueCat */}
@@ -513,7 +455,7 @@ export default function PactCirclesHub() {
             totalMembersCount={totalCount}
           />
 
-          {/* Pinned Trip Specs Card */}
+          {/* Living Trip Manifest Component */}
           {(() => {
             const leadingOption: any = tripOptions[0] || {
               destinationName: 'Goa, India',
@@ -528,41 +470,19 @@ export default function PactCirclesHub() {
             const maxBudget = leadingOption.budgetPerPerson || leadingOption.pricePerPerson || 850;
 
             return (
-              <View style={styles.pinnedSpecsCard}>
-                <View style={styles.pinnedHeaderRow}>
-                  <View style={styles.pinnedBadge}>
-                    <Pin size={12} color="#3DE0A0" />
-                    <Text style={styles.pinnedBadgeText}>PINNED TRIP SPECS</Text>
-                  </View>
-                  <Text style={styles.pinnedSubtitle}>Consensus Anchor</Text>
-                </View>
-
-                <View style={styles.pinnedSpecsGrid}>
-                  <View style={styles.specItem}>
-                    <MapPin size={14} color="#FF5A5F" />
-                    <View style={styles.specTextCol}>
-                      <Text style={styles.specLabel}>Destination</Text>
-                      <Text style={styles.specValue} numberOfLines={1}>{dest}</Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.specItem}>
-                    <Calendar size={14} color="#3DE0A0" />
-                    <View style={styles.specTextCol}>
-                      <Text style={styles.specLabel}>Target Dates</Text>
-                      <Text style={styles.specValue} numberOfLines={1}>{dates}</Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.specItem}>
-                    <DollarSign size={14} color="#D4AF37" />
-                    <View style={styles.specTextCol}>
-                      <Text style={styles.specLabel}>Budget Ceiling</Text>
-                      <Text style={styles.specValue}>{formatCurrency ? formatCurrency(maxBudget) : `$${maxBudget}`} / person</Text>
-                    </View>
-                  </View>
-                </View>
-              </View>
+              <LivingTripManifest
+                destination={dest}
+                dates={dates}
+                budget={maxBudget}
+                currencyCode={(currentGroup as any).currencyCode || 'USD'}
+                status={isEarlyBird ? 'Collecting Preferences' : 'Consensus Active'}
+                totalMembers={totalCount}
+                lockedMembers={lockedCount}
+                onPress={() => {
+                  haptics.tap();
+                  router.push(`/circle/${currentGroup.id}/preferences` as any);
+                }}
+              />
             );
           })()}
 
@@ -572,33 +492,12 @@ export default function PactCirclesHub() {
             </View>
           )}
 
-          {/* Voice Capsules Section */}
-          {showVoiceDrawer && (
-            <View style={styles.voiceSectionBox}>
-              {Platform.OS === 'web' && (
-                <View style={styles.webVoiceHelperPill}>
-                  <Mic size={12} color="#FF5A5F" />
-                  <Text style={styles.webVoiceHelperText}>
-                    Voice capsules optimized for mobile devices
-                  </Text>
-                </View>
-              )}
-              <VoiceCapsuleRecorder
-                onRecordingComplete={(newCap) => {
-                  setVoiceCapsules((prev) => [
-                    {
-                      id: newCap.id,
-                      authorName: newCap.authorName,
-                      durationSeconds: newCap.durationSeconds,
-                      createdAt: newCap.createdAt
-                    },
-                    ...prev
-                  ]);
-                }}
-              />
-              <VoiceCapsuleList capsules={voiceCapsules} />
-            </View>
-          )}
+          {/* Voice Memories Drawer Component */}
+          <VoiceMemoriesDrawer
+            visible={showVoiceDrawer}
+            onClose={() => setShowVoiceDrawer(false)}
+            groupId={currentGroup.id}
+          />
 
           {/* Phase Hero Status Banner */}
           {isEarlyBird ? (
@@ -1244,6 +1143,23 @@ const styles = StyleSheet.create({
   },
   realtimeTextOffline: {
     color: '#8B8D98'
+  },
+  voiceMemoriesPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(255, 90, 95, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 90, 95, 0.3)',
+    borderRadius: 20,
+    paddingHorizontal: 9,
+    paddingVertical: 4
+  },
+  voiceMemoriesPillText: {
+    fontFamily: fontUIBold,
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#FF5A5F'
   },
   realtimeEventBadge: {
     flexDirection: 'row',

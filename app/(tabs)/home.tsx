@@ -1,5 +1,6 @@
 import { useShareInvite } from '../../src/hooks/useShareInvite';
 import { useTheme } from '../../src/hooks/useTheme';
+import { useDemoMode } from '../../src/hooks/useDemoMode';
 import { useNotificationStore } from '../../src/store/useNotificationStore';
 import { NotificationCenterModal } from '../../src/components/NotificationCenterModal';
 import { NotificationToast } from '../../src/components/NotificationToast';
@@ -47,6 +48,7 @@ import {
 export default function MyCirclesScreen() {
   const router = useRouter();
   const { theme, isDarkMode } = useTheme();
+  const { isDemoMode } = useDemoMode();
   const haptics = usePactHaptics();
 
   const { circles = [], activeCircleId, setActiveCircle, archiveCircle, unarchiveCircle, loadDemoCircle, clearCircles } = useCircleStore();
@@ -57,7 +59,6 @@ export default function MyCirclesScreen() {
   const { groups = [], fetchUserGroupsFromCloud, currentUserId, resetDemoState } = useGatherlyStore();
   const [showTutorial, setShowTutorial] = useState(false);
 
-  const { showDemoFeatures } = useDemoMode();
   useEffect(() => {
     if (!hasSeenTutorial) {
       setShowTutorial(true);
@@ -331,56 +332,86 @@ export default function MyCirclesScreen() {
                   ? 'Trips you archive will be stored here for future reference.'
                    : 'Start planning your next trip or join an existing circle with friends.'}
               </Text>
-
-
-              {circleTab === 'active' && !showDemoFeatures && (
-                <View style={{ width: '100%', marginTop: 20, gap: 10 }}>
-                  <TouchableOpacity
-                    activeOpacity={0.88}
-                    onPress={() => { haptics.action(); router.push('/create-circle' as any); }}
-                    style={[styles.emptyPrimaryBtn, { backgroundColor: theme.primary }]}
-                    accessibilityLabel='Plan a New PACT'
-                  >
-                    <Plus size={15} color='#050608' strokeWidth={2.5} />
-                    <Text style={styles.emptyPrimaryBtnText}>+ Plan a New PACT</Text>
-                  </TouchableOpacity>
+              {circleTab === 'active' && (
+                isDemoMode ? (
                   <TouchableOpacity
                     activeOpacity={0.8}
-                    onPress={() => { haptics.tap(); router.push('/invite' as any); }}
-                    style={[styles.emptySecondaryBtn, { borderColor: theme.border }]}
-                    accessibilityLabel='Join with Code'
+                    onPress={() => {
+                      haptics.success();
+                      useGatherlyStore.getState().resetDemoState();
+                      useCircleStore.getState().loadDemoCircle();
+                    }}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 6,
+                      marginTop: 16,
+                      paddingVertical: 10,
+                      paddingHorizontal: 16,
+                      borderRadius: 8,
+                      backgroundColor: theme.primaryLight,
+                      borderWidth: 1,
+                      borderColor: theme.border
+                    }}
                   >
-                    <KeyRound size={14} color={theme.textPrimary} />
-                    <Text style={[styles.emptySecondaryBtnText, { color: theme.textPrimary }]}>Join with Code</Text>
+                    <Sparkles size={14} color={theme.primary} />
+                    <Text style={{ color: theme.primary, fontSize: 13, fontWeight: '700' }}>
+                      Load Demo Circle (Goa Beach)
+                    </Text>
                   </TouchableOpacity>
-                </View>
-              )}
-              {circleTab === 'active' && showDemoFeatures && (
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => {
-                    haptics.success();
-                    useGatherlyStore.getState().resetDemoState();
-                    useCircleStore.getState().loadDemoCircle();
-                  }}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 6,
-                    marginTop: 16,
-                    paddingVertical: 10,
-                    paddingHorizontal: 16,
-                    borderRadius: 8,
-                    backgroundColor: theme.primaryLight,
-                    borderWidth: 1,
-                    borderColor: theme.border
-                  }}
-                >
-                  <Sparkles size={14} color={theme.primary} />
-                  <Text style={{ color: theme.primary, fontSize: 13, fontWeight: '700' }}>
-                    Load Demo Circle (Goa Beach)
-                  </Text>
-                </TouchableOpacity>
+                ) : (
+                  <View style={{ flexDirection: 'row', gap: 10, marginTop: 16, width: '100%', maxWidth: 320 }}>
+                    <TouchableOpacity
+                      activeOpacity={0.85}
+                      onPress={() => {
+                        haptics.action();
+                        router.push('/create-circle');
+                      }}
+                      style={{
+                        flex: 1,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 6,
+                        paddingVertical: 12,
+                        paddingHorizontal: 14,
+                        borderRadius: 10,
+                        backgroundColor: '#FF5A5F'
+                      }}
+                    >
+                      <Plus size={14} color="#050608" strokeWidth={2.5} />
+                      <Text style={{ color: '#050608', fontSize: 12.5, fontWeight: '700' }}>
+                        + Plan a New PACT
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => {
+                        haptics.tap();
+                        router.push('/invite');
+                      }}
+                      style={{
+                        flex: 1,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 6,
+                        paddingVertical: 12,
+                        paddingHorizontal: 14,
+                        borderRadius: 10,
+                        backgroundColor: '#13151E',
+                        borderWidth: 1,
+                        borderColor: '#262938'
+                      }}
+                    >
+                      <KeyRound size={14} color="#F4F3F0" />
+                      <Text style={{ color: '#F4F3F0', fontSize: 12.5, fontWeight: '600' }}>
+                        Join with Code
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )
               )}
             </View>
           )}
