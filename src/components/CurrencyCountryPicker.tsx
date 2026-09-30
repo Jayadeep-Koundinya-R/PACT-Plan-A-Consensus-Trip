@@ -150,10 +150,10 @@ export function CurrencyCountryPicker({
     if (!q) return GLOBAL_CURRENCIES;
     return GLOBAL_CURRENCIES.filter(
       (c) =>
-        c.code.toLowerCase().includes(q) ||
-        c.name.toLowerCase().includes(q) ||
-        c.country.toLowerCase().includes(q) ||
-        c.symbol.toLowerCase().includes(q)
+        (c.code || '').toLowerCase().includes(q) ||
+        (c.name || '').toLowerCase().includes(q) ||
+        (c.country || '').toLowerCase().includes(q) ||
+        (c.symbol || '').toLowerCase().includes(q)
     );
   }, [searchQuery]);
 
@@ -220,7 +220,7 @@ export function CurrencyCountryPicker({
               keyExtractor={(item) => item.code}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
-              getItemLayout={(_, index) => ({ length: 64, offset: 64 * index, index })}
+              getItemLayout={(_, index) => ({ length: 54, offset: 54 * index, index })}
               contentContainerStyle={styles.listContent}
               renderItem={({ item }) => {
                 const isSelected = item.code.toUpperCase() === activeCode;

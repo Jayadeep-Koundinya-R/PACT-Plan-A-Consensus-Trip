@@ -103,28 +103,29 @@ export function useCircleChat(
         },
         (payload: any) => {
           const newRecord = payload.new as any;
-          if (newRecord?.id && newRecord?.content) {
-            // Check if this incoming message matches an existing optimistic record
-            const currentMsgs = useCircleChatStore.getState().getMessages(circleId);
-            const isDuplicate = currentMsgs.some(
-              (m) =>
-                m.id === newRecord.id ||
-                (m.userId === newRecord.user_id && m.content === newRecord.content && m.isOptimistic)
-            );
+          if (!newRecord?.id || !newRecord?.content) return;
 
-            if (!isDuplicate) {
-              const incoming: CircleMessage = {
-                id: newRecord.id,
-                groupId: newRecord.group_id,
-                userId: newRecord.user_id,
-                userDisplayName: newRecord.user_display_name,
-                content: newRecord.content,
-                createdAt: newRecord.created_at
-              };
-              addMessage(circleId, incoming);
-              if (newRecord.user_id !== currentUserId) {
-                hapticsRef.current.action();
-              }
+          const currentMsgs = useCircleChatStore.getState().getMessages(circleId);
+          const isDuplicate = currentMsgs.some(
+            (m) =>
+              m.id === newRecord.id ||
+              (m.userId === newRecord.user_id &&
+               m.content.trim() === newRecord.content.trim() &&
+               Math.abs(new Date(m.createdAt).getTime() - new Date(newRecord.created_at).getTime()) < 5000)
+          );
+
+          if (!isDuplicate) {
+            const incoming: CircleMessage = {
+              id: newRecord.id,
+              groupId: newRecord.group_id,
+              userId: newRecord.user_id,
+              userDisplayName: newRecord.user_display_name,
+              content: newRecord.content,
+              createdAt: newRecord.created_at
+            };
+            addMessage(circleId, incoming);
+            if (newRecord.user_id !== currentUserId) {
+              hapticsRef.current.action();
             }
           }
         }

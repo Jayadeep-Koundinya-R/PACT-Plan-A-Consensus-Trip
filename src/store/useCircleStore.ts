@@ -257,15 +257,25 @@ export const useCircleStore = create<CircleState>((set, get) => ({
       const circle = s.circles.find((c) => c.id === circleId);
       if (!circle) return { circles: s.circles };
 
+      const cleanUserId = (member.userId || '').trim();
+      const cleanName = (member.name || '').replace(/\s*\(You\)/gi, '').trim();
+
       const cleanMember: CircleMember = {
         ...member,
-        name: member.name.replace(/\s*\(You\)/gi, '').trim()
+        userId: cleanUserId,
+        name: cleanName
       };
 
-      const existingIndex = circle.members.findIndex((m) => m.userId === cleanMember.userId);
+      const existingIndex = circle.members.findIndex(
+        (m) => m.userId.trim().toLowerCase() === cleanUserId.toLowerCase() ||
+               m.name.trim().toLowerCase() === cleanName.toLowerCase()
+      );
       if (existingIndex >= 0) {
         const updatedMembers = [...circle.members];
-        updatedMembers[existingIndex] = cleanMember;
+        updatedMembers[existingIndex] = {
+          ...updatedMembers[existingIndex],
+          ...cleanMember
+        };
         const updated = s.circles.map((c) => (c.id === circleId ? { ...c, members: updatedMembers } : c));
         saveCirclesToStorage(updated);
         added = true;

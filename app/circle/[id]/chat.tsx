@@ -235,6 +235,9 @@ export default function PactCircleChatScreen() {
             ref={scrollViewRef}
             contentContainerStyle={styles.messagesScroll}
             showsVerticalScrollIndicator={false}
+            onContentSizeChange={() => {
+              scrollViewRef.current?.scrollToEnd({ animated: true });
+            }}
           >
             {messages.length === 0 ? (
               <View style={styles.emptyStateContainer}>

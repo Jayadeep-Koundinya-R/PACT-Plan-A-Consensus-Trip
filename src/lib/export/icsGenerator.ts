@@ -35,14 +35,23 @@ export function generateICSContent(event: CalendarEventDetails): string {
       return fallback + 'T090000Z';
     }
     const clean = dateStr.trim();
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(clean)) {
-      const parsed = new Date(clean);
-      if (!isNaN(parsed.getTime())) {
-        return parsed.toISOString().split('T')[0].replace(/-/g, '') + 'T090000Z';
-      }
-      return new Date().toISOString().split('T')[0].replace(/-/g, '') + 'T090000Z';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(clean)) {
+      return clean.replace(/-/g, '') + 'T090000Z';
     }
-    return clean.replace(/-/g, '') + 'T090000Z';
+    // Attempt parsing ISO or human dates
+    const parsed = new Date(clean);
+    if (!isNaN(parsed.getTime())) {
+      return parsed.toISOString().split('T')[0].replace(/-/g, '') + 'T090000Z';
+    }
+    // Handle human formats like "Oct 14, 2026" or "Oct 14 2026"
+    const matchedYear = clean.match(/\b20\d{2}\b/);
+    if (matchedYear) {
+      const reParsed = new Date(clean);
+      if (!isNaN(reParsed.getTime())) {
+        return reParsed.toISOString().split('T')[0].replace(/-/g, '') + 'T090000Z';
+      }
+    }
+    return new Date().toISOString().split('T')[0].replace(/-/g, '') + 'T090000Z';
   };
 
   const startFormatted = formatICSDate(event.startDate);

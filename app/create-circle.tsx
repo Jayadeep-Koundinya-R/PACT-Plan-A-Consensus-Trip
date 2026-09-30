@@ -161,7 +161,12 @@ export default function PactCreateJoinScreen() {
   const handleConfirmCreate = async () => {
     triggerHaptic();
     const name = tripName.trim() || 'Goa Beach Escape 2026';
-    const total = parseInt(memberCount, 10) || 5;
+    const total = parseInt(memberCount, 10);
+
+    if (isNaN(total) || total < 1) {
+      setCreateError('Please enter a valid traveler count (at least 1 traveler).');
+      return;
+    }
 
     if (total > MAX_GROUP_MEMBERS) {
       const enterpriseMsg = "Circles larger than 24 members require an Enterprise Custom Plan. Please contact the organizer / support team for pricing details.";

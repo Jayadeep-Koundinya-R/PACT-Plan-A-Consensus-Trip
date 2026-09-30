@@ -264,11 +264,12 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     set({ currency: code, currencySymbol: symbol });
   },
   formatCurrency: (amountInUSD: number, currencyCodeOverride?: CurrencyCode) => {
+    const safeAmount = (typeof amountInUSD === 'number' && !isNaN(amountInUSD)) ? amountInUSD : 0;
     const state = get();
     const targetCode = (currencyCodeOverride || state.currency || 'USD').toUpperCase().trim();
     const config = CURRENCIES[targetCode];
-    const rate = config ? config.rate : 1.0;
-    const converted = Math.round(amountInUSD * rate);
+    const rate = (config && typeof config.rate === 'number' && config.rate > 0) ? config.rate : 1.0;
+    const converted = Math.round(safeAmount * rate);
     if (targetCode === 'INR') {
       return `₹${converted.toLocaleString('en-IN')}`;
     }
@@ -744,9 +745,10 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
     const { currentUserId, groups, subscriptionPlan } = get();
     const rawName = typeof name === 'object' && name !== null ? name.name : name;
     const cleanName = (typeof rawName === 'string' ? rawName.trim() : '') || 'New Trip Circle';
-    const totalCount = (typeof name === 'object' && name !== null && name.totalMembersCount)
+    const parsedCount = (typeof name === 'object' && name !== null && name.totalMembersCount)
       ? Number(name.totalMembersCount)
       : 5;
+    const totalCount = (isNaN(parsedCount) || parsedCount < 1) ? 5 : parsedCount;
     const currencyCode: CurrencyCode = (typeof name === 'object' && name !== null && name.currencyCode)
       ? name.currencyCode
       : get().currency;

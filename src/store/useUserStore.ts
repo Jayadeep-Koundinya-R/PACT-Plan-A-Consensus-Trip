@@ -177,7 +177,14 @@ export const useUserStore = create<UserState>((set, get) => ({
   togglePrivacyMaskBudget: () => set((s) => ({ privacyMaskBudget: !s.privacyMaskBudget })),
   toggleAutoDeleteVetos: () => set((s) => ({ autoDeleteVetos: !s.autoDeleteVetos })),
 
-  logout: () =>
+  logout: () => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        window.localStorage.removeItem('pact_user_id');
+        window.localStorage.removeItem('pact_user_display_name');
+        window.localStorage.removeItem('pact_subscription_plan');
+      } catch (e) {}
+    }
     set({
       isAuthenticated: false,
       profile: {
@@ -188,7 +195,8 @@ export const useUserStore = create<UserState>((set, get) => ({
         createdAt: ''
       },
       subscriptionPlan: 'free'
-    })
+    });
+  }
 }));
 
 import { registerUserStore } from '../lib/user/identity.ts';

@@ -159,25 +159,17 @@ export default function PactTripBrief() {
     haptics.action();
     const title = currentGroup.name || `${rawDestName} Getaway`;
     const dest = rawDestName;
-    const nowStr = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-    const icsData = [
-      'BEGIN:VCALENDAR',
-      'VERSION:2.0',
-      'PRODID:-//PACT//Consensus Trip Planner//EN',
-      'CALSCALE:GREGORIAN',
-      'METHOD:PUBLISH',
-      'BEGIN:VEVENT',
-      `UID:pact-${Date.now()}@pact.travel`,
-      `DTSTAMP:${nowStr}`,
-      'DTSTART;VALUE=DATE:20261014',
-      'DTEND;VALUE=DATE:20261019',
-      `SUMMARY:${title} (PACT Consensus Trip)`,
-      `DESCRIPTION:Consensus Trip to ${dest} backed by PACT.\\n100% agreement reached by all circle members.`,
-      `LOCATION:${dest}`,
-      'STATUS:CONFIRMED',
-      'END:VEVENT',
-      'END:VCALENDAR'
-    ].join('\r\n');
+    const startDate = (winningOpt && winningOpt.option && winningOpt.option.dateStart) ? winningOpt.option.dateStart : '2026-10-14';
+    const endDate = (winningOpt && winningOpt.option && winningOpt.option.dateEnd) ? winningOpt.option.dateEnd : '2026-10-19';
+
+    const { generateICSContent } = require('../../../src/lib/export/icsGenerator');
+    const icsData = generateICSContent({
+      title: `${title} (PACT Consensus Trip)`,
+      description: `Consensus Trip to ${dest} backed by PACT.\n100% agreement reached by all circle members.`,
+      location: dest,
+      startDate,
+      endDate
+    });
 
     if (Platform.OS === 'web' && typeof document !== 'undefined') {
       const blob = new Blob([icsData], { type: 'text/calendar;charset=utf-8' });

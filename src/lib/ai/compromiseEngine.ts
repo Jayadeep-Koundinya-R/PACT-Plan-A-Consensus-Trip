@@ -24,10 +24,13 @@ export function synthesizeAICompromise(
   members: MemberPreference[],
   existingOptions: TripOption[]
 ): CompromiseProposal {
-  // 1. Calculate lowest budget ceiling across all members
-  const memberBudgets = members.map((m) => m.budgetMax || 1000);
-  const minCeiling = memberBudgets.length > 0 ? Math.min(...memberBudgets) : 600;
-  const maxCeiling = memberBudgets.length > 0 ? Math.max(...memberBudgets) : 1500;
+  // 1. Calculate lowest budget ceiling across all members with numeric safety guards
+  const validBudgets = members
+    .map((m) => (typeof m.budgetMax === 'number' && !isNaN(m.budgetMax) && m.budgetMax > 0 ? m.budgetMax : 1000))
+    .filter((b) => b > 0);
+
+  const minCeiling = validBudgets.length > 0 ? Math.min(...validBudgets) : 600;
+  const maxCeiling = validBudgets.length > 0 ? Math.max(...validBudgets) : 1500;
   
   // Set compromise budget at or slightly below the lowest ceiling to guarantee 100% budget viability
   const targetBudget = Math.max(350, Math.floor(minCeiling * 0.95));
@@ -87,14 +90,15 @@ export function synthesizeAICompromise(
 
   // 6. Generate per-member satisfaction breakdown
   const memberSatisfactions: MemberSatisfaction[] = members.map((m) => {
-    const isBudgetOk = targetBudget <= m.budgetMax;
+    const safeMax = (typeof m.budgetMax === 'number' && !isNaN(m.budgetMax) && m.budgetMax > 0) ? m.budgetMax : 1000;
+    const isBudgetOk = targetBudget <= safeMax;
     const name = m.userName || 'Traveler';
-    let reason = `Target cost of $${targetBudget} is safely within your $${m.budgetMax} limit.`;
+    let reason = `Target cost of $${targetBudget} is safely within your $${safeMax} limit.`;
     
-    if (m.budgetMax === minCeiling) {
-      reason = `Specially calibrated to fit your $${m.budgetMax} budget ceiling without compromising comfort.`;
-    } else if (m.budgetMax >= 1500) {
-      reason = `Leaves you $${m.budgetMax - targetBudget} extra headroom for personal upgrades and private activities.`;
+    if (safeMax === minCeiling) {
+      reason = `Specially calibrated to fit your $${safeMax} budget ceiling without compromising comfort.`;
+    } else if (safeMax >= 1500) {
+      reason = `Leaves you $${safeMax - targetBudget} extra headroom for personal upgrades and private activities.`;
     }
 
     return {
