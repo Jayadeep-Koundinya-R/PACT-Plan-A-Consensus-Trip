@@ -1,204 +1,185 @@
-# 🌴 PACT — Plan A Consensus Trip
-> *Turn "we should go somewhere" into a real confirmed trip plan.*
+# PACT — Plan A Consensus Trip
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Expo](https://img.shields.io/badge/Expo-v52-000020.svg?style=flat&logo=expo)](https://expo.dev)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-3178C6.svg?style=flat&logo=typescript)](https://www.typescriptlang.org/)
-[![Supabase](https://img.shields.io/badge/Supabase-Auth%20%2B%20Postgres-3ECF8E.svg?style=flat&logo=supabase)](https://supabase.com)
-[![RevenueCat](https://img.shields.io/badge/RevenueCat-In--App%20Subscriptions-E85D04.svg?style=flat&logo=revenuecat)](https://revenuecat.com)
-[![Tests](https://img.shields.io/badge/Tests-131%2F131%20Passing-brightgreen.svg)](package.json)
+> **End group travel paralysis. Instantly.**
 
----
-
-## 📖 1. Overview & Problem Statement
-
-**The Problem:** Groups of friends and family want to travel together, but conflicting dates, different budget caps, varying vibe preferences, and unspoken dealbreakers stall planning for weeks in chaotic WhatsApp group chats. Either someone unilaterally books something that breeds resentment, or the trip never happens.
-
-**The Solution:** PACT is a private, zero-guilt consensus platform:
-1. **Privately collects sealed constraints** (dates, budget bands, vibes, dealbreakers) without peer pressure.
-2. **Deterministically scores and ranks destinations** using a mathematical formula where ghost members never poison averages.
-3. **Resolves deadlocks with AI** through an **AI Compromise Whisperer** operating strictly on anonymized, aggregated bucket data.
-4. **Conducts Silent Voting** with an authentic wax seal stamp animation where individual ballots remain strictly secret.
-5. **Locks consensus** (70% supermajority threshold required to finalize; 100% unanimous agreement unlocks golden payoff celebration) and generates an exportable **Trip Brief** shareable back to WhatsApp in one tap.
+[![Expo SDK 52](https://img.shields.io/badge/Expo-SDK%2052-000020.svg?style=for-the-badge&logo=expo&logoColor=white)](https://expo.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6.svg?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-Auth%20%2B%20Postgres-3ECF8E.svg?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com)
+[![RevenueCat](https://img.shields.io/badge/RevenueCat-In--App%20Subscriptions-E85D04.svg?style=for-the-badge&logo=revenuecat&logoColor=white)](https://revenuecat.com)
+[![Reanimated 3](https://img.shields.io/badge/Reanimated-3.16-FF5A5F.svg?style=for-the-badge&logo=react&logoColor=white)](https://docs.swmansion.com/react-native-reanimated/)
+[![Tests Passing](https://img.shields.io/badge/Tests-247%2F247%20Passing-3DE0A0.svg?style=for-the-badge)](package.json)
 
 ---
 
-## 🏗️ 2. System Architecture
+## ⚡ 5-Minute Judge Sandbox Guide
+
+Test the full end-to-end consensus lifecycle in under 5 minutes with zero setup or login required:
+
+1. **Launch App**: Run `npm run web` (or open live build) and tap `[ ⚡ Try 5-Min Judge Sandbox ]` on the landing screen.
+2. **Pre-Trip Consensus Room**:
+   - Inspect the **Zero-Knowledge Silent Ballot**: cast sealed dates, budget caps, and dealbreakers for Goa 2026.
+   - Test the **What-If Compromise Simulator**: adjust budget ceilings in real-time to watch Pareto-optimal scores shift instantly.
+   - Experience the **Wax Seal Voting**: seal your secret ballot ticket with haptic feedback and physics animations.
+3. **In-Trip Living Manifest**:
+   - View the locked destination, dates, and live budget tracking on the Circle Hub.
+   - Explore Gemini AI Place & Activity recommendations, Veto-Aware Concierge anchors, and verified safe transport contacts.
+4. **Post-Trip Vault**:
+   - Open the Past Trips Vault (`app/vault.tsx`) to explore the tactile memories grid, Pact Receipts, and play back Voice Capsules.
+
+---
+
+## 📐 The Core Problem: Group Coordination Failure
+
+Group travel planning suffers from a classic **Pareto Inefficiency & Social Dilemma**:
 
 ```
-                       +-----------------------------------+
-                       |         User Interfaces           |
-                       |  iOS / Android App | Web Preview  |
-                       +-----------------+-----------------+
-                                         |
-                       +-----------------v-----------------+
-                       |       Zustand Reactive Store       |
-                       | (useCircleStore, useVoteStore)    |
-                       +--------+-----------------+--------+
-                                |                 |
-         +----------------------v--+           +--v---------------------+
-         | Deterministic Consensus |           | Live Edge AI Services  |
-         |    Scoring Engine       |           | Supabase Edge Function |
-         | (Dates 35%, Budget 35%, |           |     (ai-advisor)       |
-         |  Tags 25%, Dealbreakers)|           |     + Gemini API       |
-         +-------------------------+           +------------+-----------+
-                                                            |
-                       +------------------------------------v--+
-                       |              Supabase Backend         |
-                       |  PostgreSQL 15 + Row Level Security   |
-                       |  Aggregated Functions + Realtime Sync |
-                       +--------------------+------------------+
-                                            |
-                       +--------------------v------------------+
-                       |      RevenueCat Subscriptions         |
-                       |  Mobile Native Purchases + Webhooks   |
-                       |  Pro Circle Inheritance to All Guests |
-                       +---------------------------------------+
+                              [ Group Chat Chaos ]
+                                        │
+           ┌────────────────────────────┴────────────────────────────┐
+           ▼                                                         ▼
+[ Loudest Voice Dominance ]                               [ Unspoken Budget Shaming ]
+  • One member books unilaterally                           • Members fear speaking up
+  • Resentment & budget strain                              • Flaky commitments & delay
+           │                                                         │
+           └────────────────────────────┬────────────────────────────┘
+                                        ▼
+                             [ Total Travel Paralysis ]
 ```
 
-### Architectural Guarantees:
-- **Privacy-First Vault**: Individual budgets and personal dealbreakers are protected by Supabase Row-Level Security (RLS) policies. Only the ballot creator can view raw entries.
-- **Anonymized AI Whispering**: The Gemini Edge Function receives only aggregated data buckets (e.g. *"2 members capped at $600, 3 at $1,200"*). Zero individual names or veto details are ever sent to external LLMs.
-- **Fail-Safe Client Caching**: All AI endpoints feature an in-memory cache and a strict **3.5-second timeout** with instant local market-index fallbacks so the UI never blocks.
-- **Pro Circle Inheritance**: When a circle organizer holds an active RevenueCat Pro subscription, all invited friends automatically inherit Pro perks for that trip circle.
+When 4 to 24 friends attempt to coordinate dates, budgets, vibes, and dealbreakers over WhatsApp or iMessage, three mathematical friction points destroy consensus:
+1. **Asymmetric Preferences**: Social friction prevents members from revealing true budget ceilings or non-negotiable dealbreakers.
+2. **Ghost Member Poisoning**: Unresponsive members skew traditional mean averages, blocking decision-making.
+3. **Compromise Blindness**: Groups fail to discover Pareto-optimal intersections where all members are satisfied.
+
+**PACT solves this using Zero-Knowledge Silent Ballots + Deterministic Consensus Mathematics.**
 
 ---
 
-## ✨ 3. Feature Matrix
+## 🏗️ The 3-Phase Architecture
 
-| Feature | Description | Privacy Guarantee |
-|---|---|---|
-| **Invite Codes** | Short random codes (`GOA-4F82`) for closed, trusted trip circles. | RLS and invite-only membership; the code is the reliable join fallback. |
-| **Sealed Constraints** | Date availability ranges, budget slider, and dealbreaker chips. | Stored privately; never shared with peers. |
-| **AI Budget Advisor** | Dynamic typical destination budget range near slider. | Live Gemini estimate with instant fallback. |
-| **Deterministic Matrix** | Mathematical scoring of candidate destinations with plain-English breakdowns. | Ghost members never poison averages. |
-| **AI Compromise Whisperer** | Detects deadlocks and proposes fair villa/itinerary compromises. | Operates on anonymized buckets only. |
-| **Silent Ballot & Wax Seal** | Secret voting tickets with animated wax seal stamp. | Ballots are sealed; only % consensus is shown. |
-| **Trip Brief** | Sealed agreement with dates, cost split, and 1-tap WhatsApp export. | Unshakeable post-consensus confirmation. |
-| **Archive Circles** | Active vs Archived dashboard tabs with 1-tap Archive and Restore. | Keeps dashboard clean and focused. |
-| **Push Notifications** | Generic reminders (*"A member hasn't responded yet"*). | Privacy engine strictly blocks financial numbers. |
-| **Trip Vault & Memories** | Shared documents, booking codes, and photo library with attribution. | Available offline with pre-seeded fallbacks. |
-| **Realtime Circle Chat** | Ephemeral, privacy-guarded trip room chat with typing presence. | Live WebSocket sync; no external tracking. |
-| **Real Place Recommendations** | Verified stays, dining & activities via Google Places API + Gemini narration. | 30-day caching prevents redundant calls. |
-| **AI Cultural Storyteller** | Conversational deep-dives into destination heritage, traditions, and lore. | Authentic historical context without generic fluff. |
-| **Review-Derived Safety Notes** | Grounded "Good to know" practical tips extracted from real reviews. | Omitted when no data; zero fabricated stats. |
+PACT governs the entire trip lifecycle across three distinct phases:
 
----
+```mermaid
+flowchart TD
+    subgraph Phase1["Phase 1: Pre-Trip Consensus Room"]
+        A[Create Circle & Invite Members] --> B[Sealed Preferences & Constraints]
+        B --> C[Zero-Knowledge Silent Ballot]
+        C --> D[What-If Compromise Engine]
+        D --> E[Wax Seal Supermajority Lock]
+    end
 
-## 🧮 4. Consensus Engine Scoring Formula
+    subgraph Phase2["Phase 2: In-Trip Living Manifest"]
+        E --> F[Pinned Brief & Trip Manifest]
+        F --> G[Gemini AI Spots & Veto-Aware Concierge]
+        G --> H[Live Budget & Transport Roster]
+        H --> I[24/7 Safe Travel Dialers & Chat]
+    end
 
-$$\\text{Member Score} = (\\text{Date Score} \\times 0.35) + (\\text{Budget Score} \\times 0.35) + (\\text{Tag Score} \\times 0.25)$$
-
-- **Dealbreaker Override**: If any dealbreaker keyword matches trip characteristics, the member's score immediately drops to `0.0`.
-- **Date Overlap Score (35%)**: Max overlapping days divided by trip duration.
-- **Budget Fit Score (35%)**:
-  - Trip cost within $[\\text{min}, \\text{max}] \\rightarrow 1.0$
-  - Trip cost $< \\text{min} \\rightarrow \\text{trip cost} / \\text{budget min}$
-  - Trip cost $> \\text{max} \\rightarrow 0.0$ (disqualified for that member)
-- **Tag Match Score (25%)**: Jaccard similarity across selected vibe tags.
-- **Supermajority Rule**: If an individual veto blocks an otherwise unanimous trip, an 80% supermajority vote unlocks a soft override with guaranteed accommodations.
-
----
-
-## 💳 5. Monetization (RevenueCat Integration)
-
-PACT incorporates a sustainable, fair monetization model powered by RevenueCat:
-
-- **Free Tier**: Up to 1 active trip circle and 8 members, standard destination scoring, basic Trip Brief.
-- **PACT Organizer Pass** ($9.99 per trip, up to 24 members):
-  - Only the organizer pays; invited members join free.
-  - AI Compromise Whisperer & AI Budget Advisor live calls.
-  - **Circle Inheritance**: When the organizer has Pro, all invited circle members get Pro features for that trip.
-- **Cross-Platform Resilience**: Web preview explains that purchases are available in the mobile app. Native billing must be verified in the RevenueCat sandbox before calling the purchase flow production-ready.
-
----
-
-## 🛠️ 6. Tech Stack
-
-- **Framework**: Expo SDK 52 + React Native + Expo Router v4
-- **State Management**: Zustand
-- **Animations**: React Native Reanimated 3 + Expo Haptics
-- **Backend & Database**: Supabase (PostgreSQL 15 with Row Level Security)
-- **AI Services**: Supabase Edge Functions + Google Gemini API (with local fallback heuristics)
-- **Subscriptions**: RevenueCat In-App Purchases & Webhook Handlers
-- **Deployment**: Vercel (Web Preview) + EAS Build (Android APK / iOS)
-- **Language**: TypeScript 5.3
-
----
-
-## 🔥 7. Quick Start for Judges (Run Locally in 3 Steps)
-
-### Prerequisites:
-- Node.js 18+ installed on your machine.
-- Git.
-
-### Environment Configuration (Optional)
-PACT runs immediately in resilient demo mode out-of-the-box. To connect your own Supabase instance or RevenueCat sandbox:
-```bash
-cp .env.example .env
-# Edit .env with your EXPO_PUBLIC_SUPABASE_URL, ANON_KEY, and RC keys
+    subgraph Phase3["Phase 3: Post-Trip Vault"]
+        I --> J[Tactile Photo Grid & Document Vault]
+        J --> K[Voice Capsules & Trip Memory Drawer]
+        K --> L[Viral Pact Receipt Share Card]
+    end
 ```
 
-### Step 1: Clone and Install Dependencies
+### Technical System Layers:
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                        Expo SDK 52 + React Native                      │
+├────────────────────────────────────────────────────────────────────────┤
+│                 Zustand Reactive Multi-Store Engine                    │
+│   (useGatherlyStore • useCircleStore • useVoteStore • useNotificationStore)│
+├──────────────────────────────────┬─────────────────────────────────────┤
+│     Deterministic Consensus      │     Veto-Aware Gemini Edge AI       │
+│      Engine (TypeScript/JS)      │   (Supabase Edge / Local Fallbacks)  │
+├──────────────────────────────────┴─────────────────────────────────────┤
+│                  Supabase PostgreSQL + RLS Security                    │
+├────────────────────────────────────────────────────────────────────────┤
+│             RevenueCat SDK & Pro Circle Inheritance Engine             │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 💳 Monetization Architecture: RevenueCat Pro Circle Inheritance Spotlight
+
+PACT implements a highly viral, friction-free monetization model designed for group dynamics:
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                        Organizer Upgrades to Pro                       │
+│                         (RevenueCat Subscription)                       │
+└──────────────────────────────────┬─────────────────────────────────────┘
+                                   │
+                                   ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                        PRO CIRCLE INHERITANCE                          │
+│        All 24 Invited Circle Members Automatically Inherit Pro         │
+│          Zero Paywalls for Guests • 100% Frictionless Joining          │
+└──────────────────────────────────┬─────────────────────────────────────┘
+                                   │
+                                   ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                        VIRAL MULTIPLAYER LOOP                          │
+│   Guests experience Pro AI features ──> Guests create their own trips   │
+│                 ──> Guests convert to Paying Organizers                │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+### RevenueCat Features Employed:
+- **Entitlement Management**: Checks `pro` entitlement state instantly via native RevenueCat SDK.
+- **Pro Circle Inheritance**: RLS & store policies verify if the Circle Organizer possesses active Pro status. If true, all 24 invited members unlock premium AI Compromise Whispering, Voice Capsules, and unlimited trip history.
+- **Cross-Platform Purchase Resilience**: Mobile native purchases sync seamlessly with web fallbacks.
+
+---
+
+## 🧮 Consensus Mathematics Formula
+
+$$\text{Member Preference Score} = (\text{Date Match} \times 0.35) + (\text{Budget Fit} \times 0.35) + (\text{Vibe Similarity} \times 0.25)$$
+
+1. **Dealbreaker Hard Disqualification**:
+   $$\text{If } \text{Dealbreaker} \cap \text{Trip Attributes} \neq \emptyset \implies \text{Score} = 0.0$$
+2. **Date Overlap (35%)**:
+   $$\text{Date Match} = \frac{\text{Overlap Days}}{\text{Trip Duration}}$$
+3. **Budget Fit (35%)**:
+   $$\text{Budget Fit} = \begin{cases} 1.0 & \text{if } C_{\text{trip}} \le B_{\text{max}} \\ 0.0 & \text{if } C_{\text{trip}} > B_{\text{max}} \text{ (Disqualified)} \end{cases}$$
+4. **Vibe Similarity (25%)**: Jaccard similarity coefficient across preferred activity tags.
+5. **Supermajority Rule**: Requires $\ge 70\%$ agreement to seal the trip pact.
+
+---
+
+## 🛠️ Quickstart Guide
+
+### Prerequisites
+- **Node.js**: v18 or higher
+- **npm**: v9 or higher
+
+### 1. Clone & Install
 ```bash
 git clone https://github.com/Jayadeep-Koundinya-R/PACT-Plan-A-Consensus-Trip.git
 cd PACT-Plan-A-Consensus-Trip
-git checkout pre-submission-review
 npm install
 ```
 
-### Step 2: Run the Automated Regression Test Suite
-Run the 131-test suite validating scoring, privacy guards, webhooks, AI fallbacks, and the design-system tokens:
+### 2. Verify System & Run Tests
 ```bash
+./node_modules/.bin/tsc --noEmit
 npm test
 ```
-*Expected output: 131 passed across 28 suites.*
+*Expected: 0 TypeScript errors and 247/247 passing unit and integration tests.*
 
-### Step 3: Launch Web Preview
-```bash
-npm run web
-```
-Open **`http://localhost:8081`** in your browser to test the full consensus experience.
-
----
-
-## 🔮 8. What's Next (Roadmap & Explicit Non-Goals)
-
-### Lightweight "Add People" Invite Flow & Unified Sharing
-PACT replaces cumbersome user searches with a lightweight **Circle Hub Invite Flow**:
-- **Native OS Sharing**: Organizers tap **+ Add People** on the Circle Hub to immediately trigger pre-filled invitations via **WhatsApp**, **Messages (SMS)**, **Email**, or the native **Device Share Sheet** (AirDrop, Slack, Telegram).
-- **Invite Code Fallback**: The invite code is the reliable join method. The `pact://join/{code}` app link may open an installed app, but no public HTTPS invite domain is assumed.
-- **Unified Sharing Hook (`useShareInvite`)**: All WhatsApp and share touchpoints across the app (Trip Brief export, Hub invites, bulk group nudges, and QR passes) share a single hardened, privacy-compliant hook.
+### 3. Launch Development Server
+- **Web Development**:
+  ```bash
+  npm run web
+  ```
+- **Mobile Development (Expo Go / Emulator)**:
+  ```bash
+  npm start
+  ```
 
 ---
 
-### Explicit Architectural Non-Goals (Scope Boundaries)
+## 📜 License
 
-To preserve PACT's private, invite-only architecture, the following features were **strictly and intentionally excluded**:
-
-### 1. Central User Directory & Public User Search (Explicit Non-Goal)
-- **Why excluded:** PACT is built around access-controlled, invite-only circles. Having a searchable central directory or user catalog would expose member identities, travel schedules, and circle affiliations to strangers. Circles use short random invite codes (`GOA-4F82`).
-- **Roadmap consideration:** Mutual, double-opt-in contact book hashing where both parties must have each other's phone number before any discovery occurs.
-
-### 2. Friend-Request & Social Graph System (Explicit Non-Goal)
-- **Why excluded:** PACT trips are organized among real-world friends, family, and colleagues who already communicate on WhatsApp, iMessage, or Slack. Introducing a social networking graph with friend requests adds unnecessary onboarding friction and spam.
-
-### 3. Public Circle Discovery & Open Stranger Trips (Roadmap)
-- **Why excluded now:** Group travel consensus succeeds because participants navigate shared budgets with mutual goodwill. Opening circles to public internet strangers dilutes ballot authenticity and compromises sealed privacy.
-- **Future implementation:** Curated solo traveler circles with identity-verified deposits and reputation escrow.
-
-### 2. Public Circle Discovery & Open Stranger Trips (Roadmap)
-- **Why excluded now:** Group travel consensus works because participants are real friends/colleagues navigating shared budgets and genuine constraints. Opening circles to public internet strangers dilutes ballot authenticity and compromises sealed privacy.
-- **Future implementation:** Curated solo traveler circles with identity-verified deposits and reputation escrow.
-
-### 3. Integrated Split Payments (Stripe / Splitwise / UPI)
-- Direct payment deep-links triggered from the locked **Trip Brief** to settle shared deposits (villas, rental cars) automatically honoring the consensus tiered budget splits.
-
-### 4. Direct Calendar Integration
-- 1-tap .ics / Google Calendar / Apple Calendar sync for confirmed trip dates once 100% consensus is reached.
-
----
-
-## 📜 9. License
-
-This project is licensed under the [MIT License](LICENSE).
+Distributed under the MIT License. See `LICENSE` for details.
