@@ -1,5 +1,5 @@
-﻿import React, { Component, ReactNode, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import React, { Component, ReactNode, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Platform } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
@@ -20,13 +20,15 @@ import { supabase } from '../src/lib/supabase/client';
 import { SyncBadge } from '../src/components/common';
 import ErrorBoundary from '../src/components/ErrorBoundary';
 
-// Keep splash visible until fonts are loaded
-SplashScreen.preventAutoHideAsync();
+// Keep splash visible on native only until fonts are loaded
+if (Platform.OS !== 'web') {
+  SplashScreen.preventAutoHideAsync().catch(() => {});
+}
 
 export default function RootLayout() {
   const isDarkMode = useGatherlyStore((state) => state.isDarkMode);
 
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     Fraunces_400Regular,
     Fraunces_700Bold,
     Manrope_400Regular,
@@ -35,15 +37,15 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (fontsLoaded) {
-      useGatherlyStore.getState().initThemeFromStorage();
-      SplashScreen.hideAsync();
+    useGatherlyStore.getState().initThemeFromStorage();
+    if (fontsLoaded || fontError || Platform.OS === 'web') {
+      SplashScreen.hideAsync().catch(() => {});
       initPurchases();
     }
-  }, [fontsLoaded]);
+  }, [fontsLoaded, fontError]);
 
-  // Return null while fonts load — splash screen stays visible
-  if (!fontsLoaded) return null;
+  // Return null on native while fonts load — on web, render immediately with system font fallbacks
+  if (!fontsLoaded && !fontError && Platform.OS !== 'web') return null;
 
   return (
     <ErrorBoundary>

@@ -1,4 +1,3 @@
-import { supabase } from '../src/lib/supabase/client';
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -15,160 +14,98 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import { supabase } from '../src/lib/supabase/client';
 import { useGatherlyStore } from '../src/store/useGatherlyStore';
 import { useCircleStore } from '../src/store/useCircleStore';
 import { useCircleChatStore } from '../src/store/useCircleChatStore';
-import { useDemoMode } from '../src/hooks/useDemoMode';
-import { ScreenHeader } from '../src/components/ScreenHeader';
 import { useUserStore } from '../src/store/useUserStore';
-import { MapDriftBackground } from '../src/components/MapDriftBackground';
-import { SkeletonLoader } from '../src/components/SkeletonLoader';
-import LegalModal, { LegalSection } from '../src/components/LegalModal';
+import { useDemoMode } from '../src/hooks/useDemoMode';
 import { colors, radius, shadows } from '../src/theme/colors';
+import { fontDisplay, fontUI, fontUIBold, fontUIExtraBold } from '../src/theme/typography';
 import {
-  ShieldCheck,
-  BrainCircuit,
-  Lock,
-  FileCheck2,
+  ArrowLeft,
   ArrowRight,
   Mail,
   KeyRound,
   User,
+  ShieldCheck,
+  Lock,
+  Zap,
   Sparkles,
   AlertCircle,
   Eye,
   EyeOff,
-  UserCheck,
   CheckCircle2,
-  Zap,
+  Crown,
+  Clock,
   Compass,
-  Share2
+  FileCheck2
 } from 'lucide-react-native';
+import Reanimated, {
+  FadeInDown,
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming
+} from 'react-native-reanimated';
+import LegalModal, { LegalSection } from '../src/components/LegalModal';
 
-export interface PactFeature {
+interface JudgePersonaOption {
   id: string;
-  category: 'consensus' | 'ai' | 'collab';
-  title: string;
-  tagline: string;
+  name: string;
+  role: string;
+  avatarBg: string;
   badge: string;
   badgeColor: string;
   desc: string;
-  solveInsight: string;
-  icon: any;
 }
 
-const PACT_FEATURES: PactFeature[] = [
+const JUDGE_PERSONAS: JudgePersonaOption[] = [
   {
-    id: 'privacy',
-    category: 'consensus',
-    title: 'Confidential Private Ballot',
-    tagline: 'Budgets & vetoes 100% confidential',
-    badge: '100% Confidential',
+    id: 'user-maya-001',
+    name: 'Maya Chen',
+    role: 'Organizer',
+    avatarBg: '#FF5A5F',
+    badge: 'Pro Pass Active',
     badgeColor: '#3DE0A0',
-    desc: 'Enter your real budget & blackout dates in complete privacy. Friends only see the resulting group overlap — never individual numbers.',
-    solveInsight: 'Breaks the budget shame barrier where people silently drop out of trips.',
-    icon: ShieldCheck
+    desc: 'Organizer · College Reunion 2026'
   },
   {
-    id: 'pareto',
-    category: 'consensus',
-    title: 'Pareto Consensus Engine',
-    tagline: 'Multi-objective win-win algorithm',
-    badge: 'Pareto Frontier',
-    badgeColor: '#D4AF37',
-    desc: 'Mathematical social choice algorithm evaluates dates & budgets to discover destinations where no single member is worse off.',
-    solveInsight: 'Replaces endless WhatsApp polling with deterministic compromise scoring.',
-    icon: Sparkles
+    id: 'user-jake-002',
+    name: 'Jake Miller',
+    role: 'Budget Cap',
+    avatarBg: '#3DE0A0',
+    badge: 'Cap: $800',
+    badgeColor: '#FFB800',
+    desc: 'Budget Constraint · Veto active'
   },
   {
-    id: 'ai-whisperer',
-    category: 'ai',
-    title: 'AI Compromise Whisperer',
-    tagline: 'Google Gemini 2.5 deadlock mediator',
-    badge: 'Edge AI Function',
-    badgeColor: '#FF5A5F',
-    desc: 'Powered by authenticated Supabase Edge Functions to mediate deadlocks, propose smart date shifts, and resolve tight budget gaps.',
-    solveInsight: 'Confidential mediator that proposes creative compromises when groups stall.',
-    icon: BrainCircuit
-  },
-  {
-    id: 'whatsapp-share',
-    category: 'collab',
-    title: '1-Tap WhatsApp Group Export',
-    tagline: 'Zero app-install friction',
-    badge: 'Instant Viral Sync',
-    badgeColor: '#3DE0A0',
-    desc: 'Dispatch pre-filled WhatsApp invites, deadline nudges, and formatted itinerary summaries directly into your existing friend group chats.',
-    solveInsight: 'Friends join in 5 seconds via a simple 6-digit code or link — no friend requests.',
-    icon: Share2
-  },
-  {
-    id: 'sealed-pact',
-    category: 'consensus',
-    title: 'Cryptographic Sealed Pact',
-    tagline: 'Verifiable trip commitment',
-    badge: 'SHA-256 Seal',
-    badgeColor: '#D4AF37',
-    desc: 'Lock the final destination and dates with an immutable cryptographic seal and a unanimous celebration confetti reveal.',
-    solveInsight: 'Solidifies social commitment so members actually show up.',
-    icon: Lock
-  },
-  {
-    id: 'trip-vault',
-    category: 'collab',
-    title: 'Encrypted Trip Vault',
-    tagline: 'Shared vouchers & offline passes',
-    badge: 'Offline Vault',
-    badgeColor: '#3DE0A0',
-    desc: 'Keep flight tickets, stay vouchers, confirmation codes, and emergency contacts safely stored in an offline-ready shared circle vault.',
-    solveInsight: 'Ends the chaos of hunting through WhatsApp media galleries at airport gates.',
-    icon: Compass
-  },
-  {
-    id: 'realtime-sync',
-    category: 'ai',
-    title: 'Zero-Latency Live Sync',
-    tagline: 'Sub-second multi-device sync',
-    badge: 'WebSocket Realtime',
-    badgeColor: '#3DE0A0',
-    desc: 'Supabase WebSocket channels sync member votes, preferences, and inputs live across all devices with zero blinking or jitter.',
-    solveInsight: 'Live presence gives the organizer instant visibility into who has responded.',
-    icon: Zap
-  },
-  {
-    id: 'fair-pricing',
-    category: 'consensus',
-    title: 'Fair Organizer Pass ($9.99 Flat)',
-    tagline: 'One pass covers up to 24 friends',
-    badge: 'No Per-Seat Tax',
-    badgeColor: '#F59E0B',
-    desc: 'Only 1 organizer pays flat $9.99 for up to 24 travelers. No per-seat ticketing, no monthly subscriptions, and no hidden booking markups.',
-    solveInsight: 'Aligned with group economics: native RevenueCat purchasing with instant receipt restore.',
-    icon: CheckCircle2
+    id: 'user-priya-003',
+    name: 'Priya Sharma',
+    role: 'Busy Dates',
+    avatarBg: '#D4AF37',
+    badge: 'Oct 12-16',
+    badgeColor: '#60A5FA',
+    desc: 'Date Constraint · Early Bird'
   }
 ];
 
 export default function AuthScreen() {
   const router = useRouter();
   const {
-    isDarkMode,
     login,
     register,
-    members = [],
     loginAsPersona,
-    activeGroupId,
-    groups = [],
     initAuthSession
   } = useGatherlyStore();
 
-  const [isSignUp, setIsSignUp] = useState(true);
+  const [isSignUp, setIsSignUp] = useState(false); // Default to clean sign-in
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [isCheckingSession, setIsCheckingSession] = useState(true);
+  const [statusMessage, setStatusMessage] = useState('');
   const [legalSection, setLegalSection] = useState<LegalSection | null>(null);
 
   useEffect(() => {
@@ -176,12 +113,9 @@ export default function AuthScreen() {
       try {
         await initAuthSession();
       } catch (e) {}
-      setIsCheckingSession(false);
     };
     check();
   }, []);
-
-  const theme = isDarkMode ? colors.dark : colors.light;
 
   const triggerHaptic = (style = Haptics.ImpactFeedbackStyle.Light) => {
     if (Platform.OS !== 'web') {
@@ -191,32 +125,74 @@ export default function AuthScreen() {
     }
   };
 
+  // Instant Judge Persona 1-Tap Login
+  const handleSelectJudgePersona = (persona: JudgePersonaOption) => {
+    triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
+    useDemoMode.getState().setDemoMode(true);
+    loginAsPersona(persona.id);
+    useCircleStore.getState().loadDemoCircle();
+    useCircleChatStore.getState().seedDemoMessages('circle-college-reunion-2026');
+    useGatherlyStore.getState().loadDemoScenario('early_bird');
+    useUserStore.getState().setProfile({
+      userId: persona.id,
+      displayName: persona.name,
+      email: `${persona.name.toLowerCase().replace(' ', '.')}@pact.travel`
+    });
+    useUserStore.getState().setAuthenticated(true);
+    router.replace('/(tabs)/home');
+  };
+
+  // Instant Judge Sandbox General Bypass
+  const handleInstantSandbox = () => {
+    triggerHaptic(Haptics.ImpactFeedbackStyle.Heavy);
+    useDemoMode.getState().setDemoMode(true);
+    loginAsPersona('user-maya-001');
+    useCircleStore.getState().loadDemoCircle();
+    useCircleChatStore.getState().seedDemoMessages('circle-college-reunion-2026');
+    useGatherlyStore.getState().loadDemoScenario('consensus');
+    useUserStore.getState().setProfile({
+      userId: 'user-maya-001',
+      displayName: 'Maya Chen',
+      email: 'maya@pact.travel'
+    });
+    useUserStore.getState().setAuthenticated(true);
+    router.replace('/circle/circle-college-reunion-2026/hub' as any);
+  };
+
+  // Password Reset Link
   const handleForgotPassword = async () => {
     triggerHaptic();
+    setErrorMessage('');
+    setStatusMessage('');
+
     if (!email.trim() || !email.includes('@')) {
-      setErrorMessage('Please enter your account email address above to reset password.');
+      setErrorMessage('Please enter your account email address above to receive a reset link.');
       return;
     }
+
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
       if (error) {
         setErrorMessage(error.message);
       } else {
-        setErrorMessage('Check Your Inbox: A secure password reset link has been dispatched to ' + email + '.');
+        setStatusMessage(`Secure password reset link dispatched to ${email.trim()}.`);
       }
     } catch (e: any) {
-      setErrorMessage('Password Reset Sent: Reset link dispatched to ' + email + '.');
+      setStatusMessage(`Reset link dispatched to ${email.trim()}.`);
     }
   };
 
+  // Form Submission
   const handleAuthSubmit = async () => {
     setErrorMessage('');
+    setStatusMessage('');
+
     if (!email.trim() || !password.trim()) {
-      setErrorMessage('Please fill in both email and password.');
+      setErrorMessage('Please fill in both your email and password.');
       return;
     }
     if (isSignUp && !name.trim()) {
-      setErrorMessage('Please enter your full name.');
+      setErrorMessage('Please enter your full name for your travel profile.');
       return;
     }
     if (password.length < 6) {
@@ -252,31 +228,24 @@ export default function AuthScreen() {
       useUserStore.getState().setAuthenticated(true);
       router.replace('/(tabs)/home');
     } catch (err: any) {
-      setErrorMessage(err?.message || 'Authentication failed. Please check credentials.');
+      setErrorMessage(err?.message || 'Authentication failed. Please verify credentials.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleInstantGuest = () => {
-    triggerHaptic(Haptics.ImpactFeedbackStyle.Light);
-    useDemoMode.getState().setDemoMode(true);
-    loginAsPersona('user-maya-001');
-    useCircleStore.getState().loadDemoCircle();
-    useCircleChatStore.getState().seedDemoMessages('circle-college-reunion-2026');
-    useGatherlyStore.getState().loadDemoScenario('early_bird');
-    useUserStore.getState().setProfile({
-      userId: 'user-maya-001',
-      displayName: 'Maya',
-      email: 'maya@pact.travel'
-    });
-    useUserStore.getState().setAuthenticated(true);
-    router.replace('/(tabs)/home');
+  // Navigation to Landing Page (handles both web direct-load and mobile navigation stack)
+  const handleGoToLanding = () => {
+    triggerHaptic();
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/');
+    }
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
-      <MapDriftBackground isDarkMode={isDarkMode} />
+    <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.keyboardContainer}
@@ -286,407 +255,320 @@ export default function AuthScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Top PACT Brand Header */}
-          <ScreenHeader
-            title="PACT"
-            subtitle="PLAN A CONSENSUS TRIP"
-            isDarkMode={isDarkMode}
-          />
+          {/* Top Clean Header with Back Button */}
+          <View style={styles.topHeader}>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={handleGoToLanding}
+              style={styles.backBtn}
+              accessibilityRole="button"
+              accessibilityLabel="Back to landing page"
+            >
+              <ArrowLeft size={16} color="#F4F3F0" />
+              <Text style={styles.backBtnText}>Landing</Text>
+            </TouchableOpacity>
 
-          {/* Session check skeleton */}
-          {isCheckingSession && (
-            <View style={{ gap: 12, marginBottom: 16 }}>
-              <SkeletonLoader width="100%" height={100} borderRadius={8} isDarkMode={isDarkMode} />
-              <SkeletonLoader width="100%" height={180} borderRadius={8} isDarkMode={isDarkMode} />
-              <SkeletonLoader width="100%" height={240} borderRadius={8} isDarkMode={isDarkMode} />
-            </View>
-          )}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={handleGoToLanding}
+              style={styles.headerTitleBox}
+            >
+              <Text style={styles.brandTitle}>PACT</Text>
+              <Text style={styles.brandSubtitle}>PLAN A CONSENSUS TRIP</Text>
+            </TouchableOpacity>
 
-          {!isCheckingSession && (
-            <>
-          {/* Hero Welcome Banner */}
-          <View
-            style={[
-              styles.heroBanner,
-              { backgroundColor: theme.surface, borderColor: theme.border }
-            ]}
-          >
-            <View style={[styles.heroLogoCircle, { backgroundColor: theme.primary }]}>
-              <Compass size={32} color="#FFFFFF" strokeWidth={2.5} />
-            </View>
-            <Text style={[styles.heroHeadline, { color: theme.textPrimary }]}>
-              {isSignUp ? 'Turn "We Should Go Somewhere" Into Confirmed Trips' : 'Welcome Back to Your Trip Spaces'}
-            </Text>
-            <Text style={[styles.heroSub, { color: theme.textSecondary }]}>
-              {isSignUp
-                ? 'PACT eliminates group chat indecision with private constraints and mathematical consensus.'
-                : 'Sign in to access your active circles, private inputs, and voting ballots.'}
-            </Text>
+            {/* Spacer to balance back button */}
+            <View style={styles.headerSpacer} />
           </View>
 
-          {/* 3-Step Group Flow Walkthrough (Clear path to sign-up) */}
-          <View style={[styles.stepFlowCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <Text style={[styles.stepFlowTitle, { color: theme.textPrimary }]}>
-              How PACT Works In 3 Simple Steps
-            </Text>
-            <View style={styles.stepFlowRow}>
-              <View style={styles.stepFlowCol}>
-                <View style={styles.stepCircle}>
-                  <Text style={styles.stepCircleText}>1</Text>
-                </View>
-                <Text style={[styles.stepLabel, { color: theme.textPrimary }]}>Create Circle</Text>
-                <Text style={[styles.stepSub, { color: theme.textSecondary }]}>Share 1-tap WhatsApp code</Text>
-              </View>
-              <View style={styles.stepDivider} />
-              <View style={styles.stepFlowCol}>
-                <View style={[styles.stepCircle, { backgroundColor: '#3DE0A0' }]}>
-                  <Text style={[styles.stepCircleText, { color: '#090A0F' }]}>2</Text>
-                </View>
-                <Text style={[styles.stepLabel, { color: theme.textPrimary }]}>Secret Inputs</Text>
-                <Text style={[styles.stepSub, { color: theme.textSecondary }]}>Confidential budgets & dates</Text>
-              </View>
-              <View style={styles.stepDivider} />
-              <View style={styles.stepFlowCol}>
-                <View style={[styles.stepCircle, { backgroundColor: '#D4AF37' }]}>
-                  <Text style={[styles.stepCircleText, { color: '#090A0F' }]}>3</Text>
-                </View>
-                <Text style={[styles.stepLabel, { color: theme.textPrimary }]}>Consensus</Text>
-                <Text style={[styles.stepSub, { color: theme.textSecondary }]}>Pareto engine & AI reveal trip</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Authentication Card */}
-          <View
-            style={[
-              styles.authCard,
-              { backgroundColor: theme.surface, borderColor: theme.border }
-            ]}
+          {/* ⚡ Judge & Tester 1-Tap Persona Switcher Card */}
+          <Reanimated.View
+            entering={Platform.OS !== 'web' ? FadeInDown.duration(400).springify() : undefined}
+            style={styles.judgeSectionCard}
           >
-            {/* Tab Switcher */}
-            <View style={[styles.authTabSwitcher, { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }]}>
-              <TouchableOpacity
-                onPress={() => {
-                  triggerHaptic();
-                  setIsSignUp(true);
-                  setErrorMessage('');
-                }}
-                style={[
-                  styles.authTabBtn,
-                  isSignUp && [styles.activeAuthTabBtn, { backgroundColor: theme.surface }]
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.authTabBtnText,
-                    { color: isSignUp ? theme.primary : theme.textSecondary }
-                  ]}
+            <View style={styles.judgeHeaderRow}>
+              <View style={styles.judgeHeaderBadge}>
+                <Zap size={11} color="#FFB800" strokeWidth={2.5} />
+                <Text style={styles.judgeBadgeText}>JUDGE & EVALUATION ACCESS</Text>
+              </View>
+              <Text style={styles.judgeSubText}>1-Tap Sign In as Pre-Seeded Traveler</Text>
+            </View>
+
+            <View style={styles.personaRow}>
+              {JUDGE_PERSONAS.map((persona) => (
+                <TouchableOpacity
+                  key={persona.id}
+                  activeOpacity={0.8}
+                  onPress={() => handleSelectJudgePersona(persona)}
+                  style={styles.personaChip}
                 >
-                  Create Account
-                </Text>
-              </TouchableOpacity>
+                  <View style={[styles.personaAvatar, { backgroundColor: persona.avatarBg }]}>
+                    <Text style={styles.personaAvatarText}>{persona.name.charAt(0)}</Text>
+                  </View>
+                  <View style={styles.personaChipTextCol}>
+                    <Text style={styles.personaChipName}>{persona.name}</Text>
+                    <View style={[styles.personaRoleBadge, { borderColor: persona.badgeColor }]}>
+                      <Text style={[styles.personaRoleBadgeText, { color: persona.badgeColor }]}>
+                        {persona.badge}
+                      </Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </Reanimated.View>
 
+          {/* Main Obsidian Authentication Card */}
+          <Reanimated.View
+            entering={Platform.OS !== 'web' ? FadeInDown.duration(500).delay(100).springify() : undefined}
+            style={styles.authCard}
+          >
+            {/* Segmented Mode Switcher (Sign In vs Create Account) */}
+            <View style={styles.tabSwitcher}>
               <TouchableOpacity
+                activeOpacity={0.8}
                 onPress={() => {
                   triggerHaptic();
                   setIsSignUp(false);
                   setErrorMessage('');
+                  setStatusMessage('');
                 }}
-                style={[
-                  styles.authTabBtn,
-                  !isSignUp && [styles.activeAuthTabBtn, { backgroundColor: theme.surface }]
-                ]}
+                style={[styles.tabBtn, !isSignUp && styles.activeTabBtn]}
               >
-                <Text
-                  style={[
-                    styles.authTabBtnText,
-                    { color: !isSignUp ? theme.primary : theme.textSecondary }
-                  ]}
-                >
+                <Text style={[styles.tabBtnText, !isSignUp && styles.activeTabBtnText]}>
                   Sign In
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => {
+                  triggerHaptic();
+                  setIsSignUp(true);
+                  setErrorMessage('');
+                  setStatusMessage('');
+                }}
+                style={[styles.tabBtn, isSignUp && styles.activeTabBtn]}
+              >
+                <Text style={[styles.tabBtnText, isSignUp && styles.activeTabBtnText]}>
+                  Create Account
                 </Text>
               </TouchableOpacity>
             </View>
 
-            {/* Form Fields */}
+            {/* Sub-header instruction */}
+            <Text style={styles.authHeading}>
+              {isSignUp ? 'Create your private PACT account' : 'Welcome back to your circles'}
+            </Text>
+            <Text style={styles.authSub}>
+              {isSignUp
+                ? 'Your budget caps and blackout dates are 100% confidential.'
+                : 'Sign in to access your voting ballots and trip manifests.'}
+            </Text>
+
+            {/* Input: Full Name (Visible only on Sign Up) */}
             {isSignUp && (
               <View style={styles.inputGroup}>
-                <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
-                  Your full name
-                </Text>
-                <View
-                  style={[
-                    styles.inputWrapper,
-                    { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }
-                  ]}
-                >
-                  <User size={16} color={theme.textMuted} />
+                <Text style={styles.inputLabel}>YOUR FULL NAME</Text>
+                <View style={styles.inputWrapper}>
+                  <User size={16} color="#8B8D98" />
                   <TextInput
-                    style={[styles.inputField, { color: theme.textPrimary }]}
+                    style={styles.inputField}
                     value={name}
                     onChangeText={setName}
                     placeholder="e.g. Maya Chen"
-                    placeholderTextColor={theme.textMuted}
+                    placeholderTextColor="#454857"
                     autoCapitalize="words"
                   />
                 </View>
               </View>
             )}
 
+            {/* Input: Email Address */}
             <View style={styles.inputGroup}>
-              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
-                Email address
-              </Text>
-              <View
-                style={[
-                  styles.inputWrapper,
-                  { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }
-                ]}
-              >
-                <Mail size={16} color={theme.textMuted} />
+              <Text style={styles.inputLabel}>EMAIL ADDRESS</Text>
+              <View style={styles.inputWrapper}>
+                <Mail size={16} color="#8B8D98" />
                 <TextInput
-                  style={[styles.inputField, { color: theme.textPrimary }]}
+                  style={styles.inputField}
                   value={email}
                   onChangeText={setEmail}
-                  placeholder="you@example.com"
-                  placeholderTextColor={theme.textMuted}
+                  placeholder="traveler@example.com"
+                  placeholderTextColor="#454857"
                   autoCapitalize="none"
                   keyboardType="email-address"
                 />
               </View>
             </View>
 
+            {/* Input: Password */}
             <View style={styles.inputGroup}>
-              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
-                Password
-              </Text>
-              <View
-                style={[
-                  styles.inputWrapper,
-                  { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }
-                ]}
-              >
-                <KeyRound size={16} color={theme.textMuted} />
+              <View style={styles.passwordLabelRow}>
+                <Text style={styles.inputLabel}>PASSWORD</Text>
+                {!isSignUp && (
+                  <TouchableOpacity
+                    onPress={handleForgotPassword}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.forgotPasswordText}>Forgot password?</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+              <View style={styles.inputWrapper}>
+                <KeyRound size={16} color="#8B8D98" />
                 <TextInput
-                  style={[styles.inputField, { color: theme.textPrimary }]}
+                  style={styles.inputField}
                   value={password}
                   onChangeText={setPassword}
                   placeholder="••••••••••••"
-                  placeholderTextColor={theme.textMuted}
+                  placeholderTextColor="#454857"
                   secureTextEntry={!showPassword}
+                  returnKeyType="done"
+                  onSubmitEditing={handleAuthSubmit}
                 />
                 <TouchableOpacity
-                  onPress={() => setShowPassword(!showPassword)}
+                  onPress={() => {
+                    triggerHaptic();
+                    setShowPassword(!showPassword);
+                  }}
                   style={styles.eyeBtn}
                 >
                   {showPassword ? (
-                    <EyeOff size={16} color={theme.textSecondary} />
+                    <EyeOff size={16} color="#8B8D98" />
                   ) : (
-                    <Eye size={16} color={theme.textSecondary} />
+                    <Eye size={16} color="#8B8D98" />
                   )}
                 </TouchableOpacity>
               </View>
             </View>
 
-            {!isSignUp && (
-              <TouchableOpacity
-                onPress={handleForgotPassword}
-                activeOpacity={0.7}
-                style={{ alignSelf: 'flex-end', marginTop: 4, marginBottom: 8 }}
-              >
-                <Text style={{ fontSize: 12, color: theme.primary }}>
-                  Forgot password?
-                </Text>
-              </TouchableOpacity>
+            {/* Status Feedback Message (e.g. Password Reset Confirmation) */}
+            {Boolean(statusMessage) && (
+              <View style={styles.statusBox}>
+                <CheckCircle2 size={16} color="#3DE0A0" />
+                <Text style={styles.statusText}>{statusMessage}</Text>
+              </View>
             )}
 
-            {/* Primary Action Button */}
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={handleAuthSubmit}
-              disabled={isLoading}
-              style={[
-                styles.submitBtn,
-                { backgroundColor: theme.primary, opacity: isLoading ? 0.7 : 1 },
-                shadows.glowPrimary
-              ]}
-            >
-              {isLoading ? (
-                <ActivityIndicator color="#FFFFFF" size="small" />
-              ) : (
-                <>
-                  <Text style={styles.submitBtnText}>
-                    {isSignUp ? 'Create Account & Start Planning' : 'Sign In to Your Spaces'}
-                  </Text>
-                  <ArrowRight size={18} color="#FFFFFF" />
-                </>
-              )}
-            </TouchableOpacity>
-
-            {/* High-contrast inline error banner beneath submit button */}
+            {/* Error Message Banner */}
             {Boolean(errorMessage) && (
               <View style={styles.errorBox}>
                 <AlertCircle size={16} color="#FF5A5F" />
-                <Text style={styles.errorText}>
-                  {errorMessage}
-                </Text>
+                <Text style={styles.errorText}>{errorMessage}</Text>
               </View>
             )}
 
-            {/* Google Auth Sign-In Option */}
+            {/* Primary Submit Button */}
+            <TouchableOpacity
+              activeOpacity={0.88}
+              onPress={handleAuthSubmit}
+              disabled={isLoading}
+              style={[styles.submitBtn, { opacity: isLoading ? 0.7 : 1 }]}
+            >
+              {isLoading ? (
+                <ActivityIndicator color="#090A0F" size="small" />
+              ) : (
+                <>
+                  <Text style={styles.submitBtnText}>
+                    {isSignUp ? 'Create Account & Start Planning' : 'Sign In to Trip Spaces'}
+                  </Text>
+                  <ArrowRight size={17} color="#090A0F" strokeWidth={2.5} />
+                </>
+              )}
+            </TouchableOpacity>
+            {/* Instant Judge Sandbox Bypass */}
             <TouchableOpacity
               activeOpacity={0.8}
-              onPress={async () => {
-                triggerHaptic();
-                try {
-                  const { data, error } = await supabase.auth.signInWithOAuth({
-                    provider: 'google',
-                    options: { redirectTo: 'pact://auth/callback' }
-                  });
-                  if (error) {
-                    Alert.alert('Google Sign-In', 'Initializing Google OAuth redirect...');
-                  }
-                } catch (e) {
-                  Alert.alert('Google Sign-In', 'Google authentication option triggered.');
-                }
-              }}
-              style={[
-                styles.guestBtn,
-                { backgroundColor: '#1F2937', borderColor: '#374151', marginBottom: 8 }
-              ]}
+              onPress={handleInstantSandbox}
+              style={styles.sandboxGuestBtn}
             >
-              <Sparkles size={16} color="#3DE0A0" />
-              <Text style={[styles.guestBtnText, { color: '#F4F3F0' }]}>
-                Continue with Google Auth
+              <Zap size={15} color="#FFB800" strokeWidth={2.5} />
+              <Text style={styles.sandboxGuestBtnText}>
+                ⚡ Try 5-Min Judge Sandbox (Instant Access)
               </Text>
             </TouchableOpacity>
-
-            {/* Instant Demo Guest Access Button */}
+            {/* Return to Landing Page Action */}
             <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={handleInstantGuest}
-              style={[
-                styles.guestBtn,
-                { backgroundColor: theme.surfaceSubtle, borderColor: theme.border }
-              ]}
+              activeOpacity={0.7}
+              onPress={handleGoToLanding}
+              style={styles.returnToLandingBtn}
             >
-              <Zap size={16} color={theme.primary} />
-              <Text style={[styles.guestBtnText, { color: theme.textPrimary }]}>
-                ⚡ Try 5-Min Judge Sandbox
-              </Text>
+              <ArrowLeft size={13} color="#8B8D98" />
+              <Text style={styles.returnToLandingText}>Back to PACT Landing Page</Text>
             </TouchableOpacity>
+          </Reanimated.View>
 
-            {/* Privacy Shield Footnote */}
-            <View style={styles.privacyFootnote}>
-              <ShieldCheck size={14} color={theme.success} />
-              <Text style={[styles.privacyFootnoteText, { color: theme.textSecondary }]}>
-                Zero peer pressure. Exact dates and budgets are strictly private.
-              </Text>
+          {/* Zero-Knowledge Privacy Architecture Guarantee (Replaces the 8-card wall!) */}
+          <Reanimated.View
+            entering={Platform.OS !== 'web' ? FadeInDown.duration(500).delay(200).springify() : undefined}
+            style={styles.trustSectionCard}
+          >
+            <View style={styles.trustHeader}>
+              <ShieldCheck size={16} color="#3DE0A0" />
+              <Text style={styles.trustHeaderTitle}>The PACT Privacy Promise</Text>
             </View>
-          </View>
 
-          {/* Comprehensive 8-Feature Scannable Showcase (Complete & Uncluttered) */}
-          <View style={styles.featureShowcaseContainer}>
-            <View style={styles.featureShowcaseHeader}>
-              <View style={styles.featureHeaderBadge}>
-                <Sparkles size={12} color="#D4AF37" />
-                <Text style={styles.featureHeaderBadgeText}>ALL 8 CORE CAPABILITIES</Text>
+            <View style={styles.trustGrid}>
+              <View style={styles.trustCol}>
+                <Lock size={15} color="#3DE0A0" style={styles.trustIcon} />
+                <Text style={styles.trustColTitle}>Sealed Inputs</Text>
+                <Text style={styles.trustColDesc}>
+                  Raw budgets & dates are RLS-isolated. Friends only see the computed group overlap.
+                </Text>
               </View>
-              <Text style={[styles.sectionHeading, { color: theme.textPrimary }]}>
-                Everything Your Group Needs To Lock The Trip
-              </Text>
-              <Text style={[styles.sectionSubheading, { color: theme.textSecondary }]}>
-                A complete suite engineered to eliminate group chat indecision:
-              </Text>
-            </View>
 
-            {/* Clean, scannable list of all 8 features (no filter pills, skimmable in seconds) */}
-            <View style={styles.featureList}>
-              {PACT_FEATURES.map((feat) => {
-                const FeatIcon = feat.icon;
-                return (
-                  <View
-                    key={feat.id}
-                    style={[
-                      styles.featureItemCard,
-                      { backgroundColor: theme.surface, borderColor: theme.border }
-                    ]}
-                  >
-                    <View
-                      style={[
-                        styles.featureIconBox,
-                        { backgroundColor: isDarkMode ? '#1E2130' : '#FFF5F5' }
-                      ]}
-                    >
-                      <FeatIcon size={18} color={feat.badgeColor || theme.primary} />
-                    </View>
-                    <View style={styles.featureTextBox}>
-                      <View style={styles.featureTitleRow}>
-                        <Text style={[styles.featureTitle, { color: theme.textPrimary }]}>
-                          {feat.title}
-                        </Text>
-                        <View style={[styles.featureBadge, { borderColor: feat.badgeColor }]}>
-                          <Text style={[styles.featureBadgeText, { color: feat.badgeColor }]}>
-                            {feat.badge}
-                          </Text>
-                        </View>
-                      </View>
-                      <Text style={[styles.featureDesc, { color: theme.textSecondary }]}>
-                        {feat.desc}
-                      </Text>
-                    </View>
-                  </View>
-                );
-              })}
+              <View style={styles.trustCol}>
+                <Sparkles size={15} color="#D4AF37" style={styles.trustIcon} />
+                <Text style={styles.trustColTitle}>Pareto Consensus</Text>
+                <Text style={styles.trustColDesc}>
+                  Mathematical win-win algorithm prevents budget embarrassment and WhatsApp deadlocks.
+                </Text>
+              </View>
+
+              <View style={styles.trustCol}>
+                <Crown size={15} color="#FF5A5F" style={styles.trustIcon} />
+                <Text style={styles.trustColTitle}>Pro Circle</Text>
+                <Text style={styles.trustColDesc}>
+                  1 organizer pass covers up to 24 members. No per-seat ticketing or monthly fees.
+                </Text>
+              </View>
             </View>
-          </View>
+          </Reanimated.View>
 
           {/* Legal Footer Links */}
           <View style={styles.legalFooter}>
-            <Text style={[styles.legalFooterTitle, { color: theme.textSecondary }]}>
-              By continuing, you agree to our terms
-            </Text>
             <View style={styles.legalLinksRow}>
               <TouchableOpacity
                 onPress={() => {
                   triggerHaptic();
                   setLegalSection('privacy');
                 }}
-                style={styles.legalLinkBtn}
               >
-                <ShieldCheck size={12} color={theme.primary} />
-                <Text style={[styles.legalLinkText, { color: theme.primary }]}>Privacy Policy</Text>
+                <Text style={styles.legalLinkText}>Privacy Policy</Text>
               </TouchableOpacity>
-              <Text style={[styles.legalDot, { color: theme.textMuted }]}>·</Text>
+              <Text style={styles.legalDot}>·</Text>
               <TouchableOpacity
                 onPress={() => {
                   triggerHaptic();
                   setLegalSection('terms');
                 }}
-                style={styles.legalLinkBtn}
               >
-                <FileCheck2 size={12} color={theme.primary} />
-                <Text style={[styles.legalLinkText, { color: theme.primary }]}>Terms of Service</Text>
+                <Text style={styles.legalLinkText}>Terms of Service</Text>
               </TouchableOpacity>
-              <Text style={[styles.legalDot, { color: theme.textMuted }]}>·</Text>
+              <Text style={styles.legalDot}>·</Text>
               <TouchableOpacity
                 onPress={() => {
                   triggerHaptic();
                   setLegalSection('rules');
                 }}
-                style={styles.legalLinkBtn}
               >
-                <Lock size={12} color={theme.primary} />
-                <Text style={[styles.legalLinkText, { color: theme.primary }]}>PACT Rules</Text>
+                <Text style={styles.legalLinkText}>Consensus Rules</Text>
               </TouchableOpacity>
             </View>
-            <Text style={[styles.legalFooterSub, { color: theme.textMuted }]}>
-              Your data stays private. Always.
+            <Text style={styles.legalSub}>
+              PACT · Built with privacy-first mathematical consensus
             </Text>
           </View>
-
-          </>
-          )}
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -701,329 +583,395 @@ export default function AuthScreen() {
 
 const styles = StyleSheet.create({
   safeArea: {
-    flex: 1
+    flex: 1,
+    backgroundColor: '#090A0F'
   },
   keyboardContainer: {
     flex: 1
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 90,
-    maxWidth: 600,
+    paddingTop: Platform.OS === 'ios' ? 12 : 16,
+    paddingBottom: 40,
+    maxWidth: 480,
     width: '100%',
     alignSelf: 'center'
   },
-  heroBanner: {
-    alignItems: 'center',
-    padding: 20,
-    borderRadius: radius.card,
-    borderWidth: 1,
-    marginTop: 8,
-    marginBottom: 16
-  },
-  heroLogoCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 14
-  },
-  heroHeadline: {
-    fontSize: 19,
-    fontWeight: '900',
-    textAlign: 'center',
-    letterSpacing: -0.3,
-    marginBottom: 6,
-    lineHeight: 25
-  },
-  heroSub: {
-    fontSize: 13,
-    textAlign: 'center',
-    lineHeight: 18
-  },
-  stepFlowCard: {
-    marginBottom: 16,
-    padding: 14,
-    borderRadius: radius.card,
-    borderWidth: 1
-  },
-  stepFlowTitle: {
-    fontSize: 12.5,
-    fontWeight: '800',
-    letterSpacing: 0.2,
-    marginBottom: 12,
-    textAlign: 'center'
-  },
-  stepFlowRow: {
+  topHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
+    marginBottom: 16
   },
-  stepFlowCol: {
-    flex: 1,
+  backBtn: {
+    flexDirection: 'row',
     alignItems: 'center',
-    textAlign: 'center'
+    gap: 6,
+    height: 36,
+    paddingHorizontal: 12,
+    borderRadius: 18,
+    backgroundColor: '#13151E',
+    borderWidth: 1,
+    borderColor: '#262938'
   },
-  stepCircle: {
+  backBtnText: {
+    fontFamily: fontUIBold,
+    fontSize: 12,
+    color: '#F4F3F0'
+  },
+  returnToLandingBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    marginTop: 6
+  },
+  returnToLandingText: {
+    fontFamily: fontUIBold,
+    fontSize: 12,
+    color: '#8B8D98'
+  },
+  headerTitleBox: {
+    alignItems: 'center'
+  },
+  brandTitle: {
+    fontFamily: fontDisplay,
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#FF5A5F',
+    letterSpacing: 0.5
+  },
+  brandSubtitle: {
+    fontFamily: fontUIBold,
+    fontSize: 8.5,
+    color: '#8B8D98',
+    letterSpacing: 1.2,
+    marginTop: 1
+  },
+  headerSpacer: {
+    width: 36
+  },
+  judgeSectionCard: {
+    backgroundColor: '#13151E',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 184, 0, 0.35)',
+    borderRadius: 16,
+    padding: 12,
+    marginBottom: 16,
+    shadowColor: '#FFB800',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8
+  },
+  judgeHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10
+  },
+  judgeHeaderBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(255, 184, 0, 0.12)',
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 184, 0, 0.25)'
+  },
+  judgeBadgeText: {
+    fontFamily: fontUIBold,
+    fontSize: 8.5,
+    color: '#FFB800',
+    letterSpacing: 0.5
+  },
+  judgeSubText: {
+    fontFamily: fontUI,
+    fontSize: 10.5,
+    color: '#8B8D98'
+  },
+  personaRow: {
+    flexDirection: 'row',
+    gap: 8
+  },
+  personaChip: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1A1D2B',
+    borderWidth: 1,
+    borderColor: '#262938',
+    borderRadius: 10,
+    padding: 8,
+    gap: 6
+  },
+  personaAvatar: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#FF5A5F',
-    alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 5
+    alignItems: 'center'
   },
-  stepCircleText: {
+  personaAvatarText: {
+    fontFamily: fontUIBold,
     fontSize: 11,
-    fontWeight: '800',
     color: '#FFFFFF'
   },
-  stepLabel: {
+  personaChipTextCol: {
+    flex: 1
+  },
+  personaChipName: {
+    fontFamily: fontUIBold,
     fontSize: 11,
-    fontWeight: '700',
-    textAlign: 'center'
+    color: '#FFFFFF'
   },
-  stepSub: {
-    fontSize: 9.5,
-    textAlign: 'center',
+  personaRoleBadge: {
+    borderWidth: 1,
+    borderRadius: 4,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
     marginTop: 2,
-    lineHeight: 13
+    alignSelf: 'flex-start'
   },
-  stepDivider: {
-    width: 16,
-    height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    marginHorizontal: 4,
-    marginBottom: 16
+  personaRoleBadgeText: {
+    fontFamily: fontUIBold,
+    fontSize: 8,
+    letterSpacing: 0.2
   },
   authCard: {
-    padding: 18,
-    borderRadius: radius.card,
+    backgroundColor: '#13151E',
     borderWidth: 1,
+    borderColor: '#262938',
+    borderRadius: 20,
+    padding: 20,
     marginBottom: 20
   },
-  authTabSwitcher: {
+  tabSwitcher: {
     flexDirection: 'row',
+    backgroundColor: '#1A1D2B',
+    borderRadius: 12,
     padding: 4,
-    borderRadius: radius.md,
+    marginBottom: 16,
     borderWidth: 1,
-    marginBottom: 16
+    borderColor: '#262938'
   },
-  authTabBtn: {
+  tabBtn: {
     flex: 1,
     paddingVertical: 9,
     alignItems: 'center',
-    borderRadius: radius.sm
+    borderRadius: 8
   },
-  activeAuthTabBtn: {
-    shadowColor: '#1C1917',
+  activeTabBtn: {
+    backgroundColor: '#13151E',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    elevation: 2
+    shadowOpacity: 0.2,
+    shadowRadius: 3
   },
-  authTabBtnText: {
+  tabBtnText: {
+    fontFamily: fontUIBold,
     fontSize: 13,
-    fontWeight: '700'
+    color: '#8B8D98'
+  },
+  activeTabBtnText: {
+    color: '#FF5A5F'
+  },
+  authHeading: {
+    fontFamily: fontDisplay,
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#F4F3F0',
+    marginBottom: 4
+  },
+  authSub: {
+    fontFamily: fontUI,
+    fontSize: 12.5,
+    color: '#8B8D98',
+    lineHeight: 17,
+    marginBottom: 16
+  },
+  inputGroup: {
+    marginBottom: 14
+  },
+  inputLabel: {
+    fontFamily: fontUIBold,
+    fontSize: 10,
+    color: '#8B8D98',
+    letterSpacing: 0.8,
+    marginBottom: 6
+  },
+  passwordLabelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6
+  },
+  forgotPasswordText: {
+    fontFamily: fontUIBold,
+    fontSize: 11,
+    color: '#FF5A5F'
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1A1D2B',
+    borderWidth: 1,
+    borderColor: '#262938',
+    borderRadius: 12,
+    height: 48,
+    paddingHorizontal: 12,
+    gap: 10
+  },
+  inputField: {
+    flex: 1,
+    fontFamily: fontUI,
+    fontSize: 14,
+    color: '#FFFFFF',
+    height: '100%'
+  },
+  eyeBtn: {
+    padding: 6
+  },
+  statusBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(61, 224, 160, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(61, 224, 160, 0.3)',
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 12
+  },
+  statusText: {
+    fontFamily: fontUI,
+    fontSize: 12,
+    color: '#3DE0A0',
+    flex: 1
   },
   errorBox: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    padding: 12,
-    borderRadius: radius.md,
-    borderWidth: 1,
     backgroundColor: 'rgba(255, 90, 95, 0.12)',
+    borderWidth: 1,
     borderColor: 'rgba(255, 90, 95, 0.3)',
-    marginTop: 4,
+    borderRadius: 10,
+    padding: 10,
     marginBottom: 12
   },
   errorText: {
-    color: '#FF5A5F',
+    fontFamily: fontUI,
     fontSize: 12,
-    fontWeight: '600',
+    color: '#FF5A5F',
     flex: 1
-  },
-  inputGroup: {
-    marginBottom: 12
-  },
-  inputLabel: {
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.8,
-    marginBottom: 5
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    height: 46,
-    gap: 8
-  },
-  inputField: {
-    flex: 1,
-    fontSize: 14,
-    height: '100%'
-  },
-  eyeBtn: {
-    padding: 4
   },
   submitBtn: {
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 8,
+    backgroundColor: '#FF5A5F',
     paddingVertical: 14,
-    borderRadius: radius.btn,
+    borderRadius: 14,
     marginTop: 6,
-    marginBottom: 10
+    marginBottom: 16,
+    ...shadows.glowPrimary
   },
   submitBtnText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '800'
+    fontFamily: fontUIBold,
+    fontSize: 14.5,
+    fontWeight: '800',
+    color: '#090A0F',
+    letterSpacing: -0.2
   },
-  guestBtn: {
+  sandboxGuestBtn: {
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 8,
-    paddingVertical: 12,
-    borderRadius: radius.btn,
+    backgroundColor: 'rgba(255, 184, 0, 0.08)',
     borderWidth: 1,
-    marginBottom: 12
+    borderColor: 'rgba(255, 184, 0, 0.25)',
+    paddingVertical: 12,
+    borderRadius: 14
   },
-  guestBtnText: {
+  sandboxGuestBtnText: {
+    fontFamily: fontUIBold,
     fontSize: 13,
-    fontWeight: '700'
+    color: '#FFB800'
   },
-  privacyFootnote: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6
-  },
-  privacyFootnoteText: {
-    fontSize: 11,
-    fontWeight: '500'
-  },
-  featureShowcaseContainer: {
+  trustSectionCard: {
+    backgroundColor: '#13151E',
+    borderWidth: 1,
+    borderColor: '#262938',
+    borderRadius: 16,
+    padding: 16,
     marginBottom: 20
   },
-  featureShowcaseHeader: {
-    marginBottom: 12
-  },
-  featureHeaderBadge: {
+  trustHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    alignSelf: 'flex-start',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    gap: 8,
+    marginBottom: 12
+  },
+  trustHeaderTitle: {
+    fontFamily: fontUIBold,
+    fontSize: 13,
+    color: '#FFFFFF'
+  },
+  trustGrid: {
+    flexDirection: 'row',
+    gap: 10
+  },
+  trustCol: {
+    flex: 1,
+    backgroundColor: '#1A1D2B',
     borderRadius: 12,
-    backgroundColor: 'rgba(212, 175, 55, 0.12)',
+    padding: 10,
     borderWidth: 1,
-    borderColor: 'rgba(212, 175, 55, 0.3)',
+    borderColor: '#262938'
+  },
+  trustIcon: {
     marginBottom: 6
   },
-  featureHeaderBadgeText: {
-    fontSize: 9.5,
-    fontWeight: '800',
-    color: '#D4AF37',
-    letterSpacing: 0.6
-  },
-  sectionHeading: {
-    fontSize: 15,
-    fontWeight: '800',
-    letterSpacing: -0.2,
-    marginBottom: 4
-  },
-  sectionSubheading: {
-    fontSize: 12,
-    lineHeight: 16,
-    marginBottom: 12
-  },
-  featureList: {
-    gap: 8
-  },
-  featureItemCard: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    padding: 12,
-    borderRadius: radius.card,
-    borderWidth: 1,
-    gap: 12
-  },
-  featureIconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 2
-  },
-  featureTextBox: {
-    flex: 1
-  },
-  featureTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8,
+  trustColTitle: {
+    fontFamily: fontUIBold,
+    fontSize: 11,
+    color: '#FFFFFF',
     marginBottom: 3
   },
-  featureTitle: {
-    fontSize: 13,
-    fontWeight: '800'
-  },
-  featureBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6,
-    borderWidth: 1
-  },
-  featureBadgeText: {
-    fontSize: 9,
-    fontWeight: '800'
-  },
-  featureDesc: {
-    fontSize: 11.5,
-    lineHeight: 16
+  trustColDesc: {
+    fontFamily: fontUI,
+    fontSize: 9.5,
+    lineHeight: 14,
+    color: '#8B8D98'
   },
   legalFooter: {
     alignItems: 'center',
-    marginBottom: 16,
-    gap: 8
-  },
-  legalFooterTitle: {
-    fontSize: 11,
-    fontWeight: '600'
+    gap: 6
   },
   legalLinksRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8
   },
-  legalLinkBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4
-  },
   legalLinkText: {
+    fontFamily: fontUI,
     fontSize: 11,
-    fontWeight: '700',
+    color: '#8B8D98',
     textDecorationLine: 'underline'
   },
   legalDot: {
     fontSize: 12,
-    fontWeight: '700'
+    color: '#454857'
   },
-  legalFooterSub: {
+  legalSub: {
+    fontFamily: fontUI,
     fontSize: 10,
-    fontWeight: '500'
+    color: '#454857',
+    textAlign: 'center'
   }
 });
