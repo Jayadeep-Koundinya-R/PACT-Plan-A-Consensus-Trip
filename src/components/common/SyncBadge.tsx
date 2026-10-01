@@ -110,7 +110,7 @@ export const SyncBadge: React.FC<SyncBadgeProps> = ({
     }
   }, [shouldShow, translateY, opacity, dotPulse]);
 
-  if (!shouldShow && (opacity as any)._value === 0) {
+  if (!shouldShow) {
     return null;
   }
 

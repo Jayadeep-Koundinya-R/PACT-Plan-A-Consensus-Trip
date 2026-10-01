@@ -531,9 +531,14 @@ const styles = StyleSheet.create({
   },
   phoneFrame: {
     width: '100%',
-    maxWidth: 420,
-    height: '100%',
-    backgroundColor: '#050608'
+    maxWidth: 440,
+    flex: 1,
+    backgroundColor: '#090A0F',
+    borderWidth: Platform.OS === 'web' ? 1 : 0,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: Platform.OS === 'web' ? 36 : 0,
+    overflow: 'hidden',
+    position: 'relative'
   },
   scrollContent: {
     paddingHorizontal: 16,

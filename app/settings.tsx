@@ -145,10 +145,11 @@ export default function PactSettings() {
       userLogout();
     } catch (e) {
       console.warn('Error during account purge:', e);
+    } finally {
+      setIsPurging(false);
+      setShowDeleteModal(false);
+      router.replace('/auth');
     }
-    setIsPurging(false);
-    setShowDeleteModal(false);
-    router.replace('/auth');
   };
 
   const handleRestorePurchases = () => {
@@ -915,12 +916,12 @@ const styles = StyleSheet.create({
   },
   phoneFrame: {
     width: '100%',
-    maxWidth: 420,
+    maxWidth: 440,
     flex: 1,
     backgroundColor: '#090A0F',
     borderWidth: Platform.OS === 'web' ? 1 : 0,
-    borderColor: 'rgba(255, 255, 255, 0.11)',
-    borderRadius: Platform.OS === 'web' ? 40 : 0,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: Platform.OS === 'web' ? 36 : 0,
     overflow: 'hidden',
     position: 'relative'
   },

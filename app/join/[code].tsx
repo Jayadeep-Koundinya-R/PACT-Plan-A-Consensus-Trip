@@ -139,31 +139,34 @@ export default function JoinConfirmationScreen() {
 
   if (!foundCircle && !legacyGroup) {
     return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
-          <View style={[styles.avatarCircle, { width: 64, height: 64, borderRadius: 32, marginBottom: 16, backgroundColor: 'rgba(255, 90, 95, 0.15)' }]}>
-            <Compass size={28} color="#FF5A5F" />
+      <SafeAreaView style={styles.outerContainer}>
+        <View style={styles.phoneFrame}>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+            <View style={[styles.avatarCircle, { width: 64, height: 64, borderRadius: 32, marginBottom: 16, backgroundColor: 'rgba(255, 90, 95, 0.15)' }]}>
+              <Compass size={28} color="#FF5A5F" />
+            </View>
+            <Text style={[styles.tripTitleHeading, { textAlign: 'center', marginBottom: 8 }]}>Circle Not Found</Text>
+            <Text style={{ fontFamily: fontUI, fontSize: 14, color: '#8B8D98', textAlign: 'center', marginBottom: 24, lineHeight: 20 }}>
+              We could not find any active trip circle with code "{inviteCode}". Please verify the code with your organizer.
+            </Text>
+            <PactButton
+              title="Return to Home"
+              variant="solid"
+              onPress={() => router.replace('/(tabs)/home')}
+            />
           </View>
-          <Text style={[styles.tripTitleHeading, { textAlign: 'center', marginBottom: 8 }]}>Circle Not Found</Text>
-          <Text style={{ fontFamily: fontUI, fontSize: 14, color: '#8B8D98', textAlign: 'center', marginBottom: 24, lineHeight: 20 }}>
-            We could not find any active trip circle with code "{inviteCode}". Please verify the code with your organizer.
-          </Text>
-          <PactButton
-            title="Return to Home"
-            variant="solid"
-            onPress={() => router.replace('/(tabs)/home')}
-          />
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+    <SafeAreaView style={styles.outerContainer}>
+      <View style={styles.phoneFrame}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
         {/* Top Branding Pill */}
         <View style={styles.brandRow}>
           <View style={styles.logoBadge}>
@@ -351,22 +354,33 @@ export default function JoinConfirmationScreen() {
           </Text>
         </View>
       </ScrollView>
+    </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  outerContainer: {
     flex: 1,
-    backgroundColor: '#090A0F'
+    backgroundColor: '#050608',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  phoneFrame: {
+    width: '100%',
+    maxWidth: 440,
+    flex: 1,
+    backgroundColor: '#090A0F',
+    borderWidth: Platform.OS === 'web' ? 1 : 0,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: Platform.OS === 'web' ? 36 : 0,
+    overflow: 'hidden',
+    position: 'relative'
   },
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: Platform.OS === 'android' ? 36 : 24,
-    paddingBottom: 40,
-    maxWidth: 520,
-    width: '100%',
-    alignSelf: 'center'
+    paddingBottom: 40
   },
   brandRow: {
     flexDirection: 'row',

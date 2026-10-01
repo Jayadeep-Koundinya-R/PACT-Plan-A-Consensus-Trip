@@ -494,7 +494,7 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     width: '100%',
-    maxWidth: 460,
+    maxWidth: 440,
     backgroundColor: '#13151E',
     borderRadius: radius.card,
     borderColor: '#262938',

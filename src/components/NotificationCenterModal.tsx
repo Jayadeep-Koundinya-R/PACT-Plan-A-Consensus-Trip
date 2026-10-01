@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     width: '100%',
-    maxWidth: 420,
+    maxWidth: 440,
     maxHeight: '85%',
     borderRadius: 24,
     borderWidth: 1,

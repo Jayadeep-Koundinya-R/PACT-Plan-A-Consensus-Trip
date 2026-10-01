@@ -213,12 +213,14 @@ export default function AuthScreen() {
           email: email.trim()
         });
       } else {
-        await login(email.trim(), password);
+        const res = await login(email.trim(), password);
+        if (res?.error) {
+          throw res.error;
+        }
         const g = useGatherlyStore.getState();
         useDemoMode.getState().setDemoMode(false);
         useCircleStore.getState().clearDemoCircles();
         useCircleChatStore.getState().clearAllMessages();
-        useGatherlyStore.getState().resetToCleanUser();
         useUserStore.getState().setProfile({
           userId: g.currentUserId,
           displayName: g.userName || 'Traveler',
@@ -234,27 +236,24 @@ export default function AuthScreen() {
     }
   };
 
-  // Navigation to Landing Page (handles both web direct-load and mobile navigation stack)
+  // Navigation to Landing Page (guarantees direct return to landing without history loop)
   const handleGoToLanding = () => {
     triggerHaptic();
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace('/');
-    }
+    router.replace('/');
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.keyboardContainer}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
+    <SafeAreaView style={styles.outerContainer}>
+      <View style={styles.phoneFrame}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.keyboardContainer}
         >
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
           {/* Top Clean Header with Back Button */}
           <View style={styles.topHeader}>
             <TouchableOpacity
@@ -571,6 +570,7 @@ export default function AuthScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+    </View>
 
       <LegalModal
         visible={legalSection !== null}
@@ -582,9 +582,22 @@ export default function AuthScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  outerContainer: {
     flex: 1,
-    backgroundColor: '#090A0F'
+    backgroundColor: '#050608',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  phoneFrame: {
+    width: '100%',
+    maxWidth: 440,
+    flex: 1,
+    backgroundColor: '#090A0F',
+    borderWidth: Platform.OS === 'web' ? 1 : 0,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: Platform.OS === 'web' ? 36 : 0,
+    overflow: 'hidden',
+    position: 'relative'
   },
   keyboardContainer: {
     flex: 1
@@ -592,10 +605,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: Platform.OS === 'ios' ? 12 : 16,
-    paddingBottom: 40,
-    maxWidth: 480,
-    width: '100%',
-    alignSelf: 'center'
+    paddingBottom: 40
   },
   topHeader: {
     flexDirection: 'row',

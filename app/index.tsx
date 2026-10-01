@@ -119,32 +119,9 @@ export default function PactLandingScreen() {
   const sealScale = useSharedValue(1);
   const pulseAnim = useSharedValue(1);
 
+  const isAuthenticated = useUserStore((s) => s.isAuthenticated);
+
   useEffect(() => {
-    // 1. Silent non-blocking Auth Gate Check
-    const checkAuth = async () => {
-      try {
-        const { isAuthenticated, profile } = useUserStore.getState();
-        if (isAuthenticated && profile?.userId) {
-          router.replace('/(tabs)/home');
-          return;
-        }
-
-        const sessionPromise = supabase.auth.getSession();
-        const timeoutPromise = new Promise<{ data: { session: null } }>((resolve) =>
-          setTimeout(() => resolve({ data: { session: null } }), 800)
-        );
-        const res = await Promise.race([sessionPromise, timeoutPromise]);
-        if (res?.data?.session?.user) {
-          useUserStore.getState().setAuthenticated(true);
-          router.replace('/(tabs)/home');
-        }
-      } catch (e) {
-        // Fall through to display landing hero
-      }
-    };
-
-    checkAuth();
-
     // Subtle breathing pulse for consensus seal badge (native only for web stability)
     if (Platform.OS !== 'web') {
       try {
@@ -246,17 +223,32 @@ export default function PactLandingScreen() {
               <Text style={styles.judgeHeaderPillText}>Judge Sandbox</Text>
             </TouchableOpacity>
 
-            {/* Sign In Link */}
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={() => {
-                triggerHaptic();
-                router.push('/auth' as any);
-              }}
-              style={styles.signInPill}
-            >
-              <Text style={styles.signInPillText}>Sign In</Text>
-            </TouchableOpacity>
+            {/* Sign In / My Circles Link */}
+            {isAuthenticated ? (
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => {
+                  triggerHaptic();
+                  router.push('/(tabs)/home' as any);
+                }}
+                style={[styles.signInPill, { backgroundColor: 'rgba(61, 224, 160, 0.12)', borderColor: 'rgba(61, 224, 160, 0.35)' }]}
+                accessibilityLabel="Go to My Circles"
+              >
+                <Text style={[styles.signInPillText, { color: '#3DE0A0' }]}>My Circles →</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => {
+                  triggerHaptic();
+                  router.push('/auth' as any);
+                }}
+                style={styles.signInPill}
+                accessibilityLabel="Sign In"
+              >
+                <Text style={styles.signInPillText}>Sign In</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 
@@ -299,13 +291,22 @@ export default function PactLandingScreen() {
               activeOpacity={0.88}
               onPress={() => {
                 triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
-                router.push('/auth' as any);
+                if (isAuthenticated) {
+                  router.push('/(tabs)/home' as any);
+                } else {
+                  router.push('/auth' as any);
+                }
               }}
               style={styles.primaryActionBtn}
+              accessibilityLabel={isAuthenticated ? "Open My Circles" : "Start a Consensus Circle"}
             >
               <View style={styles.primaryActionBtnContent}>
-                <Text style={styles.primaryActionBtnText}>Start a Consensus Circle</Text>
-                <Text style={styles.primaryActionBtnSub}>Free for up to 8 friends · No credit card</Text>
+                <Text style={styles.primaryActionBtnText}>
+                  {isAuthenticated ? 'Open Your Circles' : 'Start a Consensus Circle'}
+                </Text>
+                <Text style={styles.primaryActionBtnSub}>
+                  {isAuthenticated ? 'Return to your active trips' : 'Free for up to 8 friends · No credit card'}
+                </Text>
               </View>
               <View style={styles.primaryArrowBox}>
                 <ArrowRight size={20} color="#090A0F" strokeWidth={2.5} />
@@ -572,13 +573,22 @@ export default function PactLandingScreen() {
               activeOpacity={0.88}
               onPress={() => {
                 triggerHaptic(Haptics.ImpactFeedbackStyle.Medium);
-                router.push('/auth' as any);
+                if (isAuthenticated) {
+                  router.push('/(tabs)/home' as any);
+                } else {
+                  router.push('/auth' as any);
+                }
               }}
               style={styles.primaryActionBtn}
+              accessibilityLabel={isAuthenticated ? "Open My Circles" : "Plan Your Next Trip With PACT"}
             >
               <View style={styles.primaryActionBtnContent}>
-                <Text style={styles.primaryActionBtnText}>Plan Your Next Trip With PACT</Text>
-                <Text style={styles.primaryActionBtnSub}>Create account or sign in</Text>
+                <Text style={styles.primaryActionBtnText}>
+                  {isAuthenticated ? 'Open Your Circles' : 'Plan Your Next Trip With PACT'}
+                </Text>
+                <Text style={styles.primaryActionBtnSub}>
+                  {isAuthenticated ? 'Return to your active trips' : 'Create account or sign in'}
+                </Text>
               </View>
               <View style={styles.primaryArrowBox}>
                 <ArrowRight size={20} color="#090A0F" strokeWidth={2.5} />
@@ -968,7 +978,9 @@ const styles = StyleSheet.create({
     fontFamily: fontUIBold,
     fontSize: 13,
     color: '#FFFFFF',
-    letterSpacing: 1
+    letterSpacing: 1,
+    height: '100%',
+    width: '100%'
   },
   inviteJoinBtn: {
     flexDirection: 'row',

@@ -147,10 +147,10 @@ export default function CircleDetailLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#090A0F'
+    backgroundColor: '#050608'
   },
   safeHeader: {
-    backgroundColor: '#0B0F17',
+    backgroundColor: '#050608',
     borderBottomWidth: 1,
     borderBottomColor: '#262938',
     zIndex: 50,
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 12,
-    maxWidth: 600,
+    maxWidth: 440,
     width: '100%',
     alignSelf: 'center'
   },

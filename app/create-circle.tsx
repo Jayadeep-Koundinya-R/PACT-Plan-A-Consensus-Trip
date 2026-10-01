@@ -250,9 +250,13 @@ export default function PactCreateJoinScreen() {
 
   return (
     <SafeAreaView style={[styles.outerContainer, { backgroundColor: theme.backgroundDeep, paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 20) : 0 }]}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <View style={[styles.phoneFrame, { backgroundColor: theme.background, borderColor: theme.border }]}>
-          <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <View style={[styles.phoneFrame, { backgroundColor: theme.background, borderColor: theme.border }]}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+        >
           {/* Header Navigation */}
           <View style={styles.navHeader}>
             <TouchableOpacity
@@ -674,7 +678,6 @@ export default function PactCreateJoinScreen() {
           </View>
         </ScrollView>
       </View>
-    </TouchableWithoutFeedback>
 
       {/* Celebratory Micro-Badge Modal */}
       <Modal visible={showCelebrationModal} transparent animationType="fade">
@@ -751,8 +754,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#090A0F',
     borderWidth: Platform.OS === 'web' ? 1 : 0,
-    borderColor: 'rgba(255, 255, 255, 0.11)',
-    borderRadius: Platform.OS === 'web' ? 40 : 0,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: Platform.OS === 'web' ? 36 : 0,
     overflow: 'hidden',
     position: 'relative'
   },

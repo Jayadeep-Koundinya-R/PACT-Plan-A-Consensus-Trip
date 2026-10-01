@@ -281,11 +281,14 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(5, 6, 8, 0.75)',
-    justifyContent: 'flex-end'
+    justifyContent: 'flex-end',
+    alignItems: 'center'
   },
   keyboardContainer: {
     flex: 1,
-    justifyContent: 'flex-end'
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    width: '100%'
   },
   sheetContainer: {
     backgroundColor: '#13151E',
@@ -294,6 +297,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#262938',
     maxHeight: '85%',
+    width: '100%',
+    maxWidth: 440,
     paddingBottom: Platform.OS === 'ios' ? 24 : 16
   },
   headerRow: {

@@ -38,6 +38,16 @@ export default function RootLayout() {
 
   useEffect(() => {
     useGatherlyStore.getState().initThemeFromStorage();
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      try {
+        document.body.style.backgroundColor = '#050608';
+        document.body.style.margin = '0';
+        document.body.style.padding = '0';
+        if (document.documentElement) {
+          document.documentElement.style.backgroundColor = '#050608';
+        }
+      } catch (_e) {}
+    }
     if (fontsLoaded || fontError || Platform.OS === 'web') {
       SplashScreen.hideAsync().catch(() => {});
       initPurchases();
@@ -54,7 +64,8 @@ export default function RootLayout() {
       <Stack
         screenOptions={{
           headerShown: false,
-          animation: 'fade_from_bottom'
+          animation: 'fade_from_bottom',
+          contentStyle: { backgroundColor: '#050608' }
         }}
       />
     </ErrorBoundary>

@@ -601,8 +601,20 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
       useCircleStore.getState().clearCircles();
     } catch (e) {}
     try {
+      const { useCircleChatStore } = require('./useCircleChatStore');
+      useCircleChatStore.getState().clearAllMessages();
+    } catch (e) {}
+    try {
+      const { useDemoMode } = require('../hooks/useDemoMode');
+      useDemoMode.getState().setDemoMode(false);
+    } catch (e) {}
+    try {
       const { useUserStore } = require('./useUserStore');
       useUserStore.getState().logout();
+    } catch (e) {}
+    try {
+      const { useNotificationStore } = require('./useNotificationStore');
+      useNotificationStore.getState().clearNotifications();
     } catch (e) {}
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
@@ -624,8 +636,10 @@ export const useGatherlyStore = create<GatherlyState>((set, get) => ({
       preferenceDrafts: {},
       votes: {},
       finalizedBrief: null,
+      consensusSnapshot: null,
       vaultDocuments: {},
       memoryPhotos: {},
+      pastTrips: [],
       subscriptionPlan: 'free'
     });
   },

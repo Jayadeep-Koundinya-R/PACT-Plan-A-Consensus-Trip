@@ -129,7 +129,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 14,
-    borderBottomWidth: 1
+    borderBottomWidth: 1,
+    maxWidth: 440,
+    width: '100%',
+    alignSelf: 'center'
   },
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   iconBox: {
@@ -152,7 +155,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 40,
-    maxWidth: 600,
+    maxWidth: 440,
     width: '100%',
     alignSelf: 'center'
   },

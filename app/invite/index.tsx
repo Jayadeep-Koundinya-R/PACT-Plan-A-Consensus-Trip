@@ -45,11 +45,12 @@ export default function InviteIndexScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+    <SafeAreaView style={styles.outerContainer}>
+      <View style={styles.phoneFrame}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
         {/* Top PACT Brand Header Frame Box - Document Style */}
         <View
           style={[
@@ -136,23 +137,33 @@ export default function InviteIndexScreen() {
           </Text>
         </View>
       </ScrollView>
-
-      
+    </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1
+  outerContainer: {
+    flex: 1,
+    backgroundColor: '#050608',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  phoneFrame: {
+    width: '100%',
+    maxWidth: 440,
+    flex: 1,
+    backgroundColor: '#090A0F',
+    borderWidth: Platform.OS === 'web' ? 1 : 0,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: Platform.OS === 'web' ? 36 : 0,
+    overflow: 'hidden',
+    position: 'relative'
   },
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: 130,
-    maxWidth: 600,
-    width: '100%',
-    alignSelf: 'center'
+    paddingBottom: 130
   },
   brandHeaderBox: {
     flexDirection: 'row',

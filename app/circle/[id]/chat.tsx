@@ -118,14 +118,14 @@ export default function PactCircleChatScreen() {
 
   return (
     <CircleRouteGuard id={id}>
-      <SafeAreaView style={[styles.outerContainer, { backgroundColor: theme.background, paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 20) : 0 }]}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={styles.keyboardAvoid}
-        >
-          <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <SafeAreaView style={[styles.outerContainer, { backgroundColor: '#050608', paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 20) : 0 }]}>
+        <View style={styles.phoneFrame}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            style={styles.keyboardAvoid}
+          >
             <View style={{ flex: 1 }}>
-              {/* Header Bar */}
+                {/* Header Bar */}
           <View style={[styles.headerBar, { backgroundColor: isDarkMode ? '#0B0F17' : '#FFFFFF', borderBottomColor: theme.border }]}>
             <TouchableOpacity
               onPress={() => {
@@ -369,8 +369,8 @@ export default function PactCircleChatScreen() {
   </View>
 )}
             </View>
-          </TouchableWithoutFeedback>
-</KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </View>
       </SafeAreaView>
     </CircleRouteGuard>
   );
@@ -378,7 +378,21 @@ export default function PactCircleChatScreen() {
 
 const styles = StyleSheet.create({
   outerContainer: {
-    flex: 1
+    flex: 1,
+    backgroundColor: '#050608',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  phoneFrame: {
+    width: '100%',
+    maxWidth: 440,
+    flex: 1,
+    backgroundColor: '#090A0F',
+    borderWidth: Platform.OS === 'web' ? 1 : 0,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: Platform.OS === 'web' ? 36 : 0,
+    overflow: 'hidden',
+    position: 'relative'
   },
   keyboardAvoid: {
     flex: 1

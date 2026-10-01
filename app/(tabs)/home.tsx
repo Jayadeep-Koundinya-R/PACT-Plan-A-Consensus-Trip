@@ -359,54 +359,84 @@ export default function MyCirclesScreen() {
                     </Text>
                   </TouchableOpacity>
                 ) : (
-                  <View style={{ flexDirection: 'row', gap: 10, marginTop: 16, width: '100%', maxWidth: 320 }}>
-                    <TouchableOpacity
-                      activeOpacity={0.85}
-                      onPress={() => {
-                        haptics.action();
-                        router.push('/create-circle');
-                      }}
-                      style={{
-                        flex: 1,
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 6,
-                        paddingVertical: 12,
-                        paddingHorizontal: 14,
-                        borderRadius: 10,
-                        backgroundColor: '#FF5A5F'
-                      }}
-                    >
-                      <Plus size={14} color="#050608" strokeWidth={2.5} />
-                      <Text style={{ color: '#050608', fontSize: 12.5, fontWeight: '700' }}>
-                        + Plan a New PACT
-                      </Text>
-                    </TouchableOpacity>
+                  <View style={{ width: '100%', maxWidth: 320, marginTop: 16 }}>
+                    <View style={{ flexDirection: 'row', gap: 10 }}>
+                      <TouchableOpacity
+                        activeOpacity={0.85}
+                        onPress={() => {
+                          haptics.action();
+                          router.push('/create-circle');
+                        }}
+                        style={{
+                          flex: 1,
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 6,
+                          paddingVertical: 12,
+                          paddingHorizontal: 14,
+                          borderRadius: 10,
+                          backgroundColor: '#FF5A5F'
+                        }}
+                      >
+                        <Plus size={14} color="#050608" strokeWidth={2.5} />
+                        <Text style={{ color: '#050608', fontSize: 12.5, fontWeight: '700' }}>
+                          + Plan a New PACT
+                        </Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        activeOpacity={0.8}
+                        onPress={() => {
+                          haptics.tap();
+                          router.push('/invite');
+                        }}
+                        style={{
+                          flex: 1,
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 6,
+                          paddingVertical: 12,
+                          paddingHorizontal: 14,
+                          borderRadius: 10,
+                          backgroundColor: '#13151E',
+                          borderWidth: 1,
+                          borderColor: '#262938'
+                        }}
+                      >
+                        <KeyRound size={14} color="#F4F3F0" />
+                        <Text style={{ color: '#F4F3F0', fontSize: 12.5, fontWeight: '600' }}>
+                          Join with Code
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
 
                     <TouchableOpacity
                       activeOpacity={0.8}
                       onPress={() => {
-                        haptics.tap();
-                        router.push('/invite');
+                        haptics.success();
+                        useDemoMode.getState().setDemoMode(true);
+                        resetDemoState();
+                        loadDemoCircle();
                       }}
                       style={{
-                        flex: 1,
+                        marginTop: 10,
                         flexDirection: 'row',
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: 6,
-                        paddingVertical: 12,
+                        paddingVertical: 10,
                         paddingHorizontal: 14,
                         borderRadius: 10,
-                        backgroundColor: '#13151E',
+                        backgroundColor: 'rgba(212, 175, 55, 0.1)',
                         borderWidth: 1,
-                        borderColor: '#262938'
+                        borderColor: 'rgba(212, 175, 55, 0.28)'
                       }}
                     >
-                      <KeyRound size={14} color="#F4F3F0" />
-                      <Text style={{ color: '#F4F3F0', fontSize: 12.5, fontWeight: '600' }}>
-                        Join with Code
+                      <Sparkles size={13} color="#D4AF37" />
+                      <Text style={{ color: '#D4AF37', fontSize: 12, fontWeight: '700' }}>
+                        ⚡ Or Load 5-Member Demo Circle
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -752,6 +782,7 @@ const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
     backgroundColor: '#050608',
+    justifyContent: 'center',
     alignItems: 'center'
   },
   tabSwitcher: {
@@ -846,7 +877,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#090A0F',
     borderWidth: Platform.OS === 'web' ? 1 : 0,
-    borderColor: '#262938'
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: Platform.OS === 'web' ? 36 : 0,
+    overflow: 'hidden',
+    position: 'relative'
   },
   scrollContent: {
     paddingHorizontal: 16,

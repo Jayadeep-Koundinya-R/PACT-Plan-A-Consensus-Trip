@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     width: '100%',
-    maxWidth: 420,
+    maxWidth: 440,
     borderRadius: radius.card,
     padding: 24,
     borderWidth: 1,
